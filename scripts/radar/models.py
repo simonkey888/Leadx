@@ -107,35 +107,48 @@ class Case:
         return asdict(self)
 
     def to_sheet_row(self) -> Dict[str, Any]:
-        """Fila lista para Google Sheet (columnas planas)."""
-        return {
+        """
+        Fila lista para Google Sheet — schema EXACTO del uploader v1.0.
+
+        Las columnas y su orden están definidas en config.SHEET_HEADERS.
+        Nunca devolver campos que no estén en SHEET_HEADERS (la sheet es append-only).
+        """
+        # WhatsApp link (se construye aquí si hay número, para no duplicar lógica)
+        from urllib.parse import quote
+        import config as _cfg
+        if self.whatsapp_number and not self.whatsapp_link:
+            msg = quote(_cfg.WHATSAPP_DEFAULT_MESSAGE)
+            self.whatsapp_link = f"https://wa.me/{self.whatsapp_number}?text={msg}"
+
+        # priority_level = score_band (espejo del spec del uploader)
+        self.priority_level = self.score_band
+        # review_state = status (espejo del spec del uploader)
+        self.review_state = self.status
+
+        row = {
             "case_id": self.case_id,
-            "signal_id": self.signal_id,
             "timestamp": self.timestamp,
-            "source_id": self.source_id,
-            "source_url": self.source_url,
-            "profile_url": self.profile_url,
             "name_or_alias": self.name_or_alias,
-            "vehicle_type": self.vehicle_type,
+            "profile_url": self.profile_url,
             "patent": self.patent,
+            "vehicle_type": self.vehicle_type,
             "jurisdiction": self.jurisdiction,
             "locality": self.locality,
             "problem_type": self.problem_type,
             "year": self.year if self.year is not None else "",
             "amount": self.amount if self.amount is not None else "",
             "score": self.score,
-            "score_band": self.score_band,
+            "priority_level": self.priority_level,
+            "source_name": self.source_id,
+            "source_url": self.source_url,
+            "evidence_text": self.evidence_text,
+            "whatsapp_number": self.whatsapp_number,
+            "whatsapp_link": self.whatsapp_link,
             "status": self.status,
-            "review_action": self.review_action or "",
-            "reviewed_by": self.reviewed_by or "",
-            "reviewed_at": self.reviewed_at or "",
-            "evidence_path": self.evidence_path or "",
-            "evidence_sha256": self.evidence_sha256 or "",
-            "evidence_text": (self.evidence_text[:500] + "…") if len(self.evidence_text) > 500 else self.evidence_text,
-            "duplicate_of": self.duplicate_of or "",
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "review_state": self.review_state,
         }
+        # Garantizar que el orden de las keys = SHEET_HEADERS
+        return {k: row.get(k, "") for k in _cfg.SHEET_HEADERS}
 
 
 @dataclass
