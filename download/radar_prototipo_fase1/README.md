@@ -119,6 +119,79 @@ status, review_state
 **Audit**: cada operación (`ensure_headers`, `appended`, `updated_higher_score`,
 `skipped_lower_score`, `error`) se loguea en `audit_trail.log`.
 
+### Subida vía Apps Script Webhook (`--sheet-push-webhook`)
+
+Alternativa sin `gspread` ni service account: el operador despliega el script
+`apps_script/Code.gs` (en el repo del operador) como Web App y este módulo
+hace POST HTTP con el payload JSON.
+
+```bash
+# Dry-run: serializa payload JSON a stdout sin hacer HTTP
+python main.py --sheet-push-webhook --dry-run
+
+# Push real (requiere Web App desplegada):
+export RADAR_WEBHOOK_URL=https://script.google.com/macros/s/<DEPLOY_ID>/exec
+python main.py --sheet-push-webhook
+```
+
+**Comportamiento sin URL** (no hay modo mock ni dry-run implícito):
+
+```
+$ python main.py --sheet-push-webhook
+✗ Missing webhook URL (env var RADAR_WEBHOOK_URL is empty)
+  Setear env var: export RADAR_WEBHOOK_URL=https://script.google.com/macros/s/<DEPLOY_ID>/exec
+```
+
+**Payload enviado** (POST `application/json`):
+
+```json
+{
+  "cases": [
+    {
+      "case_id": "...",
+      "timestamp": "...",
+      "name_or_alias": "...",
+      "profile_url": "...",
+      "patent": "...",
+      "vehicle_type": "...",
+      "jurisdiction": "...",
+      "locality": "...",
+      "problem_type": "...",
+      "year": "",
+      "amount": "",
+      "score": 82,
+      "source_name": "...",
+      "source_url": "...",
+      "evidence_text": "...",
+      "whatsapp_number": ""
+    }
+  ]
+}
+```
+
+**Respuesta esperada del Apps Script**:
+- `"OK"` → todos los casos fueron appendados
+- `"NO_CASES"` → payload sin cases
+- Otro string → error reportado por el script
+
+**Diferencias vs `--sheet-write` (gspread)**:
+
+| Aspecto               | `--sheet-write` (gspread)             | `--sheet-push-webhook` (Apps Script) |
+| --------------------- | ------------------------------------- | ------------------------------------ |
+| Auth                  | Service account JSON                  | Web App URL pública                  |
+| Deps Python           | `gspread` + `oauth2client`            | Ninguna (sólo `urllib` de stdlib)    |
+| Dedup                 | Cliente (Python busca case_id)        | No implementado en script actual     |
+| Update score si mayor | Sí                                    | No (sólo append)                     |
+| Headers               | Cliente asegura                       | Cliente debe asegurar (script no)    |
+| WhatsApp link         | Cliente construye                     | Script construye                     |
+| Status inicial        | `needs_review`                        | `"new"`                              |
+| review_state inicial  | `needs_review`                        | `"pending_review"`                   |
+| Latencia              | 1 llamada API por caso + 1 batch       | 1 POST total                          |
+
+**Recomendación**: si el volumen es bajo (<50 casos/día) y querés dedup +
+update, usar `--sheet-write`. Si el volumen es alto o no querés dependencias
+Python, usar `--sheet-push-webhook` (más rápido, menos features).
+
 ### CLI de revisión humana
 
 ```bash
@@ -173,7 +246,7 @@ Reglas de compliance activas (config.py `COMPLIANCE_RULES`):
 
 ```
 scripts/radar/
-├── main.py              # Entry point (--review | --sheet-write | default pipeline)
+├── main.py              # Entry point (--review | --sheet-write | --sheet-push-webhook | default pipeline)
 ├── pipeline.py          # Orquestador end-to-end
 ├── config.py            # Constantes del spec (jurisdicciones, pesos, SHEET_HEADERS, etc.)
 ├── models.py            # Dataclasses: Signal, Case, AuditEntry, ReviewAction
@@ -182,7 +255,8 @@ scripts/radar/
 ├── scorer.py            # Scoring 0-100 con 7 pesos del spec
 ├── dedup.py             # Dedup con 4 match keys + union-find
 ├── storage.py           # EvidenceStore + AuditTrail + ReviewQueue + SheetSync (legacy)
-├── sheets_uploader.py   # Contrato de subida a Google Sheets (SPEC-ONLY)
+├── sheets_uploader.py   # Subida vía gspread + service account (SPEC-ONLY)
+├── webhook_uploader.py  # Subida vía POST a Apps Script Web App (SPEC-ONLY)
 └── review_cli.py        # CLI interactivo de revisión
 ```
 

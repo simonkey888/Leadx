@@ -89,3 +89,44 @@ Archivos modificados:
 - scripts/radar/models.py (Case +4 campos, to_sheet_row rewrite)
 - scripts/radar/main.py (--sheet-write, --dry-run flags)
 - scripts/radar/README.md (sección --sheet-write)
+
+---
+Task ID: 3-webhook-uploader
+Agent: main
+Task: Implementar webhook_uploader.py como vía alternativa de subida vía Apps Script Web App (SPEC-ONLY).
+
+Work Log:
+- Creado webhook_uploader.py con WebhookUploader class
+- Contract: input = RADAR_WEBHOOK_URL (env var URL string)
+- Behavior: si URL vacía o esquema inválido → raise MissingWebhookURLError("Missing webhook URL ...")
+- Sin modo mock ni dry-run implícito. Dry-run explícito vía --dry-run flag.
+- Implementación real dentro de métodos (urllib.request POST con retry_once_then_log_error)
+  pero NO se ejecutan HTTP POST en este entorno (no hay URL).
+- Static method case_to_payload() para construir payload sin instanciar (útil para dry-run)
+- Payload JSON: {"cases": [...]} con 15 campos de entrada (sin priority_level, whatsapp_link,
+  status, review_state — el script los computa)
+- Respuestas esperadas: "OK" | "NO_CASES" | "ERROR: <msg>"
+- Audit logging en cada operación (appended, failed, error)
+- Actualizado main.py: --sheet-push-webhook flag + cmd_sheet_push_webhook()
+- Actualizado README.md con sección completa comparando --sheet-write vs --sheet-push-webhook
+- Creado apps_script/Code.gs con el script del usuario, extendido:
+  * ensureHeaders() para crear row 1 si hoja vacía
+  * try/catch en doPost con mensajes "OK" | "NO_CASES" | "ERROR: <msg>"
+  * testDoPost() para probar desde el editor de Apps Script
+  * Normalización de WhatsApp number (sólo dígitos)
+- Smoke test webhook_uploader.py: 5 verificaciones OK (sin URL, esquema inválido, URL válida,
+  case_to_payload schema, push([]) → NO_CASES)
+- Smoke test main.py: --sheet-push-webhook sin URL → "Missing webhook URL"; --dry-run → payload JSON correcto
+
+Stage Summary:
+- Dos vías de subida a Google Sheet implementadas:
+  1. --sheet-write (gspread + service account JSON) — con dedup + update_score_if_higher
+  2. --sheet-push-webhook (HTTP POST + Apps Script Web App) — append simple, sin deps Python
+- Ambas SPEC-ONLY: fail explícito si falta credencial/URL, sin mocks ni dry-run implícito
+- Bundle sincronizado en /home/z/my-project/download/radar_prototipo_fase1/ (15 .py + 1 .gs + 3 .md)
+
+Archivos modificados/creados:
+- scripts/radar/webhook_uploader.py (NUEVO)
+- scripts/radar/apps_script/Code.gs (NUEVO)
+- scripts/radar/main.py (--sheet-push-webhook flag + cmd_sheet_push_webhook)
+- scripts/radar/README.md (sección webhook + tabla comparativa)
