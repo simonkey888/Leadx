@@ -4,7 +4,82 @@ Sistema de detección de oportunidades comerciales **públicas** relacionadas co
 fotomultas, libre deuda, transferencia y regularización vehicular, con foco en
 **trazabilidad** y **revisión humana obligatoria** (sin outreach automático).
 
-## Lectura general del sistema
+## Tres modos de uso
+
+| Modo | Archivo | Complejidad | Cuándo usar |
+| ---- | ------- | ----------- | ----------- |
+| **Lite** | `radar_lite.py` | 1 archivo, 0 deps | Detección rápida manual con derivación a WhatsApp |
+| **v1.0** | `pipeline.py` + 10 módulos | Media | Pipeline imperativo con regex, scoring 0-100, dedup, audit trail |
+| **v2.0** | `event_pipeline.py` + 15 módulos | Alta | Event-driven con LLM, PolicyEngine, sinks, event_log |
+
+### Radar Lite (recomendado para empezar)
+
+**1 archivo, 0 dependencias, sin event_bus, sin database, sin sheets, sin policy_engine, sin LLM.**
+
+Sólo hace: texto → keywords → score 0-3 → link de WhatsApp.
+
+```bash
+# Input por argumento
+python radar_lite.py "URGENTE: vendo auto. Libre deuda pendiente. Transferir."
+
+# Input por pipe
+echo "Tengo una multa de CABA..." | python radar_lite.py
+
+# Input interactivo
+python radar_lite.py
+# (luego pegar texto, Ctrl+D para finalizar)
+
+# Tests
+python radar_lite.py --test
+```
+
+**Output** (JSON):
+
+```json
+{
+  "score": 3,
+  "intent": "high_intent_actionable",
+  "name_or_alias": "",
+  "vehicle_reference": "auto",
+  "patent_if_present": "ABC123",
+  "location": "PBA",
+  "problem_type": "transferencia",
+  "source_text_snippet": "URGENTE: vendo auto Ford Fiesta 2015...",
+  "matched_keywords": ["deuda", "patente", "libre deuda", "urgente", "vendo auto"],
+  "whatsapp_link": "https://wa.me/5493425691516?text=CASO%20RADAR%0AINTENCION%3A%203%0ATIPO%3A%20transferencia%0AEXTRACTO%3A%20...",
+  "triggered": true
+}
+```
+
+**Scoring 0-3** (threshold >= 2 genera link):
+
+| Score | Intent | Significado |
+| ----- | ------ | ----------- |
+| 0 | no_relevant | Nada matcheó |
+| 1 | low_intent | Sólo problema mencionado (multa, deuda, patente) |
+| 2 | medium_intent | Problema + contexto, o acción sola |
+| 3 | high_intent_actionable | Problema + contexto + acción |
+
+**Keywords** (3 categorías):
+- Problema: `multa`, `fotomulta`, `deuda`, `patente`
+- Contexto: `libre deuda`, `transferencia`, `urgente`
+- Acción: `vendo auto`, `transferir auto`, `no puedo vender`, `no puedo transferir`
+
+**WhatsApp link** (si score >= 2):
+- Teléfono: `+5493425691516`
+- Template: `CASO RADAR\nINTENCION: {score}\nTIPO: {problem_type}\nEXTRACTO: {snippet}`
+
+**Reglas cumplidas**:
+- ✓ no_external_writes (sólo genera link, no envía nada)
+- ✓ no_databases (sin SQLite, sin sheets)
+- ✓ no_crm_logic (sólo detección de intención)
+- ✓ no_automation_spam (link manual, no auto-envío)
+- ✓ manual_review_optional (el humano decide si abre el link)
+- ✓ focus_only_on_intent_detection
+
+---
+
+## Lectura general del sistema (v1.0 / v2.0)
 
 > **Es un decision pipeline determinístico con capa LLM de extracción, con
 > auditoría completa.**

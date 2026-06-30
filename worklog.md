@@ -330,3 +330,29 @@ Archivos modificados:
 - scripts/radar/sinks.py (eliminado should_trigger, sinks = ejecución pura)
 - scripts/radar/event_pipeline.py (DecisionIssued en vez de PolicyEvaluated)
 - scripts/radar/README.md (lectura del sistema + 3 correcciones A/B/C documentadas)
+
+---
+Task ID: 7-radar-lite
+Agent: main
+Task: Implementar Radar Lite según spec minimalista (Fase 1 v1.0 simplified).
+
+Work Log:
+- Creado radar_lite.py: módulo único autocontenido (~430 líneas)
+- Sin event_bus, sin database, sin sheets, sin policy_engine, sin LLM, sin complex_workflows
+- Sólo stdlib (json, re, sys, urllib.parse, dataclasses)
+- 3 categorías de keywords: problema, contexto, acción
+- Scoring 0-3 (no 0-100): +1 por categoría matcheada, cap a 3
+- Threshold >= 2 para generar link de WhatsApp
+- Entity extraction: name_or_alias, vehicle_reference, patent_if_present, location, problem_type, source_text_snippet
+- WhatsApp link al +5493425691516 con template del spec
+- CLI: input por argumento, pipe o interactivo
+- Output: JSON con score, matched_keywords, snippet, whatsapp_link
+- 6 smoke tests OK (FB post, X post, marketplace, manual, forum, patente)
+
+Stage Summary:
+- 1 archivo, 0 dependencias, 0 configuración externa
+- Cumple todas las reglas del spec: no_external_writes, no_databases, no_crm_logic,
+  no_automation_spam, manual_review_optional, focus_only_on_intent_detection
+- Output: JSON con score 0-3, matched_keywords, snippet, whatsapp_link (si >= 2)
+- WhatsApp: +5493425691516 con template "CASO RADAR / INTENCION / TIPO / EXTRACTO"
+- Bundle sincronizado
