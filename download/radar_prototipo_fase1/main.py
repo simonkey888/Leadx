@@ -1,18 +1,22 @@
 """
-main.py — Entry point del Radar de Oportunidades (Fase 1).
+main.py — Entry point del Radar de Oportunidades.
+
+v1.0 (default): pipeline imperativo con extractor regex
+v2.0 (--event-pipeline): event-driven con LLM extractor + sinks
 
 Uso:
-    python main.py                          # pipeline end-to-end con mock data
-    python main.py --review                 # CLI de revisión
-    python main.py --review --demo          # demo automática
-    python main.py --sheet-write            # subir vía gspread + service account
-    python main.py --sheet-write --dry-run  # serializar filas sin tocar Google
-    python main.py --sheet-push-webhook     # subir vía POST a Apps Script Web App
+    python main.py                                # pipeline v1 (regex, mock)
+    python main.py --event-pipeline               # pipeline v2 (LLM, event-driven)
+    python main.py --review                       # CLI de revisión
+    python main.py --review --demo                # demo automática
+    python main.py --sheet-write                  # subir vía gspread (v1 output)
+    python main.py --sheet-push-webhook           # subir vía webhook (v1 output)
     python main.py --help
 
 Requisitos:
     Python 3.10+
     Sólo stdlib para Fase 1 (gspread opcional para --sheet-write)
+    LLM API key (RADAR_LLM_API_KEY) obligatoria para --event-pipeline
 """
 from __future__ import annotations
 import argparse
@@ -26,7 +30,26 @@ from review_cli import ReviewCLI
 from storage import load_cases_jsonl, AuditTrail
 from sheets_uploader import GoogleSheetsUploader, MissingCredentialsError
 from webhook_uploader import WebhookUploader, MissingWebhookURLError
+from llm_extractor import LLMExtractor, MissingLLMApiKeyError
+from event_pipeline import EventPipeline
 import config
+
+
+def cmd_event_pipeline() -> int:
+    """Ejecuta el pipeline event-driven v2.0 (requiere RADAR_LLM_API_KEY)."""
+    audit = AuditTrail()
+    pipeline = EventPipeline(audit=audit, use_real_sources=False)
+    try:
+        result = pipeline.run()
+    except MissingLLMApiKeyError as e:
+        print(f"✗ {e}", file=sys.stderr)
+        print(
+            "  Setear env var: export RADAR_LLM_API_KEY=<tu-api-key>",
+            file=sys.stderr,
+        )
+        return 2
+    pipeline.print_summary(result)
+    return 0
 
 
 def cmd_sheet_write(dry_run: bool) -> int:
@@ -170,6 +193,10 @@ def main() -> int:
         help="En modo --review, ejecuta demo automática (no interactivo)",
     )
     parser.add_argument(
+        "--event-pipeline", action="store_true",
+        help="Usa pipeline v2.0 event-driven con LLM extractor (requiere RADAR_LLM_API_KEY)",
+    )
+    parser.add_argument(
         "--sheet-write", action="store_true",
         help="Sube casos canónicos a Google Sheet vía gspread (requiere RADAR_GOOGLE_SERVICE_ACCOUNT_FILE)",
     )
@@ -197,6 +224,9 @@ def main() -> int:
         else:
             cli.run()
         return 0
+
+    if args.event_pipeline:
+        return cmd_event_pipeline()
 
     if args.sheet_write:
         return cmd_sheet_write(dry_run=args.dry_run)

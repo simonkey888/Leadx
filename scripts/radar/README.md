@@ -1,8 +1,20 @@
-# Radar de Oportunidades — Prototipo Fase 1
+# Radar de Oportunidades — Prototipo
 
 Sistema de detección de oportunidades comerciales **públicas** relacionadas con
 fotomultas, libre deuda, transferencia y regularización vehicular, con foco en
 **trazabilidad** y **revisión humana obligatoria** (sin outreach automático).
+
+## Dos versiones del pipeline
+
+| Versión | Modo | Extractor | Orquestación | Cómo activarlo |
+| ------- | ---- | --------- | ------------ | -------------- |
+| v1.0 (default) | imperativo | regex + keyword matching | pipeline.py directo | `python main.py` |
+| v2.0 | event-driven | LLM (GLM-4) | event_bus + sinks | `python main.py --event-pipeline` |
+
+**v2.0 cumple 3 reglas del spec:**
+- `no_llm_side_effects`: el extractor es pure function (sólo chat completion, no tool calls)
+- `no_direct_external_writes`: el pipeline sólo escribe via sinks
+- `requires_event_validation`: todo evento pasa por EventValidator antes del dispatch
 
 ---
 
@@ -192,6 +204,78 @@ $ python main.py --sheet-push-webhook
 update, usar `--sheet-write`. Si el volumen es alto o no querés dependencias
 Python, usar `--sheet-push-webhook` (más rápido, menos features).
 
+### Pipeline v2.0 event-driven (`--event-pipeline`)
+
+Arquitectura event-driven con LLM extractor y sinks separados. Cumple las 3
+reglas del spec v2.0:
+- `no_llm_side_effects`: extractor LLM es pure function
+- `no_direct_external_writes`: pipeline sólo escribe via sinks
+- `requires_event_validation`: cada evento se valida contra data_contract
+
+```bash
+# Requiere API key del LLM (GLM-4 o compatible OpenAI):
+export RADAR_LLM_API_KEY=<tu-api-key>
+# Opcional: endpoint y modelo
+# export RADAR_LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/chat/completions
+# export RADAR_LLM_MODEL=glm-4-flash
+# Opcional: webhook URL para sink de Sheets
+# export RADAR_WEBHOOK_URL=https://script.google.com/macros/s/<ID>/exec
+
+python main.py --event-pipeline
+```
+
+**Comportamiento sin API key** (no hay modo mock):
+
+```
+$ python main.py --event-pipeline
+✗ Missing LLM API key (env var RADAR_LLM_API_KEY is empty)
+  Setear env var: export RADAR_LLM_API_KEY=<tu-api-key>
+```
+
+**Flujo de eventos**:
+
+```
+SignalCollected
+  → handler_on_signal_collected
+    → LLMExtractor.extract_to_case(signal)
+    → publicar EntitiesExtracted
+      → handler_on_entities_extracted
+        → Scorer.update_case_score(case)
+        → publicar CaseScored
+          → handler_on_case_scored (buffer para dedup batch)
+            → merge_duplicates(casos)
+            → por cada caso canónico:
+              → publicar CaseDeduplicated
+              → SinkFanOut.write(case)
+                → WhatsAppLinkSink (genera link si trigger)
+                → GoogleSheetsWebhookSink (encola para batch)
+              → publicar CasePublished
+            → SinkFanOut.flush_all() (envía batch a Sheets)
+```
+
+**Sinks disponibles**:
+
+| Sink ID | Tipo | Trigger | Escribe externamente? |
+| ------- | ---- | ------- | --------------------- |
+| `whatsapp` | link_generator | `manual_or_score_threshold` (score>=80 OR número manual OR approved) | No (sólo genera link en case.whatsapp_link) |
+| `google_sheets` | apps_script_webhook | batch (cada 50 casos o flush final) | Sí (vía WebhookUploader) |
+
+**Data_contract validado en cada evento**:
+
+```json
+{
+  "case_id": "string (no vacío)",
+  "patent": "string",
+  "jurisdiction": "string",
+  "score": "number 0-100",
+  "source": "string (no vacío)",
+  "evidence": "string (no vacío)",
+  "timestamp": "iso8601"
+}
+```
+
+Eventos inválidos → se emite `EventRejected` y no se dispatchean a handlers.
+
 ### CLI de revisión humana
 
 ```bash
@@ -246,18 +330,31 @@ Reglas de compliance activas (config.py `COMPLIANCE_RULES`):
 
 ```
 scripts/radar/
-├── main.py              # Entry point (--review | --sheet-write | --sheet-push-webhook | default pipeline)
-├── pipeline.py          # Orquestador end-to-end
+├── main.py              # Entry point (--review | --event-pipeline | --sheet-write | --sheet-push-webhook | default v1)
+│
+│   ── v1.0 (pipeline imperativo, regex extractor) ──
+├── pipeline.py          # Orquestador end-to-end v1
+├── extractor.py         # Extracción regex + normalización + privacy filter
+├── storage.py           # EvidenceStore + AuditTrail + ReviewQueue + SheetSync (legacy)
+│
+│   ── v2.0 (event-driven, LLM extractor) ──
+├── event_types.py       # Eventos: SignalCollected, EntitiesExtracted, CaseScored, CaseDeduplicated, CasePublished, EventRejected
+├── event_validator.py   # Validación contra data_contract
+├── event_bus.py         # In-process pub/sub con validación obligatoria
+├── llm_extractor.py     # LLM extractor (GLM-4, pure function, SPEC-ONLY)
+├── sinks.py             # Sink abstract + WhatsAppLinkSink + GoogleSheetsWebhookSink + SinkFanOut
+├── event_pipeline.py    # Orquestador event-driven v2
+│
+│   ── shared ──
 ├── config.py            # Constantes del spec (jurisdicciones, pesos, SHEET_HEADERS, etc.)
 ├── models.py            # Dataclasses: Signal, Case, AuditEntry, ReviewAction
 ├── mock_sources.py      # Mock data AR + stubs documentados para Fase 2/3
-├── extractor.py         # Extracción regex + normalización + privacy filter
-├── scorer.py            # Scoring 0-100 con 7 pesos del spec
+├── scorer.py            # Scoring 0-100 con 7 pesos del spec (weighted_sum_v1)
 ├── dedup.py             # Dedup con 4 match keys + union-find
-├── storage.py           # EvidenceStore + AuditTrail + ReviewQueue + SheetSync (legacy)
 ├── sheets_uploader.py   # Subida vía gspread + service account (SPEC-ONLY)
 ├── webhook_uploader.py  # Subida vía POST a Apps Script Web App (SPEC-ONLY)
-└── review_cli.py        # CLI interactivo de revisión
+├── review_cli.py        # CLI interactivo de revisión
+└── apps_script/Code.gs  # Script Apps Script para desplegar como Web App
 ```
 
 Outputs en `/home/z/my-project/download/sample_data/`:

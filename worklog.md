@@ -130,3 +130,64 @@ Archivos modificados/creados:
 - scripts/radar/apps_script/Code.gs (NUEVO)
 - scripts/radar/main.py (--sheet-push-webhook flag + cmd_sheet_push_webhook)
 - scripts/radar/README.md (sección webhook + tabla comparativa)
+
+---
+Task ID: 4-event-pipeline-v2
+Agent: main
+Task: Implementar pipeline event-driven v2.0 con LLM extractor y sinks separados.
+
+Work Log:
+- Creado event_types.py: 6 tipos de eventos frozen dataclass (SignalCollected, EntitiesExtracted, CaseScored, CaseDeduplicated, CasePublished, EventRejected)
+- Creado event_validator.py: validación contra data_contract del spec v2.0
+  (case_id, patent, jurisdiction, score 0-100, source, evidence, timestamp iso8601)
+- Creado event_bus.py: pub/sub in-process síncrono
+  - todo evento pasa por validate_event() antes del dispatch
+  - eventos inválidos → EventRejected, NO se dispatchean
+  - handlers que fallan → logueado pero no rompe el bus
+  - audit logging de cada publish y handler_error
+- Creado llm_extractor.py: LLM extractor SPEC-ONLY
+  - env var RADAR_LLM_API_KEY obligatoria
+  - sin API key → MissingLLMApiKeyError("Missing LLM API key ...")
+  - pure function: sólo chat completion, no tool calls (regla no_llm_side_effects)
+  - SYSTEM_PROMPT con reglas anti-PII y no-alucinación
+  - LLM_OUTPUT_SCHEMA con 7 entidades requeridas
+  - extract_to_case(signal) mapea output a Case
+- Creado sinks.py: 
+  - Sink abstract base
+  - WhatsAppLinkSink: trigger manual_or_score_threshold (score>=80 OR número manual OR approved)
+    genera https://wa.me/{num}?text={encoded_msg}, no escribe externamente
+  - GoogleSheetsWebhookSink: batch con flush(), delega en webhook_uploader
+  - SinkFanOut: ejecuta N sinks sobre un case
+- Creado event_pipeline.py: orquestador
+  - pre-flight check: si no hay API key, falla ANTES de procesar
+  - wire 3 handlers (signal_collected, entities_extracted, case_scored)
+  - dedup batch al final sobre todos los casos
+  - SinkFanOut.write + flush_all
+- Actualizado main.py: --event-pipeline flag
+
+Smoke tests OK:
+- event_validator: 5 verificaciones (válido, inválido, score fuera de rango, timestamp inválido)
+- event_bus: 4 verificaciones (publish válido, publish inválido rechazado, stats, audit)
+- llm_extractor: 6 verificaciones (sin API key, constructor OK, prompt, schema, hash)
+- sinks: 8 verificaciones (3 triggers de WhatsApp, sin URL sheets, fan-out)
+- event_pipeline: sin API key → fail explícito; con dummy key → wiring OK, 24 eventos publicados
+
+Stage Summary:
+- v2.0 cumple las 3 reglas del spec:
+  ✓ no_llm_side_effects: extractor es pure function (sólo chat completion)
+  ✓ no_direct_external_writes: pipeline sólo escribe via sinks
+  ✓ requires_event_validation: bus valida cada evento antes del dispatch
+- 2 sinks implementados: WhatsApp (link gen) + Google Sheets (webhook batch)
+- 6 tipos de eventos con data_contract validado
+- v1.0 sigue funcionando sin cambios (regresión OK)
+- Bundle sincronizado: 21 .py + 1 .gs + 3 .md
+
+Archivos creados:
+- scripts/radar/event_types.py
+- scripts/radar/event_validator.py
+- scripts/radar/event_bus.py
+- scripts/radar/llm_extractor.py
+- scripts/radar/sinks.py
+- scripts/radar/event_pipeline.py
+- scripts/radar/main.py (--event-pipeline flag)
+
