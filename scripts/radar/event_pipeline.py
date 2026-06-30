@@ -28,7 +28,7 @@ import config
 from mock_sources import collect_signals
 from event_types import (
     SignalCollected, EntitiesExtracted, CaseScored, CaseDeduplicated,
-    CasePublished, EventRejected, make_event_id, event_to_dict,
+    CasePublished, EventRejected, PolicyEvaluated, make_event_id, event_to_dict,
 )
 from event_bus import EventBus
 from event_validator import validate_event
@@ -39,6 +39,9 @@ from llm_extractor import LLMExtractor, MissingLLMApiKeyError
 from sinks import (
     Sink, WhatsAppLinkSink, GoogleSheetsWebhookSink, SinkFanOut,
 )
+from policy_engine import PolicyEngine, apply_boost
+from event_log import EventLogBackend, create_event_log
+from dataclasses import asdict
 
 
 @dataclass
@@ -49,17 +52,24 @@ class EventPipelineResult:
     cases_extracted: int = 0
     cases_canonical: int = 0
     duplicates_found: int = 0
+    policy_decisions: int = 0
+    policy_suppressed: int = 0
+    policy_whatsapp_intents: int = 0
+    policy_boosted: int = 0
     sinks_results: List[Dict[str, Any]] = field(default_factory=list)
     audit_entries: int = 0
     audit_chain_ok: bool = True
+    event_log_count: int = 0
+    event_log_backend: str = ""
     duration_seconds: float = 0.0
     cases: List[Case] = field(default_factory=list)
     extractor_used: str = ""
     sinks_used: List[str] = field(default_factory=list)
+    policy_engine_used: str = ""
 
 
 class EventPipeline:
-    """Pipeline event-driven v2.0."""
+    """Pipeline event-driven v2.0 con PolicyEngine + EventLog (correcciones A,B,C,D)."""
 
     def __init__(
         self,
@@ -67,18 +77,24 @@ class EventPipeline:
         bus: Optional[EventBus] = None,
         extractor: Optional[LLMExtractor] = None,
         sinks: Optional[List[Sink]] = None,
+        policy_engine: Optional[PolicyEngine] = None,
+        event_log: Optional[EventLogBackend] = None,
         use_real_sources: bool = False,
     ):
         self.audit = audit or AuditTrail()
         self.bus = bus or EventBus(audit=self.audit)
         # LLM extractor: falla explícito si no hay API key
         self.extractor = extractor  # lazy: se inicializa en _ensure_extractor
+        # PolicyEngine (corrección C+D)
+        self.policy_engine = policy_engine or PolicyEngine()
+        # EventLog (corrección A) — default: SQLite
+        self.event_log = event_log or create_event_log("sqlite")
         # Sinks: si no se pasan, default = WhatsAppLinkSink + GoogleSheetsWebhookSink
         if sinks is not None:
             self.sinks = sinks
         else:
             self.sinks = [
-                WhatsAppLinkSink(audit=self.audit, score_threshold=80),
+                WhatsAppLinkSink(audit=self.audit),
                 GoogleSheetsWebhookSink(audit=self.audit, batch_size=50),
             ]
         self.fanout = SinkFanOut(self.sinks)
@@ -94,7 +110,7 @@ class EventPipeline:
     def _ensure_extractor(self) -> LLMExtractor:
         if self.extractor is None:
             # Esto falla con MissingLLMApiKeyError si no hay env var
-            self.extractor = LLMExtractor(audit=self.audit) if False else LLMExtractor()
+            self.extractor = LLMExtractor()
         return self.extractor
 
     def _wire_handlers(self) -> None:
@@ -102,7 +118,7 @@ class EventPipeline:
         self.bus.subscribe("signal_collected", self._on_signal_collected)
         self.bus.subscribe("entities_extracted", self._on_entities_extracted)
         self.bus.subscribe("case_scored", self._on_case_scored)
-        # case_deduplicated se maneja al final (batch dedup), no por evento
+        self.bus.subscribe("policy_evaluated", self._on_policy_evaluated)
 
     # ------------------------------------------------------------------
     # Handlers
@@ -178,6 +194,12 @@ class EventPipeline:
         # (no podemos dedup evento-por-evento sin conocer el resto)
         pass
 
+    def _on_policy_evaluated(self, event: PolicyEvaluated) -> None:
+        """PolicyEvaluated → aplicar boost_delta + ejecutar sinks con decisión."""
+        # El handler lo dispara el run() después de dedup, no por evento suelto.
+        # Aquí sólo registramos auditoría.
+        pass
+
     # ------------------------------------------------------------------
     # Run
     # ------------------------------------------------------------------
@@ -210,6 +232,9 @@ class EventPipeline:
                 "mode": "event_driven",
                 "use_real_sources": self.use_real_sources,
                 "sinks": [s.sink_id for s in self.sinks],
+                "policy_engine": type(self.policy_engine).__name__,
+                "event_log_backend": type(self.event_log).__name__,
+                "score_version": config.SCORE_VERSION,
             },
         )
 
@@ -235,6 +260,8 @@ class EventPipeline:
                 payload={"signal": sig.to_dict()},
             )
             self.bus.publish(evt)
+            # Corrección A: persistir en event_log
+            self._persist_event(evt)
 
         # 3. Dedup batch sobre todos los casos extraídos
         if self._cases_buffer:
@@ -251,30 +278,79 @@ class EventPipeline:
                 },
             )
 
-            # 4. Para cada caso canónico: publicar CaseDeduplicated + ejecutar sinks
+            # 4. Para cada caso (canónico Y duplicate): evaluar policy + ejecutar sinks
+            # Corrección C: PolicyEngine decide, sinks ejecutan
             for case in self._cases_buffer:
-                if not case.is_canonical:
-                    continue
+                # 4a. PolicyEngine.evaluate(case) → PolicyDecision
+                decision = self.policy_engine.evaluate(case)
+                self._result.policy_decisions += 1
+                if decision.should_suppress():
+                    self._result.policy_suppressed += 1
+                if decision.should_generate_whatsapp():
+                    self._result.policy_whatsapp_intents += 1
+                if decision.boost_delta > 0:
+                    self._result.policy_boosted += 1
+                    # Corrección C: aplicar boost al case (PolicyEngine es pure)
+                    apply_boost(case, decision)
 
+                # 4b. Publicar PolicyEvaluated
+                pol_evt = PolicyEvaluated(
+                    event_id=make_event_id("pol", case.case_id),
+                    event_type="policy_evaluated",
+                    timestamp=now_iso(),
+                    payload={
+                        "case_id": case.case_id,
+                        "decision": {
+                            "case_id": decision.case_id,
+                            "actions": list(decision.actions),
+                            "reasons": list(decision.reasons),
+                            "boost_delta": decision.boost_delta,
+                            "decision_id": decision.decision_id,
+                            "metadata": decision.metadata,
+                        },
+                    },
+                )
+                self.bus.publish(pol_evt)
+                self._persist_event(pol_evt)
+
+                # 4c. Publicar CaseDeduplicated (incluso si es duplicate, para auditoría)
                 dedup_evt = CaseDeduplicated(
                     event_id=make_event_id("dedup", case.case_id),
                     event_type="case_deduplicated",
                     timestamp=now_iso(),
                     payload={
                         "case": case.to_dict(),
-                        "is_canonical": True,
+                        "is_canonical": case.is_canonical,
                     },
                 )
                 self.bus.publish(dedup_evt)
+                self._persist_event(dedup_evt)
 
-                # Ejecutar sinks (regla: no_direct_external_writes → sólo via sinks)
-                sinks_result = self.fanout.write(case)
+                # 4d. Si la policy suprime, NO ejecutar sinks
+                if decision.should_suppress():
+                    self.audit.append(
+                        actor="system:event_pipeline",
+                        action="case_suppressed",
+                        entity_type="case",
+                        entity_id=case.case_id,
+                        details={
+                            "decision_id": decision.decision_id,
+                            "actions": decision.actions,
+                            "duplicate_of": case.duplicate_of,
+                        },
+                    )
+                    continue
+
+                # 4e. Ejecutar sinks con PolicyDecision (corrección C)
+                sinks_result = self.fanout.write_with_decision(case, decision)
                 self._result.sinks_results.append({
                     "case_id": case.case_id,
+                    "decision_id": decision.decision_id,
+                    "actions": decision.actions,
                     "sinks": sinks_result,
                 })
 
-                # Publicar CasePublished
+                # 4f. Publicar CasePublished
                 pub_evt = CasePublished(
                     event_id=make_event_id("pub", case.case_id),
                     event_type="case_published",
@@ -282,9 +358,11 @@ class EventPipeline:
                     payload={
                         "case_id": case.case_id,
                         "sinks_result": sinks_result,
+                        "policy_actions": decision.actions,
                     },
                 )
                 self.bus.publish(pub_evt)
+                self._persist_event(pub_evt)
 
         # 5. Flush sinks (enviar batch pendiente de Google Sheets)
         flush_results = self.fanout.flush_all()
@@ -305,8 +383,11 @@ class EventPipeline:
         self._result.cases = list(self._cases_buffer)
         self._result.extractor_used = type(self._ensure_extractor()).__name__ if self._cases_buffer else "none"
         self._result.sinks_used = [s.sink_id for s in self.sinks]
+        self._result.policy_engine_used = type(self.policy_engine).__name__
         self._result.audit_entries = len(self.audit.read_all())
         self._result.audit_chain_ok = self.audit.verify_chain()
+        self._result.event_log_count = self.event_log.count()
+        self._result.event_log_backend = type(self.event_log).__name__
         self._result.duration_seconds = round(time.time() - t0, 2)
 
         # 7. Persistir casos
@@ -325,11 +406,38 @@ class EventPipeline:
                 "cases_canonical": self._result.cases_canonical,
                 "events_published": self._result.events_published,
                 "events_rejected": self._result.events_rejected,
+                "policy_decisions": self._result.policy_decisions,
+                "policy_suppressed": self._result.policy_suppressed,
+                "policy_whatsapp_intents": self._result.policy_whatsapp_intents,
+                "policy_boosted": self._result.policy_boosted,
                 "audit_chain_ok": self._result.audit_chain_ok,
+                "event_log_count": self._result.event_log_count,
+                "event_log_backend": self._result.event_log_backend,
+                "score_version": config.SCORE_VERSION,
             },
         )
 
         return self._result
+
+    def _persist_event(self, event) -> None:
+        """Corrección A: persistir evento en event_log (append-only)."""
+        try:
+            payload = event_to_dict(event).get("payload", {})
+            self.event_log.append(
+                event_id=event.event_id,
+                event_type=event.event_type,
+                payload=payload,
+                timestamp=event.timestamp,
+                version=config.SCORE_VERSION,  # por ahora = score_version
+            )
+        except Exception as e:
+            self.audit.append(
+                actor="system:event_pipeline",
+                action="event_log_error",
+                entity_type="event",
+                entity_id=event.event_id,
+                details={"error": str(e)},
+            )
 
     # ------------------------------------------------------------------
     # Print summary
@@ -340,13 +448,22 @@ class EventPipeline:
         print("=" * 70)
         print(f"  Modo:               event_driven_pipeline")
         print(f"  Extractor:          {result.extractor_used}")
+        print(f"  PolicyEngine:       {result.policy_engine_used}")
+        print(f"  Score version:      {config.SCORE_VERSION}")
         print(f"  Sinks:              {', '.join(result.sinks_used)}")
+        print(f"  Event log backend:  {result.event_log_backend} ({result.event_log_count} eventos)")
         print(f"  Duración:           {result.duration_seconds}s")
         print("-" * 70)
         print(f"  Señales recogidas:  {result.signals_collected}")
         print(f"  Casos extraídos:    {result.cases_extracted}")
         print(f"  Duplicados:         {result.duplicates_found}")
         print(f"  Casos canónicos:    {result.cases_canonical}")
+        print("-" * 70)
+        print(f"  PolicyEngine:")
+        print(f"    Decisiones:       {result.policy_decisions}")
+        print(f"    Suprimidos:       {result.policy_suppressed}")
+        print(f"    WhatsApp intents: {result.policy_whatsapp_intents}")
+        print(f"    Boosted (+5):     {result.policy_boosted}")
         print("-" * 70)
         print(f"  Eventos publicados: {result.events_published}")
         print(f"  Eventos rechazados: {result.events_rejected}")
@@ -359,6 +476,7 @@ class EventPipeline:
         wa_links = 0
         wa_skipped = 0
         sheets_queued = 0
+        sheets_suppressed = 0
         for sr in result.sinks_results:
             wa = sr["sinks"].get("whatsapp", {})
             if wa.get("status") == "ok":
@@ -368,8 +486,10 @@ class EventPipeline:
             gs = sr["sinks"].get("google_sheets", {})
             if gs.get("status") == "queued":
                 sheets_queued += 1
+            elif gs.get("status") == "skipped":
+                sheets_suppressed += 1
         print(f"  WhatsApp links:     {wa_links} generados, {wa_skipped} skipped")
-        print(f"  Sheets encolados:   {sheets_queued}")
+        print(f"  Sheets encolados:   {sheets_queued} | suprimidos: {sheets_suppressed}")
         print("=" * 70)
 
         # Top 3 críticos

@@ -191,3 +191,73 @@ Archivos creados:
 - scripts/radar/event_pipeline.py
 - scripts/radar/main.py (--event-pipeline flag)
 
+
+---
+Task ID: 5-correcciones-ABCD
+Agent: main
+Task: Aplicar 4 correcciones arquitectónicas mínimas al pipeline v2.0 sin rehacer todo.
+
+Work Log:
+- Corrección A: creado event_log.py
+  - EventLogBackend interface común
+  - SQLiteEventLog (default, recomendado): atomic, queryable, zero-deps
+  - JSONLEventLog (fallback): simple, para Drive o FS simple
+  - Schema: event_id (PK) | event_type | payload (JSON) | timestamp | version
+  - create_event_log() factory
+  - Smoke test: 4 verificaciones (append, query, count, idempotencia)
+  - Integrado en event_pipeline.py: cada evento del bus se persiste al event_log
+  - Output: download/sample_data/event_log.db (24 eventos persistidos en smoke test)
+
+- Corrección B: score versioning
+  - config.SCORE_VERSION = "v1.0_weighted_sum"
+  - Case.score_version: str (nuevo campo)
+  - scorer.update_case_score() setea case.score_version = config.SCORE_VERSION
+  - event_validator: warning si case_scored/case_deduplicated no tiene score_version
+  - Permite: replay con nuevos pesos, comparación histórica, debugging real
+
+- Corrección C+D: PolicyEngine + separación de triggers de sinks
+  - Creado policy_engine.py:
+    - PolicyDecision (frozen dataclass): actions, reasons, boost_delta, decision_id
+    - PolicyEngine (pure function): input = case, output = PolicyDecision
+    - 4 reglas explícitas:
+      1. if score >= 80 → generate_whatsapp_intent
+      2. if jurisdiction in TARGET → boost_priority (+5)
+      3. if duplicate → suppress_output (no más reglas)
+      4. if canonical → publish_to_sheets
+    - Triggers manuales adicionales: whatsapp_number presente, status=approved
+    - apply_boost(case, decision): aplica boost_delta al case (muta, fuera del engine)
+  - Nuevo tipo de evento PolicyEvaluated en event_types.py
+  - event_validator reconoce policy_evaluated (valida actions, reasons, boost_delta)
+  - Refactorizado WhatsAppLinkSink:
+    - write_with_decision(case, decision) (nuevo, recomendado)
+    - write(case) (legacy, backward-compat)
+  - Refactorizado GoogleSheetsWebhookSink:
+    - write_with_decision(case, decision) (nuevo)
+    - write(case) (legacy)
+  - Refactorizado SinkFanOut:
+    - write_with_decision(case, decision) (nuevo)
+    - write(case) (legacy)
+  - event_pipeline.py integrado: PolicyEngine.evaluate(case) → PolicyDecision → sinks ejecutan
+  - Smoke test policy_engine: 6 verificaciones (3 reglas + boost + pure function)
+
+Stage Summary:
+- 4 correcciones arquitectónicas aplicadas sin rehacer todo
+- Pipeline v2.0 ahora tiene:
+  ✓ [A] EventLog persistente (SQLite) para replay y auditoría
+  ✓ [B] Score versioning (v1.0_weighted_sum) en cada Case
+  ✓ [C] PolicyEngine separa triggers de sinks (sinks ejecutan, no deciden)
+  ✓ [D] 4 reglas explícitas en PolicyEngine
+- v1.0 sigue funcionando sin cambios (regresión OK)
+- Bundle sincronizado: 20 .py + 1 .gs + 3 .md
+
+Archivos creados/modificados:
+- scripts/radar/event_log.py (NUEVO)
+- scripts/radar/policy_engine.py (NUEVO)
+- scripts/radar/event_types.py (+PolicyEvaluated)
+- scripts/radar/event_validator.py (+policy_evaluated, +score_version warning)
+- scripts/radar/sinks.py (write_with_decision en WhatsApp/Sheets/FanOut)
+- scripts/radar/event_pipeline.py (integración PolicyEngine + EventLog)
+- scripts/radar/config.py (+SCORE_VERSION)
+- scripts/radar/models.py (+score_version en Case)
+- scripts/radar/scorer.py (setea score_version)
+- scripts/radar/README.md (sección v2.0 con 4 correcciones)

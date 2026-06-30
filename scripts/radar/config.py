@@ -266,6 +266,10 @@ SCORING_THRESHOLDS = {
     "low": 0,
 }
 
+# Versión del modelo de scoring (corrección B del spec)
+# Permite replay, comparación histórica y debugging real
+SCORE_VERSION = "v1.0_weighted_sum"
+
 # ---------------------------------------------------------------------------
 # Dedup
 # ---------------------------------------------------------------------------

@@ -115,6 +115,9 @@ def validate_event(event) -> ValidationResult:
             errors.append("payload.case must be a dict")
         else:
             errors.extend(_validate_case_contract(c))
+            # Corrección B: score_version recomendado (warning si falta)
+            if not c.get("score_version"):
+                warnings.append("case.score_version is empty (recommended: v1.0_weighted_sum)")
 
     elif event_type == "case_deduplicated":
         c = payload.get("case")
@@ -122,6 +125,8 @@ def validate_event(event) -> ValidationResult:
             errors.append("payload.case must be a dict")
         else:
             errors.extend(_validate_case_contract(c))
+            if not c.get("score_version"):
+                warnings.append("case.score_version is empty (recommended: v1.0_weighted_sum)")
         if "is_canonical" not in payload:
             errors.append("payload.is_canonical is missing")
 
@@ -133,6 +138,20 @@ def validate_event(event) -> ValidationResult:
 
     elif event_type == "event_rejected":
         pass  # siempre válido
+
+    elif event_type == "policy_evaluated":
+        if not payload.get("case_id"):
+            errors.append("payload.case_id is empty")
+        decision = payload.get("decision")
+        if not isinstance(decision, dict):
+            errors.append("payload.decision must be a dict")
+        else:
+            if not isinstance(decision.get("actions"), list):
+                errors.append("decision.actions must be a list")
+            if not isinstance(decision.get("reasons"), list):
+                errors.append("decision.reasons must be a list")
+            if not isinstance(decision.get("boost_delta"), int):
+                errors.append(f"decision.boost_delta must be int: {decision.get('boost_delta')!r}")
 
     else:
         warnings.append(f"unknown event_type: {event_type}")

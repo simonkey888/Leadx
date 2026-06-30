@@ -224,6 +224,8 @@ def update_case_score(case: Case, repetition_count: int = 0) -> Case:
     case.score = score
     case.score_band = band
     case.score_breakdown = breakdown
+    # Corrección B: registrar versión del modelo de scoring
+    case.score_version = config.SCORE_VERSION
     return case
 
 

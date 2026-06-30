@@ -122,6 +122,31 @@ class EventRejected:
         return self.payload.get("original_event_type", "")
 
 
+@dataclass(frozen=True)
+class PolicyEvaluated:
+    """Resultado de PolicyEngine.evaluate(case). Corrección C+D del spec."""
+    event_id: str
+    event_type: str = "policy_evaluated"
+    timestamp: str = ""
+    payload: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def case_id(self) -> str:
+        return self.payload["case_id"]
+
+    @property
+    def decision(self) -> Dict[str, Any]:
+        return self.payload.get("decision", {})
+
+    @property
+    def actions(self) -> List[str]:
+        return self.decision.get("actions", [])
+
+    @property
+    def should_suppress(self) -> bool:
+        return "suppress_output" in self.actions
+
+
 # Tipos válidos
 EVENT_TYPES = {
     "signal_collected": SignalCollected,
@@ -130,6 +155,7 @@ EVENT_TYPES = {
     "case_deduplicated": CaseDeduplicated,
     "case_published": CasePublished,
     "event_rejected": EventRejected,
+    "policy_evaluated": PolicyEvaluated,
 }
 
 
@@ -150,6 +176,6 @@ def event_to_dict(event) -> Dict[str, Any]:
 
 __all__ = [
     "Event", "SignalCollected", "EntitiesExtracted", "CaseScored",
-    "CaseDeduplicated", "CasePublished", "EventRejected",
+    "CaseDeduplicated", "CasePublished", "EventRejected", "PolicyEvaluated",
     "EVENT_TYPES", "make_event_id", "event_to_dict",
 ]

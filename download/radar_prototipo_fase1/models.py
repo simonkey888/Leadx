@@ -75,6 +75,7 @@ class Case:
     score: int = 0
     score_band: str = "low"          # critical/high/medium/low
     score_breakdown: Dict[str, int] = field(default_factory=dict)
+    score_version: str = ""          # corrección B: "v1.0_weighted_sum"
 
     # Dedup
     normalized_text_hash: str = ""

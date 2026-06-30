@@ -61,14 +61,19 @@ class Sink(ABC):
 # ---------------------------------------------------------------------------
 class WhatsAppLinkSink(Sink):
     """
-    Sink que genera links de WhatsApp según trigger `manual_or_score_threshold`.
+    Sink que genera links de WhatsApp.
 
-    Trigger:
-        - score >= WHATSAPP_SCORE_THRESHOLD (default 80 = critical), OR
-        - case.whatsapp_number ya está poblado (manual override)
-        - En v2.0 también: case.review_state == "approved" (review manual)
+    Corrección C del spec: la trigger logic ahora vive en PolicyEngine,
+    NO en el sink. El sink sólo ejecuta la decisión.
 
-    No escribe externamente: sólo genera el link y lo guarda en case.whatsapp_link.
+    Modo policy-driven (recomendado):
+        sink.write_with_decision(case, decision)
+        → si decision.should_generate_whatsapp() → genera link
+        → sino → skip
+
+    Modo legacy (backward-compat, deprecado):
+        sink.write(case)
+        → evalúa should_trigger(case) internamente (mantenemos por compat)
     """
 
     sink_id = "whatsapp"
@@ -76,50 +81,116 @@ class WhatsAppLinkSink(Sink):
     def __init__(
         self,
         audit: Optional[AuditTrail] = None,
-        score_threshold: int = 80,
+        score_threshold: int = 80,  # legacy: usado sólo en modo backward-compat
         default_message: Optional[str] = None,
     ):
         super().__init__(audit=audit)
-        self.score_threshold = score_threshold
+        self.score_threshold = score_threshold  # legacy
         self.default_message = default_message or config.WHATSAPP_DEFAULT_MESSAGE
 
+    # ------------------------------------------------------------------
+    # Modo policy-driven (corrección C)
+    # ------------------------------------------------------------------
+    def write_with_decision(self, case: Case, decision) -> Dict[str, Any]:
+        """
+        Ejecuta el sink según la decisión del PolicyEngine.
+
+        Args:
+            case: el case a procesar
+            decision: PolicyDecision del PolicyEngine.evaluate(case)
+        """
+        # Si la policy dice suprimir, no hacer nada
+        if decision.should_suppress():
+            self._log("skipped", case.case_id, {
+                "reason": "policy_suppress",
+                "decision_id": decision.decision_id,
+            })
+            return {
+                "sink_id": self.sink_id,
+                "status": "skipped",
+                "reason": "policy_suppress",
+                "decision_id": decision.decision_id,
+            }
+
+        # Si la policy dice generar whatsapp intent
+        if not decision.should_generate_whatsapp():
+            self._log("skipped", case.case_id, {
+                "reason": "policy_no_whatsapp_action",
+                "decision_id": decision.decision_id,
+                "actions": decision.actions,
+            })
+            return {
+                "sink_id": self.sink_id,
+                "status": "skipped",
+                "reason": "policy_no_whatsapp_action",
+                "actions": decision.actions,
+                "decision_id": decision.decision_id,
+            }
+
+        # Generar link
+        link = self.generate_link(case.whatsapp_number)
+        case.whatsapp_link = link
+        case.updated_at = now_iso()
+
+        # Identificar trigger source desde la decisión
+        trigger_source = "policy_decision"
+        if "score >= " in " ".join(decision.reasons):
+            trigger_source = "score_threshold"
+        elif "manual whatsapp_number present" in " ".join(decision.reasons):
+            trigger_source = "manual_number"
+        elif "approved by human review" in " ".join(decision.reasons):
+            trigger_source = "approved_review"
+
+        self._log("ok" if link else "skipped", case.case_id, {
+            "link_generated": bool(link),
+            "whatsapp_number_present": bool(case.whatsapp_number),
+            "trigger_source": trigger_source,
+            "decision_id": decision.decision_id,
+            "policy_actions": decision.actions,
+        })
+
+        if not link:
+            return {
+                "sink_id": self.sink_id,
+                "status": "skipped",
+                "reason": "no_whatsapp_number",
+                "link": "",
+                "decision_id": decision.decision_id,
+            }
+
+        return {
+            "sink_id": self.sink_id,
+            "status": "ok",
+            "link": link,
+            "trigger": trigger_source,
+            "decision_id": decision.decision_id,
+        }
+
+    # ------------------------------------------------------------------
+    # Modo legacy (backward-compat)
+    # ------------------------------------------------------------------
     def should_trigger(self, case: Case) -> bool:
-        """Decide si el sink debe generar link para este case."""
-        # Trigger 1: score >= threshold
+        """Legacy: evaluación interna. Deprecado, usar PolicyEngine."""
         if case.score >= self.score_threshold:
             return True
-        # Trigger 2: ya tiene número (manual override desde CLI de revisión)
         if case.whatsapp_number:
             return True
-        # Trigger 3: revisado y aprobado (manual)
         if case.review_state == "approved" or case.status == "approved":
             return True
         return False
 
-    def generate_link(self, whatsapp_number: str, message: Optional[str] = None) -> str:
-        """Construye https://wa.me/{num}?text={encoded_msg}."""
-        if not whatsapp_number:
-            return ""
-        # Normalizar: sólo dígitos
-        normalized = "".join(c for c in str(whatsapp_number) if c.isdigit())
-        if not normalized:
-            return ""
-        msg = message or self.default_message
-        encoded = quote(msg)
-        return f"https://wa.me/{normalized}?text={encoded}"
-
     def write(self, case: Case) -> Dict[str, Any]:
-        """Genera link si trigger se cumple, lo guarda en case.whatsapp_link."""
+        """Legacy: sin PolicyDecision. Deprecado, usar write_with_decision()."""
         if not self.should_trigger(case):
             self._log("skipped", case.case_id, {
-                "reason": "trigger_not_met",
+                "reason": "legacy_trigger_not_met",
                 "score": case.score,
                 "threshold": self.score_threshold,
             })
             return {
                 "sink_id": self.sink_id,
                 "status": "skipped",
-                "reason": "trigger_not_met",
+                "reason": "legacy_trigger_not_met",
                 "score": case.score,
                 "threshold": self.score_threshold,
             }
@@ -131,11 +202,7 @@ class WhatsAppLinkSink(Sink):
         self._log("ok" if link else "skipped", case.case_id, {
             "link_generated": bool(link),
             "whatsapp_number_present": bool(case.whatsapp_number),
-            "trigger_source": (
-                "score_threshold" if case.score >= self.score_threshold
-                else "manual_number" if case.whatsapp_number
-                else "approved_review"
-            ),
+            "mode": "legacy",
         })
 
         if not link:
@@ -150,12 +217,22 @@ class WhatsAppLinkSink(Sink):
             "sink_id": self.sink_id,
             "status": "ok",
             "link": link,
-            "trigger": (
-                "score_threshold" if case.score >= self.score_threshold
-                else "manual_number" if case.whatsapp_number
-                else "approved_review"
-            ),
+            "mode": "legacy",
         }
+
+    # ------------------------------------------------------------------
+    # Link generator (compartido)
+    # ------------------------------------------------------------------
+    def generate_link(self, whatsapp_number: str, message: Optional[str] = None) -> str:
+        """Construye https://wa.me/{num}?text={encoded_msg}."""
+        if not whatsapp_number:
+            return ""
+        normalized = "".join(c for c in str(whatsapp_number) if c.isdigit())
+        if not normalized:
+            return ""
+        msg = message or self.default_message
+        encoded = quote(msg)
+        return f"https://wa.me/{normalized}?text={encoded}"
 
 
 # ---------------------------------------------------------------------------
@@ -221,6 +298,42 @@ class GoogleSheetsWebhookSink(Sink):
 
         return result
 
+    def write_with_decision(self, case: Case, decision) -> Dict[str, Any]:
+        """
+        Corrección C: ejecuta según PolicyDecision.
+
+        Si decision.should_suppress() → NO encola (duplicate, etc.)
+        Si decision.should_publish_to_sheets() → encola
+        Sino → skip
+        """
+        if decision.should_suppress():
+            self._log("skipped", case.case_id, {
+                "reason": "policy_suppress",
+                "decision_id": decision.decision_id,
+            })
+            return {
+                "sink_id": self.sink_id,
+                "status": "skipped",
+                "reason": "policy_suppress",
+                "decision_id": decision.decision_id,
+            }
+
+        if not decision.should_publish_to_sheets():
+            self._log("skipped", case.case_id, {
+                "reason": "policy_no_publish_action",
+                "decision_id": decision.decision_id,
+                "actions": decision.actions,
+            })
+            return {
+                "sink_id": self.sink_id,
+                "status": "skipped",
+                "reason": "policy_no_publish_action",
+                "actions": decision.actions,
+                "decision_id": decision.decision_id,
+            }
+
+        return self.write(case)
+
     def flush(self) -> Dict[str, Any]:
         """Envía todos los casos acumulados en un único POST al webhook."""
         if not self._batch:
@@ -268,11 +381,48 @@ class SinkFanOut:
         self.sinks = sinks
 
     def write(self, case: Case) -> Dict[str, Any]:
-        """Ejecuta todos los sinks. Returns dict {sink_id: result}."""
+        """Ejecuta todos los sinks (modo legacy, sin PolicyDecision)."""
         results = {}
         for sink in self.sinks:
             try:
                 results[sink.sink_id] = sink.write(case)
+            except Exception as e:
+                results[sink.sink_id] = {
+                    "sink_id": sink.sink_id,
+                    "status": "error",
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                }
+                if sink.audit:
+                    sink._log("error", case.case_id, {
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                    })
+        return results
+
+    def write_with_decision(self, case: Case, decision) -> Dict[str, Any]:
+        """
+        Corrección C: ejecuta todos los sinks con PolicyDecision.
+
+        Cada sink decide si ejecutar según decision.actions.
+        Si decision.should_suppress() → todos los sinks se saltan.
+        """
+        results = {}
+        for sink in self.sinks:
+            try:
+                # Si el sink soporta write_with_decision, usarlo
+                if hasattr(sink, "write_with_decision"):
+                    results[sink.sink_id] = sink.write_with_decision(case, decision)
+                else:
+                    # Fallback a write() legacy
+                    if decision.should_suppress():
+                        results[sink.sink_id] = {
+                            "sink_id": sink.sink_id,
+                            "status": "skipped",
+                            "reason": "policy_suppress",
+                        }
+                    else:
+                        results[sink.sink_id] = sink.write(case)
             except Exception as e:
                 results[sink.sink_id] = {
                     "sink_id": sink.sink_id,
