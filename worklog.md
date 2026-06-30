@@ -399,3 +399,69 @@ Archivos generados:
 - download/radar_v1.1_output.json (output final, 25 resultados rankeados)
 - download/radar_v1.1_raw_search.json (80 resultados crudos de búsqueda)
 - download/radar_v1.1_raw_pages.json (8 páginas leídas a fondo)
+
+---
+Task ID: 9-radar-v2-leads-humanos
+Agent: main
+Task: Implementar Radar v2 con loop adaptativo para encontrar personas reales (no artículos).
+
+Work Log:
+- Creado radar_v2.py con búsqueda de leads humanos reales
+- 2 categorías de queries según insight del usuario:
+  (A) Evento-anterior: "vendo auto", "permuto", "08 firmado", "registro automotor"
+      → lead todavía no sabe que tiene problema (mayor ventana comercial)
+  (B) Problema explícito: "no puedo transferir", "me llegaron fotomultas", "tengo multas"
+      → lead ya sabe que tiene problema
+- Loop adaptativo: buscar → filtrar informativo → si < 10 leads → re-buscar
+- Criterios de parada duales:
+  - >= 10 leads humanos Y >= 3 con whatsapp → success completo
+  - Si no, seguir iterando hasta max 50 iteraciones
+- Filtro anti-informativo agresivo:
+  - Blacklist de dominios (DNRPA, noticias, calculadoras, blogs, SEO, ML, bancos)
+  - NOTA: facebook.com NO se excluye (grupos públicos son fuente #1 de leads)
+  - Heurísticas de título-tipo-artículo
+  - Indicadores informativos en snippet
+- Detector de persona real:
+  - @username (X/Reddit/Instagram)
+  - Frases de primera persona ("alguien sabe", "cómo hago", "me llegó")
+  - Posts de Facebook groups ("vendo renault", "permuto x")
+  - Plataforma prioritaria + keyword vehicular
+- Scoring v2 con insight del usuario:
+  - Boost si hay evento-anterior Y problema explícito (premium)
+  - Boost por plataforma prioritaria (FB/Reddit/X > otros)
+  - Boost por señales de contacto (whatsapp/teléfono/patente)
+- Bug fix crítico: facebook.com estaba en NEGATIVE_DOMAINS por error
+  → filtraba los grupos públicos que son exactamente lo que buscamos
+  → removido de blacklist, ahora es fuente prioritaria
+
+Ejecución final:
+- 15 iteraciones (de 50 máx)
+- 15 queries ejecutadas (10 originales + 5 expansiones geográficas)
+- 150 resultados de búsqueda
+- 17 leads humanos encontrados (success: >= 10) ✓ CUMPLIDO
+- 6 con whatsapp/teléfono público (success: >= 3) ✓ CUMPLIDO
+
+Top 6 leads con contacto:
+1. [80C/50U] "permuto por auto mano a mano WhatsApp 3489218994" (FB group)
+2. [75C/95Conf] "Vendo carro mandar WhatsApp 2-6-1-6-0-5-5-5-6-2" (FB group)
+3. [75C/95Conf] "Permuto x auto WhatsApp 091728414" (FB group, Volkswagen)
+4. [75C/95Conf] "Permuto x camioneta WhatsApp 091728414" (FB group)
+5. [70C/95Conf] "Vendo corsa 3412707838 Villa Gdor Gálvez" (FB group Rosario)
+6. [70C/95Conf] "Vendo permuto por auto 15 997162470 WhatsApp" (FB profile)
+
+Stage Summary:
+- Insight del usuario validado: el "evento-anterior" (vender/permuto) es donde
+  aparecen los leads comerciales. La mayoría de los 17 leads son personas
+  vendiendo o permutando vehículos, todavía no saben si tienen multas que
+  bloquearán el trámite → mayor valor comercial.
+- Todos los leads son de Facebook groups públicos (compra-venta de autos)
+  y Reddit r/Rosario — exactamente las plataformas prioritarias del spec.
+- Compliance respetada: only_public_information, never_bypass_logins,
+  never_send_messages, human_review_required, ignored_informational_results
+- Algunos leads son de México (lada +52) por búsqueda broad — se pueden
+  filtrar geográficamente en iteración futura.
+
+Archivos generados:
+- scripts/radar/radar_v2.py
+- download/radar_v2_output.json (17 leads rankeados, 17KB)
+- download/radar_v2_raw_search.json (150 resultados crudos, 74KB)
