@@ -73,6 +73,52 @@ Salida esperada:
 - `download/sample_data/audit_trail.log` — audit trail append-only
 - `download/sample_data/evidence/<case_id>/` — evidencia por caso (txt + json + sha256)
 
+### Subida a Google Sheet (`--sheet-write`)
+
+El módulo `sheets_uploader.py` implementa el contrato del uploader v1.0:
+
+```bash
+# Dry-run: serializa filas a stdout sin tocar Google
+python main.py --sheet-write --dry-run
+
+# Subida real (en máquina del operador con credenciales):
+export RADAR_GOOGLE_SERVICE_ACCOUNT_FILE=/path/local/service-account.json
+pip install gspread
+python main.py --sheet-write
+```
+
+**Comportamiento sin credenciales** (no hay modo mock ni dry-run implícito):
+
+```
+$ python main.py --sheet-write
+✗ Missing credentials file (env var RADAR_GOOGLE_SERVICE_ACCOUNT_FILE is empty)
+  Setear env var: export RADAR_GOOGLE_SERVICE_ACCOUNT_FILE=/path/local/service-account.json
+```
+
+**Schema de la Sheet** (worksheet `cases`, append_only):
+
+```
+case_id, timestamp, name_or_alias, profile_url, patent, vehicle_type,
+jurisdiction, locality, problem_type, year, amount, score, priority_level,
+source_name, source_url, evidence_text, whatsapp_number, whatsapp_link,
+status, review_state
+```
+
+**Política de headers**:
+- Hoja vacía → crea headers
+- Headers existentes → valida y agrega faltantes al final (nunca sobrescribe row 1)
+
+**Dedup**: si el `case_id` ya existe en la sheet, estrategia `update_score_if_higher`:
+- Si el nuevo score > existente → actualiza la fila
+- Si no → skip (no crea duplicado)
+
+**WhatsApp link**: si el caso tiene `whatsapp_number`, se genera
+`https://wa.me/{num}?text={encoded_message}` con el mensaje por defecto
+(`config.WHATSAPP_DEFAULT_MESSAGE`).
+
+**Audit**: cada operación (`ensure_headers`, `appended`, `updated_higher_score`,
+`skipped_lower_score`, `error`) se loguea en `audit_trail.log`.
+
 ### CLI de revisión humana
 
 ```bash
@@ -127,15 +173,16 @@ Reglas de compliance activas (config.py `COMPLIANCE_RULES`):
 
 ```
 scripts/radar/
-├── main.py              # Entry point
+├── main.py              # Entry point (--review | --sheet-write | default pipeline)
 ├── pipeline.py          # Orquestador end-to-end
-├── config.py            # Constantes del spec (jurisdicciones, pesos, etc.)
+├── config.py            # Constantes del spec (jurisdicciones, pesos, SHEET_HEADERS, etc.)
 ├── models.py            # Dataclasses: Signal, Case, AuditEntry, ReviewAction
 ├── mock_sources.py      # Mock data AR + stubs documentados para Fase 2/3
 ├── extractor.py         # Extracción regex + normalización + privacy filter
 ├── scorer.py            # Scoring 0-100 con 7 pesos del spec
 ├── dedup.py             # Dedup con 4 match keys + union-find
-├── storage.py           # EvidenceStore + AuditTrail + ReviewQueue + SheetSync
+├── storage.py           # EvidenceStore + AuditTrail + ReviewQueue + SheetSync (legacy)
+├── sheets_uploader.py   # Contrato de subida a Google Sheets (SPEC-ONLY)
 └── review_cli.py        # CLI interactivo de revisión
 ```
 

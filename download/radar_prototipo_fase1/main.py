@@ -5,19 +5,92 @@ Uso:
     python main.py                # ejecuta pipeline end-to-end con mock data
     python main.py --review       # lanza CLI de revisión
     python main.py --review --demo  # CLI en modo demo (no interactivo)
-    python main.py --sheet-real   # sync real a Google Sheet (requiere credenciales)
+    python main.py --sheet-write  # sube casos canónicos a Google Sheet
+                                   # (requiere RADAR_GOOGLE_SERVICE_ACCOUNT_FILE)
+    python main.py --sheet-write --dry-run  # serializa filas a stdout sin tocar Google
     python main.py --help         # ayuda
 
 Requisitos:
     Python 3.10+
-    Sólo stdlib para Fase 1 (gspread opcional para sheet real)
+    Sólo stdlib para Fase 1 (gspread opcional para --sheet-write)
 """
 from __future__ import annotations
 import argparse
+import json
+import os
 import sys
+from pathlib import Path
 
 from pipeline import RadarPipeline
 from review_cli import ReviewCLI
+from storage import load_cases_jsonl, AuditTrail
+from sheets_uploader import GoogleSheetsUploader, MissingCredentialsError
+import config
+
+
+def cmd_sheet_write(dry_run: bool) -> int:
+    """
+    Sube los casos canónicos de cases.jsonl a Google Sheets.
+
+    Comportamiento:
+        - Si dry_run=True: imprime las filas serializadas y NO toca Google.
+        - Si dry_run=False: requiere RADAR_GOOGLE_SERVICE_ACCOUNT_FILE apuntando
+          a un archivo existente. Si falta, lanza MissingCredentialsError con
+          mensaje "Missing credentials file ...".
+        - Sin modo mock ni dry-run implícito.
+    """
+    cases_data = load_cases_jsonl()
+    if not cases_data:
+        print("No hay casos en cases.jsonl. Ejecutá `python main.py` primero.")
+        return 1
+
+    # Filtrar sólo canónicos
+    from models import Case
+    cases = [Case(**c) for c in cases_data if c.get("is_canonical")]
+    print(f"Casos canónicos a subir: {len(cases)}")
+
+    if dry_run:
+        print("\n--- DRY-RUN: filas que se subirían (NO se toca Google) ---\n")
+        for c in cases:
+            row = c.to_sheet_row()
+            print(json.dumps(row, ensure_ascii=False, indent=2))
+            print("---")
+        print(f"\nTotal: {len(cases)} filas. Para subida real, correr sin --dry-run.")
+        return 0
+
+    # Modo real: el constructor falla si faltan credenciales
+    audit = AuditTrail()
+    try:
+        uploader = GoogleSheetsUploader(audit=audit)
+    except MissingCredentialsError as e:
+        print(f"✗ {e}", file=sys.stderr)
+        print(
+            "  Setear env var: export RADAR_GOOGLE_SERVICE_ACCOUNT_FILE=/path/local/service-account.json",
+            file=sys.stderr,
+        )
+        return 2
+
+    print(f"  Credenciales: {uploader.credentials_path}")
+    print(f"  Spreadsheet:  {uploader.spreadsheet_id}")
+    print(f"  Worksheet:    {uploader.worksheet_name}")
+    print()
+
+    summary = uploader.append_rows(cases)
+    print("\n" + "=" * 70)
+    print("  RESULTADO DE SUBIDA")
+    print("=" * 70)
+    print(f"  Total casos:   {summary['total']}")
+    print(f"  Appended:      {summary['appended']}")
+    print(f"  Updated:       {summary['updated']}")
+    print(f"  Skipped:       {summary['skipped']}")
+    print(f"  Errors:        {len(summary['errors'])}")
+    if summary["errors"]:
+        print("\n  ERRORES:")
+        for err in summary["errors"]:
+            print(f"    - {err['case_id']}: {err['error']}")
+    print(f"\n  Sheet URL:     https://docs.google.com/spreadsheets/d/{uploader.spreadsheet_id}/edit")
+    print("=" * 70)
+    return 0 if not summary["errors"] else 3
 
 
 def main() -> int:
@@ -34,8 +107,12 @@ def main() -> int:
         help="En modo --review, ejecuta demo automática (no interactivo)",
     )
     parser.add_argument(
-        "--sheet-real", action="store_true",
-        help="Habilita sync real a Google Sheet (requiere GOOGLE_SERVICE_ACCOUNT_FILE)",
+        "--sheet-write", action="store_true",
+        help="Sube casos canónicos a Google Sheet (requiere RADAR_GOOGLE_SERVICE_ACCOUNT_FILE)",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true",
+        help="Con --sheet-write: serializa filas a stdout sin tocar Google",
     )
     parser.add_argument(
         "--no-mock", action="store_true",
@@ -46,7 +123,6 @@ def main() -> int:
     if args.review:
         cli = ReviewCLI()
         if args.demo:
-            cli.run_demo() if hasattr(cli, "run_demo") else None
             # el demo está en __main__; reinvocamos
             import review_cli
             sys.argv = ["review_cli.py", "--demo"]
@@ -56,13 +132,12 @@ def main() -> int:
             cli.run()
         return 0
 
-    # Pipeline
-    sheet_dry_run = not args.sheet_real
+    if args.sheet_write:
+        return cmd_sheet_write(dry_run=args.dry_run)
+
+    # Pipeline end-to-end (sin tocar Google)
     use_real = args.no_mock
-    pipeline = RadarPipeline(
-        use_real_sources=use_real,
-        sheet_dry_run=sheet_dry_run,
-    )
+    pipeline = RadarPipeline(use_real_sources=use_real, sheet_dry_run=True)
     result = pipeline.run()
     pipeline.print_summary(result)
 
@@ -74,6 +149,8 @@ def main() -> int:
     print(f"    - evidence/              ({result.cases_canonical} carpetas)")
     print(f"\n  Para revisar casos: python main.py --review")
     print(f"  Para demo automática: python main.py --review --demo")
+    print(f"  Para subir a Sheet:  python main.py --sheet-write")
+    print(f"                       (requiere RADAR_GOOGLE_SERVICE_ACCOUNT_FILE)")
     return 0
 
 

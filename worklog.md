@@ -52,3 +52,40 @@ No cubierto en Fase 1 (documentado en ROADMAP.md para Fase 2/3):
 - Conectores reales (Fase 2: X API + RSS; Fase 3: dominio + intake público)
 - LLM extractor (Fase 2)
 - Alertas push (Fase 2)
+
+---
+Task ID: 2-sheet-uploader
+Agent: main
+Task: Implementar sheets_uploader.py como módulo SPEC-ONLY (contrato de entrada, sin ejecución real contra Google).
+
+Work Log:
+- Creado sheets_uploader.py con GoogleSheetsUploader class
+- Contract: input = RADAR_GOOGLE_SERVICE_ACCOUNT_FILE (env var path string)
+- Behavior: si path vacío o no existe → raise MissingCredentialsError("Missing credentials file ...")
+- Sin modo mock ni dry-run implícito. Dry-run explícito vía --dry-run flag en CLI.
+- Implementación real dentro de métodos (gspread.service_account, append_rows, etc.)
+  pero NO se ejecutan en este entorno (no hay credenciales).
+- Schema SHEET_HEADERS exacto del spec del uploader (20 columnas)
+- Política de headers: create_headers / validate_and_merge_if_missing / never_overwrite_row_1
+- Dedup strategy: update_score_if_higher (si case_id existe y nuevo score > existente → update)
+- WhatsApp link builder: https://wa.me/{num}?text={encoded_msg}
+- Audit logging en cada operación (ensure_headers, appended, updated_higher_score, skipped_lower_score, error)
+- Retry policy: retry_once_then_log_error
+- Actualizado main.py: --sheet-write flag que invoca uploader
+- Actualizado config.py: SHEET_HEADERS, WHATSAPP_DEFAULT_MESSAGE, sheet policies
+- Actualizado models.py: Case con campos whatsapp_number, whatsapp_link, priority_level, review_state; to_sheet_row() con schema exacto
+- Actualizado README.md con sección --sheet-write
+- Smoke test OK: 5 verificaciones pasaron (sin/credenciales, path inexistente, whatsapp link, schema, to_sheet_row)
+
+Stage Summary:
+- Contrato spec-only verificado: sin credenciales lanza "Missing credentials file"
+- 5 tests pasaron sin tocar Google Sheets
+- Bundle sincronizado en /home/z/my-project/download/radar_prototipo_fase1/
+- Listo para que el operador ejecute --sheet-write en su máquina con credenciales locales
+
+Archivos modificados:
+- scripts/radar/sheets_uploader.py (NUEVO)
+- scripts/radar/config.py (SHEET_HEADERS, WHATSAPP_DEFAULT_MESSAGE, policies)
+- scripts/radar/models.py (Case +4 campos, to_sheet_row rewrite)
+- scripts/radar/main.py (--sheet-write, --dry-run flags)
+- scripts/radar/README.md (sección --sheet-write)

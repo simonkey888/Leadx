@@ -32,12 +32,75 @@ GOOGLE_SHEET_URL = (
     "1jLeM6k_Q10JBNFSn46TCoz7dgVdnOS79lyIPO283xE0/edit?gid=0#gid=0"
 )
 GOOGLE_SHEET_ID = "1jLeM6k_Q10JBNFSn46TCoz7dgVdnOS79lyIPO283xE0"
-GOOGLE_SHEET_TAB = "radar_cases"
+# Tab/Worksheet destino: el spec del uploader pide "cases"
+GOOGLE_SHEET_TAB = "cases"
 
 # Credenciales (opcionales en Fase 1). Si no están, sheet_sync entra en dry-run.
 GOOGLE_SERVICE_ACCOUNT_FILE = os.environ.get(
     "RADAR_GOOGLE_SERVICE_ACCOUNT_FILE", ""
 )
+
+# APIs requeridas por el service account
+GOOGLE_APIS_REQUIRED = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+
+# Email del service account (para documentación/validación; la auth real va en el JSON)
+GOOGLE_SERVICE_ACCOUNT_EMAIL = (
+    "radar-sheets-bot@radar-oportunidades-501015.iam.gserviceaccount.com"
+)
+GOOGLE_PROJECT_ID = "radar-oportunidades-501015"
+
+# ---------------------------------------------------------------------------
+# Schema de la Sheet (uploader v1.0)
+# ---------------------------------------------------------------------------
+# Orden EXACTO de columnas según el spec del uploader.
+SHEET_HEADERS = [
+    "case_id",
+    "timestamp",
+    "name_or_alias",
+    "profile_url",
+    "patent",
+    "vehicle_type",
+    "jurisdiction",
+    "locality",
+    "problem_type",
+    "year",
+    "amount",
+    "score",
+    "priority_level",
+    "source_name",
+    "source_url",
+    "evidence_text",
+    "whatsapp_number",
+    "whatsapp_link",
+    "status",
+    "review_state",
+]
+
+# Política de headers
+SHEET_HEADER_POLICY = {
+    "if_empty_sheet": "create_headers",
+    "if_headers_exist": "validate_and_merge_if_missing",
+    "never_overwrite_row_1": True,
+}
+
+# Modo de escritura
+SHEET_WRITE_MODE = "append_only"
+
+# Estrategia ante duplicados (case_id ya existe en la sheet)
+SHEET_DUPLICATE_STRATEGY = "update_score_if_higher"
+
+# On failure
+SHEET_ON_FAILURE = "retry_once_then_log_error"
+
+# ---------------------------------------------------------------------------
+# WhatsApp integration
+# ---------------------------------------------------------------------------
+WHATSAPP_ENABLED = True
+WHATSAPP_NUMBER_COLUMN = "whatsapp_number"
+WHATSAPP_DEFAULT_MESSAGE = "Hola, vi tu consulta sobre multas. Te puedo ayudar a revisarlo."
 
 # ---------------------------------------------------------------------------
 # Fuentes del spec (con prioridad y señales)
