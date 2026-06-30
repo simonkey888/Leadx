@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Tuple, Optional
 
-from event_types import Event
+from event_types import EVENT_TYPES
 
 
 @dataclass
@@ -139,7 +139,31 @@ def validate_event(event) -> ValidationResult:
     elif event_type == "event_rejected":
         pass  # siempre válido
 
+    elif event_type == "decision_issued":
+        # Corrección C: renombrado desde policy_evaluated
+        # Namespace Decision: contiene PolicyDecision serializada
+        if not payload.get("case_id"):
+            errors.append("payload.case_id is empty")
+        decision = payload.get("decision")
+        if not isinstance(decision, dict):
+            errors.append("payload.decision must be a dict")
+        else:
+            if not isinstance(decision.get("actions"), list):
+                errors.append("decision.actions must be a list")
+            if not isinstance(decision.get("reasons"), list):
+                errors.append("decision.reasons must be a list")
+            if not isinstance(decision.get("boost_delta"), int):
+                errors.append(f"decision.boost_delta must be int: {decision.get('boost_delta')!r}")
+            # Corrección B: ruleset_version obligatorio (contrato formal de PolicyEngine)
+            if not decision.get("ruleset_version"):
+                errors.append("decision.ruleset_version is empty (PolicyEngine contract requires it)")
+            if not decision.get("decision_id"):
+                errors.append("decision.decision_id is empty (idempotency key)")
+
     elif event_type == "policy_evaluated":
+        # Backward-compat alias (deprecado, ver DEPRECATED_EVENT_TYPES)
+        # Mismo schema que decision_issued
+        warnings.append("event_type 'policy_evaluated' is deprecated, use 'decision_issued'")
         if not payload.get("case_id"):
             errors.append("payload.case_id is empty")
         decision = payload.get("decision")

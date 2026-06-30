@@ -261,3 +261,72 @@ Archivos creados/modificados:
 - scripts/radar/models.py (+score_version en Case)
 - scripts/radar/scorer.py (setea score_version)
 - scripts/radar/README.md (sección v2.0 con 4 correcciones)
+
+---
+Task ID: 6-estabilizacion-ABC
+Agent: main
+Task: Aplicar 3 correcciones de estabilización (A: congelar roles, B: contract formal PolicyEngine, C: separar namespaces Signal/Case/Decision).
+
+Work Log:
+- Corrección A: Roles congelados por capa
+  - Docstring explícito al inicio de cada módulo declarando su rol
+  - Extractor (extractor.py + llm_extractor.py): texto → estructura, no decide
+  - Scorer (scorer.py): numérico + versionado, no decide
+  - PolicyEngine (policy_engine.py): ÚNICA fuente de decisiones, no escribe externo
+  - Sinks (sinks.py): ejecución pura, 0 lógica de negocio
+    - Eliminado should_trigger() de WhatsAppLinkSink (era lógica de negocio)
+    - Sink.write() ahora default: sintetiza PolicyDecision legacy y delega a write_with_decision
+    - Cada sink sólo consulta decision.actions, no consulta case.score/jurisdiction/status
+
+- Corrección B: PolicyEngine contract formal
+  - POLICY_RULESET_VERSION = "v1.0" agregado como constante del módulo
+  - PolicyDecision incluye ruleset_version (default = POLICY_RULESET_VERSION)
+  - decision_id ahora es determinista: hash(case_id, ruleset_version, sorted(actions))
+  - 4 garantías explícitas en docstring y verificadas en smoke test:
+    1. no side effects (case no mutado por evaluate)
+    2. deterministic (otra instancia con misma config → mismo decision_id)
+    3. versioned ruleset (ruleset_version en cada decisión)
+    4. idempotent per case_id (mismo case → mismo decision_id, sin timestamp)
+  - event_validator: decision_issued requiere ruleset_version y decision_id (errores si faltan)
+
+- Corrección C: Separación namespaces Signal/Case/Decision
+  - event_types.py reorganizado en 4 namespaces explícitos:
+    - Signal: signal_collected
+    - Case: entities_extracted, case_scored, case_deduplicated
+    - Decision: decision_issued, case_published (renombrado desde policy_evaluated)
+    - Meta: event_rejected
+  - Renombrado PolicyEvaluated → DecisionIssued (ya no es híbrido, es claramente decisión)
+  - Constantes de namespace: SIGNAL_EVENTS, CASE_EVENTS, DECISION_EVENTS, META_EVENTS
+  - DEPRECATED_EVENT_TYPES: {"policy_evaluated": "decision_issued"}
+  - event_validator: reconoce decision_issued como nuevo tipo, policy_evaluated como alias deprecado
+  - event_pipeline.py: usa DecisionIssued en vez de PolicyEvaluated
+  - event_bus.py: imports actualizados
+
+- Lectura del sistema (agregada al README):
+  "Es un decision pipeline determinístico con capa LLM de extracción, con
+   auditoría completa. No es agent system, no es event sourcing puro, no es CRM.
+   Es: lead intelligence + rule-based triage system con auditoría completa."
+
+Smoke tests OK:
+- policy_engine.py: 4 garantías verificadas (no side effects, deterministic, versioned, idempotent)
+- sinks.py: WhatsAppLinkSink NO tiene should_trigger (eliminado), sinks sólo ejecutan decision
+- event_pipeline.py: 24 eventos publicados, audit chain íntegra, event_log persistido
+
+Stage Summary:
+- 3 correcciones de estabilización aplicadas sin reescribir todo
+- Pipeline v2.0 ahora tiene:
+  ✓ [A] Roles congelados (Extractor/Scoring/PolicyEngine/Sinks)
+  ✓ [B] PolicyEngine contract formal (4 garantías explícitas + verificadas)
+  ✓ [C] Namespaces Signal/Case/Decision separados en event stream
+- Lectura del sistema clara y coherente
+- v1.0 sigue funcionando sin cambios (regresión OK)
+- Bundle sincronizado: 20 .py + 1 .gs + 3 .md
+
+Archivos modificados:
+- scripts/radar/policy_engine.py (contract formal + 4 garantías + POLICY_RULESET_VERSION)
+- scripts/radar/event_types.py (4 namespaces + DecisionIssued renombrado)
+- scripts/radar/event_validator.py (decision_issued + ruleset_version + decision_id required)
+- scripts/radar/event_bus.py (imports actualizados)
+- scripts/radar/sinks.py (eliminado should_trigger, sinks = ejecución pura)
+- scripts/radar/event_pipeline.py (DecisionIssued en vez de PolicyEvaluated)
+- scripts/radar/README.md (lectura del sistema + 3 correcciones A/B/C documentadas)

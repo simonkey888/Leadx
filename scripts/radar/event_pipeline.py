@@ -28,7 +28,8 @@ import config
 from mock_sources import collect_signals
 from event_types import (
     SignalCollected, EntitiesExtracted, CaseScored, CaseDeduplicated,
-    CasePublished, EventRejected, PolicyEvaluated, make_event_id, event_to_dict,
+    CasePublished, EventRejected, DecisionIssued, make_event_id, event_to_dict,
+    SIGNAL_EVENTS, CASE_EVENTS, DECISION_EVENTS,
 )
 from event_bus import EventBus
 from event_validator import validate_event
@@ -39,7 +40,7 @@ from llm_extractor import LLMExtractor, MissingLLMApiKeyError
 from sinks import (
     Sink, WhatsAppLinkSink, GoogleSheetsWebhookSink, SinkFanOut,
 )
-from policy_engine import PolicyEngine, apply_boost
+from policy_engine import PolicyEngine, apply_boost, POLICY_RULESET_VERSION
 from event_log import EventLogBackend, create_event_log
 from dataclasses import asdict
 
@@ -118,7 +119,7 @@ class EventPipeline:
         self.bus.subscribe("signal_collected", self._on_signal_collected)
         self.bus.subscribe("entities_extracted", self._on_entities_extracted)
         self.bus.subscribe("case_scored", self._on_case_scored)
-        self.bus.subscribe("policy_evaluated", self._on_policy_evaluated)
+        self.bus.subscribe("decision_issued", self._on_decision_issued)
 
     # ------------------------------------------------------------------
     # Handlers
@@ -194,10 +195,16 @@ class EventPipeline:
         # (no podemos dedup evento-por-evento sin conocer el resto)
         pass
 
-    def _on_policy_evaluated(self, event: PolicyEvaluated) -> None:
-        """PolicyEvaluated → aplicar boost_delta + ejecutar sinks con decisión."""
-        # El handler lo dispara el run() después de dedup, no por evento suelto.
-        # Aquí sólo registramos auditoría.
+    def _on_decision_issued(self, event: DecisionIssued) -> None:
+        """
+        Decision namespace handler.
+
+        Corrección C: separar Signal/Case/Decision namespaces.
+        DecisionIssued es una decisión del sistema, no un evento de estado.
+
+        El handler lo dispara el run() después de dedup, no por evento suelto.
+        Aquí sólo registramos auditoría.
+        """
         pass
 
     # ------------------------------------------------------------------
@@ -233,6 +240,7 @@ class EventPipeline:
                 "use_real_sources": self.use_real_sources,
                 "sinks": [s.sink_id for s in self.sinks],
                 "policy_engine": type(self.policy_engine).__name__,
+                "policy_ruleset_version": POLICY_RULESET_VERSION,
                 "event_log_backend": type(self.event_log).__name__,
                 "score_version": config.SCORE_VERSION,
             },
@@ -293,10 +301,10 @@ class EventPipeline:
                     # Corrección C: aplicar boost al case (PolicyEngine es pure)
                     apply_boost(case, decision)
 
-                # 4b. Publicar PolicyEvaluated
-                pol_evt = PolicyEvaluated(
-                    event_id=make_event_id("pol", case.case_id),
-                    event_type="policy_evaluated",
+                # 4b. Publicar DecisionIssued (corrección C: namespace Decision)
+                dec_evt = DecisionIssued(
+                    event_id=make_event_id("dec", case.case_id),
+                    event_type="decision_issued",
                     timestamp=now_iso(),
                     payload={
                         "case_id": case.case_id,
@@ -306,12 +314,13 @@ class EventPipeline:
                             "reasons": list(decision.reasons),
                             "boost_delta": decision.boost_delta,
                             "decision_id": decision.decision_id,
+                            "ruleset_version": decision.ruleset_version,
                             "metadata": decision.metadata,
                         },
                     },
                 )
-                self.bus.publish(pol_evt)
-                self._persist_event(pol_evt)
+                self.bus.publish(dec_evt)
+                self._persist_event(dec_evt)
 
                 # 4c. Publicar CaseDeduplicated (incluso si es duplicate, para auditoría)
                 dedup_evt = CaseDeduplicated(

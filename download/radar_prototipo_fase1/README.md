@@ -4,6 +4,21 @@ Sistema de detección de oportunidades comerciales **públicas** relacionadas co
 fotomultas, libre deuda, transferencia y regularización vehicular, con foco en
 **trazabilidad** y **revisión humana obligatoria** (sin outreach automático).
 
+## Lectura general del sistema
+
+> **Es un decision pipeline determinístico con capa LLM de extracción, con
+> auditoría completa.**
+
+No es:
+- ❌ un agent system
+- ❌ event sourcing puro
+- ❌ un CRM
+
+Es:
+- ✅ **lead intelligence + rule-based triage system con auditoría completa**
+
+Eso es bueno. Y coherente.
+
 ## Dos versiones del pipeline
 
 | Versión | Modo | Extractor | Orquestación | Cómo activarlo |
@@ -11,10 +26,19 @@ fotomultas, libre deuda, transferencia y regularización vehicular, con foco en
 | v1.0 (default) | imperativo | regex + keyword matching | pipeline.py directo | `python main.py` |
 | v2.0 | event-driven | LLM (GLM-4) | event_bus + sinks | `python main.py --event-pipeline` |
 
-**v2.0 cumple 3 reglas del spec:**
-- `no_llm_side_effects`: el extractor es pure function (sólo chat completion, no tool calls)
-- `no_direct_external_writes`: el pipeline sólo escribe via sinks
-- `requires_event_validation`: todo evento pasa por EventValidator antes del dispatch
+**v2.0 cumple 3 reglas del spec + 4 correcciones arquitectónicas + 3 estabilizaciones:**
+
+Reglas v2.0:
+- `no_llm_side_effects`: extractor es pure function
+- `no_direct_external_writes`: pipeline sólo escribe via sinks
+- `requires_event_validation`: todo evento pasa por EventValidator
+
+Correcciones arquitectónicas:
+- **A.** Roles congelados por capa (Extractor/Scoring/PolicyEngine/Sinks)
+- **B.** PolicyEngine con contrato formal + 4 garantías
+- **C.** Separación de namespaces Signal/Case/Decision en event stream
+- **D.** EventLog persistente (SQLite/JSONL) para replay
+- (Adicional) Score versioning (`v1.0_weighted_sum`)
 
 ---
 
@@ -207,27 +231,59 @@ Python, usar `--sheet-push-webhook` (más rápido, menos features).
 ### Pipeline v2.0 event-driven (`--event-pipeline`)
 
 Arquitectura event-driven con LLM extractor, PolicyEngine y sinks separados.
-Cumple las 3 reglas del spec v2.0 + 4 correcciones arquitectónicas:
 
 **Reglas v2.0:**
 - `no_llm_side_effects`: extractor LLM es pure function
 - `no_direct_external_writes`: pipeline sólo escribe via sinks
 - `requires_event_validation`: cada evento se valida contra data_contract
 
-**Correcciones arquitectónicas:**
-- **A. EventLog persistente** (SQLite/JSONL): append-only log con `event_id`, `event_type`, `payload`, `timestamp`, `version`. Habilita replay y debugging histórico.
-- **B. Score versioning**: cada Case registra `score_version="v1.0_weighted_sum"`. Permite comparación histórica y replay con nuevos pesos.
-- **C. PolicyEngine separa triggers de sinks**: los sinks ya NO consultan triggers, sólo ejecutan `PolicyDecision.actions`. Los sinks tienen `write_with_decision(case, decision)`.
-- **D. PolicyEngine con reglas explícitas**: 4 reglas (score>=80, jurisdiction target, duplicate suppress, canonical publish).
+**Corrección A — Roles congelados por capa:**
+
+| Capa | Rol | NO hace |
+| ---- | --- | ------- |
+| Extractor (LLM) | texto → estructura | decidir, escribir |
+| Scoring | numérico + versionado | decidir, escribir |
+| PolicyEngine | **única fuente de decisiones** | escribir externamente |
+| Sinks | ejecución pura | decidir, evaluar triggers |
+
+**Corrección B — PolicyEngine contract formal:**
+
+```
+Input:    CaseScored (case con score, score_version, is_canonical)
+Output:   PolicyDecision (actions, reasons, boost_delta, decision_id, ruleset_version)
+
+Garantías (4):
+  1. no side effects       — no muta input, no escribe externo
+  2. deterministic         — mismo input → mismo output
+  3. versioned ruleset     — POLICY_RULESET_VERSION = "v1.0"
+  4. idempotent per case_id — decision_id = hash(case_id, ruleset, actions)
+```
+
+**Corrección C — Namespaces Signal / Case / Decision:**
+
+| Namespace | Eventos | Significado |
+| --------- | ------- | ----------- |
+| **Signal** | `signal_collected` | Observación cruda del mundo |
+| **Case** | `entities_extracted`, `case_scored`, `case_deduplicated` | Estado agregado del sistema |
+| **Decision** | `decision_issued`, `case_published` | Intención política del sistema |
+| Meta | `event_rejected` | Evento inválido |
+
+Renombrado: `policy_evaluated` (híbrido) → `decision_issued` (namespace Decision claro).
+
+**Corrección D — EventLog persistente:**
+
+```
+event_id (PK) | event_type | payload (JSON) | timestamp | version
+```
+
+Backends: `sqlite` (default, atomic+queryable) | `jsonl` (fallback, simple).
+Cada evento del bus se persiste al event_log para replay/auditoría.
 
 ```bash
 # Requiere API key del LLM (GLM-4 o compatible OpenAI):
 export RADAR_LLM_API_KEY=<tu-api-key>
-# Opcional: endpoint y modelo
-# export RADAR_LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/chat/completions
-# export RADAR_LLM_MODEL=glm-4-flash
 # Opcional: webhook URL para sink de Sheets
-# export RADAR_WEBHOOK_URL=https://script.google.com/macros/s/<ID>/exec
+export RADAR_WEBHOOK_URL=https://script.google.com/macros/s/<ID>/exec
 
 python main.py --event-pipeline
 ```
@@ -240,50 +296,50 @@ $ python main.py --event-pipeline
   Setear env var: export RADAR_LLM_API_KEY=<tu-api-key>
 ```
 
-**Flujo de eventos con PolicyEngine (corrección C+D)**:
+**Flujo de eventos con namespaces separados (corrección A+B+C+D)**:
 
 ```
-SignalCollected
+[Signal] SignalCollected
   → handler_on_signal_collected
     → LLMExtractor.extract_to_case(signal)
-    → publicar EntitiesExtracted
+    → publicar [Case] EntitiesExtracted
       → handler_on_entities_extracted
         → Scorer.update_case_score(case) [score_version = "v1.0_weighted_sum"]
-        → publicar CaseScored
+        → publicar [Case] CaseScored
           → handler_on_case_scored (buffer para dedup batch)
             → merge_duplicates(casos)
             → por cada caso (canonical Y duplicate):
               → PolicyEngine.evaluate(case) → PolicyDecision
+                [corrección B: pure, deterministic, versioned, idempotent]
                 Reglas:
                   1. if score >= 80 → generate_whatsapp_intent
                   2. if jurisdiction in TARGET → boost_priority (+5)
-                  3. if duplicate → suppress_output (no más reglas)
+                  3. if duplicate → suppress_output (corta evaluación)
                   4. if canonical → publish_to_sheets
-              → apply_boost(case, decision) [PolicyEngine es pure, no muta]
-              → publicar PolicyEvaluated
-              → publicar CaseDeduplicated
+              → apply_boost(case, decision) [fuera del engine, muta case]
+              → publicar [Decision] DecisionIssued
+              → publicar [Case] CaseDeduplicated
               → si decision.should_suppress() → continue
-              → SinkFanOut.write_with_decision(case, decision)
-                → WhatsAppLinkSink.write_with_decision (genera link si action)
-                → GoogleSheetsWebhookSink.write_with_decision (encola si action)
-              → publicar CasePublished
-            → SinkFanOut.flush_all() (envía batch a Sheets)
+              → SinkFanOut.write_with_decision(case, decision) [corrección A: ejecución pura]
+                → WhatsAppLinkSink.write_with_decision (ejecuta action)
+                → GoogleSheetsWebhookSink.write_with_decision (ejecuta action)
+              → publicar [Decision] CasePublished
+            → SinkFanOut.flush_all() (POST a Apps Script)
 ```
 
-**EventLog (corrección A)** — schema persistido:
+**EventLog (corrección D)** — persistido en `download/sample_data/event_log.db`:
 
+```sql
+CREATE TABLE event_log (
+    event_id    TEXT PRIMARY KEY,
+    event_type  TEXT NOT NULL,
+    payload     TEXT NOT NULL,  -- JSON
+    timestamp   TEXT NOT NULL,  -- iso8601
+    version     TEXT NOT NULL DEFAULT '1.0'
+);
 ```
-event_id (PK) | event_type | payload (JSON) | timestamp | version
-```
 
-Backends:
-- `sqlite` (default, recomendado) — atomic, queryable, zero-deps
-- `jsonl` (fallback) — simple, para Drive o FS simple
-
-Persistido en `download/sample_data/event_log.db`. Cada evento del bus se
-duplica al event_log para replay/auditoría.
-
-**PolicyDecision** — output del PolicyEngine:
+**PolicyDecision** — output del PolicyEngine (corrección B):
 
 ```python
 PolicyDecision(
@@ -291,33 +347,21 @@ PolicyDecision(
     actions=["generate_whatsapp_intent", "boost_priority", "publish_to_sheets"],
     reasons=["score 85 >= 80", "jurisdiction CABA in target [...]", "case is canonical"],
     boost_delta=5,
-    metadata={"whatsapp_score_threshold": 80, "boost_delta": 5, "target_jurisdiction": "CABA"},
-    decision_id="dec-pol-abc123",
+    metadata={"whatsapp_score_threshold": 80, "boost_delta": 5},
+    decision_id="dec-2f69508c33a02a3b",  # idempotencia per case_id
+    ruleset_version="v1.0",              # versioned ruleset
     timestamp="2026-06-30T13:20:53..."
 )
 ```
 
-**Score versioning (corrección B)** — cada Case tiene:
+**Sinks disponibles** (corrección A: ejecución pura, 0 lógica de negocio):
 
-```python
-case.score_version = "v1.0_weighted_sum"
-```
+| Sink ID | Tipo | Ejecuta si | Escribe externamente? |
+| ------- | ---- | ---------- | --------------------- |
+| `whatsapp` | link_generator | `decision.should_generate_whatsapp()` | No (sólo genera link) |
+| `google_sheets` | apps_script_webhook | `decision.should_publish_to_sheets()` | Sí (vía WebhookUploader) |
 
-En el evento `CaseScored` y `CaseDeduplicated`, el validador emite warning si
-falta `score_version`. Esto habilita:
-- Replay con nuevos pesos (cambiar `SCORE_VERSION` en config)
-- Comparación histórica entre versiones
-- Debugging real (saber con qué pesos se calculó cada score)
-
-**Sinks disponibles**:
-
-| Sink ID | Tipo | Trigger (legacy) | Trigger (v2.0 con PolicyEngine) |
-| ------- | ---- | ---------------- | ------------------------------- |
-| `whatsapp` | link_generator | `manual_or_score_threshold` | `decision.should_generate_whatsapp()` |
-| `google_sheets` | apps_script_webhook | batch (cada 50 casos) | `decision.should_publish_to_sheets()` |
-
-Cada sink expone `write_with_decision(case, decision)` (recomendado) y
-`write(case)` (legacy, backward-compat).
+Cada sink expone `write_with_decision(case, decision)` (v2.0) y `write(case)` (legacy).
 
 **Data_contract validado en cada evento**:
 
@@ -394,24 +438,25 @@ scripts/radar/
 │
 │   ── v1.0 (pipeline imperativo, regex extractor) ──
 ├── pipeline.py          # Orquestador end-to-end v1
-├── extractor.py         # Extracción regex + normalización + privacy filter
+├── extractor.py         # [A] Extractor: texto → estructura (regex, no decide)
 ├── storage.py           # EvidenceStore + AuditTrail + ReviewQueue + SheetSync (legacy)
 │
 │   ── v2.0 (event-driven, LLM extractor, PolicyEngine) ──
-├── event_types.py       # 7 tipos de eventos (SignalCollected, ..., PolicyEvaluated, EventRejected)
+│   ── [C] Namespaces: Signal / Case / Decision ──
+├── event_types.py       # 7 tipos en 4 namespaces (Signal/Case/Decision/Meta)
 ├── event_validator.py   # Validación contra data_contract + score_version warning
 ├── event_bus.py         # In-process pub/sub con validación obligatoria
-├── event_log.py         # [A] Append-only event log (SQLite/JSONL) para replay/auditoría
-├── llm_extractor.py     # LLM extractor (GLM-4, pure function, SPEC-ONLY)
-├── policy_engine.py     # [C+D] PolicyEngine (pure) + PolicyDecision + apply_boost
-├── sinks.py             # Sinks con write_with_decision (PolicyDecision) + write (legacy)
+├── event_log.py         # [D] Append-only event log (SQLite/JSONL) para replay/auditoría
+├── llm_extractor.py     # [A] Extractor: texto → estructura (LLM, no decide)
+├── policy_engine.py     # [A+B] ÚNICA fuente de decisiones. Contract formal con 4 garantías
+├── sinks.py             # [A] Sinks: ejecución pura (0 lógica de negocio)
 ├── event_pipeline.py    # Orquestador event-driven v2 con PolicyEngine + EventLog
 │
 │   ── shared ──
-├── config.py            # Constantes + SCORE_VERSION = "v1.0_weighted_sum" [B]
+├── config.py            # Constantes + SCORE_VERSION = "v1.0_weighted_sum"
 ├── models.py            # Dataclasses: Signal, Case (+score_version), AuditEntry, ReviewAction
 ├── mock_sources.py      # Mock data AR + stubs documentados para Fase 2/3
-├── scorer.py            # Scoring weighted_sum_v1 + score_version [B]
+├── scorer.py            # [A] Scoring: numérico + versionado (weighted_sum_v1)
 ├── dedup.py             # Dedup con 4 match keys + union-find
 ├── sheets_uploader.py   # Subida vía gspread + service account (SPEC-ONLY)
 ├── webhook_uploader.py  # Subida vía POST a Apps Script Web App (SPEC-ONLY)

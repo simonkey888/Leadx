@@ -18,8 +18,8 @@ from typing import Callable, Dict, List, Any, Optional
 from collections import defaultdict
 
 from event_types import (
-    Event, SignalCollected, EntitiesExtracted, CaseScored,
-    CaseDeduplicated, CasePublished, EventRejected,
+    SignalCollected, EntitiesExtracted, CaseScored,
+    CaseDeduplicated, CasePublished, EventRejected, DecisionIssued,
     make_event_id, event_to_dict,
 )
 from event_validator import validate_event
