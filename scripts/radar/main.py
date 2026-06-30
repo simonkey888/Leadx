@@ -2,13 +2,13 @@
 main.py — Entry point del Radar de Oportunidades (Fase 1).
 
 Uso:
-    python main.py                # ejecuta pipeline end-to-end con mock data
-    python main.py --review       # lanza CLI de revisión
-    python main.py --review --demo  # CLI en modo demo (no interactivo)
-    python main.py --sheet-write  # sube casos canónicos a Google Sheet
-                                   # (requiere RADAR_GOOGLE_SERVICE_ACCOUNT_FILE)
-    python main.py --sheet-write --dry-run  # serializa filas a stdout sin tocar Google
-    python main.py --help         # ayuda
+    python main.py                          # pipeline end-to-end con mock data
+    python main.py --review                 # CLI de revisión
+    python main.py --review --demo          # demo automática
+    python main.py --sheet-write            # subir vía gspread + service account
+    python main.py --sheet-write --dry-run  # serializar filas sin tocar Google
+    python main.py --sheet-push-webhook     # subir vía POST a Apps Script Web App
+    python main.py --help
 
 Requisitos:
     Python 3.10+
@@ -25,6 +25,7 @@ from pipeline import RadarPipeline
 from review_cli import ReviewCLI
 from storage import load_cases_jsonl, AuditTrail
 from sheets_uploader import GoogleSheetsUploader, MissingCredentialsError
+from webhook_uploader import WebhookUploader, MissingWebhookURLError
 import config
 
 
