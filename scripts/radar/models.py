@@ -93,6 +93,12 @@ class Case:
     evidence_path: Optional[str] = None
     evidence_sha256: Optional[str] = None
 
+    # Uploader v1.0 — WhatsApp + sheet schema
+    whatsapp_number: str = ""           # vacío si no se puede inferir
+    whatsapp_link: str = ""             # https://wa.me/<num>?text=...
+    priority_level: str = ""            # = score_band (critical/high/medium/low)
+    review_state: str = "needs_review"  # espejo de status para la sheet
+
     # Audit
     created_at: str = field(default_factory=now_iso)
     updated_at: str = field(default_factory=now_iso)
