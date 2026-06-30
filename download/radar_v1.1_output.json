@@ -1,0 +1,681 @@
+{
+  "project_name": "Radar de Oportunidades",
+  "version": "1.1",
+  "generated_at": "2026-06-30T18:06:15+0000",
+  "summary": {
+    "queries_executed": 10,
+    "total_search_results": 80,
+    "unique_signals": 50,
+    "pages_read_full": 8,
+    "opportunities_found": 26,
+    "success_criterion_met": true,
+    "min_required": 10
+  },
+  "ranking": {
+    "sort_by": [
+      "commercial_score DESC",
+      "urgency_score DESC",
+      "confidence DESC"
+    ],
+    "top_results": 25
+  },
+  "results": [
+    {
+      "score": 93,
+      "confidence": 85,
+      "source": "elcerokm.com",
+      "url": "https://elcerokm.com/calcular-transferencia",
+      "name": "Calcular transferencia usado | elcerokm.com",
+      "problem": "transferencia",
+      "snippet": "Calcular transferencia usado | elcerokm.com IA Buscar con IA Ubicación Ubicación Recomendador Por tipo Tracker Taos Nivus Pulse Tera T-cross Territory Hilux Amarok S-10 Ranger Rampage Montana Toro Cronos Logan Versa Virtus Corolla Vento Sentra Kwid 208 Argo C3 Sandero Yaris A3 Sportback Kangoo Berli",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 65,
+        "urgency": 50,
+        "commercial": 93
+      },
+      "entities": {
+        "nombre_o_alias": "Buenos Aires",
+        "ubicacion": "Buenos Aires",
+        "patente_si_aparece": "HDI150",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "transferencia auto argentina",
+      "read_full": true
+    },
+    {
+      "score": 78,
+      "confidence": 70,
+      "source": "www2.jus.gob.ar",
+      "url": "https://www2.jus.gob.ar/dnrpa-site",
+      "name": "Formulario 08 Automotor, Transferencia Digital, Presupuesto Costos",
+      "problem": "transferencia",
+      "snippet": "Formulario 08 Automotor, Transferencia Digital, Presupuesto Costos, Trámites Online, Turnos | DNRPA Sistema Integral de Trámites Electrónicos DNRPA --> Toggle navigation Sistema Integral de Trámites Electrónicos DNRPA Inicio Ayuda --> Informes Web --> Retiro de Trámites --> Transferencia Digital -->",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 65,
+        "urgency": 80,
+        "commercial": 78
+      },
+      "entities": {
+        "nombre_o_alias": "Trámites Electrónicos",
+        "ubicacion": "Caba",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "transferencia auto argentina",
+      "read_full": true
+    },
+    {
+      "score": 78,
+      "confidence": 70,
+      "source": "servidos.ar",
+      "url": "https://servidos.ar/calculadora-transferencia-automotor",
+      "name": "Calculadora Transferencia Automotor 2026 - Servidos",
+      "problem": "transferencia",
+      "snippet": "Calculadora Transferencia Automotor 2026 - Valor DNRPA por Marca y Año | Gratis | Servidos ¡Vamos Argentina! · Armá tu Prode del Mundial 2026 arrow_forward Clasificados gratis ← Más herramientas Inicio / Herramientas / Transferencia Automotor Actualizado Junio 2026 Calculadora de Transferencia Autom",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 85,
+        "urgency": 50,
+        "commercial": 78
+      },
+      "entities": {
+        "nombre_o_alias": "Transferencia Automotor",
+        "ubicacion": "Caba",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "transferencia auto argentina",
+      "read_full": true
+    },
+    {
+      "score": 73,
+      "confidence": 60,
+      "source": "www.dnrpa.gov.ar",
+      "url": "https://www.dnrpa.gov.ar",
+      "name": "DNRPA",
+      "problem": "transferencia",
+      "snippet": "--> --> Mi Argentina --> Dejar en blanco Buscar en el sitio --> Consultas Aranceles Boletines Estadísticos Comerciantes Habitualistas Desarmaderos Subasta/Compactación Digesto web Digesto - PRENDARIO Disponibilidad de Chapas Mandatarios Plantas Verificadoras Radicación por Patentes Radicación por Do",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 65,
+        "urgency": 50,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "@dnrpa",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "transferencia auto argentina",
+      "read_full": true
+    },
+    {
+      "score": 73,
+      "confidence": 60,
+      "source": "www.flhsmv.gov",
+      "url": "https://www.flhsmv.gov/safety-center/consumer-education/selling-vehicle-florida-es",
+      "name": "Vender un Vehículo - Florida Highway Safety and Motor Vehicles",
+      "problem": "transferencia",
+      "snippet": "Vender un Vehículo - Florida Department of Highway Safety and Motor Vehicles Driver Licenses & ID Cards Driver Licenses & ID Cards Renew or Replace Your License What to Bring Florida’s NEW Driver License and ID Card Fees Emergency Contact Information Driver Licenses & ID Cards Education & Courses Dr",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 65,
+        "urgency": 10,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "Protección Contra",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "no puedo transferir auto",
+      "read_full": true
+    },
+    {
+      "score": 73,
+      "confidence": 60,
+      "source": "www.autofact.cl",
+      "url": "https://www.autofact.cl/blog/comprar-auto/limitaciones/limitaciones-personales-transferencia",
+      "name": "Limitaciones personales para la transferencia de vehículo - Autofact",
+      "problem": "transferencia",
+      "snippet": "Limitaciones personales para la transferencia de vehículo - Autofact Menú Mi cuenta Regístrate Servicio al Cliente Servicios Empresas Informes Autofact Transferencia online TAG a domicilio Utilidades Blog Compra un vehículo con seguridad Informe Autofact Full Descubre los antecedentes de un vehículo",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 100,
+        "urgency": 10,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "Autos Gratis",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "2026-04-08T10:46:00+00:00",
+      "query": "no puedo transferir auto",
+      "read_full": true
+    },
+    {
+      "score": 73,
+      "confidence": 60,
+      "source": "www.prt.tuv.com",
+      "url": "https://www.prt.tuv.com/transferir-auto-con-revision-tecnica-atrasada",
+      "name": "¿Se puede transferir un auto con la revisión técnica atrasada?",
+      "problem": "transferencia",
+      "snippet": "¿Se puede transferir un auto con la revisión técnica atrasada? Consent Details [#IABV2SETTINGS#] About This website uses cookies We use own and third party cookies to analyze your navigation for statistical and advertising purposes and to show you advertising based on your interests taking into acco",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "no puedo transferir auto",
+      "read_full": true
+    },
+    {
+      "score": 73,
+      "confidence": 30,
+      "source": "espanol.nationwide.com",
+      "url": "https://espanol.nationwide.com/lc/resources/auto-insurance/articles/how-to-transfer-car-title",
+      "name": "Cómo Transferir el Título de un Auto - Nationwide",
+      "problem": "transferencia",
+      "snippet": "Verifica si existe un derecho de retención sobre el vehículo. En otras palabras, debes verificar si el propietario actual adeuda dinero al banco por el vehículo ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "no puedo transferir auto",
+      "read_full": false
+    },
+    {
+      "score": 73,
+      "confidence": 30,
+      "source": "www.facebook.com",
+      "url": "https://www.facebook.com/groups/AutoUsadoTemuco/posts/1940486603362722",
+      "name": "Alguien me puede orientar cómo transferir un auto que no está al día ?",
+      "problem": "transferencia",
+      "snippet": "El Registro Civil me rechazó el trámite porque exigen que el vehículo esté al día, pero he leído que en algunas notarías o Autofac permiten ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "no puedo transferir auto",
+      "read_full": false
+    },
+    {
+      "score": 73,
+      "confidence": 30,
+      "source": "www.facebook.com",
+      "url": "https://www.facebook.com/Autofact.cl/videos/-crees-que-no-puedes-transferir-un-auto-porque-tiene-documentos-vencidosla-reali/1552765283081960",
+      "name": "¿Crees que no puedes transferir un auto porque tiene documentos",
+      "problem": "transferencia",
+      "snippet": "✓ También es posible transferirlo si tiene multas anotadas o en proceso de anotación. Pero ojo ⚠️ ❌ No podrás transferirlo si tiene limitaciones ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 73
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "no puedo transferir auto",
+      "read_full": false
+    },
+    {
+      "score": 71,
+      "confidence": 70,
+      "source": "alarfin.com.ar",
+      "url": "https://alarfin.com.ar/novedades/cuanto-cuesta-transferir-un-auto-usado-en-argentina-guia-actualizada-2025",
+      "name": "¿Cuánto cuesta transferir un auto usado en Argentina? Guía",
+      "problem": "libre_deuda",
+      "snippet": "¿Cuánto cuesta transferir un auto usado en Argentina? Guía actualizada 2025 - Novedades | Alarfin - Servicios Financieros Ingresar Ingreso como cliente Simulador Simulador de crédito Solicitá tu crédito Productos y servicios Pagos Concesionarias Novedades Simulador de crédito Solicitá tu crédito Ing",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Posible cliente",
+      "scores": {
+        "intent": 100,
+        "urgency": 10,
+        "commercial": 71
+      },
+      "entities": {
+        "nombre_o_alias": "@alarfin",
+        "ubicacion": "Caba",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "transferencia auto argentina",
+      "read_full": true
+    },
+    {
+      "score": 66,
+      "confidence": 30,
+      "source": "www.ater.gob.ar",
+      "url": "https://www.ater.gob.ar/ater2/certificadoLibreDeudaAut.asp",
+      "name": "Certificado Libre Deuda Automotores - ATER",
+      "problem": "libre_deuda",
+      "snippet": "Certificado Libre Deuda Automotores |. Para obtener su certificado de libre deuda, usted debe acceder a los Servicio de ATER con clave\nCertificado Libre Deuda Automotores Para obtener su certificado de libre deuda, usted debe acceder a los Servicio de ATER con clave Fiscal AFIP o bien concurra a la ",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 66
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "libre deuda vehicular argentina",
+      "read_full": false
+    },
+    {
+      "score": 66,
+      "confidence": 30,
+      "source": "multabot.com.ar",
+      "url": "https://multabot.com.ar/blog/libre-deuda-automotor",
+      "name": "Libre Deuda Automotor: Qué es y cómo obtenerlo en 2026 - Multabot",
+      "problem": "libre_deuda",
+      "snippet": "El certificado libre deuda auto es un documento que acredita que un vehículo no tiene deudas pendientes. $15.000 - $25.000",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 66
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "libre deuda vehicular argentina",
+      "read_full": false
+    },
+    {
+      "score": 66,
+      "confidence": 30,
+      "source": "portal.gba.gob.ar",
+      "url": "https://portal.gba.gob.ar/seccion/subtema/3",
+      "name": "Tema | Automotor, transporte y tránsito - Portal de Trámites",
+      "problem": "libre_deuda",
+      "snippet": "Trámites de infracciones, de libre deuda, interjurisdiccionalidad y peticiones judiciales. ... Trámites relacionados con la obtención, renovación, sustitución de ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 66
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "libre deuda vehicular argentina",
+      "read_full": false
+    },
+    {
+      "score": 66,
+      "confidence": 30,
+      "source": "www.kavak.com",
+      "url": "https://www.kavak.com/ar/blog/tip-kavak-todo-lo-que-necesitas-saber-sobre-el-libre-de-deuda-de-patente",
+      "name": "Libre de deuda automotor: Qué es y cómo sacarlo - Kavak",
+      "problem": "libre_deuda",
+      "snippet": "El libre deuda es un certificado oficial que confirma que un vehículo no tiene deudas pendientes del impuesto a la patente . Este impuesto es un ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 66
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "libre deuda vehicular argentina",
+      "read_full": false
+    },
+    {
+      "score": 63,
+      "confidence": 30,
+      "source": "www2.jus.gov.ar",
+      "url": "https://www2.jus.gov.ar/dnrpa-site/#!/estimador",
+      "name": "Estimador de costos",
+      "problem": "transferencia",
+      "snippet": "Estimador de costos. Calculá los costos aproximados para la inscripción de un vehículo 0 KM o la transferencia de un vehículo usado. Tipo de Trámite.",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 63
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "transferencia auto argentina",
+      "read_full": false
+    },
+    {
+      "score": 60,
+      "confidence": 45,
+      "source": "www.santafe.gov.ar",
+      "url": "https://www.santafe.gov.ar/e-pt-liq-deuda/index.php?action=ingreso::valida_broker",
+      "name": "Patente única sobre vehículos. Visualización y liquidación de deuda",
+      "problem": "patente",
+      "snippet": "Ingrese datos para visualización/liquidación: ... (+) Ver formatos de patentes válidos. Tipo de patente: Autos Mercosur desde Abril 2016 (Ej.: AB372CD).",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 10,
+        "urgency": 10,
+        "commercial": 60
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "AB372CD",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "patente auto argentina",
+      "read_full": false
+    },
+    {
+      "score": 56,
+      "confidence": 30,
+      "source": "www.ater.gov.ar",
+      "url": "https://www.ater.gov.ar/ater2/IB/LD_presentacion.asp",
+      "name": "Certificado Libre Deuda - ATER",
+      "problem": "libre_deuda",
+      "snippet": "El certificado de Libre Deuda acredita la no existencia de deuda de los impuestos provinciales de los que son responsables, dando así cumplimiento a lo ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 56
+      },
+      "entities": {
+        "nombre_o_alias": "Libre Deuda",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "libre deuda vehicular argentina",
+      "read_full": false
+    },
+    {
+      "score": 45,
+      "confidence": 30,
+      "source": "www.datacar.com.ar",
+      "url": "https://www.datacar.com.ar",
+      "name": "DATACAR. Informe de Historial de Autos Usados.",
+      "problem": "patente",
+      "snippet": "Informe de Historial Automotor. Ingresá la patente del vehículo. Obtené el informe ahora. ¡Incluye Historial de Siniestros , Registro de Kilometraje e Informe ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 10,
+        "urgency": 50,
+        "commercial": 45
+      },
+      "entities": {
+        "nombre_o_alias": "Autos Usados",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "patente auto argentina",
+      "read_full": false
+    },
+    {
+      "score": 45,
+      "confidence": 30,
+      "source": "www.axionenergy.com",
+      "url": "https://www.axionenergy.com/en-movimiento/saber-moverse/como-saber-si-tengo-multas-de-transito",
+      "name": "Cómo saber si tengo multas de tránsito - AXION energy",
+      "problem": "patente",
+      "snippet": "En la consulta en online, a través del sitio de «Infracciones.gob.ar», se solicitan el documento y la patente del auto para acceder a la información requerida.",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 45
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "multa transito argentina",
+      "read_full": false
+    },
+    {
+      "score": 45,
+      "confidence": 30,
+      "source": "www.dnrpa.gov.ar",
+      "url": "https://www.dnrpa.gov.ar/portal_dnrpa/radicacion2.php",
+      "name": "DNRPA (Radicación por Patentes)",
+      "problem": "patente",
+      "snippet": "Institucional · D.N.R.P.A. y C.P. · Información. Registros de la Propiedad Automotor. Radicación por Patente. Dominio. Código verificador. Consultar.",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 45
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "patente auto argentina",
+      "read_full": false
+    },
+    {
+      "score": 45,
+      "confidence": 30,
+      "source": "patente.ar",
+      "url": "https://patente.ar",
+      "name": "Consulta de patente online: multas, VTV, deuda y dominio | Patente.ar",
+      "problem": "patente",
+      "snippet": "Consultá una patente online: multas, VTV, deuda de patente, peajes, GNC, valuación e historial registral de autos y motos en Argentina.",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 45
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "patente auto argentina",
+      "read_full": false
+    },
+    {
+      "score": 38,
+      "confidence": 30,
+      "source": "www.dnrpa.gov.ar",
+      "url": "https://www.dnrpa.gov.ar/rentas/conv_rentas_prov/rentascapitalfed.php",
+      "name": "Registros de la Propiedad Automotor",
+      "problem": "multa",
+      "snippet": "Si el vehículo no tuviera deuda de multas por infracciones de tránsito, el Registro emitirá el certificado de inexistencia de actas pendientes.",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 10,
+        "urgency": 10,
+        "commercial": 38
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "libre deuda vehicular argentina",
+      "read_full": false
+    },
+    {
+      "score": 38,
+      "confidence": 30,
+      "source": "www.lanacion.com.ar",
+      "url": "https://www.lanacion.com.ar/sociedad/radares-bajo-sospecha-que-pasara-con-las-fotomultas-emitidas-por-equipos-sin-homologacion-y-por-que-nid28052026",
+      "name": "Radares bajo sospecha: qué pasará con las fotomultas emitidas por",
+      "problem": "fotomulta",
+      "snippet": "El operativo también detectó 152 radares fijos instalados sobre rutas nacionales que, de acuerdo con la ANSV, funcionaban sin autorización ...",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 10,
+        "urgency": 10,
+        "commercial": 38
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "radares fotomultas argentina",
+      "read_full": false
+    },
+    {
+      "score": 35,
+      "confidence": 30,
+      "source": "multabot.com.ar",
+      "url": "https://multabot.com.ar",
+      "name": "Multabot: Consulta Gratis de Multas por Patente o DNI en Argentina",
+      "problem": "patente",
+      "snippet": "Consultá multas por patente o DNI. Multabot analiza más de 300 jurisdicciones y te trae el informe de multas más completo del mercado en menos de 1 hora.",
+      "phone_if_public": "",
+      "whatsapp_if_public": "",
+      "recommended_action": "Revisar",
+      "scores": {
+        "intent": 40,
+        "urgency": 10,
+        "commercial": 35
+      },
+      "entities": {
+        "nombre_o_alias": "",
+        "ubicacion": "",
+        "patente_si_aparece": "",
+        "facebook_profile_si_es_publico": ""
+      },
+      "date": "",
+      "query": "fotomulta argentina",
+      "read_full": false
+    }
+  ],
+  "compliance": {
+    "only_public_information": true,
+    "never_bypass_logins": true,
+    "never_collect_private_information": true,
+    "never_send_messages": true,
+    "human_review_required": true
+  }
+}
