@@ -1,0 +1,30 @@
+{
+  "case_id": "case-9fe450b9",
+  "signal_id": "sig-a6214391",
+  "source_id": "facebook_public_groups",
+  "source_url": "https://facebook.public.groups/post/0a6b88b987",
+  "timestamp": "2026-06-30T10:38:16-03:00",
+  "captured_at": "2026-06-30T11:58:07.946276-03:00",
+  "evidence_text": "Hola gente, tengo una fotomulta de CABA del mes pasado, no sé cómo hacer el reclamo. Me llegó a mi domicilio de Caballito. Alguien sabe si conviene ir a defenderme o pagar? Son $18.500.",
+  "extracted_entities": {
+    "name_or_alias": "Mariela G.",
+    "vehicle_type": "",
+    "patent": "",
+    "jurisdiction": "CABA",
+    "locality": "Caballito",
+    "problem_type": "fotomulta",
+    "year": null,
+    "amount": 18500.0
+  },
+  "score": 62,
+  "score_band": "high",
+  "score_breakdown": {
+    "explicit_intent": 30,
+    "urgency": 0,
+    "jurisdiction_fit": 15,
+    "evidence_quality": 4,
+    "commercial_potential": 3,
+    "channel_fit": 10,
+    "signal_repetition": 0
+  }
+}

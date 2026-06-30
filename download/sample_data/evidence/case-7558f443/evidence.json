@@ -1,0 +1,30 @@
+{
+  "case_id": "case-7558f443",
+  "signal_id": "sig-2df96c63",
+  "source_id": "public_forums",
+  "source_url": "https://public.forums/post/21d570bc0e",
+  "timestamp": "2026-06-28T10:44:27-03:00",
+  "captured_at": "2026-06-30T11:58:07.944896-03:00",
+  "evidence_text": "Para transferir un auto necesito libre deuda, pero el dueño anterior dejó multas impagas. Quién las paga? Es en CABA.",
+  "extracted_entities": {
+    "name_or_alias": "transferencias_dudas",
+    "vehicle_type": "auto",
+    "patent": "",
+    "jurisdiction": "CABA",
+    "locality": "",
+    "problem_type": "transferencia",
+    "year": null,
+    "amount": null
+  },
+  "score": 64,
+  "score_band": "high",
+  "score_breakdown": {
+    "explicit_intent": 30,
+    "urgency": 0,
+    "jurisdiction_fit": 15,
+    "evidence_quality": 1,
+    "commercial_potential": 8,
+    "channel_fit": 10,
+    "signal_repetition": 0
+  }
+}
