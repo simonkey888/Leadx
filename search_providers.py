@@ -173,9 +173,11 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """Busca en Reddit via JSON público (sin auth).
     Por cada post, también trae los top comments para enriquecer el snippet.
     """
+    import sys as _sys
     encoded = urllib.parse.quote(query)
     # Reddit search JSON endpoint (público)
     url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
+    print(f"    [reddit] searching: {query[:60]}", file=_sys.stderr)
 
     # Reddit requiere un UA custom (no genérico)
     try:
@@ -183,8 +185,11 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         req.add_header("User-Agent", "RadarLeadsBot/1.0 (lead intelligence research)")
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8", errors="replace"))
-    except Exception:
+    except Exception as e:
+        print(f"    [reddit] ERROR: {e}", file=_sys.stderr)
         return []
+
+    print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
     results = []
     if isinstance(data, dict) and "data" in data:
