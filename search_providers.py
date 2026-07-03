@@ -387,6 +387,18 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """
     all_results = []
 
+    # Si la query es site:reddit.com, usar search_reddit directamente (trae author + comments)
+    if "site:reddit.com" in query.lower():
+        try:
+            # Extraer la query real sin el site:reddit.com
+            real_query = query.lower().replace("site:reddit.com", "").strip()
+            reddit = search_reddit(real_query, num=num)
+            all_results.extend(reddit)
+            return all_results[:num * 2]
+        except Exception:
+            pass
+
+    # Si la query es site:facebook.com o site:x.com, igual usar DuckDuckGo (no tenemos API directa)
     # Provider 1: DuckDuckGo
     try:
         ddg = search_duckduckgo(query, num=num)
@@ -396,7 +408,7 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
         pass
 
     # Provider 2: Reddit (sólo si la query no es muy larga)
-    if len(query) < 200:
+    if len(query) < 200 and "site:reddit.com" not in query.lower():
         try:
             reddit = search_reddit(query, num=num)
             all_results.extend(reddit)
