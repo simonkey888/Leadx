@@ -251,6 +251,7 @@ class Lead:
 # ===========================================================================
 # Import search providers (DuckDuckGo + Reddit + RSS, sin search_providers)
 from search_providers import search as provider_search
+from source_registry import run_discovery_and_update, get_approved_sources
 from search_providers import enrich_reddit_post
 
 
@@ -892,6 +893,12 @@ def run_pipeline() -> Dict[str, Any]:
     print("=" * 60, file=sys.stderr)
     print("  RADAR LEADS — Payload Generator v1.0", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
+
+    # Step 0: Source discovery (SourceHunterAR v10.2)
+    try:
+        run_discovery_and_update()
+    except Exception as e:
+        print(f"  [SourceHunter] WARNING: {e}", file=sys.stderr)
 
     # Step 1: Collect
     raw_results = collect_public_sources()
