@@ -257,21 +257,47 @@ const STATE = {
 };
 
 function normalizeLead(l) {
+  // Soporta ambos schemas: v8 nested (scoring.final_score, source.url) y v1.0 plano (score, source_url)
   const score = l.scoring?.final_score ?? l.score ?? 0;
+  const title = l.title || l.quoted_text || l.problem_summary || l.snippet || l.lead_reason || 'Sin título';
+  const snippet = l.snippet || l.problem_summary || l.quoted_text || '';
+  const url = l.source?.url || l.source_url || l.url || '#';
+  const platform = l.source?.type || l.platform || 'unknown';
+  const whatsapp = l.contact?.whatsapp || l.whatsapp_publico || '';
+  const phone = l.contact?.phone || l.telefono_publico || '';
+  const fecha = l.fecha_iso || l.discovery_timestamp || l.fecha_visible || '';
+  const intent = l.intent_cluster || l.intent || l.problem_category || '—';
+
+  // Construir acciones
+  const actions = [];
+  if (l.actions && Array.isArray(l.actions)) {
+    l.actions.forEach(a => actions.push(a));
+  }
+  if (url && url !== '#') actions.push({type: 'OPEN_SOURCE', url, label: '🔗 Fuente'});
+  if (whatsapp) {
+    const wa = whatsapp.replace(/[^0-9]/g, '');
+    actions.push({type: 'OPEN_WHATSAPP', url: 'https://wa.me/' + wa, label: '🟢 WhatsApp'});
+  }
+  if (phone) actions.push({type: 'OPEN_PHONE', url: 'tel:' + phone, label: '📞 Llamar'});
+
   return {
     id: l.id || 'sin-id',
     score: score,
-    title: l.title || l.snippet || l.lead_reason || 'Sin título',
-    snippet: l.snippet || l.summary || '',
-    url: l.source?.url || l.url || '#',
-    platform: l.source?.type || l.platform || 'unknown',
-    intent: l.intent_cluster || l.intent || '—',
-    whatsapp: l.contact?.whatsapp || l.whatsapp_publico || '',
-    phone: l.contact?.phone || l.telefono_publico || '',
-    fecha: l.fecha_iso || l.discovery_timestamp || '',
-    actions: l.actions || [],
-    lead_reason: l.lead_reason || '',
+    title: title,
+    snippet: snippet,
+    url: url,
+    platform: platform,
+    intent: intent,
+    whatsapp: whatsapp,
+    phone: phone,
+    fecha: fecha,
+    actions: actions,
+    lead_reason: l.lead_reason || l.problem_summary || '',
     entity: l.entity_ref || l.entity || {},
+    persona: l.persona || '',
+    provincia: l.provincia || '',
+    vehiculo: l.vehiculo || '',
+    patente: l.patente || '',
   };
 }
 
@@ -393,6 +419,12 @@ function renderLeads(p) {
       actions.push('<a href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener">' + escapeHtml(label) + '</a>');
     });
 
+    const extraChips = [];
+    if (l.persona) extraChips.push('<span class="chip">👤 ' + escapeHtml(l.persona) + '</span>');
+    if (l.provincia) extraChips.push('<span class="chip">📍 ' + escapeHtml(l.provincia) + '</span>');
+    if (l.vehiculo) extraChips.push('<span class="chip">🚗 ' + escapeHtml(l.vehiculo) + '</span>');
+    if (l.patente) extraChips.push('<span class="chip">🔧 ' + escapeHtml(l.patente) + '</span>');
+
     return \`
       <div class="lead-card \${cls}">
         <div class="top">
@@ -405,6 +437,7 @@ function renderLeads(p) {
           <span class="chip">🎯 \${escapeHtml(l.intent)}</span>
           \${fechaStr ? '<span class="chip">📅 ' + fechaStr + '</span>' : ''}
           \${l.whatsapp ? '<span class="chip">🟢 WA</span>' : ''}
+          \${extraChips.join('')}
         </div>
         <div class="actions">\${actions.join('')}</div>
       </div>
