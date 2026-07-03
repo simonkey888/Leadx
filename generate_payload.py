@@ -45,7 +45,7 @@ STATS_PATH = DATA_DIR / "stats.json"
 HISTORY_PATH = DATA_DIR / "history.json"
 
 # Performance
-MAX_RUNTIME_SECONDS = 25
+MAX_RUNTIME_SECONDS = 120
 RATE_LIMIT_MS = 2000
 MAX_RESULTS_PER_QUERY = 10
 
@@ -362,32 +362,12 @@ def collect_public_sources() -> List[Dict[str, Any]]:
         time.sleep(RATE_LIMIT_MS / 1000)
     print(f"  Collected {len(all_results)} raw results", file=sys.stderr)
 
-    # ENRIQUECER: para posts de Reddit, traer selftext completo + comments
-    # Esto permite encontrar WhatsApp/email/username que no estan en el snippet
-    enriched_count = 0
-    for r in all_results:
-        url = r.get("url", "")
-        if "reddit.com" in url and "/comments/" in url:
-            try:
-                enrich_data = enrich_reddit_post(url)
-                if enrich_data["full_text"]:
-                    # Reemplazar snippet con full_text (mas info para extraer contactos)
-                    r["snippet"] = (r.get("snippet", "") + " " + enrich_data["full_text"])[:3000]
-                    enriched_count += 1
-                # Agregar comments como contexto extra
-                if enrich_data["comments"]:
-                    r["_reddit_comments"] = enrich_data["comments"]
-                    # Concatenar comments al snippet para extraccion
-                    comments_text = " ".join(enrich_data["comments"])
-                    r["snippet"] = (r.get("snippet", "") + " " + comments_text)[:4000]
-                # Author real de Reddit
-                if enrich_data["author"] and enrich_data["author"] != "[deleted]":
-                    r["username"] = enrich_data["author"]
-                    r["author"] = enrich_data["author"]
-                time.sleep(0.5)  # rate limit
-            except Exception as e:
-                pass
-    print(f"  Enriched {enriched_count} Reddit posts with full text + comments", file=sys.stderr)
+    # Nota: el enrich separado fue reemplazado por la logica inline en search_reddit
+    # que trae selftext completo + top 10 comments por post en una sola pasada.
+    # Si search_reviders.search_reddit falla al traer comments (rate limit/blocked),
+    # el snippet igual va a tener el selftext completo.
+    reddit_count = sum(1 for r in all_results if "reddit.com" in r.get("url", ""))
+    print(f"  Reddit posts in results: {reddit_count}", file=sys.stderr)
 
     return all_results
 
