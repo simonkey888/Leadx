@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar de Leads — Fotomultas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f7f9fb; --card-bg: #fff; --border: #e0e5ee;
+  --text: #1a1a2e; --text-muted: #6b7280;
+  --primary: #0176d3; --primary-dark: #014486;
+  --success: #2e844a; --warning: #ffb75d; --danger: #ba0517;
+  --hot: #ff6b35;
+}
+body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Header */
+.header { background: var(--card-bg); border-bottom: 2px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 18px; color: var(--primary-dark); }
+.header .stats { display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); }
+.header .stats span b { color: var(--text); font-size: 16px; }
+
+/* Filters */
+.filters { padding: 12px 24px; display: flex; gap: 12px; align-items: center; }
+.filter-btn { padding: 6px 16px; border: 1px solid var(--border); background: var(--card-bg); border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text-muted); }
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* Lead cards */
+.leads-container { padding: 0 24px 24px; max-width: 1400px; margin: 0 auto; }
+.lead-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; display: flex; gap: 16px; transition: box-shadow 0.2s; }
+.lead-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.lead-card.hot { border-left: 4px solid var(--hot); }
+.lead-card.reviewed { opacity: 0.6; }
+.lead-card.ignored { opacity: 0.4; }
+
+/* Score bar */
+.score-section { min-width: 80px; text-align: center; }
+.score-value { font-size: 28px; font-weight: 700; line-height: 1; }
+.score-bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.score-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; }
+
+/* Lead content */
+.lead-content { flex: 1; min-width: 0; }
+.lead-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.problem-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.badge-transfer { background: #e1f0ff; color: var(--primary); }
+.badge-fine { background: #ffe0e0; color: var(--danger); }
+.badge-ownership { background: #fff4e0; color: #b07000; }
+.badge-docs { background: #e8f5e9; color: var(--success); }
+.lead-platform { font-size: 12px; color: var(--text-muted); }
+.lead-snippet { font-size: 14px; color: var(--text); margin: 6px 0; line-height: 1.5; }
+.lead-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* Actions */
+.lead-actions { display: flex; flex-direction: column; gap: 6px; min-width: 120px; }
+.btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center; }
+.btn-wa { background: #25d366; color: white; }
+.btn-wa:hover { background: #1da851; }
+.btn-link { background: var(--border); color: var(--text); }
+.btn-link:hover { background: #d1d5db; }
+.btn-state { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; }
+.btn-state.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* Urgency indicator */
+.urgency { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; color: var(--hot); }
+.urgency::before { content: '🔥'; }
+
+/* Empty state */
+.empty { text-align: center; padding: 60px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔍 Radar de Leads — Fotomultas</h1>
+  <div class="stats">
+    <span><b id="stat-total">0</b><br>leads</span>
+    <span><b id="stat-contact">0</b><br>con contacto</span>
+    <span><b id="stat-avg">0</b><br>score promedio</span>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filterLeads('all_time')">Todo el tiempo</button>
+  <button class="filter-btn" onclick="filterLeads('last_3_days')">Últimos 3 días</button>
+  <input type="text" id="search-box" placeholder="Buscar..." style="padding:6px 12px; border:1px solid var(--border); border-radius:4px; width:200px;" oninput="renderLeads()">
+</div>
+
+<div class="leads-container" id="leads-container"></div>
+
+<script>
+const DATA = {"leads": [{"id": "3dd6bcc0d9e3b3cb", "score": 100, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/761556861156583", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:51.300582+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "1133129401", "whatsapp": "1133129401", "whatsapp_link": "https://wa.me/541133129401", "snippet": "Vendo symbol 1.6 nafta 2011 listo para transferir 7millones psos WhatsApp 11 33129401 ... Vendo o permuto ambos por camioneta o auto (308, vento). Soy ...", "has_phone": true, "has_whatsapp": true, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": true, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "has_phone": 25, "has_whatsapp": 25, "explicit_transfer_problem": 30, "preventive_signal": 10}}, {"id": "5d8754aff44e730b", "score": 80, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/280866115633271/posts/2798451877208003", "platform": "Facebook", "date": "Jul 2, 2026", "discovery_timestamp": "2026-07-03T10:55:51.300240+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Está totalmente operativo y la transferencia es notarial con tarjeta de propiedad. Afortunado el que lo compre, le he puesto demasiado cariño, ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["urgente"], "recent_post": true, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": true, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "recent_post": 15, "explicit_transfer_problem": 30, "preventive_signal": 10, "unclear_country": -15}}, {"id": "7f9fbd25c78007fc", "score": 80, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/SunarpOficial/posts/te-lleg%C3%B3-una-multa-por-un-veh%C3%ADculo-que-ya-no-tienes-esto-puede-pasar-si-la-trans/1370453925124599", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:36.044437+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "¿Te llegó una multa por un vehículo que ya no tienes? Esto puede pasar si la transferencia vehicular no fue inscrita correctamente en Sunarp.", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": true, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "explicit_transfer_problem": 30, "multa_related": 25, "unclear_country": -15}}, {"id": "1c60e92a9678235b", "score": 70, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://listado.mercadolibre.com.ar/formulario-12-automotor-cordoba", "platform": "Listado.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.674345+00:00", "province": "Córdoba", "city": "Cordoba", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Formulario Para El Automotor 08 Auto **envio En El Dia**. 4.5. $18.900. Llega gratis mañana. Formulario 08 Transferencia Automotor. 4.8. $18.899 ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["mañana"], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "explicit_transfer_problem": 30}}, {"id": "f91a034e047a6fdf", "score": 70, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://listado.mercadolibre.com.ar/compra-formulario-08", "platform": "Listado.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.674151+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Informe De Dominio Urgente Auto O Moto No Pagues De Mas ! 4.8. $10.500. Envío gratisEnvío gratis. Formulario 08 Transferencia Automotor. 4.8. $18.899.", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["urgente"], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "explicit_transfer_problem": 30}}, {"id": "cce64253b28294cc", "score": 70, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.reddit.com/r/ArAutos/comments/1hipai7/dnrpa_error_al_iniciar_transferencia", "platform": "Reddit", "date": "", "discovery_timestamp": "2026-07-03T10:55:43.922502+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "desde el miercoles estoy intentando iniciar el tramite para una transferencia en la pagina del DNRPA y me tira este error, ya probe con otra ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "explicit_transfer_problem": 30}}, {"id": "574704d4a4d03d34", "score": 60, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/276074287942602/posts/1263381515878536", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:32.824182+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "La transferencia se puede realizar hay registros que te permiten optar si querés consultar patentes e infracciones y que no te exigen el ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30, "multa_related": 25, "unclear_country": -15}}, {"id": "944951743fe08e24", "score": 60, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/276074287942602/posts/1312257600990927", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:32.823863+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Es un impedimento a la hora de transferir el auto o simplemente la puedo saldar en el momento de la transferencia? ... YellowTangerine4290 ▻ Defensas contra las ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30, "multa_related": 25, "unclear_country": -15}}, {"id": "faf7eb0a057bee6d", "score": 55, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/761341697299639/posts/25868503939490068", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:51.300964+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Buenas alguien que me recomiende quien compra autos sin funcionar. Necesito vender el mío urgente. Cuenta ya con 08 firmado.", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["urgente", "ya"], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "explicit_transfer_problem": 30, "unclear_country": -15}}, {"id": "6fe37840605bfbb6", "score": 50, "problem_category": "FINE_DISPUTE", "problem_summary": "Disputa de multa/fotomulta", "person_name": "(anónimo)", "username": "ottowirz", "profile_url": "", "post_url": "https://x.com/ottowirz", "platform": "X", "date": "", "discovery_timestamp": "2026-07-03T10:55:54.471008+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Una multa de 10.000.000 suena a terminal para una Pyme y para la relación profesional. Urgente revisión. No se puede vivir con esa arma apuntando a nuestras ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["urgente"], "recent_post": false, "explicit_transfer_problem": false, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "multa_related": 25, "unclear_country": -15}}, {"id": "c0d495d9474a6ae2", "score": 50, "problem_category": "FINE_DISPUTE", "problem_summary": "Disputa de multa/fotomulta", "person_name": "(anónimo)", "username": "maurohouseless", "profile_url": "", "post_url": "https://x.com/maurohouseless", "platform": "X", "date": "", "discovery_timestamp": "2026-07-03T10:55:54.470549+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "He visto multas aparecer 6 meses+ después. 2) Que las multas vayan pegadas únicamente al DNI de un titular, en lugar de ir también pegadas al auto.", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": false, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "multa_related": 25, "unclear_country": -15}}, {"id": "79a2d291329832a5", "score": 50, "problem_category": "FINE_DISPUTE", "problem_summary": "Disputa de multa/fotomulta", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://x.com/jorgedgrispo/status/1972958702933033144", "platform": "X", "date": "", "discovery_timestamp": "2026-07-03T10:55:54.470333+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "La respuesta es sí: aunque el actual propietario no sea quien cometió la infracción, la normativa uruguaya permite exigir el pago de las multas ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": false, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "multa_related": 25, "unclear_country": -15}}, {"id": "6d88a0c6b8bfe56a", "score": 50, "problem_category": "FINE_DISPUTE", "problem_summary": "Disputa de multa/fotomulta", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://x.com/rusosnith/status/2059272980631355814", "platform": "X", "date": "", "discovery_timestamp": "2026-07-03T10:55:54.470120+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "1) Obligar a los municipios y provincias a publicar las infracciones en un plazo máximo (ej: 10 días). · 2) Que las multas vayan pegadas ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": false, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "multa_related": 25, "unclear_country": -15}}, {"id": "3d9b18ca82a6db8e", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://auto.mercadolibre.com.ar/MLA-3425937586-citron-c3-picasso-15-origine-90cv-_JM", "platform": "Auto.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.674517+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Descripción. PRECIO MAS TRANSFERENCIA SISTEMA DE ENTREGA: • VTV AL DÍA • POLICIAL AL DÍA • 08 FIRMADO ANTE ESCRIBANO TIEMPO DE ENTREGA: • CONTADO: ENTREGA ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "458b5939b81dfd08", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://listado.mercadolibre.com.ar/escribania-certifique-formulario-08-dia-sabado", "platform": "Listado.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.674253+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Formulario 08 Automotor Recibilo En El Dia · $18.900 ; Formulario 08 Automotor **envio En El Dia** · $18.900 ; Formulario Para El Automotor 08 Auto Transferencia · $ ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "1c69cd3a49e52b88", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://listado.mercadolibre.com.ar/formulario-08-para-auto", "platform": "Listado.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.674066+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Formulario 08 para auto ; Formulario 08 Transferencia Automotor · 18.899 ; Formulario 08 Automotor **envio En El Dia** · 18.900 ; Formulario 08 Transferencia Auto.", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "32d2dbcc80bf8ca2", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.mercadolibre.com.ar/vehiculos/blog/como-hacer-transferencia-moto", "platform": "MercadoLibre", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.673978+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "1. Pedir Informe de dominio. · 2. Realizar la verificación física policial. · 3. Tramitar el CeTA y el 08 · 4. Solicitar un turno en el Registro Automotor.", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "5683f23c5417505f", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://listado.mercadolibre.com.ar/formulario-08-blanco-cerfificaciin-firma", "platform": "Listado.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.673878+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "El formulario 08 blanco certificación firma es un documento oficial utilizado en Argentina para la transferencia de vehículos. Este formulario se caracteriza ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "d1c94b38aef478e7", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.mercadolibre.com.ar/vehiculos/blog/tramites-para-vender-auto", "platform": "MercadoLibre", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.673753+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "el vendedor deberá tramitar el Certificado de Transferencia Automotor en AFIP si el vehículo (auto o moto) supera el monto de $100.000. 4. Tramitar el 08. Este ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "580e08a98897d0ef", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://listado.mercadolibre.com.ar/formulario-08", "platform": "Listado.Mercadolibre.Com.Ar", "date": "", "discovery_timestamp": "2026-07-03T10:55:47.673591+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "4.5 $18.900 Llega gratis. El Formulario 08 es un documento esencial en Argentina para la transferencia de propiedad de vehículos automotores y motovehículos.", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "bf0c817aebda804b", "score": 50, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/juanjo2012/posts/26009658058725892", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:43.921998+00:00", "province": "", "city": "", "country": "Argentina", "vehicle": "", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Buenas alguien más tiene problemas con la página DNRPA?? hace 3 días que estoy intentando terminar con un precarga para transferencia ''(a ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": false, "institutional_source": false, "unclear_country": false, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30}}, {"id": "56c6571e273bd87e", "score": 50, "problem_category": "FINE_DISPUTE", "problem_summary": "Disputa de multa/fotomulta", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/276074287942602/posts/1318959226987431", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:36.043918+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Buenos días. Alguien tal vez sabe donde puedo arreglar una multa de $127 por exceso de velocidad la cual no me pertenece, ya que me envían la ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": false, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "multa_related": 25, "unclear_country": -15}}, {"id": "0f961c21e8ba67da", "score": 50, "problem_category": "FINE_DISPUTE", "problem_summary": "Disputa de multa/fotomulta", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/276074287942602/posts/1202043342012354", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:36.043772+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "Hola, alguien sabe cómo puedo anular está multa, ya es vieja pero no es de mi auto, se confundieron en una letra, en la foto se ve un Chevrolet y yo tengo un ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": true, "urgency_keywords_found": ["ya"], "recent_post": false, "explicit_transfer_problem": false, "multa_related": true, "preventive_signal": false, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "urgency_detected": 20, "multa_related": 25, "unclear_country": -15}}, {"id": "fff4a7a60be26da7", "score": 45, "problem_category": "TRANSFER_PROBLEM", "problem_summary": "Problema de transferencia", "person_name": "(anónimo)", "username": "", "profile_url": "", "post_url": "https://www.facebook.com/groups/796920607048565/posts/36473070565673450", "platform": "Facebook", "date": "", "discovery_timestamp": "2026-07-03T10:55:51.301233+00:00", "province": "", "city": "", "country": "Unknown", "vehicle": "auto", "patent": "", "phone": "", "whatsapp": "", "whatsapp_link": "", "snippet": "VENDO AUTO AÑO 2012 TODO AL DIA TRANSFERENCIA INMEDIATA 3mll500 · Mauricio Zúñiga ▻ VENTA DE AUTOS USADOS EN SANTIAGO · Ramón Rebolledo Gonzalez ...", "has_phone": false, "has_whatsapp": false, "urgency_detected": false, "urgency_keywords_found": [], "recent_post": false, "explicit_transfer_problem": true, "multa_related": false, "preventive_signal": true, "institutional_source": false, "unclear_country": true, "review_state": "new", "score_breakdown": {"base": 20, "explicit_transfer_problem": 30, "preventive_signal": 10, "unclear_country": -15}}], "metrics": {"total_leads": 24, "queries_executed": 7, "runtime_seconds": 25.77, "by_category": {"TRANSFER_PROBLEM": 18, "FINE_DISPUTE": 6}, "by_platform": {"Facebook": 10, "Listado.Mercadolibre.Com.Ar": 6, "Reddit": 1, "X": 4, "Auto.Mercadolibre.Com.Ar": 1, "MercadoLibre": 2}, "with_contact": 1, "avg_score": 57.9}};
+let currentFilter = 'all_time';
+let reviewStates = JSON.parse(localStorage.getItem('radar_review_states') || '{}');
+
+function getLeadState(id) {
+  return reviewStates[id] || 'new';
+}
+
+function setLeadState(id, state) {
+  reviewStates[id] = state;
+  localStorage.setItem('radar_review_states', JSON.stringify(reviewStates));
+  renderLeads();
+}
+
+function filterLeads(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderLeads();
+}
+
+function isWithin3Days(lead) {
+  const dateStr = lead.date || lead.discovery_timestamp;
+  if (!dateStr) return true;
+  const d = new Date(dateStr);
+  const diff = (Date.now() - d.getTime()) / (1000 * 60 * 60 * 24);
+  return diff <= 3;
+}
+
+function scoreColor(score) {
+  if (score >= 80) return '#2e844a';
+  if (score >= 60) return '#0176d3';
+  if (score >= 40) return #ffb75d;
+  return #6b7280;
+}
+
+function badgeClass(cat) {
+  return {
+    'TRANSFER_PROBLEM': 'badge-transfer',
+    'FINE_DISPUTE': 'badge-fine',
+    'OWNERSHIP_ISSUE': 'badge-ownership',
+    'DOCUMENTATION_ISSUE': 'badge-docs'
+  }[cat] || 'badge-docs';
+}
+
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t || '';
+  return d.innerHTML;
+}
+
+function renderLeads() {
+  const search = document.getElementById('search-box').value.toLowerCase();
+  let filtered = DATA.leads.filter(l => {
+    if (currentFilter === 'last_3_days' && !isWithin3Days(l)) return false;
+    if (search && !(l.snippet + l.person_name + l.problem_summary + l.platform).toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  // Stats
+  document.getElementById('stat-total').textContent = filtered.length;
+  document.getElementById('stat-contact').textContent = filtered.filter(l => l.has_phone || l.has_whatsapp).length;
+  const avg = filtered.length > 0 ? Math.round(filtered.reduce((a, l) => a + l.score, 0) / filtered.length) : 0;
+  document.getElementById('stat-avg').textContent = avg;
+
+  const container = document.getElementById('leads-container');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">No hay leads que coincidan con el filtro.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(l => {
+    const state = getLeadState(l.id);
+    const isHot = l.score >= 70;
+    const urgencyStars = l.urgency_detected ? '<span class="urgency">urgente</span>' : '';
+    const waBtn = l.whatsapp_link
+      ? `<a class="btn btn-wa" href="${l.whatsapp_link}" target="_blank">WhatsApp</a>`
+      : '<span style="font-size:11px;color:var(--text-muted);text-align:center;padding:6px;">Sin contacto</span>';
+    const dateShort = l.date ? l.date.substring(0, 10) : (l.discovery_timestamp ? l.discovery_timestamp.substring(0, 10) : '—');
+
+    return `
+    <div class="lead-card ${isHot ? 'hot' : ''} ${state !== 'new' ? state : ''}">
+      <div class="score-section">
+        <div class="score-value" style="color:${scoreColor(l.score)}">${l.score}</div>
+        <div class="score-bar"><div class="score-fill" style="width:${l.score}%;background:${scoreColor(l.score)}"></div></div>
+        <div class="score-label">${l.problem_category.replace('_',' ').substring(0,12)}</div>
+      </div>
+      <div class="lead-content">
+        <div class="lead-header">
+          <span class="problem-badge ${badgeClass(l.problem_category)}">${l.problem_summary}</span>
+          <span class="lead-platform">${l.platform}</span>
+          ${urgencyStars}
+        </div>
+        <div class="lead-snippet">${escapeHtml(l.snippet.substring(0, 200))}</div>
+        <div class="lead-meta">
+          <span>👤 ${escapeHtml(l.person_name)}</span>
+          ${l.province ? `<span>📍 ${l.province}</span>` : ''}
+          ${l.vehicle ? `<span>🚗 ${l.vehicle}</span>` : ''}
+          ${l.patent ? `<span>🔢 ${l.patent}</span>` : ''}
+          <span>📅 ${dateShort}</span>
+          ${l.phone ? `<span>📞 ${l.phone}</span>` : ''}
+        </div>
+      </div>
+      <div class="lead-actions">
+        ${waBtn}
+        <a class="btn btn-link" href="${l.post_url}" target="_blank">Ver post</a>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button class="btn-state ${state==='reviewed'?'active':''}" onclick="setLeadState('${l.id}','reviewed')" title="Revisado">✓</button>
+          <button class="btn-state ${state==='contacted'?'active':''}" onclick="setLeadState('${l.id}','contacted')" title="Contactado">📞</button>
+          <button class="btn-state ${state==='ignored'?'active':''}" onclick="setLeadState('${l.id}','ignored')" title="Ignorar">✗</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderLeads();
+</script>
+</body>
+</html>
