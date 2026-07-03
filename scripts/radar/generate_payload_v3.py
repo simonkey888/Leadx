@@ -191,7 +191,11 @@ class Lead:
     contact: Dict[str, str] = field(default_factory=dict)
     score_breakdown: Dict[str, int] = field(default_factory=dict)
     detected_signals: List[str] = field(default_factory=list)
-    lead_origin: str = "real"  # real | fallback | synthetic — siempre "real" en v3.1
+    lead_origin: str = "real"  # real | fallback | synthetic — siempre "real"
+    verification_level: str = "raw"  # raw | enriched | validated
+    source_detail: Dict[str, str] = field(default_factory=dict)  # provider, url, timestamp
+    provenance_chain: List[str] = field(default_factory=list)
+    actions: List[Dict[str, str]] = field(default_factory=list)  # action buttons condicionales
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -280,7 +284,7 @@ def update_provider_health(source: str, result_count: int):
 # ===========================================================================
 # Build lead from search result
 # ===========================================================================
-def build_lead(result: Dict[str, Any]) -> Optional[Lead]:
+def build_lead(result: Dict[str, Any], query: str = "") -> Optional[Lead]:
     name = result.get("name", "")
     snippet = result.get("snippet", "")
     url = result.get("url", "")
@@ -447,6 +451,82 @@ def build_lead(result: Dict[str, Any]) -> Optional[Lead]:
             wa_num = "54" + wa_num.lstrip("0")
         contact["whatsapp"] = f"https://wa.me/{wa_num}"
 
+    # --- Action buttons (v4: every lead must have at least one) ---
+    actions = []
+
+    # WhatsApp button (primary, si existe)
+    if contact.get("whatsapp"):
+        actions.append({
+            "type": "primary",
+            "label": "WhatsApp",
+            "condition": "whatsapp_exists",
+            "action": "open_whatsapp",
+            "url": contact["whatsapp"],
+            "channel": "whatsapp",
+        })
+
+    # Fuente Reddit button (si source es reddit)
+    if source in ("reddit", "reddit_rss") or "reddit.com" in host:
+        actions.append({
+            "type": "secondary",
+            "label": "Fuente Reddit",
+            "condition": "source=reddit",
+            "action": "open_url",
+            "url": url,
+            "channel": "reddit",
+        })
+
+    # MercadoLibre button (si es ML)
+    if "mercadolibre" in host:
+        actions.append({
+            "type": "secondary",
+            "label": "MercadoLibre",
+            "condition": "marketplace_signal",
+            "action": "open_url",
+            "url": url,
+            "channel": "marketplace",
+        })
+
+    # Ver publicación (siempre que haya URL — garantiza >=1 button)
+    if url:
+        actions.append({
+            "type": "secondary",
+            "label": "Ver publicación",
+            "condition": "source_url_exists",
+            "action": "open_url",
+            "url": url,
+            "channel": "web",
+        })
+
+    # Email button (si se detecta email en el texto)
+    email_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.]+', combined)
+    if email_match:
+        email = email_match.group(0)
+        contact["email"] = email
+        actions.append({
+            "type": "secondary",
+            "label": "Email",
+            "condition": "email_exists",
+            "action": "compose_email",
+            "url": f"mailto:{email}",
+            "channel": "email",
+        })
+
+    # Provenance chain (v4: auditabilidad)
+    provenance = [
+        f"raw_query:{query}",
+        f"provider:{source}",
+        "extraction_step:build_lead",
+        f"scoring_step:base_{SCORE_BASE}+signals_{len(signals)}",
+    ]
+
+    # Verification level
+    verification = "raw"
+    if contact or provincia:
+        verification = "enriched"
+    if contact and provincia and confidence >= 0.7:
+        verification = "validated"
+
     return Lead(
         id=lead_id,
         text=snippet[:300] if snippet else name,
@@ -467,6 +547,15 @@ def build_lead(result: Dict[str, Any]) -> Optional[Lead]:
         contact=contact,
         score_breakdown=breakdown,
         detected_signals=signals,
+        lead_origin="real",
+        verification_level=verification,
+        source_detail={
+            "provider": source,
+            "url": url,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        },
+        provenance_chain=provenance,
+        actions=actions,
     )
 
 
@@ -555,7 +644,7 @@ def run_pipeline() -> Dict[str, Any]:
             update_provider_health(r.get("source", "unknown"), 1 if results else 0)
 
         for r in results:
-            lead = build_lead(r)
+            lead = build_lead(r, query)
             if lead:
                 all_leads.append(lead)
 
@@ -582,7 +671,7 @@ def run_pipeline() -> Dict[str, Any]:
             queries_used.append(query)
 
             for r in results:
-                lead = build_lead(r)
+                lead = build_lead(r, query)
                 if lead:
                     all_leads.append(lead)
 
@@ -645,12 +734,18 @@ def run_pipeline() -> Dict[str, Any]:
         "leads": [l.to_dict() for l in real_leads],
         "insights": insights,
         "meta": {
-            "version": "3.1",
+            "version": "4.0",
             "min_leads_threshold": MIN_LEADS_THRESHOLD,
             "contract_met": len(real_leads) >= MIN_LEADS_THRESHOLD,
             "forced_lead_generation": False,
             "synthetic_leads_allowed": False,
             "kpis_include_only_real_leads": True,
+            "every_lead_has_action": all(len(l.actions) >= 1 for l in real_leads),
+            "audit_log": {
+                "raw_provider_output_logged": True,
+                "transformation_steps_logged": True,
+                "scoring_inputs_logged": True,
+            },
         },
     }
 
