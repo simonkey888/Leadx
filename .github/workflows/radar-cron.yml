@@ -11,7 +11,7 @@ permissions:
 jobs:
   run-radar:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repo
@@ -46,32 +46,36 @@ jobs:
           WORKER_URL: https://leadx.simondalmasso44.workers.dev
           INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
         run: |
+          pip install requests -q
           python -c "
-          import os, json, urllib.request, sys
+          import os, json, requests, sys
           url = os.environ['WORKER_URL'] + '/api/ingest'
           secret = os.environ['INGEST_SECRET']
           with open('data/dashboard_payload.json') as f:
               payload = json.load(f)
           leads = payload.get('leads_all', [])
           print(f'Leads a subir: {len(leads)}')
-          data = json.dumps(payload).encode('utf-8')
-          req = urllib.request.Request(
-              url,
-              data=data,
-              headers={
-                  'Content-Type': 'application/json',
-                  'X-Webhook-Secret': secret
-              },
-              method='POST'
-          )
+          if len(leads) == 0:
+              print('No hay leads — salteando POST')
+              sys.exit(0)
+          data = json.dumps(payload)
           try:
-              with urllib.request.urlopen(req) as resp:
-                  body = resp.read().decode('utf-8')
-                  print(f'HTTP {resp.status}')
-                  print(body[:500])
-          except urllib.error.HTTPError as e:
-              print(f'HTTP Error {e.code}')
-              print(e.read().decode('utf-8')[:500])
+              resp = requests.post(
+                  url,
+                  data=data,
+                  headers={
+                      'Content-Type': 'application/json',
+                      'X-Webhook-Secret': secret,
+                      'User-Agent': 'LeadX-Pipeline/1.0'
+                  },
+                  timeout=30
+              )
+              print(f'HTTP {resp.status_code}')
+              print(resp.text[:500])
+              if resp.status_code >= 400:
+                  sys.exit(1)
+          except Exception as e:
+              print(f'Error: {e}')
               sys.exit(1)
           "
 

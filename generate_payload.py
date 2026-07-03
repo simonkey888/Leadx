@@ -774,10 +774,12 @@ def build_dashboard_payload(leads: List[Lead]) -> Dict[str, Any]:
 
     insights = generate_insights(leads)
 
+    all_leads_sorted = sorted(leads, key=lambda l: l.score if hasattr(l, "score") else 0, reverse=True)
     payload = {
         "generated_at": generated_at,
         "run_id": run_id,
         "summary": summary,
+        "leads_all": [l.to_dict() for l in all_leads_sorted],
         "leads_hot": [l.to_dict() for l in hot],
         "leads_warm": [l.to_dict() for l in warm],
         "insights": insights,
