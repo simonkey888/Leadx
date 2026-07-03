@@ -417,5 +417,39 @@
         "Salta": 1
       }
     }
+  },
+  {
+    "run_id": "7e61f5aac609",
+    "generated_at": "2026-07-03T19:59:34.526222+00:00",
+    "summary": {
+      "total_leads": 35,
+      "hot_leads": 29,
+      "warm_leads": 6,
+      "contactable": 1,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 1,
+      "avg_score": 67.9,
+      "avg_score_hot": 72.6,
+      "conversion_probability": 82.9,
+      "by_category": {
+        "TRANSFER_PROBLEM": 9,
+        "FINE_DISPUTE": 23,
+        "DOCUMENTATION_ISSUE": 3
+      },
+      "by_platform": {
+        "Reddit": 30,
+        "Multas.Ar": 1,
+        "Estudiojuridicomogliani.Com.Ar": 1,
+        "Multasonline.Com.Ar": 1,
+        "Licenciaconducir.Com.Ar": 2
+      },
+      "by_province": {
+        "Córdoba": 1,
+        "Salta": 2,
+        "CABA": 2,
+        "Buenos Aires": 3
+      }
+    }
   }
 ]
