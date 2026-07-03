@@ -485,5 +485,35 @@
         "Buenos Aires": 1
       }
     }
+  },
+  {
+    "run_id": "d0e36fade5d7",
+    "generated_at": "2026-07-03T20:09:41.367952+00:00",
+    "summary": {
+      "total_leads": 15,
+      "hot_leads": 13,
+      "warm_leads": 2,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 63.3,
+      "avg_score_hot": 67.7,
+      "conversion_probability": 86.7,
+      "by_category": {
+        "TRANSFER_PROBLEM": 3,
+        "OTHER": 2,
+        "FINE_DISPUTE": 10
+      },
+      "by_platform": {
+        "Reddit": 15
+      },
+      "by_province": {
+        "Salta": 1,
+        "CABA": 5,
+        "Córdoba": 1,
+        "Buenos Aires": 1
+      }
+    }
   }
 ]
