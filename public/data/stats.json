@@ -1,11 +1,11 @@
 {
-  "total_runs": 1,
-  "last_run": "2026-07-03T12:34:24.258083+00:00",
-  "last_run_id": "3ee5e69bccbb",
-  "total_leads_all_time": 31,
-  "total_hot_leads_all_time": 25,
-  "avg_hot_per_run": 25.0,
-  "runs_today": 1,
+  "total_runs": 2,
+  "last_run": "2026-07-03T18:58:58.307339+00:00",
+  "last_run_id": "0d0317d8d2f1",
+  "total_leads_all_time": 51,
+  "total_hot_leads_all_time": 43,
+  "avg_hot_per_run": 21.5,
+  "runs_today": 2,
   "last_7_days": [
     {
       "run_id": "3ee5e69bccbb",
@@ -33,6 +33,33 @@
           "CABA": 5,
           "Salta": 2,
           "Entre Ríos": 1
+        }
+      }
+    },
+    {
+      "run_id": "0d0317d8d2f1",
+      "generated_at": "2026-07-03T18:58:58.307339+00:00",
+      "summary": {
+        "total_leads": 20,
+        "hot_leads": 18,
+        "warm_leads": 2,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "avg_score": 70.0,
+        "avg_score_hot": 72.8,
+        "conversion_probability": 90.0,
+        "by_category": {
+          "TRANSFER_PROBLEM": 10,
+          "FINE_DISPUTE": 10
+        },
+        "by_platform": {
+          "Reddit": 20
+        },
+        "by_province": {
+          "Córdoba": 1,
+          "CABA": 2,
+          "Salta": 1
         }
       }
     }
