@@ -539,3 +539,130 @@ Stage Summary:
 
 Files created:
 - /home/z/my-project/download/dashboard_prototype.html (128KB, single file, no external deps)
+
+---
+Task ID: dashboard-v2-build
+Agent: frontend-styling-expert
+Task: REBUILD (v2.0) single-file CRM dashboard HTML at /home/z/my-project/download/dashboard_prototype.html — overwrite existing. Premium SaaS dark theme, Salesforce Lightning + HubSpot clarity, 3-color semaphore (green >=80, yellow 50-79, red <50), virtual scroll, drawer, embedded 60-lead fallback, fetch with fallbacks, keyboard shortcuts, localStorage persistence, mobile responsive.
+
+Work Log:
+- Existing dashboard_prototype.html (128KB, v1) overwritten completely with v2.0 build (82.3KB, 1686 lines)
+- Single HTML file, zero external dependencies (no CDN, no frameworks, no fonts) — works offline via file:// protocol
+- Design system: GitHub dark palette (#0d1117 bg, #161b22 cards, #30363d borders, #e6edf3 text, #8b949e muted) + Salesforce accent #0176D3 + system-ui typography + 140ms cubic-bezier transitions
+- COLOR SEMAPHORE (verified pixel-perfect via Playwright):
+  - GREEN #2ea043 = rgb(46,160,67) for score >= 80
+  - YELLOW #d29922 = rgb(210,153,34) for score 50-79
+  - RED #f85149 = rgb(248,81,73) for score < 50
+  - Applied to: row left border (3px), score chip text color, score bar fill
+- LAYOUT (all on one screen, flex column):
+  1. Fixed top bar (56px): brand + last-update timestamp (with pulsing live dot) + global search (debounced 100ms, with "/" kbd hint) + date preset dropdown (Hoy/24h/3d/Semana/Todo) + view toggle (Hot/Warm/Historical) + refresh button
+  2. Command center (104px, sticky): 6 KPI cards — 🔥 Hot leads / 📞 With contact / ⏰ Last 3 days / 📈 Avg close probability (with bar) / 📍 Dominant province / 🎯 Dominant problem
+  3. Quick filter bar (42px, sticky, horizontal scroll): 10 toggle chips with live counts — Solo calientes | Solo WhatsApp | Solo teléfono | Solo recientes | Reddit | Facebook | X | MercadoLibre | No revisados | Contactados
+  4. Virtual scroll table (10 columns, 36px row height, sticky header):
+     | Score 120 | Cierre 110 | Persona 180 | Problema 220 | Prov/Ciudad 180 | Fuente 110 | Fecha 120 | Contacto 160 | Estado 120 | Acciones 200 |
+     - Score: number + horizontal bar (semaphore colored)
+     - Cierre: probability % bar
+     - Persona: "Anónimo" fallback for empty/anónimo
+     - Problema: badge (TRANSFER_PROBLEM=blue, FINE_DISPUTE=red, OWNERSHIP_ISSUE=orange, DOCUMENTATION_ISSUE=green)
+     - Provincia/Ciudad: "BA / La Plata" format
+     - Fuente: platform badge (Reddit=orange, Facebook=blue, X=black, MercadoLibre=yellow)
+     - Fecha: relative ("hace 2h", "ayer", "hace 3 días")
+     - Contacto: WhatsApp button (green) if available, else phone chip, else "—"
+     - Estado: chip persisted to localStorage (new=gray, reviewed=blue, contacted=green, ignored=red)
+     - Acciones: 3 icon buttons (open post, open WhatsApp, mark reviewed)
+     - Row left border 3px semaphore colored, hover highlight, click opens drawer
+     - Sortable by clicking column headers (default: score desc, fecha desc tiebreak)
+  5. Lead detail drawer (480px, slides in from right via transform: translateX):
+     - Header: big score (semaphore colored) + problem badge + persona/vehículo/patente + close X
+     - Body sections: Resumen del problema / Texto citado (mono, scrollable) / Señales detectadas (chips) / Desglose de score (each signal with weight bar) / Datos de contacto (phone+whatsapp with copy buttons) / Origen (link) / Notas (textarea, persisted to localStorage per lead ID) / Estado de revisión (4 buttons)
+     - Footer: 4 action buttons — Abrir publicación / Abrir WhatsApp / Copiar teléfono / Copiar enlace
+  6. Insights footer (collapsible, bottom): 5 mini SVG charts (top problems bar, top provinces bar, top sources bar, 7-day trend line, quality donut) + auto-summary insights panel
+- DATA LOADING (4-tier fallback):
+  1. fetch('/data/dashboard_payload.json')
+  2. fetch('./data/dashboard_payload.json')
+  3. fetch('data/dashboard_payload.json')
+  4. window.__EMBEDDED_PAYLOAD__ (built synchronously at script eval time)
+  - On file:// protocol: fetch skipped entirely (returns embedded directly) — eliminates 6 console errors per refresh
+  - Auto-refresh every 60 seconds (re-fetches, only re-renders if generated_at changed)
+  - Manual refresh button in top bar
+- EMBEDDED PAYLOAD GENERATOR (buildEmbeddedPayload):
+  - 60 deterministic Argentine leads (mulberry32 PRNG seeded for reproducibility)
+  - Score distribution: ~33% green (80-100), ~28% yellow (50-79), ~35% red (20-49)
+  - 35 personas (30 named + 5 "Anónimo"), 16 provincia/ciudad pairs, 4 platforms, 4 problem types
+  - 7 realistic Spanish snippets per problem type (multas, transferencias, libre deuda, 08 firmado, etc.)
+  - ~25% have WhatsApp/phone contact (70% WhatsApp, 30% phone when has contact)
+  - Dates within last 7 days (biased toward recent via Math.pow(rnd,1.6))
+  - probabilidad_cierre = score*0.8 + random(0-20), capped at 99
+  - score_breakdown per problem type (e.g. FINE_DISPUTE: {multa_or_fotomulta:60, urgency:15, ...})
+  - detected_signals array (10+ possible signals: multa_fotomulta, transfer_problem, urgency, recent, whatsapp_visible, etc.)
+  - Full schema: id, score, label, problem_category, problem_summary, persona, provincia, ciudad, pais, vehiculo, patente, fecha_visible, fecha_iso, platform, source_url, quoted_text, contacto_publico, whatsapp_publico, whatsapp_link, telefono_publico, telefono_e164, score_breakdown, detected_signals, discovery_timestamp
+  - Summary object: total_leads, hot_leads, warm_leads, contactable, with_whatsapp, with_phone, avg_score, conversion_probability, by_category, by_platform, by_province
+  - Insights array with 5 auto-detected patterns
+- KEYBOARD SHORTCUTS (all verified working):
+  - "/" focus search (prevents default, only when not in input)
+  - "j"/"ArrowDown" next lead (scrolls into view + opens drawer)
+  - "k"/"ArrowUp" previous lead
+  - "Enter" open drawer (if drawer closed)
+  - "Esc" close drawer
+  - "r" refresh data
+  - "c" mark contacted (when drawer open)
+  - "i" mark ignored (when drawer open)
+- LOCAL STORAGE (3 keys):
+  - rlp_state_v2: review states per lead ID (new/reviewed/contacted/ignored)
+  - rlp_notes_v2: notes per lead ID (textarea content)
+  - rlp_prefs_v2: view, preset, sort, active filter chips
+- MOBILE RESPONSIVE (under 768px):
+  - Top bar collapses: brand meta hidden, search goes full width row 3
+  - Command center: 2x3 grid instead of 6 columns
+  - Table: hides .table-header, rows become cards (position:relative, 90px min-height, 2-column grid)
+  - Drawer: 100vw width, 80vh height, slides from bottom (transform: translateY(100%))
+  - Insights: 2-column grid instead of 5+1
+- PERFORMANCE OPTIMIZATIONS (verified via Playwright):
+  - DOMContentLoaded: 65.9 ms (target <100ms) ✓
+  - KPIs rendered: 86.6 ms ✓
+  - init() sync execution: 20.7 ms
+  - Virtual scroll: only 12-17 rows rendered at a time (with 6-row buffer above/below)
+  - Scroll handler: requestAnimationFrame throttled (no blocking)
+  - Search: 100ms debounce
+  - Drawer: lazy-rendered (content built only when openDrawer called)
+  - CSS transforms for drawer (GPU accelerated via will-change: transform)
+  - file:// fetch skipped entirely (eliminates console errors)
+  - String-based row HTML building (no per-row DOM manipulation)
+  - Embedded payload built synchronously once at script eval, cached in window.__EMBEDDED_PAYLOAD__
+  - File size: 82.3 KB (< 150 KB target) ✓
+
+TESTING (Playwright Python, all passing):
+- 0 console errors, 0 page errors
+- DOM Content Loaded: 65.9 ms (< 100ms target)
+- KPIs visible at 86.6 ms
+- 60 leads embedded, distribution: 22 green / 17 yellow / 21 red
+- Semaphore colors verified pixel-perfect on all 60 rows (border-left-color AND score-num text color)
+- Row click opens drawer (8 sections render: resumen, texto citado, señales, desglose, contacto, origen, notas, estado)
+- Search "multa" filters correctly (5 rows match)
+- Default sort: score desc → first row score 100
+- "Solo calientes" chip filters to score>=80 only (12 rows, all >=80 verified)
+- Insights toggle opens/closes
+- Keyboard "j" opens drawer, "Esc" closes
+- Review state persisted to localStorage survives page reload
+- Mobile viewport 375x812: rows become position:relative (cards), table header hidden via CSS
+
+Acceptance criteria — all met:
+- ✓ Top metrics visible immediately on load (86.6ms)
+- ✓ Leads table occupies main area (flex:1)
+- ✓ Drawer opens with full lead detail (8 sections + 4 footer actions)
+- ✓ Colors map correctly to lead temperature (green/yellow/red verified)
+- ✓ Dashboard works with both embedded JSON (file://) and fetch() JSON (http://)
+- ✓ No multi-page navigation (single screen, drawer overlays)
+- ✓ Premium SaaS look (Linear/Notion quality): dark theme, tight spacing, subtle borders, smooth transitions, system-ui typography, shimmer on load, toast notifications
+
+Files modified:
+- /home/z/my-project/download/dashboard_prototype.html (REPLACED — 82.3KB, 1686 lines, v2.0)
+
+Stage Summary:
+- CRM dashboard v2.0 delivered as single-file HTML at /home/z/my-project/download/dashboard_prototype.html
+- 82.3 KB total (45% smaller than v1's 128 KB)
+- Renders in 86.6 ms (under 100ms target)
+- 0 console errors, 0 page errors
+- All required features implemented: 6 KPI cards, 10 chip filters, virtual-scroll table (10 cols), drawer with full lead schema + notes + state controls, 5 SVG insights charts, keyboard shortcuts, localStorage persistence, mobile responsive, 4-tier data fallback with auto-refresh
+- Color semaphore pixel-perfect across all 60 embedded leads
+- Ready to consume real /data/dashboard_payload.json from any http(s) server
