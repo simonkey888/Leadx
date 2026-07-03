@@ -1,39 +1,12 @@
 {
-  "total_runs": 14,
-  "last_run": "2026-07-03T19:59:34.526222+00:00",
-  "last_run_id": "7e61f5aac609",
-  "total_leads_all_time": 365,
-  "total_hot_leads_all_time": 305,
-  "avg_hot_per_run": 21.8,
-  "runs_today": 14,
+  "total_runs": 15,
+  "last_run": "2026-07-03T20:06:07.485231+00:00",
+  "last_run_id": "61a8bf0abbbf",
+  "total_leads_all_time": 388,
+  "total_hot_leads_all_time": 322,
+  "avg_hot_per_run": 21.5,
+  "runs_today": 15,
   "last_7_days": [
-    {
-      "run_id": "f5be5981e498",
-      "generated_at": "2026-07-03T19:26:17.341101+00:00",
-      "summary": {
-        "total_leads": 12,
-        "hot_leads": 10,
-        "warm_leads": 2,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 63.8,
-        "avg_score_hot": 66.5,
-        "conversion_probability": 83.3,
-        "by_category": {
-          "FINE_DISPUTE": 10,
-          "DOCUMENTATION_ISSUE": 2
-        },
-        "by_platform": {
-          "Reddit": 12
-        },
-        "by_province": {
-          "CABA": 1,
-          "Salta": 2
-        }
-      }
-    },
     {
       "run_id": "492460c5b75f",
       "generated_at": "2026-07-03T19:30:59.425497+00:00",
@@ -262,6 +235,40 @@
           "Salta": 2,
           "CABA": 2,
           "Buenos Aires": 3
+        }
+      }
+    },
+    {
+      "run_id": "61a8bf0abbbf",
+      "generated_at": "2026-07-03T20:06:07.485231+00:00",
+      "summary": {
+        "total_leads": 23,
+        "hot_leads": 17,
+        "warm_leads": 6,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 62.8,
+        "avg_score_hot": 69.1,
+        "conversion_probability": 73.9,
+        "by_category": {
+          "TRANSFER_PROBLEM": 11,
+          "OTHER": 1,
+          "FINE_DISPUTE": 11
+        },
+        "by_platform": {
+          "Reddit": 19,
+          "Portaldeabogados.Com": 1,
+          "Tn.Com.Ar": 1,
+          "2.Jus.Gov.Ar": 1,
+          "Iprofesional.Com": 1
+        },
+        "by_province": {
+          "Salta": 2,
+          "CABA": 3,
+          "Pilar": 1,
+          "Buenos Aires": 1
         }
       }
     }

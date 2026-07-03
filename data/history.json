@@ -451,5 +451,39 @@
         "Buenos Aires": 3
       }
     }
+  },
+  {
+    "run_id": "61a8bf0abbbf",
+    "generated_at": "2026-07-03T20:06:07.485231+00:00",
+    "summary": {
+      "total_leads": 23,
+      "hot_leads": 17,
+      "warm_leads": 6,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 62.8,
+      "avg_score_hot": 69.1,
+      "conversion_probability": 73.9,
+      "by_category": {
+        "TRANSFER_PROBLEM": 11,
+        "OTHER": 1,
+        "FINE_DISPUTE": 11
+      },
+      "by_platform": {
+        "Reddit": 19,
+        "Portaldeabogados.Com": 1,
+        "Tn.Com.Ar": 1,
+        "2.Jus.Gov.Ar": 1,
+        "Iprofesional.Com": 1
+      },
+      "by_province": {
+        "Salta": 2,
+        "CABA": 3,
+        "Pilar": 1,
+        "Buenos Aires": 1
+      }
+    }
   }
 ]

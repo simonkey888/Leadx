@@ -1,74 +1,39 @@
 {
-  "generated_at": "2026-07-03T19:59:34.526222+00:00",
-  "run_id": "7e61f5aac609",
+  "generated_at": "2026-07-03T20:06:07.485231+00:00",
+  "run_id": "61a8bf0abbbf",
   "summary": {
-    "total_leads": 35,
-    "hot_leads": 29,
+    "total_leads": 23,
+    "hot_leads": 17,
     "warm_leads": 6,
-    "contactable": 1,
+    "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
-    "with_email": 1,
-    "avg_score": 67.9,
-    "avg_score_hot": 72.6,
-    "conversion_probability": 82.9,
+    "with_email": 0,
+    "avg_score": 62.8,
+    "avg_score_hot": 69.1,
+    "conversion_probability": 73.9,
     "by_category": {
-      "TRANSFER_PROBLEM": 9,
-      "FINE_DISPUTE": 23,
-      "DOCUMENTATION_ISSUE": 3
+      "TRANSFER_PROBLEM": 11,
+      "OTHER": 1,
+      "FINE_DISPUTE": 11
     },
     "by_platform": {
-      "Reddit": 30,
-      "Multas.Ar": 1,
-      "Estudiojuridicomogliani.Com.Ar": 1,
-      "Multasonline.Com.Ar": 1,
-      "Licenciaconducir.Com.Ar": 2
+      "Reddit": 19,
+      "Portaldeabogados.Com": 1,
+      "Tn.Com.Ar": 1,
+      "2.Jus.Gov.Ar": 1,
+      "Iprofesional.Com": 1
     },
     "by_province": {
-      "Córdoba": 1,
       "Salta": 2,
-      "CABA": 2,
-      "Buenos Aires": 3
+      "CABA": 3,
+      "Pilar": 1,
+      "Buenos Aires": 1
     }
   },
   "leads_all": [
     {
-      "id": "a94592f491ee44bb",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/16vjw2j/al_vender_un_auto_conviene_hacer_la_operaci%C3%B3n",
-      "quoted_text": "Cómo se suele operar cuando vendés un auto como particular? Concretar el día del turno de la transferencia. Ambos hacen la precarga en la página del DNRPA, y luego van al registro.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516560+00:00"
-    },
-    {
-      "id": "b07424492ded7017",
+      "id": "ef5c32a10005ff94",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -81,9 +46,44 @@
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1bb5g5l/intente_hacer_una_guia_para_comprar_un_auto",
-      "quoted_text": "Te voy a corregir algo, se puede transferir con multas haciendo una negativa de pago en el registro. Esto es muy comun no te van a dar vueltas. El problema es que haciendo esto las multas siguen perteneciendo al auto y al dueño anterior hasta que las paguen o prescriban.",
+      "platform": "Tn.Com.Ar",
+      "source_url": "https://tn.com.ar/autos/novedades/2024/09/03/no-sera-necesario-pagar-la-deuda-por-multas-y-patente-para-transferir-un-auto",
+      "quoted_text": "El Gobierno de la Nación eliminó la obligatoriedad del libre deuda para inscribir o transferir un vehículo. Esto significa que los ciudadanos podrán comprar o vender un auto usado que tiene multas o patentes impagas.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "libre_deuda_problem": 35
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
+        "libre_deuda"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483691+00:00"
+    },
+    {
+      "id": "d1fc22ca3196ccfd",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Iprofesional.Com",
+      "source_url": "https://www.iprofesional.com/autos/430361-se-puede-transferir-un-auto-con-multas-esto-tenes-que-saber-en-argentina-en-2025",
+      "quoted_text": "A la hora de hacer una transferencia, era necesario contar con un libre de deudas, tanto de patente como multas. Sin embargo, el Gobierno nacional eliminó esta obligación, tanto para...",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -98,7 +98,7 @@
         "multa_fotomulta",
         "transfer_problem"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516591+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483758+00:00"
     },
     {
       "id": "8ad95e91802e8ca8",
@@ -131,141 +131,7 @@
         "multa_fotomulta",
         "libre_deuda"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516785+00:00"
-    },
-    {
-      "id": "b10ad89e6b5f9a86",
-      "score": 95,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1c7i9k5/me_hicieron_una_multa_y_nunca_fui_notificada",
-      "quoted_text": "Hola, les consulto, la primera semana de abril, me presento para la renovación del carnet de conducir, que estaba pronto a vencer. Cuando sacan el libre deuda me comunican que tengo una multa por cruzar semáforo en rojo, en enero del 2023, la cual nunca fui notificada, ni firmé ninguna multa .",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "libre_deuda_problem": 35
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "libre_deuda"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516954+00:00"
-    },
-    {
-      "id": "e53ff34a70f0187f",
-      "score": 85,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "@equifax",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ojill8/veraz_falta_de_transferencia_automotor_y_reclamo",
-      "quoted_text": "El auto en todo este tiempo no fue transferido, de hecho, figuro como titular con la cédula de identificación en la app Mi Argentina . La realidad es que me olvidé por completo de ese auto , hasta ayer que recibí una notificación vía email de Veraz Cobranzas (emailveraz@equifax.com), con lo siguient",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "emailveraz@equifax.com",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "public_contact_visible": 25,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "contact_visible",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516447+00:00"
-    },
-    {
-      "id": "49ade59f725e7081",
-      "score": 85,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Cordoba/comments/muxkit/pregunta_hay_forma_de_transferir_un_auto_o",
-      "quoted_text": "Pregunta, hay forma de transferir un auto o entregar un 08 si todavía no retiro la cédula del registro?",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516642+00:00"
-    },
-    {
-      "id": "d4619847b4eef716",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Salta",
-      "ciudad": "Salta",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/argentina/comments/zy7uiw/me_llego_una_multa_de_una_localidad_que_jam%C3%A1s",
-      "quoted_text": "Ni idea donde vivis vos, pero a mi hermano le pasó hace unos años al renovar el carnet, le saltaba una multa en Salta y él jamás estuvo en esa provincia, lo que hizo fué ver el juez de faltas de nuestra localidad explicarle y demostrarle que no conoce el norte de nuestro país y el juez se encargó.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516811+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482859+00:00"
     },
     {
       "id": "62ef3fdbcfaddaba",
@@ -298,25 +164,25 @@
         "multa_fotomulta",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516880+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482808+00:00"
     },
     {
-      "id": "df9808599ac6f30b",
+      "id": "d4619847b4eef716",
       "score": 75,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
       "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
+      "provincia": "Salta",
+      "ciudad": "Salta",
       "pais": "Argentina",
       "vehiculo": "",
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/11uoeiw/pba_multa_de_tr%C3%A1nsito_no_notificada",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
+      "source_url": "https://www.reddit.com/r/argentina/comments/zy7uiw/me_llego_una_multa_de_una_localidad_que_jam%C3%A1s",
+      "quoted_text": "Ni idea donde vivis vos, pero a mi hermano le pasó hace unos años al renovar el carnet, le saltaba una multa en Salta y él jamás estuvo en esa provincia, lo que hizo fué ver el juez de faltas de nuestra localidad explicarle y demostrarle que no conoce el norte de nuestro país y el juez se encargó.",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -331,289 +197,25 @@
         "multa_fotomulta",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517100+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482922+00:00"
     },
     {
-      "id": "37c9b8be2caaa65c",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1cmq3j2/multas_sin_notificar_provincia_de_buenos_aires",
-      "quoted_text": "Hoy de chusma entro a chequear las multas de mi auto en el sistema de la provincia de Buenos Aires. Me encontre con que tengo $500000 de deuda de multas ! y nunca me entere.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517145+00:00"
-    },
-    {
-      "id": "9072ca93d8aefe7c",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/argentina/comments/wmy79s/serio_si_me_hacen_una_multa_por_58k_que_es_seguro",
-      "quoted_text": "Bienvenido al sub de Argentina en reddit! En este sub posteamos todo lo relacionado a nuestro hermoso país, noticias, imágenes, información y todo lo que tenga que ver con lo que nos pasa día a día.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517191+00:00"
-    },
-    {
-      "id": "dd8b15c1042d66e1",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/xfffeu/2_preguntas_sobre_notificaci%C3%B3n_de_multas",
-      "quoted_text": "Respecto a las multas , se pueden volver caras y múltiples muy rápido. Pero tranquilo porque no he visto nunca en la ciudad de Buenos Aires que te las ejecuten, directamente esperan a que tengas que renovar la licencia o vender el auto y ahí tenés que pagarlas.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517253+00:00"
-    },
-    {
-      "id": "1bfc9a82aa1c6476",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/18kt8ci/multa_de_transito_caba",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517273+00:00"
-    },
-    {
-      "id": "5d6490b26fee06e5",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Multas.Ar",
-      "source_url": "https://multas.ar",
-      "quoted_text": "Buscá multas por patente, DNI o CUIT en Argentina : +250 portales nacionales, provinciales y municipales, actas, fotos y reporte completo gratis.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517343+00:00"
-    },
-    {
-      "id": "626a35f5092d9b6d",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Estudiojuridicomogliani.Com.Ar",
-      "source_url": "https://www.estudiojuridicomogliani.com.ar/blog/actualidad/fotomultas-y-radares-en-argentina-como-reclamar-una-infraccion-injusta.html",
-      "quoted_text": "En este artículo, te explicaremos en detalle cómo reclamar una fotomulta errónea, qué pasos seguir y cuáles son tus derechos como conductor.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517387+00:00"
-    },
-    {
-      "id": "ce7cb441924f2d02",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Licenciaconducir.Com.Ar",
-      "source_url": "https://licenciaconducir.com.ar/multas/fotomultas/cual-es-el-plazo-para-notificar-una-fotomulta",
-      "quoted_text": "En Argentina , la autoridad de tránsito tiene un plazo de 60 días hábiles para notificar al conductor de una fotomulta después de que se emite la multa. Si este plazo se vence, la notificación ya no sería válida.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517442+00:00"
-    },
-    {
-      "id": "638c71d437bd6798",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Licenciaconducir.Com.Ar",
-      "source_url": "https://licenciaconducir.com.ar/multas/fotomultas/que-tiene-que-tener-una-fotomulta-para-que-sea-valida",
-      "quoted_text": "Aprende sobre los requisitos necesarios para que una infracción de tránsito sea legítima y puedas entender tus derechos en Argentina . ¿Qué tiene que tener una fotomulta para que sea válida? Para que una fotomulta sea válida en Argentina , debe contener la siguiente información:",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517493+00:00"
-    },
-    {
-      "id": "203fa4e4fac34aa2",
-      "score": 60,
+      "id": "4d284b91741f09cc",
+      "score": 65,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
+      "persona": "u/2024Angel",
       "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
+      "fecha_visible": "2026-07-03T18:57:53+00:00",
+      "fecha_iso": "2026-07-03T18:57:53+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/18sac81/qu%C3%A9_pasa_con_las_deudas_cuando_se_hace_una",
-      "quoted_text": "Dos cosas importantes a tomar en cuenta: la inscripción en el registro automotor es constitutivo en la Argentina , es decir que hasta que no se hace la inscripción y solo a través de ese medio la transferencia en la titularidad se perfecciona.",
+      "source_url": "https://www.reddit.com/r/PreguntasReddit/comments/1ummykq/me_podrían_recomendar_alguna_app_para_poder",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/PreguntasReddit/comments/1ummykq/me_podrían_recomendar_alguna_app_para_poder/\"> <img src=\"https://preview.redd.it/28rzczrua2bh1.png?width=320&amp;crop=smart&amp;auto=webp&amp;s=c1359e7e995b4dd76df226bffaf2cd79b14d1518\" alt=\"Me podrían recomendar alg",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -622,31 +224,31 @@
       "email_publico": "",
       "score_breakdown": {
         "transfer_problem": 45,
-        "argentina_signal": 15
+        "recent_0_3_days": 20
       },
       "detected_signals": [
         "transfer_problem",
-        "argentina"
+        "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516509+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482405+00:00"
     },
     {
-      "id": "5718bbda5ef6df68",
-      "score": 60,
+      "id": "7f55a381bcd05ec0",
+      "score": 65,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
+      "persona": "u/Palermmo77",
       "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
+      "fecha_visible": "2026-07-03T15:13:38+00:00",
+      "fecha_iso": "2026-07-03T15:13:38+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/argentina/comments/w9nmck/se_puede_renunciar_a_la_titularidad_de_un_auto",
-      "quoted_text": "Yo vendí un auto y el dueño nuevo no lo quería transferir hasta arreglar un problema legal con la ex mujer. Se lo denuncie y le avisé de esto y no le quedó otra que ponerlo a nombre de un familiar.",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umh4ix/vendi_el_auto_duda_sobre_el_pago",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenos dias, vendi el auto y el martes que viene tenemos que ir con el comprador al registro para firmar la transferencia. Mi duda es sobre el pago que me tiene que hacer por el auto, quedamos en que vamos a ir a un cajero de su banco y me va a transferir a mi cuent",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -655,13 +257,13 @@
       "email_publico": "",
       "score_breakdown": {
         "transfer_problem": 45,
-        "argentina_signal": 15
+        "recent_0_3_days": 20
       },
       "detected_signals": [
         "transfer_problem",
-        "argentina"
+        "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516538+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482571+00:00"
     },
     {
       "id": "0f133a574f5bf1a8",
@@ -692,7 +294,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516739+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482762+00:00"
     },
     {
       "id": "f645a07f73cced32",
@@ -723,7 +325,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516761+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482786+00:00"
     },
     {
       "id": "171315f8cd5d0e80",
@@ -754,7 +356,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516837+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482891+00:00"
     },
     {
       "id": "3c12666b9b80f790",
@@ -785,38 +387,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516862+00:00"
-    },
-    {
-      "id": "be629a8175c2479e",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1b7h55s/me_clavaron_fotomulta_de_otro_auto",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516903+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482949+00:00"
     },
     {
       "id": "6afce0d5634e2bd8",
@@ -847,10 +418,10 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516925+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482974+00:00"
     },
     {
-      "id": "059e74a3caf674b1",
+      "id": "be629a8175c2479e",
       "score": 60,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
@@ -864,38 +435,7 @@
       "fecha_visible": "",
       "fecha_iso": "",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1ae069j/que_pasa_si_vence_una_multa",
-      "quoted_text": "Tengo entendido que si la multa vence y pasan uno o dos años, prescribe y no hace falta pagar nada. El libre de deuda en la mayoría de los municipios de provincia es el libre de deuda del municipio, no de otros lados.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517168+00:00"
-    },
-    {
-      "id": "ffe2b3a595ec8acc",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1dbtprk/descargo_por_multa_sin_legajocontrolador",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1b7h55s/me_clavaron_fotomulta_de_otro_auto",
       "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
       "contacto_publico": false,
       "whatsapp_publico": "",
@@ -909,10 +449,10 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517231+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482997+00:00"
     },
     {
-      "id": "9e3062be9a8be2dd",
+      "id": "bef88d79bc88a95d",
       "score": 60,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
@@ -921,13 +461,13 @@
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
-      "vehiculo": "",
+      "vehiculo": "moto",
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1bmp0il/que_pasa_si_nunca_pago_las_multas_de_tr%C3%A1nsito",
-      "quoted_text": "Si están inscritas en el registro nacional es muy posible que cuando quieras vender el vehículo aparezca alguna deuda relacionada con esas multas .",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/11e5x3x/multa_de_transito_moto_me_una_multa_del_due%C3%B1o",
+      "quoted_text": "Me contacté por whatsapp y despues de meterle un par de horas de intentos, pude hablar con un operador que averiguó que la moto ya no era mia y puso la multa al nuevo dueño.",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -940,25 +480,25 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517295+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483020+00:00"
     },
     {
-      "id": "bc2a4d3214705076",
+      "id": "c66d4681e9f65514",
       "score": 60,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
+      "persona": "u/Galego_ACB",
+      "provincia": "Pilar",
+      "ciudad": "Pilar",
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Multasonline.Com.Ar",
-      "source_url": "https://www.multasonline.com.ar",
-      "quoted_text": "¿Cómo consultar si tengo infracciones de tránsito? Para saber si su vehículo tiene multas de tránsito, usted puede realizar una consulta online. Aquí debajo, listamos todos los servicios de consulta de multas de transito por placa en diferentes zonas del país.",
+      "fecha_visible": "2026-02-13T18:21:19+00:00",
+      "fecha_iso": "2026-02-13T18:21:19+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/NBAenEspanol/comments/1r3wt1l/la_nba_multa_a_los_utah_jazz_por_tankear_en_un",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Los Jazz están siguiendo el <em>manual de la reconstrucción,</em> duro en tiempos en los que la reforma de la lotería que propulsó Adam Silver lo pone más difícil (con las opciones más repartidas) para los equipos que apilan muchas derrotas pero no tienen suerte con",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -971,25 +511,25 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517417+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483205+00:00"
     },
     {
-      "id": "1e1d603e24c0f16b",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "DOCUMENTATION_ISSUE",
-      "problem_summary": "Problema documental",
+      "id": "42bb9015c9cde9af",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
       "persona": "(anónimo)",
-      "provincia": "",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
-      "vehiculo": "",
+      "vehiculo": "auto",
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/16ik998/veraz_libre_deuda_argentina",
-      "quoted_text": "Tenes que presentar un habeas data solicitando la rectificación de los datos, puede ser por carta documento o incluso llegar a instancia judicial. Contra esta empresa que contrataste podes iniciar un reclamo en defensa del consumidor si efectivamente no hicieron nada.",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1bxpztx/transferencia_en_otro_registro_ni_el_de",
+      "quoted_text": "Yo compre mi auto en CABA teniendo domicilio en una provincia . Lo transferimos en el registro donde estaba en CABA y en ese mismo registro me dieron las tarjetas (verde y azules).",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -997,32 +537,225 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "libre_deuda_problem": 35,
+        "transfer_problem": 45,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "libre_deuda",
+        "transfer_problem",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516980+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483358+00:00"
     },
     {
-      "id": "d440c4928d4f26eb",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "DOCUMENTATION_ISSUE",
-      "problem_summary": "Problema documental",
+      "id": "99f0594c4085160a",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
       "persona": "(anónimo)",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/xgmob1/hice_la_transferencia_de_un_auto_con_cambio_de",
+      "quoted_text": "Cuando compre mi auto con cambio de CABA a Provincia pasonlo mismo y luego apareció, así que diría que no es nada para preocuparte.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483507+00:00"
+    },
+    {
+      "id": "bc0d88d61f7ea17a",
+      "score": 55,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "Buenos Aires",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/q22aww/comprar_un_auto_en_otra_provincia_y_traerlo_a",
+      "quoted_text": "Vas a donde esta el auto , y te buscas un escribano. Van al escribano con el comprador y te firma un 08 en blanco y una autorizacion de manejo. Es importante que le preguntes al escribano si hace falta legalizar estos papeles en Buenos Aires, lo mas probable es que si.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "08_or_document_problem": 40,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "document_08",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483466+00:00"
+    },
+    {
+      "id": "a89fe2905f1bd994",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1c4dvwf/vender_auto_a_alguien_de_otra_provincia",
+      "quoted_text": "Buenas gente, básicamente tengo una duda con respecto a la transferencia de mi auto si lo vendo a alguien que vive en otra  provincia . Jamás voy a volver a cometer el error de darle todos los papeles y que lo transfieran después, porque ya sabemos lo que casi siempre termina pasando.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483442+00:00"
+    },
+    {
+      "id": "344a8a0fb03e96e3",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/15h2hvc/alguien_sabe_el_costo_de_transferir_un_auto_de",
+      "quoted_text": "Me mude de provincia hace como dos años, el auto sigue radicado en otro lado, lo quiero vender. Saben el costo de este tramite hoy y que implica? Si se puede hacer por un tercero? Gracias. Depende cuantos peajes haya en el camino.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483533+00:00"
+    },
+    {
+      "id": "8c7f8c123d6a4938",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Portaldeabogados.Com",
+      "source_url": "https://portaldeabogados.com/foros/viewtopic.php",
+      "quoted_text": "Un cliente vendio su auto usado a una concesionaria de gran renombre, la que le prometió que haría la transferencia del vehículo \"inmediatamente\", cosa que no fue así.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483620+00:00"
+    },
+    {
+      "id": "0ec65482e2ae4b33",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "2.Jus.Gov.Ar",
+      "source_url": "https://www2.jus.gov.ar/dnrpa-site",
+      "quoted_text": "Si tenés un turno ya asignado y no podés ir, seleccioná esta opción para cancelarlo. Podes acceder a la Transferencia Digital, Formulario 08 Digital. Trámites Online ¡Ahorrá tiempo! Turnos un registro seccional. Informes de dominio e históricos 100% Online.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "08_or_document_problem": 40,
+        "institutional_penalty": -40
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "document_08"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483733+00:00"
+    },
+    {
+      "id": "7d0fef36a150a6bf",
+      "score": 35,
+      "label": "commercial_signal",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/VacaTrola",
       "provincia": "Salta",
       "ciudad": "Salta",
       "pais": "Argentina",
-      "vehiculo": "",
+      "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
+      "fecha_visible": "2026-07-03T12:04:16+00:00",
+      "fecha_iso": "2026-07-03T12:04:16+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/180krw3/puedo_exigir_un_libre_deuda_en_un_banco",
-      "quoted_text": "Cerré mi cuenta en el Galicia hace un par de años, habiendo cancelado toda la deuda , incluso quedaron como 11 pesos a favor, pero hoy al solicitar una tarjeta de crédito en otra entidad me salta una supuesta deuda del Galicia que no me permite sacar otra tarjeta de crédito.",
+      "source_url": "https://www.reddit.com/r/rediturras/comments/1umcmsx/harta_de_tanta_pacateria",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>ACLARACIÓN: ESTA PUBLICACIÓN NO ES SOBRE SI ESTA BIEN O NO LO QUE HACE X CHABÓN. ES SOBRE EXCESO ABSURDO DE MORAL Y PURITANISMO</p> <p>Hola rediturras vengo a quejarme del exceso de escrúpulos morales que vengo viendo que tienen las mujeres en reddit, a tal punto qu",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -1030,143 +763,19 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "libre_deuda_problem": 35,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "libre_deuda",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517008+00:00"
-    },
-    {
-      "id": "e3450136bffcde91",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "Córdoba",
-      "ciudad": "Cordoba",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Cordoba/comments/tzak9q/transferir_auto_sin_cedula_verde",
-      "quoted_text": "Basicamente lo que dice el titulo, estoy por publicar para vender el auto y acomodando los papeles y demas me doy cuenta que no tengo la cedula verde. Ya me di vuelta todo y no la encuentro, lo mas seguro es que la haya perdido.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516620+00:00"
-    },
-    {
-      "id": "821f924e0438c3ef",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/xmvqle/transferencia_con_titulo_extraviado",
-      "quoted_text": "Si está ok, no hay problema, yo transferí una vez sin título. Te piden llenar una declaración de extravío, al menos era así hasta hace un par de años y no creo que haya cambiado.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516688+00:00"
-    },
-    {
-      "id": "28aad3e94559bb62",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/10v9ndw/duda_con_las_48hs_de_la_transferencia",
-      "quoted_text": "Hola a todos, estuve buscando pero no encontré nada sobre este tema puntual. Estoy cerrando una compra de auto de forma particular y el vendedor no quiere entregar el vehículo hasta que la transferencia efectivamente termine y yo retire la cédula.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516716+00:00"
-    },
-    {
-      "id": "bda252791d6b2de9",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "DOCUMENTATION_ISSUE",
-      "problem_summary": "Problema documental",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/h7jio7/certificado_de_libre_deuda_con_entidad_bancaria_y",
-      "quoted_text": "Después de leer historias de terror de cómo los bancos te aparecen con una deuda paracaidista después de años de haber dejado de operar con ellos quisiera saber cómo puedo hacer para taparme el culo.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "libre_deuda_problem": 35
-      },
-      "detected_signals": [
-        "libre_deuda"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517077+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482733+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "b07424492ded7017",
+      "id": "d1fc22ca3196ccfd",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -1179,9 +788,9 @@
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1bb5g5l/intente_hacer_una_guia_para_comprar_un_auto",
-      "quoted_text": "Te voy a corregir algo, se puede transferir con multas haciendo una negativa de pago en el registro. Esto es muy comun no te van a dar vueltas. El problema es que haciendo esto las multas siguen perteneciendo al auto y al dueño anterior hasta que las paguen o prescriban.",
+      "platform": "Iprofesional.Com",
+      "source_url": "https://www.iprofesional.com/autos/430361-se-puede-transferir-un-auto-con-multas-esto-tenes-que-saber-en-argentina-en-2025",
+      "quoted_text": "A la hora de hacer una transferencia, era necesario contar con un libre de deudas, tanto de patente como multas. Sin embargo, el Gobierno nacional eliminó esta obligación, tanto para...",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -1196,10 +805,10 @@
         "multa_fotomulta",
         "transfer_problem"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516591+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483758+00:00"
     },
     {
-      "id": "a94592f491ee44bb",
+      "id": "ef5c32a10005ff94",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -1207,49 +816,14 @@
       "persona": "(anónimo)",
       "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/16vjw2j/al_vender_un_auto_conviene_hacer_la_operaci%C3%B3n",
-      "quoted_text": "Cómo se suele operar cuando vendés un auto como particular? Concretar el día del turno de la transferencia. Ambos hacen la precarga en la página del DNRPA, y luego van al registro.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516560+00:00"
-    },
-    {
-      "id": "b10ad89e6b5f9a86",
-      "score": 95,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1c7i9k5/me_hicieron_una_multa_y_nunca_fui_notificada",
-      "quoted_text": "Hola, les consulto, la primera semana de abril, me presento para la renovación del carnet de conducir, que estaba pronto a vencer. Cuando sacan el libre deuda me comunican que tengo una multa por cruzar semáforo en rojo, en enero del 2023, la cual nunca fui notificada, ni firmé ninguna multa .",
+      "platform": "Tn.Com.Ar",
+      "source_url": "https://tn.com.ar/autos/novedades/2024/09/03/no-sera-necesario-pagar-la-deuda-por-multas-y-patente-para-transferir-un-auto",
+      "quoted_text": "El Gobierno de la Nación eliminó la obligatoriedad del libre deuda para inscribir o transferir un vehículo. Esto significa que los ciudadanos podrán comprar o vender un auto usado que tiene multas o patentes impagas.",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -1258,13 +832,15 @@
       "email_publico": "",
       "score_breakdown": {
         "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
         "libre_deuda_problem": 35
       },
       "detected_signals": [
         "multa_fotomulta",
+        "transfer_problem",
         "libre_deuda"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516954+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483691+00:00"
     },
     {
       "id": "8ad95e91802e8ca8",
@@ -1297,405 +873,7 @@
         "multa_fotomulta",
         "libre_deuda"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516785+00:00"
-    },
-    {
-      "id": "49ade59f725e7081",
-      "score": 85,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Cordoba/comments/muxkit/pregunta_hay_forma_de_transferir_un_auto_o",
-      "quoted_text": "Pregunta, hay forma de transferir un auto o entregar un 08 si todavía no retiro la cédula del registro?",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516642+00:00"
-    },
-    {
-      "id": "e53ff34a70f0187f",
-      "score": 85,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "@equifax",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ojill8/veraz_falta_de_transferencia_automotor_y_reclamo",
-      "quoted_text": "El auto en todo este tiempo no fue transferido, de hecho, figuro como titular con la cédula de identificación en la app Mi Argentina . La realidad es que me olvidé por completo de ese auto , hasta ayer que recibí una notificación vía email de Veraz Cobranzas (emailveraz@equifax.com), con lo siguient",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "emailveraz@equifax.com",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "public_contact_visible": 25,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "contact_visible",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516447+00:00"
-    },
-    {
-      "id": "638c71d437bd6798",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Licenciaconducir.Com.Ar",
-      "source_url": "https://licenciaconducir.com.ar/multas/fotomultas/que-tiene-que-tener-una-fotomulta-para-que-sea-valida",
-      "quoted_text": "Aprende sobre los requisitos necesarios para que una infracción de tránsito sea legítima y puedas entender tus derechos en Argentina . ¿Qué tiene que tener una fotomulta para que sea válida? Para que una fotomulta sea válida en Argentina , debe contener la siguiente información:",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517493+00:00"
-    },
-    {
-      "id": "ce7cb441924f2d02",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Licenciaconducir.Com.Ar",
-      "source_url": "https://licenciaconducir.com.ar/multas/fotomultas/cual-es-el-plazo-para-notificar-una-fotomulta",
-      "quoted_text": "En Argentina , la autoridad de tránsito tiene un plazo de 60 días hábiles para notificar al conductor de una fotomulta después de que se emite la multa. Si este plazo se vence, la notificación ya no sería válida.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517442+00:00"
-    },
-    {
-      "id": "626a35f5092d9b6d",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Estudiojuridicomogliani.Com.Ar",
-      "source_url": "https://www.estudiojuridicomogliani.com.ar/blog/actualidad/fotomultas-y-radares-en-argentina-como-reclamar-una-infraccion-injusta.html",
-      "quoted_text": "En este artículo, te explicaremos en detalle cómo reclamar una fotomulta errónea, qué pasos seguir y cuáles son tus derechos como conductor.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517387+00:00"
-    },
-    {
-      "id": "5d6490b26fee06e5",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Multas.Ar",
-      "source_url": "https://multas.ar",
-      "quoted_text": "Buscá multas por patente, DNI o CUIT en Argentina : +250 portales nacionales, provinciales y municipales, actas, fotos y reporte completo gratis.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517343+00:00"
-    },
-    {
-      "id": "1bfc9a82aa1c6476",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/18kt8ci/multa_de_transito_caba",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517273+00:00"
-    },
-    {
-      "id": "dd8b15c1042d66e1",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/xfffeu/2_preguntas_sobre_notificaci%C3%B3n_de_multas",
-      "quoted_text": "Respecto a las multas , se pueden volver caras y múltiples muy rápido. Pero tranquilo porque no he visto nunca en la ciudad de Buenos Aires que te las ejecuten, directamente esperan a que tengas que renovar la licencia o vender el auto y ahí tenés que pagarlas.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517253+00:00"
-    },
-    {
-      "id": "9072ca93d8aefe7c",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/argentina/comments/wmy79s/serio_si_me_hacen_una_multa_por_58k_que_es_seguro",
-      "quoted_text": "Bienvenido al sub de Argentina en reddit! En este sub posteamos todo lo relacionado a nuestro hermoso país, noticias, imágenes, información y todo lo que tenga que ver con lo que nos pasa día a día.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517191+00:00"
-    },
-    {
-      "id": "37c9b8be2caaa65c",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1cmq3j2/multas_sin_notificar_provincia_de_buenos_aires",
-      "quoted_text": "Hoy de chusma entro a chequear las multas de mi auto en el sistema de la provincia de Buenos Aires. Me encontre con que tengo $500000 de deuda de multas ! y nunca me entere.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517145+00:00"
-    },
-    {
-      "id": "df9808599ac6f30b",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/11uoeiw/pba_multa_de_tr%C3%A1nsito_no_notificada",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517100+00:00"
-    },
-    {
-      "id": "62ef3fdbcfaddaba",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "toyota",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/17j92u4/me_llego_una_multa_que_no_es_mia",
-      "quoted_text": "Yo soy de caba y hace unos dias me llego una multa en Chascomús por 45.000 pesos con una foto de un toyota con la patente borroneada y aparentemente figura que es mio.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516880+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482859+00:00"
     },
     {
       "id": "d4619847b4eef716",
@@ -1728,56 +906,25 @@
         "multa_fotomulta",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516811+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482922+00:00"
     },
     {
-      "id": "bc2a4d3214705076",
-      "score": 60,
+      "id": "62ef3fdbcfaddaba",
+      "score": 75,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
       "persona": "(anónimo)",
-      "provincia": "",
+      "provincia": "CABA",
       "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Multasonline.Com.Ar",
-      "source_url": "https://www.multasonline.com.ar",
-      "quoted_text": "¿Cómo consultar si tengo infracciones de tránsito? Para saber si su vehículo tiene multas de tránsito, usted puede realizar una consulta online. Aquí debajo, listamos todos los servicios de consulta de multas de transito por placa en diferentes zonas del país.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517417+00:00"
-    },
-    {
-      "id": "9e3062be9a8be2dd",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
+      "pais": "Argentina",
+      "vehiculo": "toyota",
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1bmp0il/que_pasa_si_nunca_pago_las_multas_de_tr%C3%A1nsito",
-      "quoted_text": "Si están inscritas en el registro nacional es muy posible que cuando quieras vender el vehículo aparezca alguna deuda relacionada con esas multas .",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/17j92u4/me_llego_una_multa_que_no_es_mia",
+      "quoted_text": "Yo soy de caba y hace unos dias me llego una multa en Chascomús por 45.000 pesos con una foto de un toyota con la patente borroneada y aparentemente figura que es mio.",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -1785,61 +932,32 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15
       },
       "detected_signals": [
-        "multa_fotomulta"
+        "multa_fotomulta",
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517295+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482808+00:00"
     },
     {
-      "id": "ffe2b3a595ec8acc",
-      "score": 60,
+      "id": "4d284b91741f09cc",
+      "score": 65,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1dbtprk/descargo_por_multa_sin_legajocontrolador",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517231+00:00"
-    },
-    {
-      "id": "059e74a3caf674b1",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/2024Angel",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
+      "fecha_visible": "2026-07-03T18:57:53+00:00",
+      "fecha_iso": "2026-07-03T18:57:53+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1ae069j/que_pasa_si_vence_una_multa",
-      "quoted_text": "Tengo entendido que si la multa vence y pasan uno o dos años, prescribe y no hace falta pagar nada. El libre de deuda en la mayoría de los municipios de provincia es el libre de deuda del municipio, no de otros lados.",
+      "source_url": "https://www.reddit.com/r/PreguntasReddit/comments/1ummykq/me_podrían_recomendar_alguna_app_para_poder",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/PreguntasReddit/comments/1ummykq/me_podrían_recomendar_alguna_app_para_poder/\"> <img src=\"https://preview.redd.it/28rzczrua2bh1.png?width=320&amp;crop=smart&amp;auto=webp&amp;s=c1359e7e995b4dd76df226bffaf2cd79b14d1518\" alt=\"Me podrían recomendar alg",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -1847,15 +965,116 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60
+        "transfer_problem": 45,
+        "recent_0_3_days": 20
       },
       "detected_signals": [
-        "multa_fotomulta"
+        "transfer_problem",
+        "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517168+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482405+00:00"
     },
     {
-      "id": "6afce0d5634e2bd8",
+      "id": "7f55a381bcd05ec0",
+      "score": 65,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Palermmo77",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-03T15:13:38+00:00",
+      "fecha_iso": "2026-07-03T15:13:38+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umh4ix/vendi_el_auto_duda_sobre_el_pago",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenos dias, vendi el auto y el martes que viene tenemos que ir con el comprador al registro para firmar la transferencia. Mi duda es sobre el pago que me tiene que hacer por el auto, quedamos en que vamos a ir a un cajero de su banco y me va a transferir a mi cuent",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "recent_0_3_days": 20
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "recent_0_3_days"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.482571+00:00"
+    },
+    {
+      "id": "99f0594c4085160a",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/xgmob1/hice_la_transferencia_de_un_auto_con_cambio_de",
+      "quoted_text": "Cuando compre mi auto con cambio de CABA a Provincia pasonlo mismo y luego apareció, así que diría que no es nada para preocuparte.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483507+00:00"
+    },
+    {
+      "id": "42bb9015c9cde9af",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1bxpztx/transferencia_en_otro_registro_ni_el_de",
+      "quoted_text": "Yo compre mi auto en CABA teniendo domicilio en una provincia . Lo transferimos en el registro donde estaba en CABA y en ese mismo registro me dieron las tarjetas (verde y azules).",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483358+00:00"
+    },
+    {
+      "id": "bef88d79bc88a95d",
       "score": 60,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
@@ -1864,13 +1083,13 @@
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
-      "vehiculo": "",
+      "vehiculo": "moto",
       "patente": "",
       "fecha_visible": "",
       "fecha_iso": "",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/191rkd7/me_lleg%C3%B3_multa_a_mi_casa_sin_foto_y_sin_mi_firma",
-      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/11e5x3x/multa_de_transito_moto_me_una_multa_del_due%C3%B1o",
+      "quoted_text": "Me contacté por whatsapp y despues de meterle un par de horas de intentos, pude hablar con un operador que averiguó que la moto ya no era mia y puso la multa al nuevo dueño.",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -1883,7 +1102,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516925+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483020+00:00"
     },
     {
       "id": "be629a8175c2479e",
@@ -1914,7 +1133,38 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516903+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482997+00:00"
+    },
+    {
+      "id": "6afce0d5634e2bd8",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/191rkd7/me_lleg%C3%B3_multa_a_mi_casa_sin_foto_y_sin_mi_firma",
+      "quoted_text": "r/DerechoGenial es un sub destinado a discutir todo lo que tenga que ver con el derecho argentino, el estudio y ejercicio de la abogacía, y compartir información y experiencias que puedan ayudar a los demás.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.482974+00:00"
     },
     {
       "id": "3c12666b9b80f790",
@@ -1945,7 +1195,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516862+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482949+00:00"
     },
     {
       "id": "171315f8cd5d0e80",
@@ -1976,7 +1226,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516837+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482891+00:00"
     },
     {
       "id": "f645a07f73cced32",
@@ -2007,7 +1257,7 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516761+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482786+00:00"
     },
     {
       "id": "0f133a574f5bf1a8",
@@ -2038,25 +1288,25 @@
       "detected_signals": [
         "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516739+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482762+00:00"
     },
     {
-      "id": "5718bbda5ef6df68",
+      "id": "c66d4681e9f65514",
       "score": 60,
       "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Galego_ACB",
+      "provincia": "Pilar",
+      "ciudad": "Pilar",
+      "pais": "Unknown",
+      "vehiculo": "",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
+      "fecha_visible": "2026-02-13T18:21:19+00:00",
+      "fecha_iso": "2026-02-13T18:21:19+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/argentina/comments/w9nmck/se_puede_renunciar_a_la_titularidad_de_un_auto",
-      "quoted_text": "Yo vendí un auto y el dueño nuevo no lo quería transferir hasta arreglar un problema legal con la ex mujer. Se lo denuncie y le avisé de esto y no le quedó otra que ponerlo a nombre de un familiar.",
+      "source_url": "https://www.reddit.com/r/NBAenEspanol/comments/1r3wt1l/la_nba_multa_a_los_utah_jazz_por_tankear_en_un",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Los Jazz están siguiendo el <em>manual de la reconstrucción,</em> duro en tiempos en los que la reforma de la lotería que propulsó Adam Silver lo pone más difícil (con las opciones más repartidas) para los equipos que apilan muchas derrotas pero no tienen suerte con",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -2064,67 +1314,192 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "transfer_problem": 45,
-        "argentina_signal": 15
+        "multa_or_fotomulta": 60
       },
       "detected_signals": [
-        "transfer_problem",
-        "argentina"
+        "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516538+00:00"
-    },
-    {
-      "id": "203fa4e4fac34aa2",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/18sac81/qu%C3%A9_pasa_con_las_deudas_cuando_se_hace_una",
-      "quoted_text": "Dos cosas importantes a tomar en cuenta: la inscripción en el registro automotor es constitutivo en la Argentina , es decir que hasta que no se hace la inscripción y solo a través de ese medio la transferencia en la titularidad se perfecciona.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516509+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.483205+00:00"
     }
   ],
   "leads_warm": [
     {
-      "id": "d440c4928d4f26eb",
-      "score": 50,
+      "id": "bc0d88d61f7ea17a",
+      "score": 55,
       "label": "commercial_signal",
-      "problem_category": "DOCUMENTATION_ISSUE",
-      "problem_summary": "Problema documental",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
       "persona": "(anónimo)",
+      "provincia": "Buenos Aires",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/q22aww/comprar_un_auto_en_otra_provincia_y_traerlo_a",
+      "quoted_text": "Vas a donde esta el auto , y te buscas un escribano. Van al escribano con el comprador y te firma un 08 en blanco y una autorizacion de manejo. Es importante que le preguntes al escribano si hace falta legalizar estos papeles en Buenos Aires, lo mas probable es que si.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "08_or_document_problem": 40,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "document_08",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483466+00:00"
+    },
+    {
+      "id": "0ec65482e2ae4b33",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "2.Jus.Gov.Ar",
+      "source_url": "https://www2.jus.gov.ar/dnrpa-site",
+      "quoted_text": "Si tenés un turno ya asignado y no podés ir, seleccioná esta opción para cancelarlo. Podes acceder a la Transferencia Digital, Formulario 08 Digital. Trámites Online ¡Ahorrá tiempo! Turnos un registro seccional. Informes de dominio e históricos 100% Online.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "08_or_document_problem": 40,
+        "institutional_penalty": -40
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "document_08"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483733+00:00"
+    },
+    {
+      "id": "8c7f8c123d6a4938",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Portaldeabogados.Com",
+      "source_url": "https://portaldeabogados.com/foros/viewtopic.php",
+      "quoted_text": "Un cliente vendio su auto usado a una concesionaria de gran renombre, la que le prometió que haría la transferencia del vehículo \"inmediatamente\", cosa que no fue así.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483620+00:00"
+    },
+    {
+      "id": "344a8a0fb03e96e3",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/15h2hvc/alguien_sabe_el_costo_de_transferir_un_auto_de",
+      "quoted_text": "Me mude de provincia hace como dos años, el auto sigue radicado en otro lado, lo quiero vender. Saben el costo de este tramite hoy y que implica? Si se puede hacer por un tercero? Gracias. Depende cuantos peajes haya en el camino.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483533+00:00"
+    },
+    {
+      "id": "a89fe2905f1bd994",
+      "score": 45,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "(anónimo)",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1c4dvwf/vender_auto_a_alguien_de_otra_provincia",
+      "quoted_text": "Buenas gente, básicamente tengo una duda con respecto a la transferencia de mi auto si lo vendo a alguien que vive en otra  provincia . Jamás voy a volver a cometer el error de darle todos los papeles y que lo transfieran después, porque ya sabemos lo que casi siempre termina pasando.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-03T20:06:07.483442+00:00"
+    },
+    {
+      "id": "7d0fef36a150a6bf",
+      "score": 35,
+      "label": "commercial_signal",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/VacaTrola",
       "provincia": "Salta",
       "ciudad": "Salta",
       "pais": "Argentina",
-      "vehiculo": "",
+      "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
+      "fecha_visible": "2026-07-03T12:04:16+00:00",
+      "fecha_iso": "2026-07-03T12:04:16+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/180krw3/puedo_exigir_un_libre_deuda_en_un_banco",
-      "quoted_text": "Cerré mi cuenta en el Galicia hace un par de años, habiendo cancelado toda la deuda , incluso quedaron como 11 pesos a favor, pero hoy al solicitar una tarjeta de crédito en otra entidad me salta una supuesta deuda del Galicia que no me permite sacar otra tarjeta de crédito.",
+      "source_url": "https://www.reddit.com/r/rediturras/comments/1umcmsx/harta_de_tanta_pacateria",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>ACLARACIÓN: ESTA PUBLICACIÓN NO ES SOBRE SI ESTA BIEN O NO LO QUE HACE X CHABÓN. ES SOBRE EXCESO ABSURDO DE MORAL Y PURITANISMO</p> <p>Hola rediturras vengo a quejarme del exceso de escrúpulos morales que vengo viendo que tienen las mujeres en reddit, a tal punto qu",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -2132,179 +1507,22 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "libre_deuda_problem": 35,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "libre_deuda",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517008+00:00"
-    },
-    {
-      "id": "1e1d603e24c0f16b",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "DOCUMENTATION_ISSUE",
-      "problem_summary": "Problema documental",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/16ik998/veraz_libre_deuda_argentina",
-      "quoted_text": "Tenes que presentar un habeas data solicitando la rectificación de los datos, puede ser por carta documento o incluso llegar a instancia judicial. Contra esta empresa que contrataste podes iniciar un reclamo en defensa del consumidor si efectivamente no hicieron nada.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "libre_deuda_problem": 35,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "libre_deuda",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516980+00:00"
-    },
-    {
-      "id": "28aad3e94559bb62",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/10v9ndw/duda_con_las_48hs_de_la_transferencia",
-      "quoted_text": "Hola a todos, estuve buscando pero no encontré nada sobre este tema puntual. Estoy cerrando una compra de auto de forma particular y el vendedor no quiere entregar el vehículo hasta que la transferencia efectivamente termine y yo retire la cédula.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516716+00:00"
-    },
-    {
-      "id": "821f924e0438c3ef",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/xmvqle/transferencia_con_titulo_extraviado",
-      "quoted_text": "Si está ok, no hay problema, yo transferí una vez sin título. Te piden llenar una declaración de extravío, al menos era así hasta hace un par de años y no creo que haya cambiado.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516688+00:00"
-    },
-    {
-      "id": "e3450136bffcde91",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "(anónimo)",
-      "provincia": "Córdoba",
-      "ciudad": "Cordoba",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Cordoba/comments/tzak9q/transferir_auto_sin_cedula_verde",
-      "quoted_text": "Basicamente lo que dice el titulo, estoy por publicar para vender el auto y acomodando los papeles y demas me doy cuenta que no tengo la cedula verde. Ya me di vuelta todo y no la encuentro, lo mas seguro es que la haya perdido.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.516620+00:00"
-    },
-    {
-      "id": "bda252791d6b2de9",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "DOCUMENTATION_ISSUE",
-      "problem_summary": "Problema documental",
-      "persona": "(anónimo)",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/h7jio7/certificado_de_libre_deuda_con_entidad_bancaria_y",
-      "quoted_text": "Después de leer historias de terror de cómo los bancos te aparecen con una deuda paracaidista después de años de haber dejado de operar con ellos quisiera saber cómo puedo hacer para taparme el culo.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "libre_deuda_problem": 35
-      },
-      "detected_signals": [
-        "libre_deuda"
-      ],
-      "discovery_timestamp": "2026-07-03T19:59:34.517077+00:00"
+      "discovery_timestamp": "2026-07-03T20:06:07.482733+00:00"
     }
   ],
   "insights": [
-    "El 83% de los leads calientes provienen de Reddit.",
-    "El 10% de los leads calientes son de Buenos Aires.",
+    "El 88% de los leads calientes provienen de Reddit.",
+    "El 18% de los leads calientes son de CABA.",
     "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "3% de los leads calientes tienen contacto público visible.",
-    "4 leads calientes muestran señales de urgencia temporal."
+    "0% de los leads calientes tienen contacto público visible.",
+    "3 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
     "version": "1.0",
@@ -2330,7 +1548,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 114.82,
-    "queries_executed": 5
+    "runtime_seconds": 111.31,
+    "queries_executed": 6
   }
 }
