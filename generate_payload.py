@@ -165,7 +165,20 @@ WHATSAPP_PATTERNS = [
     r"wa\.me/(\d{8,15})",
     r"whatsapp\s*:?\s*(\+?\d[\d\s\-]{8,15})",
     r"\bwp\s*:?\s*(\+?\d[\d\s\-]{8,15})",
+    # Formatos argentinos comunes
+    r"\b(\+54\s?9?\s?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4})",
+    r"\b(11\s?\d{4}[\s\-]?\d{4})",  # CABA mobile
+    r"\b(15\s?\d{4}[\s\-]?\d{4})",  # old mobile format
+    r"(?:contacto|celular|tel|fono|telefono)\s*:?\s*(\+?\d[\d\s\-]{8,15})",
+    # Pattern generico para "11-1234-5678"
+    r"\b(\d{2}[\s\-]?\d{4}[\s\-]?\d{4})\b",
 ]
+
+# Email pattern
+EMAIL_PATTERN = r"\b([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})\b"
+
+# Reddit username pattern (u/username)
+REDDIT_USERNAME_PATTERN = r"\bu/([A-Za-z0-9_\-]{3,20})\b"
 
 PATENT_PATTERNS = [
     r"\b[A-Z]{2}\s?\d{3}\s?[A-Z]{2}\b",
@@ -238,6 +251,7 @@ class Lead:
     whatsapp_link: str = ""
     telefono_publico: str = ""
     telefono_e164: str = ""
+    email_publico: str = ""
     score_breakdown: Dict[str, int] = field(default_factory=dict)
     detected_signals: List[str] = field(default_factory=list)
     discovery_timestamp: str = ""
@@ -251,6 +265,7 @@ class Lead:
 # ===========================================================================
 # Import search providers (DuckDuckGo + Reddit + RSS, sin search_providers)
 from search_providers import search as provider_search
+from search_providers import enrich_reddit_post
 
 
 def web_search(query: str, num: int = 10) -> List[Dict[str, Any]]:
@@ -265,6 +280,8 @@ def web_search(query: str, num: int = 10) -> List[Dict[str, Any]]:
                 "snippet": r.get("snippet", ""),
                 "date": r.get("date", ""),
                 "host_name": r.get("url", ""),
+                "username": r.get("username", "") or r.get("author", ""),
+                "author": r.get("author", "") or r.get("username", ""),
             })
         return adapted
     except Exception as e:
@@ -344,6 +361,34 @@ def collect_public_sources() -> List[Dict[str, Any]]:
         all_results.extend(results)
         time.sleep(RATE_LIMIT_MS / 1000)
     print(f"  Collected {len(all_results)} raw results", file=sys.stderr)
+
+    # ENRIQUECER: para posts de Reddit, traer selftext completo + comments
+    # Esto permite encontrar WhatsApp/email/username que no estan en el snippet
+    enriched_count = 0
+    for r in all_results:
+        url = r.get("url", "")
+        if "reddit.com" in url and "/comments/" in url:
+            try:
+                enrich_data = enrich_reddit_post(url)
+                if enrich_data["full_text"]:
+                    # Reemplazar snippet con full_text (mas info para extraer contactos)
+                    r["snippet"] = (r.get("snippet", "") + " " + enrich_data["full_text"])[:3000]
+                    enriched_count += 1
+                # Agregar comments como contexto extra
+                if enrich_data["comments"]:
+                    r["_reddit_comments"] = enrich_data["comments"]
+                    # Concatenar comments al snippet para extraccion
+                    comments_text = " ".join(enrich_data["comments"])
+                    r["snippet"] = (r.get("snippet", "") + " " + comments_text)[:4000]
+                # Author real de Reddit
+                if enrich_data["author"] and enrich_data["author"] != "[deleted]":
+                    r["username"] = enrich_data["author"]
+                    r["author"] = enrich_data["author"]
+                time.sleep(0.5)  # rate limit
+            except Exception as e:
+                pass
+    print(f"  Enriched {enriched_count} Reddit posts with full text + comments", file=sys.stderr)
+
     return all_results
 
 
@@ -384,8 +429,19 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             num = m.group(1) if m.groups() else m.group(0)
             digits = re.sub(r"\D", "", num)
             if 8 <= len(digits) <= 15:
+                # Si empieza con 54 o 549, dejarlo; si tiene 10 digitos y arranca con 11, agregar 549
+                if len(digits) == 10 and digits.startswith("11"):
+                    digits = "549" + digits
+                elif len(digits) == 10 and not digits.startswith("5"):
+                    digits = "54" + digits
                 whatsapp = digits
                 break
+
+    # Extract email
+    email = ""
+    m = re.search(EMAIL_PATTERN, combined)
+    if m:
+        email = m.group(1).lower().strip()
 
     # Extract patent
     patent = ""
@@ -405,16 +461,30 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     # Extract persona (username o nombre)
     persona = ""
     username = ""
-    m = re.search(r"@(\w{3,20})", combined)
-    if m:
-        username = m.group(1)
-        persona = m.group(0)
-    else:
+    # 1. Provider ya trae username (Reddit author)
+    provider_username = result.get("username", "") or result.get("author", "")
+    if provider_username:
+        username = provider_username
+        persona = f"u/{username}"
+    # 2. Buscar @username en el texto
+    if not username:
+        m = re.search(r"@(\w{3,20})", combined)
+        if m:
+            username = m.group(1)
+            persona = m.group(0)
+    # 3. Buscar u/username en el texto (Reddit-style)
+    if not username:
+        m = re.search(REDDIT_USERNAME_PATTERN, combined)
+        if m:
+            username = m.group(1)
+            persona = f"u/{username}"
+    # 4. "soy X"
+    if not persona:
         m = re.search(r"(?:hola\s+)?soy\s+([A-ZÁÉÍÓÚa-záéíóúñ]{3,20})", combined, re.IGNORECASE)
         if m:
             persona = m.group(1).title()
 
-    # Reddit username from URL
+    # Reddit username from URL (rare path /user/X)
     host = get_host(url)
     if not username and "reddit.com" in host:
         m = re.search(r"/user/(\w+)", url)
@@ -448,9 +518,10 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "vehiculo": vehicle,
         "patente": patent,
         "fecha_visible": date,
-        "contacto_publico": bool(phone or whatsapp),
+        "contacto_publico": bool(phone or whatsapp or email),
         "whatsapp_publico": whatsapp,
         "telefono_publico": phone,
+        "email_publico": email,
         "source_url": url,
         "platform": platform,
         "quoted_text": snippet[:300] if snippet else "",
@@ -652,6 +723,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         contacto_publico=record.get("contacto_publico", False),
         whatsapp_publico=record.get("whatsapp_publico", ""),
         whatsapp_link=wa_link,
+        email_publico=record.get("email_publico", ""),
         telefono_publico=record.get("telefono_publico", ""),
         telefono_e164=record.get("telefono_e164", ""),
         score_breakdown=breakdown,
@@ -759,6 +831,7 @@ def build_dashboard_payload(leads: List[Lead]) -> Dict[str, Any]:
         "contactable": sum(1 for l in leads if l.contacto_publico),
         "with_whatsapp": sum(1 for l in leads if l.whatsapp_publico),
         "with_phone": sum(1 for l in leads if l.telefono_publico),
+        "with_email": sum(1 for l in leads if l.email_publico),
         "avg_score": round(sum(l.score for l in leads) / len(leads), 1) if leads else 0,
         "avg_score_hot": round(sum(l.score for l in hot) / len(hot), 1) if hot else 0,
         "conversion_probability": round(len(hot) / len(leads) * 100, 1) if leads else 0,

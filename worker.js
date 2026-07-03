@@ -312,6 +312,7 @@ function normalizeLead(l) {
   const platform = l.source?.type || l.platform || 'unknown';
   const whatsapp = l.contact?.whatsapp || l.whatsapp_publico || '';
   const phone = l.contact?.phone || l.telefono_publico || '';
+  const email = l.contact?.email || l.email_publico || '';
   const fecha = l.fecha_iso || l.discovery_timestamp || l.fecha_visible || '';
   const intent = l.intent_cluster || l.intent || l.problem_category || '—';
 
@@ -337,6 +338,7 @@ function normalizeLead(l) {
     intent: intent,
     whatsapp: whatsapp,
     phone: phone,
+    email: email,
     fecha: fecha,
     actions: actions,
     lead_reason: l.lead_reason || l.problem_summary || '',
@@ -517,6 +519,7 @@ function renderLeads(p) {
     if (l.provincia) extraChips.push('<span class="chip">📍 ' + escapeHtml(l.provincia) + '</span>');
     if (l.vehiculo) extraChips.push('<span class="chip">🚗 ' + escapeHtml(l.vehiculo) + '</span>');
     if (l.patente) extraChips.push('<span class="chip">🔧 ' + escapeHtml(l.patente) + '</span>');
+    if (l.email) extraChips.push('<span class="chip">✉ ' + escapeHtml(l.email) + '</span>');
 
     return \`
       <div class="lead-card \${cls}">

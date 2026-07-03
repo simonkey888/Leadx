@@ -287,6 +287,51 @@ def search_rss(query: str, num: int = 10) -> List[Dict[str, Any]]:
 # ===========================================================================
 # Search Manager — unifica todos los providers
 # ===========================================================================
+
+# ===========================================================================
+# Reddit post enrichment: trae selftext completo + comentarios top
+# ===========================================================================
+def enrich_reddit_post(url: str) -> Dict[str, Any]:
+    """Dada una URL de Reddit post, trae selftext completo + top comments.
+    Retorna dict con: full_text, comments (list of strings), author.
+    """
+    result = {"full_text": "", "comments": [], "author": ""}
+    if "reddit.com" not in url:
+        return result
+
+    # Convertir URL a .json
+    json_url = url.rstrip("/") + "/.json?limit=20"
+
+    try:
+        req = urllib.request.Request(json_url)
+        req.add_header("User-Agent", "RadarLeadsBot/1.0 (lead intelligence research)")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return result
+
+    if not isinstance(data, list) or len(data) < 1:
+        return result
+
+    # Post data
+    post_listing = data[0]
+    post_data = post_listing.get("data", {}).get("children", [])
+    if post_data:
+        post = post_data[0].get("data", {})
+        result["full_text"] = post.get("selftext", "")[:3000]
+        result["author"] = post.get("author", "")
+
+    # Comments
+    if len(data) >= 2:
+        comments_listing = data[1]
+        for child in comments_listing.get("data", {}).get("children", [])[:15]:
+            comment = child.get("data", {})
+            body = comment.get("body", "")
+            if body and len(body) > 20:
+                result["comments"].append(body[:500])
+
+    return result
+
 def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """
     Busca usando múltiples providers en orden de fallback.
