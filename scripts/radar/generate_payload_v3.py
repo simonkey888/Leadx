@@ -191,6 +191,7 @@ class Lead:
     contact: Dict[str, str] = field(default_factory=dict)
     score_breakdown: Dict[str, int] = field(default_factory=dict)
     detected_signals: List[str] = field(default_factory=list)
+    lead_origin: str = "real"  # real | fallback | synthetic — siempre "real" en v3.1
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -590,59 +591,44 @@ def run_pipeline() -> Dict[str, Any]:
         all_leads = dedup_leads(all_leads)
         print(f"  Phase 2: {len(all_leads)} leads (after expansion)", file=sys.stderr)
 
-    # --- CONTRACT: never return empty ---
+    # --- HONEST EMPTY STATE ---
+    # Si después de todo no hay leads reales, el dashboard muestra vacío.
+    # NO se generan leads sintéticos. NO se inflan KPIs.
+    # Transparencia total: 0 leads = 0 leads.
     if len(all_leads) == 0:
-        print("\n[CONTRACT] Zero leads! Last resort: relax filters + retry", file=sys.stderr)
-        # Relax: accept any result with at least 1 MUST_INCLUDE keyword
-        # and no foreign signal (skip institutional/reject filters)
-        for query in QUERIES_PRIMARY[:5]:
-            results = web_search(query, num=15)
-            for r in results:
-                combined = f"{r.get('name','')} {r.get('snippet','')}".lower()
-                if any(kw in combined for kw in MUST_INCLUDE):
-                    # Minimal lead without strict filters
-                    lead = build_lead(r)
-                    if lead is None:
-                        # Force create with relaxed criteria
-                        lead = Lead(
-                            id=hashlib.sha256(f"{r.get('url','')}|{r.get('snippet','')[:50]}".encode()).hexdigest()[:16],
-                            text=r.get("snippet", "")[:300],
-                            score=30,
-                            label="red",
-                            source=r.get("source", "unknown"),
-                            persona=r.get("username", "(anónimo)"),
-                            platform=PLATFORM_MAP.get(get_host(r.get("url","")), "Unknown"),
-                            url=r.get("url", ""),
-                            created_at=datetime.now(timezone.utc).isoformat(),
-                            fecha_visible=r.get("date", ""),
-                            confidence=0.3,
-                            categoria="vehicle_issue",
-                            score_breakdown={"base": 20, "relaxed": 10},
-                            detected_signals=["relaxed_filter"],
-                        )
-                    all_leads.append(lead)
-            if len(all_leads) >= MIN_LEADS_THRESHOLD:
-                break
-
-        all_leads = dedup_leads(all_leads)
-        print(f"  Last resort: {len(all_leads)} leads", file=sys.stderr)
+        print("\n[HONEST STATE] 0 real leads found. Dashboard will show empty state.", file=sys.stderr)
+        print("  No fallback generation. No synthetic leads. No inflated KPIs.", file=sys.stderr)
 
     # --- Sort: score desc, date desc ---
     all_leads.sort(key=lambda l: (l.score, l.fecha_visible or l.created_at), reverse=True)
 
+    # --- LOG: provider output BEFORE scoring (raw vs scored) ---
+    # Esto permite auditar cuántos resultados crudos entraron vs cuántos pasaron filtros
+    raw_count = len(all_leads)
+    print(f"\n[AUDIT] Raw leads extracted (before scoring): {raw_count}", file=sys.stderr)
+    print(f"  All leads have lead_origin='real' (no synthetic, no fallback)", file=sys.stderr)
+
     # --- Build payload ---
-    hot = [l for l in all_leads if l.label in ("green", "yellow") and l.score >= 50]
-    warm = [l for l in all_leads if l.label == "red" or l.score < 50]
+    # --- SEPARATE REAL vs FALLBACK ---
+    # Todos los leads de build_lead() son reales (extraídos de búsqueda pública)
+    # No hay leads sintéticos ni fallback. lead_origin siempre es "real".
+    real_leads = [l for l in all_leads if l.score > 0]
+    hot = [l for l in real_leads if l.label in ("green", "yellow") and l.score >= 50]
+    warm = [l for l in real_leads if l.label == "red" or l.score < 50]
 
     run_id = hashlib.sha256(f"{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()[:12]
     generated_at = datetime.now(timezone.utc).isoformat()
 
+    # --- KPIs: ONLY REAL LEADS ---
+    # Los KPIs nunca incluyen leads sintéticos o fallback.
+    # Si hay 0 leads reales, los KPIs son 0. Transparencia total.
     kpis = {
-        "total_leads": len(all_leads),
+        "total_leads": len(real_leads),
         "hot_leads": len(hot),
         "warm_leads": len(warm),
-        "contactable_leads": sum(1 for l in all_leads if l.contact),
-        "conversion_score_avg": round(sum(l.score for l in all_leads) / len(all_leads), 1) if all_leads else 0,
+        "contactable_leads": sum(1 for l in real_leads if l.contact),
+        "conversion_score_avg": round(sum(l.score for l in real_leads) / len(real_leads), 1) if real_leads else 0,
+        "kpis_include_only_real_leads": True,
     }
 
     insights = generate_insights(all_leads)
@@ -656,12 +642,15 @@ def run_pipeline() -> Dict[str, Any]:
             "runtime_seconds": round(time.time() - start_time, 2),
         },
         "kpis": kpis,
-        "leads": [l.to_dict() for l in all_leads],
+        "leads": [l.to_dict() for l in real_leads],
         "insights": insights,
         "meta": {
-            "version": "3.0",
+            "version": "3.1",
             "min_leads_threshold": MIN_LEADS_THRESHOLD,
-            "contract_met": len(all_leads) >= MIN_LEADS_THRESHOLD,
+            "contract_met": len(real_leads) >= MIN_LEADS_THRESHOLD,
+            "forced_lead_generation": False,
+            "synthetic_leads_allowed": False,
+            "kpis_include_only_real_leads": True,
         },
     }
 
