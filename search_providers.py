@@ -189,62 +189,88 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         encoded = urllib.parse.quote(query)
         url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
 
-    # Para cada URL de Reddit encontrada por DDG, scrapear el post completo via corsproxy.io
-    # (Reddit bloquea directo, pero corsproxy.io funciona)
-    results = []
-    for r in reddit_urls[:num]:
-        post_url = r["url"]
-        permalink = post_url.replace("https://www.reddit.com", "").replace("https://reddit.com", "").split("?")[0]
-        reddit_json_url = f"https://www.reddit.com{permalink}.json?limit=10"
-        # Usar corsproxy.io como proxy
-        json_url = f"https://corsproxy.io/?{urllib.parse.quote(reddit_json_url)}"
-        try:
-            req = urllib.request.Request(json_url)
-            req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            req.add_header("Accept", "application/json, text/html, */*")
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                pdata = json.loads(resp.read().decode("utf-8", errors="replace"))
-            
-            if isinstance(pdata, list) and len(pdata) >= 1:
-                post_data = pdata[0].get("data",{}).get("children",[])
-                if post_data:
-                    p = post_data[0].get("data",{})
-                    author = p.get("author","")
-                    if author == "[deleted]":
-                        author = ""
-                    selftext = p.get("selftext","")[:3000]
-                    # Top comments
-                    comments_text = []
-                    if len(pdata) >= 2:
-                        for c in c_data_iter(pdata[1]):
-                            if c and len(c) > 20 and c != "[deleted]":
-                                comments_text.append(c[:500])
-                    full_snippet = (selftext + " " + " ".join(comments_text))[:6000]
-                    results.append({
-                        "title": p.get("title", r.get("title",""))[:200],
-                        "url": post_url,
-                        "snippet": full_snippet,
-                        "source": "reddit",
-                        "date": "",
-                        "username": author,
-                        "author": author,
-                        "permalink": permalink,
-                    })
-            time.sleep(0.3)
-        except Exception as e:
-            # Si el scrape falla, usar el snippet de DDG (sin author)
-            print(f"    [reddit] scrape fail for {post_url[:60]}: {e}", file=_sys.stderr)
+    # Reddit bloquea /search.json y /comments/.json con 403.
+    # Pero /search.rss (Atom feed) SI funciona y trae el author como <name>/u/xxx</name>.
+    # Estrategia: usar search.rss en vez de DDG + scrape.
+    encoded = urllib.parse.quote(query)
+    rss_url = f"https://www.reddit.com/search.rss?q={encoded}&sort=new&limit={num}"
+    try:
+        req = urllib.request.Request(rss_url)
+        req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        req.add_header("Accept", "application/atom+xml, application/xml, text/xml, */*")
+        req.add_header("Accept-Language", "es-AR,es;q=0.9")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            rss_content = resp.read().decode("utf-8", errors="replace")
+    except Exception as e:
+        print(f"    [reddit] RSS search fail: {e}", file=_sys.stderr)
+        # Ultimo fallback: usar los resultados de DDG (sin author)
+        results = []
+        for r in reddit_urls[:num]:
             results.append({
                 "title": r.get("title","")[:200],
-                "url": post_url,
+                "url": r.get("url",""),
                 "snippet": r.get("snippet","")[:3000],
                 "source": "reddit_ddg",
                 "date": r.get("date",""),
                 "username": "",
                 "author": "",
             })
+        return results
     
-    print(f"    [reddit] got {len(results)} enriched posts", file=_sys.stderr)
+    # Parse Atom feed
+    import re as _re2
+    entries = _re2.findall(r"<entry>(.*?)</entry>", rss_content, _re2.DOTALL)
+    print(f"    [reddit] RSS entries: {len(entries)}", file=_sys.stderr)
+    
+    results = []
+    for entry in entries[:num]:
+        title_m = _re2.search(r"<title[^>]*>([^<]+)</title>", entry)
+        link_m = _re2.search(r'<link[^>]*href="([^"]+)"', entry)
+        author_m = _re2.search(r"<name[^>]*>([^<]+)</name>", entry)
+        content_m = _re2.search(r"<content[^>]*>(.*?)</content>", entry, _re2.DOTALL)
+        updated_m = _re2.search(r"<updated[^>]*>([^<]+)</updated>", entry)
+        
+        title = title_m.group(1) if title_m else ""
+        url = link_m.group(1) if link_m else ""
+        author = ""
+        if author_m:
+            author_raw = author_m.group(1).strip()
+            # Formato Reddit: /u/username
+            u_match = _re2.search(r"/u/([A-Za-z0-9_\-\:]{3,20})", author_raw)
+            if u_match:
+                author = u_match.group(1)
+            else:
+                author = author_raw
+        
+        # Content tiene HTML, limpiar tags
+        snippet = ""
+        if content_m:
+            raw = content_m.group(1)
+            # Buscar u/username adicional en el content
+            u2 = _re2.search(r"/u/([A-Za-z0-9_\-\:]{3,20})", raw)
+            if u2 and not author:
+                author = u2.group(1)
+            # Strip HTML
+            snippet = _re2.sub(r"<[^>]+>", " ", raw)
+            snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
+            snippet = snippet.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'")
+            snippet = _re2.sub(r"\s+", " ", snippet).strip()
+        
+        # Solo incluir si es un post (tiene /comments/ en la URL) y no un subreddit
+        if "/comments/" not in url:
+            continue
+        
+        results.append({
+            "title": title[:200],
+            "url": url,
+            "snippet": snippet[:3000],
+            "source": "reddit",
+            "date": updated_m.group(1) if updated_m else "",
+            "username": author,
+            "author": author,
+        })
+    
+    print(f"    [reddit] got {len(results)} posts with author", file=_sys.stderr)
     return results[:num]
 
 
