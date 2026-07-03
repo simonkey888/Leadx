@@ -1,0 +1,1195 @@
+     1→"""
+     2→radar_pro.py — Radar de Oportunidades PRO (reporte ejecutivo comercial).
+     3→
+     4→Misión: encontrar personas reales con problemas vehiculares públicos en Argentina.
+     5→
+     6→Mejoras vs v4.1:
+     7→  - Filtro últimos 7 días (cuando hay fecha visible)
+     8→  - Sin inventar datos faltantes
+     9→  - Reporte ejecutivo comercial como salida principal (no JSON)
+    10→  - Scoring exacto del prompt PRO
+    11→  - Queries orientadas a dolor explícito
+    12→"""
+    13→from __future__ import annotations
+    14→
+    15→import json
+    16→import os
+    17→import re
+    18→import subprocess
+    19→import sys
+    20→import time
+    21→from dataclasses import dataclass, field, asdict
+    22→from datetime import datetime, timedelta
+    23→from pathlib import Path
+    24→from typing import List, Dict, Any, Optional, Set, Tuple
+    25→from urllib.parse import urlparse
+    26→
+    27→# ===========================================================================
+    28→# Config
+    29→# ===========================================================================
+    30→
+    31→OUTPUT_JSON = Path("/home/z/my-project/download/radar_pro_output.json")
+    32→OUTPUT_REPORT = Path("/home/z/my-project/download/radar_pro_reporte.md")
+    33→OUTPUT_TXT = Path("/home/z/my-project/download/radar_pro_reporte.txt")
+    34→RAW_PATH = Path("/home/z/my-project/download/radar_pro_raw.json")
+    35→
+    36→MAX_ITERATIONS = 25
+    37→RESULTS_PER_QUERY = 10
+    38→MIN_LEADS_CALIENTES = 8
+    39→
+    40→# ===========================================================================
+    41→# Queries orientadas a dolor explícito (no genéricas)
+    42→# ===========================================================================
+    43→
+    44→QUERIES = [
+    45→    # Reddit — alta prioridad
+    46→    ("reddit", "site:reddit.com no puedo transferir auto argentina"),
+    47→    ("reddit", "site:reddit.com me llegó multa argentina"),
+    48→    ("reddit", "site:reddit.com libre deuda problema argentina"),
+    49→    ("reddit", "site:reddit.com fotomulta reclamo argentina"),
+    50→    ("reddit", "site:reddit.com multa no es mi auto"),
+    51→    ("reddit", "site:reddit.com 08 firmado problema"),
+    52→    # Facebook — alta prioridad
+    53→    ("facebook", "site:facebook.com no puedo transferir auto multa"),
+    54→    ("facebook", "site:facebook.com me llegó fotomulta"),
+    55→    ("facebook", "site:facebook.com libre deuda falso"),
+    56→    ("facebook", "site:facebook.com vendedor no entregó 08"),
+    57→    ("facebook", "site:facebook.com tengo multas impagas"),
+    58→    # Sin site: — frases humanas
+    59→    ("dolor", "no puedo transferir auto por multas argentina"),
+    60→    ("dolor", "me llegó una multa y no es mi auto"),
+    61→    ("dolor", "me dieron un libre deuda falso"),
+    62→    ("dolor", "multas vencidas sin notificar argentina"),
+    63→    ("dolor", "el vendedor no me entregó el 08"),
+    64→    ("dolor", "transferir auto con deudas problema"),
+    65→    ("dolor", "no me notificaron multa argentina"),
+    66→    ("dolor", "quiero transferir auto radicado otra provincia"),
+    67→    ("dolor", "patente bloqueada no puedo transferir"),
+    68→    ("dolor", "tengo fotomultas de ruta argentina"),
+    69→    ("dolor", "transferencia rechazada multas"),
+    70→]
+    71→
+    72→# ===========================================================================
+    73→# Filtros obligatorios del spec PRO
+    74→# ===========================================================================
+    75→
+    76→MUST_MATCH = ["multa", "fotomulta", "transferencia", "libre deuda", "patente", "08 firmado"]
+    77→
+    78→PAIN_EXPLICIT_PATTERNS = [
+    79→    "no puedo transferir", "no puedo hacer la transferencia",
+    80→    "quiero transferir", "necesito transferir", "puedo hacer la transferencia",
+    81→    "transferencia de un auto", "transferencia de auto", "transferencia del auto",
+    82→    "transferir un auto", "transferir el auto",
+    83→    "me rechazaron", "transferencia bloqueada", "transferencia rechazada",
+    84→    "no me dejan transferir", "no me deja transferir",
+    85→    "se puede transferir con multas",
+    86→    "tengo multas", "tengo una multa", "tengo fotomultas",
+    87→    "me llegó una multa", "me llego una multa", "me llegó esa multa",
+    88→    "me llegaron fotomultas", "me llegaron multas",
+    89→    "no es mi auto", "no es mi vehículo", "no es mio",
+    90→    "multa de caminera", "multas vencidas", "multa impaga",
+    91→    "debo multas", "debo patente", "deuda de patente",
+    92→    "necesito libre deuda", "cómo saco libre deuda", "como saco libre deuda",
+    93→    "me piden libre deuda", "me pide libre deuda",
+    94→    "libre deuda falso", "no me dan libre deuda",
+    95→    "no me entregó", "nunca te entregó", "no me dio el 08",
+    96→    "no me notificaron", "no me llegó la notificación",
+    97→    "me saltó una deuda", "me salto una multa",
+    98→    "compré un auto con", "compre un auto con",
+    99→    "radicado en otra provincia", "radicada en otra",
+   100→    "alguien sabe cómo", "alguien sabe como",
+   101→    "cómo hago la transferencia", "como hago la transferencia",
+   102→    "no se puede transferir",
+   103→    "21 fotomultas", "tengo 21 fotomultas",
+   104→    "vendí un auto y no lo transfieren",
+   105→    "me llegan multas que no hice",
+   106→    "no me deja patentar",
+   107→]
+   108→
+   109→# Preventivo (sin dolor explícito)
+   110→PREVENTIVE_PATTERNS = [
+   111→    "vendo auto", "vendo mi auto", "vendo moto",
+   112→    "permuto auto", "permuto mi auto", "permuto moto",
+   113→    "papeles al día", "papeles al dia", "titular al día",
+   114→    "quiero vender mi moto", "quiero vender mi auto",
+   115→]
+   116→
+   117→# País
+   118→REJECT_COUNTRIES = {
+   119→    "méxico", "mexico", "colombia", "uruguay", "chile",
+   120→    "perú", "peru", "paraguay", "brasil", "brazil",
+   121→    "italia", "italy", "españa", "spain", "estados unidos", "eeuu", "usa",
+   122→}
+   123→
+   124→COUNTRY_INDICATORS = {
+   125→    "México": ["méxico", "mexico", "cdmx", "guadalajara", "monterrey", "edomex"],
+   126→    "Colombia": ["colombia", "bogotá", "bogota", "medellín", "medellin"],
+   127→    "Uruguay": ["uruguay", "montevideo"],
+   128→    "Chile": ["chile", "santiago de chile", "valparaíso", "valparaiso"],
+   129→    "Perú": ["perú", "peru", "lima", "arequipa"],
+   130→    "Paraguay": ["paraguay", "asunción", "asuncion"],
+   131→    "Brasil": ["brasil", "brazil", "são paulo", "sao paulo", "rio de janeiro"],
+   132→    "Italia": ["italia", "italy", "pisa", "roma", "milano", "milán"],
+   133→    "España": ["españa", "espana", "madrid", "barcelona", "valencia"],
+   134→    "EEUU": ["estados unidos", "usa", "eeuu", "miami", "new york", "california"],
+   135→}
+   136→
+   137→PREFERRED_PROVINCES = {
+   138→    "buenos aires", "pba", "gba", "santa fe", "rosario",
+   139→    "córdoba", "cordoba", "entre ríos", "entre rios", "mendoza",
+   140→    "caba", "capital federal", "la plata", "paraná", "parana",
+   141→    "neuquén", "neuquen", "salta",
+   142→}
+   143→
+   144→# Argentina phone patterns
+   145→ARG_PHONE_PATTERNS = [
+   146→    r"\+54\s?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{4}",
+   147→    r"\b011[\s\-]?\d{4}[\s\-]?\d{4}",
+   148→    r"\b0(2[0-9]|3[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+   149→    r"\b(11|15)[\s\-]?\d{4}[\s\-]?\d{4}",
+   150→    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9]|37[0-9]|36[0-9]|29[0-9]|28[0-9]|22[0-9]|23[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+   151→]
+   152→
+   153→FOREIGN_PHONE_PATTERNS = [
+   154→    r"\+52\s?\d{2,3}[\s\-]?\d{3,4}[\s\-]?\d{4}",
+   155→    r"\b52[\s\-]?\d{2,3}[\s\-]?\d{3,4}[\s\-]?\d{4}",
+   156→    r"\+57\s?\d{3}[\s\-]?\d{3}[\s\-]?\d{4}",
+   157→    r"\+598\s?\d{2,3}[\s\-]?\d{3}[\s\-]?\d{4}",
+   158→    r"\+56\s?\d{2}[\s\-]?\d{4}[\s\-]?\d{4}",
+   159→    r"\+51\s?\d{2,3}[\s\-]?\d{3}[\s\-]?\d{4}",
+   160→    r"\+595\s?\d{2,3}[\s\-]?\d{3}[\s\-]?\d{4}",
+   161→    r"\+55\s?\d{2}[\s\-]?\d{4,5}[\s\-]?\d{4}",
+   162→]
+   163→
+   164→# Blacklist estricta (organismos, noticias, SEO, concesionarias, competidores)
+   165→NEGATIVE_DOMAINS = {
+   166→    # Organismos oficiales
+   167→    "dnrpa.gov.ar", "argentina.gob.ar", "buenosaires.gob.ar",
+   168→    "gob.ar", "jus.gob.ar", "rentas.gob.ar", "arba.gov.ar",
+   169→    "rentascba.gov.ar", "rentas.gba.gov.ar", ".gov.ar",
+   170→    # Noticias / medios
+   171→    "clarin.com", "lanacion.com.ar", "infobae.com", "cronista.com",
+   172→    "ambito.com", "pagina12.com.ar", "perfil.com", "tn.com.ar",
+   173→    "cronica.com.ar", "minutouno.com", "infopico.com", "rosario3.com",
+   174→    "mdzol.com", "losandes.com.ar", "lavoz.com.ar", "eltribuno.com",
+   175→    # Calculadoras / blogs / SEO
+   176→    "elcerokm.com", "servidos.ar", "alarfin.com.ar", "autofact.cl",
+   177→    "autofact.com.ar", "kavak.com", "bitcar.com.ar", "comparaencasa.com",
+   178→    # Wikipedia / diccionarios
+   179→    "es.wikipedia.org", "en.wikipedia.org", "rae.es", "wiktionary.org",
+   180→    # Bancos / fintech
+   181→    "bbva.com.ar", "galicia.ar", "bna.com.ar", "prexcard.com.ar",
+   182→    "wise.com", "revolut.com", "moneygram.com", "global66.com",
+   183→    # Concesionarias / agencias / marketplace
+   184→    "mercadolibre.com.ar", "mercadolibre.com", "mlstatic.com",
+   185→    "autocosmos.com.ar", "demotores.com.ar", "encuentra24.com",
+   186→    "carone.com.ar", "derby.com.ar", "chrysler.com.ar",
+   187→    "derco.com.ar", "veico.com.ar", "chaher.com.ar",
+   188→    # YouTube / Instagram / TikTok
+   189→    "youtube.com", "tiktok.com", "instagram.com",
+   190→    # Empresas / seguros
+   191→    "nationwide.com", "allianz.com.ar", "sancor.com.ar",
+   192→    # Académico
+   193→    "researchgate.net", "academia.edu", "scielo.org",
+   194→    # LinkedIn corporativo
+   195→    "linkedin.com",
+   196→    # Sitios de quejas institucionales (no son leads humanos)
+   197→    "tuquejasuma.com",
+   198→}
+   199→
+   200→# Blacklist de nombres de página (páginas oficiales dentro de facebook.com)
+   201→PAGE_BLACKLIST = [
+   202→    "rentascba", "rentascordoba", "municipalidadrosario", "arbaoficial",
+   203→    "comparaencasa", "viacordoba", "viacordobo", "autocosmos",
+   204→    "municrespo", "neuquencapital", "medidorosario",
+   205→    "rentas.gob", "municipalidad", "gov.ar",
+   206→    "rentas", "arba", "ansv", "argentina.gob",
+   207→    "legalesdeargentina",  # cuenta de abogados institucional
+   208→    "boedo55",  # blog informativo
+   209→]
+   210→
+   211→INFORMATIONAL_INDICATORS = [
+   212→    "publicado por", "leer más", "leer mas", "última actualización",
+   213→    "calculá tu", "calcula tu", "simulador", "arancel",
+   214→    "guía completa", "guia completa", "paso a paso", "tutorial",
+   215→    "todo lo que necesitás saber", "todo lo que necesitas saber",
+   216→    "mejores consejos", "consejos para", "tips para",
+   217→    "trámite online", "turno web", "consulta de aranceles",
+   218→    "sistema integral de trámites",
+   219→    "transferencia internacional", "transferir dinero",
+   220→    "enviar dinero", "giro", "remesa", "criptomoneda",
+   221→    # Indicadores de contenido institucional
+   222→    "ansv", "agencia nacional de seguridad vial",
+   223→    "ministerio de transporte", "dirección nacional",
+   224→]
+   225→
+   226→# Indicadores de concesionaria / agencia / competidor
+   227→CONCESIONARIA_INDICATORS = [
+   228→    "concesionaria", "concesionario", "agencia oficial",
+   229→    "representante oficial", "grupo automotor", "autódromo",
+   230→    "toyota san isidro", "toyota pilar", "ford argentina",
+   231→]
+   232→
+   233→AGENCIA_INDICATORS = [
+   234→    "agencia de autos", "usados garantía", "usados garantia",
+   235→    "compramos tu auto", "compramos tu usado", "vendemos usados",
+   236→    "stock disponible", "financiación a su medida",
+   237→]
+   238→
+   239→COMPETIDOR_INDICATORS = [
+   240→    "compro autos con deudas", "compramos autos con deudas",
+   241→    "compro autos con multas", "compramos autos con multas",
+   242→    "gestoría", "gestoria", "gestor automotor",
+   243→    "abogado multas", "abogados multas", "despachante",
+   244→    "tramité tu transferencia", "te gestionamos",
+   245→    # Cuentas institucionales
+   246→    "legalesdeargentina", "abogado", "estudio jurídico",
+   247→]
+   248→
+   249→PRIORITY_PLATFORMS = {
+   250→    "reddit.com": 100, "www.reddit.com": 100, "old.reddit.com": 100,
+   251→    "facebook.com": 95, "m.facebook.com": 95,
+   252→    "twitter.com": 85, "x.com": 85,
+   253→    "taringa.net": 75, "foroargentino.com": 75,
+   254→}
+   255→
+   256→VEHICLE_TYPES = ["auto", "moto", "camioneta", "camion", "utilitario", "pick up", "pickup"]
+   257→VEHICLE_BRANDS = [
+   258→    "ford", "chevrolet", "toyota", "honda", "volkswagen", "vw",
+   259→    "peugeot", "renault", "citroen", "fiat", "nissan", "hyundai",
+   260→    "kia", "seat", "audi", "bmw", "mercedes",
+   261→]
+   262→
+   263→PATENT_PATTERNS = [
+   264→    r"\b[A-Z]{2}\s?\d{3}\s?[A-Z]{2}\b",
+   265→    r"\b[A-Z]{3}\s?\d{3}\b",
+   266→]
+   267→
+   268→TITULAR_INDICATORS = [
+   269→    "soy titular", "titular del auto", "titular del vehículo",
+   270→    "a mi nombre", "está a mi nombre", "esta a mi nombre",
+   271→    "papeles a mi nombre", "tengo los papeles",
+   272→    "vendí mi auto", "vendi mi auto", "compré un auto", "compre un auto",
+   273→]
+   274→
+   275→
+   276→# ===========================================================================
+   277→# Dataclass
+   278→# ===========================================================================
+   279→@dataclass
+   280→class Lead:
+   281→    category: str = ""  # LEAD_CALIENTE | LEAD_COMERCIAL
+   282→    problema: str = ""
+   283→    persona: str = ""
+   284→    provincia: str = ""
+   285→    ciudad: str = ""
+   286→    vehiculo: str = ""
+   287→    plataforma: str = ""
+   288→    fecha: str = ""
+   289→    urgencia: int = 0
+   290→    confianza: int = 0
+   291→    whatsapp: str = ""
+   292→    telefono: str = ""
+   293→    perfil: str = ""
+   294→    publicacion: str = ""
+   295→    cita: str = ""
+   296→    score: int = 0
+   297→    lead_reason: str = ""
+   298→    query: str = ""
+   299→
+   300→    def to_dict(self) -> Dict[str, Any]:
+   301→        return asdict(self)
+   302→
+   303→
+   304→# ===========================================================================
+   305→# z-ai CLI
+   306→# ===========================================================================
+   307→def web_search(query: str, num: int = 10) -> List[Dict[str, Any]]:
+   308→    args = json.dumps({"query": query, "num": num}, ensure_ascii=False)
+   309→    tmp_file = f"/tmp/radar_pro_{hash(query) & 0xFFFFFFFF:x}.json"
+   310→    for attempt in range(4):
+   311→        try:
+   312→            result = subprocess.run(
+   313→                ["z-ai", "function", "-n", "web_search", "-a", args, "-o", tmp_file],
+   314→                capture_output=True, text=True, timeout=45,
+   315→            )
+   316→            if result.returncode != 0:
+   317→                stderr = result.stderr.lower()
+   318→                if "429" in stderr or "too many requests" in stderr:
+   319→                    wait = 5 * (attempt + 1) * 2
+   320→                    print(f"    [rate-limit] esperando {wait}s (intento {attempt+1}/4)", file=sys.stderr)
+   321→                    time.sleep(wait)
+   322→                    continue
+   323→                return []
+   324→            with open(tmp_file, "r", encoding="utf-8") as f:
+   325→                data = json.load(f)
+   326→            return data if isinstance(data, list) else []
+   327→        except subprocess.TimeoutExpired:
+   328→            return []
+   329→        except Exception:
+   330→            return []
+   331→        finally:
+   332→            if os.path.exists(tmp_file):
+   333→                os.remove(tmp_file)
+   334→    return []
+   335→
+   336→
+   337→# ===========================================================================
+   338→# Helpers
+   339→# ===========================================================================
+   340→def get_host(url: str) -> str:
+   341→    try:
+   342→        return urlparse(url).netloc.lower().lstrip("www.")
+   343→    except Exception:
+   344→        return ""
+   345→
+   346→
+   347→def make_cita(name: str, snippet: str, max_len: int = 180) -> str:
+   348→    text = f"{name}. {snippet}".strip()
+   349→    # Limpiar repetición del sitio
+   350→    if " - " in text[:80]:
+   351→        parts = text.split(" - ", 1)
+   352→        if len(parts) > 1:
+   353→            text = parts[1]
+   354→    return text if len(text) <= max_len else text[:max_len - 1] + "…"
+   355→
+   356→
+   357→# ===========================================================================
+   358→# Country filter
+   359→# ===========================================================================
+   360→def detect_country(text: str, url: str, phone: str) -> str:
+   361→    text_lower = text.lower()
+   362→    for country, patterns in [
+   363→        ("México", FOREIGN_PHONE_PATTERNS[0:2]),
+   364→        ("Colombia", [FOREIGN_PHONE_PATTERNS[2]]),
+   365→        ("Uruguay", [FOREIGN_PHONE_PATTERNS[3]]),
+   366→        ("Chile", [FOREIGN_PHONE_PATTERNS[4]]),
+   367→        ("Perú", [FOREIGN_PHONE_PATTERNS[5]]),
+   368→        ("Paraguay", [FOREIGN_PHONE_PATTERNS[6]]),
+   369→        ("Brasil", [FOREIGN_PHONE_PATTERNS[7]]),
+   370→    ]:
+   371→        for pat in patterns:
+   372→            if re.search(pat, text):
+   373→                return country
+   374→
+   375→    for country, indicators in COUNTRY_INDICATORS.items():
+   376→        for ind in indicators:
+   377→            if ind in text_lower:
+   378→                return country
+   379→
+   380→    for pat in ARG_PHONE_PATTERNS:
+   381→        if re.search(pat, text):
+   382→            return "Argentina"
+   383→
+   384→    for prov in PREFERRED_PROVINCES:
+   385→        if prov in text_lower:
+   386→            return "Argentina"
+   387→
+   388→    return "Unknown"
+   389→
+   390→
+   391→# ===========================================================================
+   392→# Validación estricta de contacto
+   393→# ===========================================================================
+   394→def validate_phone_strict(phone: str) -> bool:
+   395→    if not phone:
+   396→        return False
+   397→    if not re.match(r"^[\d\s\+\-\(\)]+$", phone):
+   398→        return False
+   399→    digits = re.sub(r"\D", "", phone)
+   400→    if len(digits) < 10 or len(digits) > 15:
+   401→        return False
+   402→    if re.search(r"\d-\d-\d-\d-\d-\d-\d-\d", phone):
+   403→        return False
+   404→    if len(set(digits)) <= 2:
+   405→        return False
+   406→    return True
+   407→
+   408→
+   409→def clean_phone(phone: str) -> str:
+   410→    if not phone:
+   411→        return ""
+   412→    has_plus = phone.strip().startswith("+")
+   413→    digits = re.sub(r"\D", "", phone)
+   414→    return ("+" if has_plus else "") + digits if digits else ""
+   415→
+   416→
+   417→def extract_phone_strict(text: str) -> str:
+   418→    for pattern in ARG_PHONE_PATTERNS:
+   419→        for m in re.finditer(pattern, text):
+   420→            phone = m.group(0).strip()
+   421→            if validate_phone_strict(phone):
+   422→                is_foreign = False
+   423→                for fp in FOREIGN_PHONE_PATTERNS:
+   424→                    if re.search(fp, phone):
+   425→                        is_foreign = True
+   426→                        break
+   427→                if not is_foreign:
+   428→                    return clean_phone(phone)
+   429→    return ""
+   430→
+   431→
+   432→def extract_whatsapp_strict(text: str) -> str:
+   433→    patterns = [
+   434→        r"whatsapp\s*:?\s*(\+?\d[\d\s\-]{8,15})",
+   435→        r"wa\.me/(\d{8,15})",
+   436→        r"\bwp\s*:?\s*(\+?\d[\d\s\-]{8,15})",
+   437→    ]
+   438→    for pattern in patterns:
+   439→        for m in re.finditer(pattern, text, re.IGNORECASE):
+   440→            num = m.group(1).strip()
+   441→            if validate_phone_strict(num):
+   442→                is_foreign = False
+   443→                for fp in FOREIGN_PHONE_PATTERNS:
+   444→                    if re.search(fp, num):
+   445→                        is_foreign = True
+   446→                        break
+   447→                if not is_foreign:
+   448→                    return clean_phone(num)
+   449→    return ""
+   450→
+   451→
+   452→# ===========================================================================
+   453→# Filtros
+   454→# ===========================================================================
+   455→def is_informational(result: Dict[str, Any]) -> bool:
+   456→    url = result.get("url", "").lower()
+   457→    host = get_host(result.get("url", ""))
+   458→    snippet = (result.get("snippet", "") or "").lower()
+   459→    name = (result.get("name", "") or "").lower()
+   460→    combined = f"{snippet} {name}"
+   461→
+   462→    for excl in NEGATIVE_DOMAINS:
+   463→        if excl in host:
+   464→            return True
+   465→
+   466→    for excl in PAGE_BLACKLIST:
+   467→        if excl in url:
+   468→            return True
+   469→
+   470→    for ind in INFORMATIONAL_INDICATORS:
+   471→        if ind in combined:
+   472→            return True
+   473→
+   474→    article_patterns = [
+   475→        r"^(c[oó]mo|gu[íi]a|mejores?|consejos?|tips?|todo lo que|pasos? para)",
+   476→        r"(?:calculadora|simulador|arancel|presupuesto|tarifa)",
+   477→        r"(?:tr[áa]mite|turno)\s+online",
+   478→    ]
+   479→    for pat in article_patterns:
+   480→        if re.search(pat, name):
+   481→            person_signals = [
+   482→                "vendo ", "permuto ", "tengo multa", "me llegó", "no puedo",
+   483→                "alguien sabe", "hola gente", "me rechazaron", "quiero transferir",
+   484→                "no es mi auto", "me dieron",
+   485→            ]
+   486→            if not any(s in snippet for s in person_signals):
+   487→                return True
+   488→
+   489→    return False
+   490→
+   491→
+   492→def detect_commercial_entity(text: str) -> Tuple[bool, bool, bool]:
+   493→    text_lower = text.lower()
+   494→    is_conc = any(ind in text_lower for ind in CONCESIONARIA_INDICATORS)
+   495→    is_ag = any(ind in text_lower for ind in AGENCIA_INDICATORS)
+   496→    is_comp = any(ind in text_lower for ind in COMPETIDOR_INDICATORS)
+   497→    return is_conc, is_ag, is_comp
+   498→
+   499→
+   500→def is_real_person_signal(result: Dict[str, Any]) -> bool:
+   501→    text = (f"{result.get('name', '')} {result.get('snippet', '')}").lower()
+   502→    if re.search(r"@\w{3,20}", text):
+   503→        return True
+   504→
+   505→    person_phrases = [
+   506→        "alguien sabe", "alguien me", "cómo hago", "como hago",
+   507→        "qué hago", "que hago", "me pasó", "me paso", "me llegaron",
+   508→        "me rechazaron", "no puedo", "tengo multas", "debo multas",
+   509→        "hola gente", "buenas gente", "buenas tardes", "buenos días",
+   510→        "consulto", "ayuda porfa", "vendo mi", "permuto mi",
+   511→        "soy titular", "titular del auto",
+   512→        "tengo una multa", "me llegó una multa", "me llego una multa",
+   513→        "no me deja transferir", "no me deja vender",
+   514→        "me piden libre deuda", "me pide libre deuda",
+   515→        "quiero transferir", "necesito transferir",
+   516→        "ayuda con transferencia",
+   517→        "cómo saco libre deuda", "como saco libre deuda",
+   518→        "no me llegó", "no me lego",
+   519→        "no es mi auto", "no es mi vehículo",
+   520→        "compré un auto", "compre un auto",
+   521→        "vendí mi auto", "vendi mi auto",
+   522→        "me dieron un libre deuda",
+   523→        "no me entregó", "nunca me entregó",
+   524→    ]
+   525→    for phrase in person_phrases:
+   526→        if phrase in text:
+   527→            return True
+   528→
+   529→    host = get_host(result.get("url", ""))
+   530→    if host in PRIORITY_PLATFORMS:
+   531→        vehicle_keywords = [
+   532→            "auto", "moto", "camioneta", "vendo", "permuto", "transferir",
+   533→            "multa", "fotomulta", "patente", "libre deuda", "08 firmado",
+   534→        ]
+   535→        if any(kw in text for kw in vehicle_keywords):
+   536→            return True
+   537→
+   538→    return False
+   539→
+   540→
+   541→def detect_person(result: Dict[str, Any]) -> Tuple[str, str]:
+   542→    text = f"{result.get('name', '')} {result.get('snippet', '')} {result.get('url', '')}"
+   543→    m = re.search(r"@(\w{3,20})", text)
+   544→    if m:
+   545→        username = m.group(0)
+   546→        host = get_host(result.get("url", ""))
+   547→        if "reddit.com" in host:
+   548→            return username, f"https://reddit.com/user/{m.group(1)}"
+   549→        elif "twitter.com" in host or "x.com" in host:
+   550→            return username, f"https://x.com/{m.group(1)}"
+   551→        elif "facebook.com" in host:
+   552→            return username, f"https://facebook.com/{m.group(1)}"
+   553→        return username, ""
+   554→
+   555→    m = re.search(r"(?:hola\s+)?soy\s+([A-ZÁÉÍÓÚa-záéíóúñ]{3,20})", text, re.IGNORECASE)
+   556→    if m:
+   557→        return m.group(1).title(), ""
+   558→
+   559→    host = get_host(result.get("url", ""))
+   560→    if "facebook.com" in host:
+   561→        if re.search(r"vendo\s+\w+|permuto\s+\w+|no puedo\s+\w+", text, re.IGNORECASE):
+   562→            group_match = re.search(r"groups/(\d+)", result.get("url", ""))
+   563→            if group_match:
+   564→                return "Vendedor en FB group", f"https://facebook.com/groups/{group_match.group(1)}"
+   565→            return "Vendedor en FB group", result.get("url", "")
+   566→
+   567→    if "reddit.com" in host:
+   568→        user_match = re.search(r"/user/(\w+)", result.get("url", ""))
+   569→        if user_match:
+   570→            return f"u/{user_match.group(1)}", f"https://reddit.com/user/{user_match.group(1)}"
+   571→        # Reddit post: usar el subreddit como referencia
+   572→        sub_match = re.search(r"/r/(\w+)/", result.get("url", ""))
+   573→        if sub_match:
+   574→            return f"Usuario en r/{sub_match.group(1)}", ""
+   575→
+   576→    return "", ""
+   577→
+   578→
+   579→# ===========================================================================
+   580→# Extracción
+   581→# ===========================================================================
+   582→def extract_patent(text: str) -> str:
+   583→    for pattern in PATENT_PATTERNS:
+   584→        m = re.search(pattern, text)
+   585→        if m:
+   586→            return re.sub(r"\s+", "", m.group(0)).upper()
+   587→    return ""
+   588→
+   589→
+   590→def extract_location(text: str) -> Tuple[str, str]:
+   591→    text_lower = text.lower()
+   592→    cities = [
+   593→        ("lanús", "Buenos Aires"), ("lanus", "Buenos Aires"),
+   594→        ("avellaneda", "Buenos Aires"), ("quilmes", "Buenos Aires"),
+   595→        ("pilar", "Buenos Aires"), ("moreno", "Buenos Aires"),
+   596→        ("san martín", "Buenos Aires"), ("san martin", "Buenos Aires"),
+   597→        ("tigre", "Buenos Aires"), ("morón", "Buenos Aires"), ("moron", "Buenos Aires"),
+   598→        ("rosario", "Santa Fe"), ("villa gobernador gálvez", "Santa Fe"),
+   599→        ("córdoba", "Córdoba"), ("cordoba", "Córdoba"),
+   600→        ("mendoza", "Mendoza"), ("rafaela", "Santa Fe"),
+   601→        ("paraná", "Entre Ríos"), ("parana", "Entre Ríos"),
+   602→        ("concordia", "Entre Ríos"), ("la plata", "Buenos Aires"),
+   603→        ("junín", "Buenos Aires"), ("junin", "Buenos Aires"),
+   604→        ("salta", "Salta"), ("neuquén", "Neuquén"), ("neuquen", "Neuquén"),
+   605→        ("la quiaca", "Jujuy"), ("ushuaia", "Tierra del Fuego"),
+   606→    ]
+   607→    for city, prov in cities:
+   608→        if city in text_lower:
+   609→            return city.title(), prov
+   610→    for prov in PREFERRED_PROVINCES:
+   611→        if prov in text_lower:
+   612→            return "", prov.title()
+   613→    return "", ""
+   614→
+   615→
+   616→def extract_vehicle(text: str) -> str:
+   617→    text_lower = text.lower()
+   618→    for v in VEHICLE_TYPES:
+   619→        if v in text_lower:
+   620→            return v
+   621→    for b in VEHICLE_BRANDS:
+   622→        if b in text_lower:
+   623→            return b
+   624→    return ""
+   625→
+   626→
+   627→def is_titular(text: str) -> bool:
+   628→    text_lower = text.lower()
+   629→    return any(ind in text_lower for ind in TITULAR_INDICATORS)
+   630→
+   631→
+   632→def parse_date(date_str: str) -> Optional[datetime]:
+   633→    """Intenta parsear fecha en varios formatos."""
+   634→    if not date_str:
+   635→        return None
+   636→    for fmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d",
+   637→                "%b %d, %Y", "%d/%m/%Y", "%d-%m-%Y"]:
+   638→        try:
+   639→            return datetime.strptime(date_str[:25], fmt)
+   640→        except ValueError:
+   641→            continue
+   642→    return None
+   643→
+   644→
+   645→def is_recent(date_str: str, days: int = 7) -> Tuple[bool, bool]:
+   646→    """
+   647→    Returns: (is_recent, has_date)
+   648→    - is_recent: True si la fecha es de los últimos `days` días
+   649→    - has_date: True si la fecha estaba visible
+   650→    """
+   651→    dt = parse_date(date_str)
+   652→    if dt is None:
+   653→        return False, False
+   654→    # Handle timezone-aware vs naive
+   655→    now = datetime.now(dt.tzinfo) if dt.tzinfo else datetime.now()
+   656→    return (now - dt) <= timedelta(days=days), True
+   657→
+   658→
+   659→# ===========================================================================
+   660→# Clasificación de problema
+   661→# ===========================================================================
+   662→def classify_problem(text: str) -> Tuple[str, str, int]:
+   663→    """
+   664→    Returns: (categoria, problema_corto, base_score)
+   665→      categoria: LEAD_CALIENTE | LEAD_COMERCIAL
+   666→    """
+   667→    text_lower = text.lower()
+   668→
+   669→    # LEAD_CALIENTE: dolor explícito
+   670→
+   671→    # Caso especial: compró auto con problema
+   672→    if ("compré un auto" in text_lower or "compre un auto" in text_lower) and \
+   673→       any(w in text_lower for w in ["multa", "libre deuda", "transferencia", "08"]):
+   674→        return "LEAD_CALIENTE", "Compró auto con problema documental", 95
+   675→
+   676→    # Multa que no es suya
+   677→    if "no es mi auto" in text_lower or "no es mi vehículo" in text_lower or \
+   678→       ("no es mio" in text_lower and "multa" in text_lower):
+   679→        return "LEAD_CALIENTE", "Multa que no es suya", 95
+   680→
+   681→    # Libre deuda falso
+   682→    if "libre deuda falso" in text_lower or "me dieron un libre deuda falso" in text_lower:
+   683→        return "LEAD_CALIENTE", "Le dieron libre deuda falso", 95
+   684→
+   685→    # Vendedor no entregó 08
+   686→    if "no me entregó" in text_lower and "08" in text_lower or \
+   687→       "nunca te entregó" in text_lower or "no me dio el 08" in text_lower:
+   688→        return "LEAD_CALIENTE", "Vendedor no entregó formulario 08", 95
+   689→
+   690→    # No me notificaron
+   691→    if "no me notificaron" in text_lower or "no me llegó la notificación" in text_lower or \
+   692→       "multas vencidas sin notificar" in text_lower or "sin notificar" in text_lower:
+   693→        return "LEAD_CALIENTE", "Multas sin notificación", 95
+   694→
+   695→    # No puedo transferir
+   696→    if any(kw in text_lower for kw in [
+   697→        "no puedo transferir", "no puedo hacer la transferencia",
+   698→        "no me dejan transferir", "no me deja transferir",
+   699→        "no se puede transferir", "transferencia bloqueada",
+   700→        "transferencia rechazada", "me rechazaron la transferencia",
+   701→    ]):
+   702→        return "LEAD_CALIENTE", "No puede transferir el vehículo", 95
+   703→
+   704→    # Quiero/necesito transferir
+   705→    if any(kw in text_lower for kw in [
+   706→        "quiero transferir", "necesito transferir",
+   707→        "puedo hacer la transferencia", "puedo transferir",
+   708→        "ayuda con transferencia", "transferencia de un auto",
+   709→        "transferencia de auto", "transferencia del auto",
+   710→        "transferir un auto", "transferir el auto",
+   711→        "cómo hago la transferencia", "como hago la transferencia",
+   712→        "radicado en otra provincia", "radicada en otra",
+   713→    ]):
+   714→        return "LEAD_CALIENTE", "Quiere transferir / problema de transferencia", 90
+   715→
+   716→    # Tengo multas / me llegó multa
+   717→    if any(kw in text_lower for kw in [
+   718→        "tengo multas", "tengo una multa", "tengo fotomultas",
+   719→        "me llegó una multa", "me llego una multa", "me llegó esa multa",
+   720→        "me llegaron fotomultas", "me llegaron multas",
+   721→        "multa de caminera", "multas vencidas", "multa impaga",
+   722→        "debo multas", "tengo 21 fotomultas", "21 fotomultas",
+   723→        "me llegan multas que no hice",
+   724→    ]):
+   725→        return "LEAD_CALIENTE", "Tiene multas/fotomultas", 95
+   726→
+   727→    # Libre deuda
+   728→    if any(kw in text_lower for kw in [
+   729→        "necesito libre deuda", "cómo saco libre deuda", "como saco libre deuda",
+   730→        "me piden libre deuda", "me pide libre deuda",
+   731→        "donde puedo pedir libre deuda", "no me dan libre deuda",
+   732→        "no me deja sacar libre deuda",
+   733→    ]):
+   734→        return "LEAD_CALIENTE", "Necesita libre deuda", 90
+   735→
+   736→    # Patente
+   737→    if "patente bloqueada" in text_lower or "no puedo patentar" in text_lower:
+   738→        return "LEAD_CALIENTE", "Problema con patente", 90
+   739→    if "debo patente" in text_lower or "deuda de patente" in text_lower:
+   740→        return "LEAD_CALIENTE", "Debe patente", 85
+   741→
+   742→    # Vendí y no transfieren
+   743→    if "vendí un auto" in text_lower and "no lo transfieren" in text_lower or \
+   744→       ("vendí mi auto" in text_lower and "no" in text_lower and "transfer" in text_lower):
+   745→        return "LEAD_CALIENTE", "Vendió auto y no le hicieron transferencia", 90
+   746→
+   747→    # 21 fotomultas (caso específico encontrado)
+   748→    if "21 fotomultas" in text_lower or "foto multa" in text_lower:
+   749→        return "LEAD_CALIENTE", "Tiene fotomultas", 90
+   750→
+   751→    # Alguien sabe + must_match
+   752→    if "alguien sabe" in text_lower and any(w in text_lower for w in MUST_MATCH):
+   753→        return "LEAD_CALIENTE", "Consulta con dolor explícito", 80
+   754→
+   755→    # === LEAD_COMERCIAL: preventivo ===
+   756→    if "vendo" in text_lower and any(b in text_lower for b in VEHICLE_BRANDS + VEHICLE_TYPES):
+   757→        if is_titular(text_lower):
+   758→            return "LEAD_COMERCIAL", "Vende vehículo (titular)", 50
+   759→        return "LEAD_COMERCIAL", "Vende vehículo", 30
+   760→
+   761→    if "permuto" in text_lower:
+   762→        return "LEAD_COMERCIAL", "Permuta vehículo", 40
+   763→
+   764→    if any(w in text_lower for w in ["cómo hago", "como hago"]) and \
+   765→       any(w in text_lower for w in MUST_MATCH):
+   766→        return "LEAD_COMERCIAL", "Consulta documental", 35
+   767→
+   768→    return "LEAD_COMERCIAL", "Señal vehicular genérica", 20
+   769→
+   770→
+   771→# ===========================================================================
+   772→# Scoring EXACTO del spec PRO
+   773→# ===========================================================================
+   774→def calculate_score_pro(
+   775→    text: str,
+   776→    category: str,
+   777→    base_score: int,
+   778→    country: str,
+   779→    province: str,
+   780→    is_conc: bool,
+   781→    is_ag: bool,
+   782→    is_comp: bool,
+   783→    has_phone: bool,
+   784→    has_whatsapp: bool,
+   785→    is_recent_pub: bool,
+   786→    has_date: bool,
+   787→) -> Tuple[int, int, int]:
+   788→    """
+   789→    Scoring del spec PRO:
+   790→      +60 multas/fotomultas
+   791→      +40 transferencia
+   792→      +30 libre deuda
+   793→      +25 titular/vendedor/comprador con contexto
+   794→      +20 contacto público
+   795→      +15 reciente
+   796→      +10 provincia cubierta
+   797→      -40 otro país
+   798→      -30 concesionaria/agencia
+   799→      -50 competidor/institucional
+   800→    """
+   801→    text_lower = text.lower()
+   802→    score = base_score
+   803→
+   804→    # Evidencia de dolor (sumar puntos)
+   805→    if "multa" in text_lower or "fotomulta" in text_lower:
+   806→        score += 60
+   807→    if "transferencia" in text_lower or "transferir" in text_lower:
+   808→        score += 40
+   809→    if "libre deuda" in text_lower:
+   810→        score += 30
+   811→    if is_titular(text_lower) or "vendedor" in text_lower or "comprador" in text_lower:
+   812→        score += 25
+   813→    if has_phone or has_whatsapp:
+   814→        score += 20
+   815→    if is_recent_pub:
+   816→        score += 15
+   817→    if province and province.lower() in PREFERRED_PROVINCES:
+   818→        score += 10
+   819→
+   820→    # Penalizaciones
+   821→    if country != "Argentina" and country != "Unknown":
+   822→        score -= 40
+   823→    if is_conc:
+   824→        score -= 30
+   825→    if is_ag:
+   826→        score -= 30
+   827→    if is_comp:
+   828→        score -= 50
+   829→
+   830→    score = max(0, min(100, score))
+   831→
+   832→    # Urgencia
+   833→    urgency_keywords = [
+   834→        "urgente", "hoy", "mañana", "ahora", "ya", "rápido",
+   835→        "antes de", "vencimiento", "vence", "mudanza", "traslado",
+   836→    ]
+   837→    matches = sum(1 for kw in urgency_keywords if kw in text_lower)
+   838→    urgency = 10
+   839→    if matches >= 2:
+   840→        urgency = 80
+   841→    elif matches == 1:
+   842→        urgency = 50
+   843→    if category == "LEAD_CALIENTE":
+   844→        urgency += 25
+   845→    urgency = min(urgency, 100)
+   846→
+   847→    # Confianza
+   848→    confidence = 40
+   849→    if has_date:
+   850→        confidence += 15
+   851→    else:
+   852→        confidence -= 10  # sin fecha visible, bajar confianza
+   853→    if has_phone or has_whatsapp:
+   854→        confidence += 15
+   855→    if province:
+   856→        confidence += 10
+   857→    if country == "Unknown":
+   858→        confidence -= 15
+   859→    confidence = max(0, min(100, confidence))
+   860→
+   861→    return score, urgency, confidence
+   862→
+   863→
+   864→# ===========================================================================
+   865→# Construcción de Lead
+   866→# ===========================================================================
+   867→def build_lead(result: Dict[str, Any], query: str) -> Optional[Lead]:
+   868→    if is_informational(result):
+   869→        return None
+   870→
+   871→    if not is_real_person_signal(result):
+   872→        return None
+   873→
+   874→    url = result.get("url", "")
+   875→    name = result.get("name", "")
+   876→    snippet = result.get("snippet", "")
+   877→    date = result.get("date", "")
+   878→    combined = f"{name}. {snippet}"
+   879→    combined_lower = combined.lower()
+   880→
+   881→    # MUST_MATCH obligatorio
+   882→    matched_must = [kw for kw in MUST_MATCH if kw in combined_lower]
+   883→    if not matched_must:
+   884→        return None
+   885→
+   886→    # Country filter
+   887→    phone = extract_phone_strict(combined)
+   888→    whatsapp = extract_whatsapp_strict(combined)
+   889→    country = detect_country(combined, url, phone or whatsapp)
+   890→
+   891→    if country in REJECT_COUNTRIES:
+   892→        return None
+   893→
+   894→    if country == "Unknown":
+   895→        host = get_host(url)
+   896→        argentinian_hosts = ["facebook.com", "reddit.com", "twitter.com", "x.com"]
+   897→        if not any(h in host for h in argentinian_hosts):
+   898→            arg_strong_signals = ["buenos aires", "córdoba", "rosario", "mendoza",
+   899→                                   "caba", "patente", "libre deuda", "fotomulta",
+   900→                                   "argentina", "dnrpa", "arba"]
+   901→            if not any(s in combined_lower for s in arg_strong_signals):
+   902→                return None
+   903→        country = "Argentina"
+   904→
+   905→    # Detectar persona
+   906→    person_name, profile_link = detect_person(result)
+   907→
+   908→    host = get_host(url)
+   909→    platform_priority = PRIORITY_PLATFORMS.get(host, 30)
+   910→
+   911→    # Detectar entidades comerciales
+   912→    is_conc, is_ag, is_comp = detect_commercial_entity(combined)
+   913→
+   914→    # Si es competidor puro, descartar
+   915→    if is_comp:
+   916→        return None
+   917→
+   918→    # Clasificar
+   919→    categoria, problema_corto, base_score = classify_problem(combined)
+   920→
+   921→    patent = extract_patent(combined)
+   922→    city, province = extract_location(combined)
+   923→    vehicle = extract_vehicle(combined)
+   924→
+   925→    # Fecha
+   926→    is_rec, has_date = is_recent(date, days=7)
+   927→    fecha_display = date[:10] if has_date and date else "No disponible"
+   928→
+   929→    # Scoring PRO
+   930→    score, urgency, confidence = calculate_score_pro(
+   931→        text=combined,
+   932→        category=categoria,
+   933→        base_score=base_score,
+   934→        country=country,
+   935→        province=province,
+   936→        is_conc=is_conc,
+   937→        is_ag=is_ag,
+   938→        is_comp=is_comp,
+   939→        has_phone=bool(phone),
+   940→        has_whatsapp=bool(whatsapp),
+   941→        is_recent_pub=is_rec,
+   942→        has_date=has_date,
+   943→    )
+   944→
+   945→    # Si es LEAD_CALIENTE pero score final < 50, degradar (probablemente no tan caliente)
+   946→    if categoria == "LEAD_CALIENTE" and score < 50:
+   947→        categoria = "LEAD_COMERCIAL"
+   948→        problema_corto = f"[degradado] {problema_corto}"
+   949→
+   950→    plataforma_display = {
+   951→        "facebook.com": "Facebook",
+   952→        "reddit.com": "Reddit",
+   953→        "twitter.com": "X (Twitter)",
+   954→        "x.com": "X (Twitter)",
+   955→    }.get(host, host.title() if host else "Desconocida")
+   956→
+   957→    return Lead(
+   958→        category=categoria,
+   959→        problema=problema_corto,
+   960→        persona=person_name or "Anónimo (no publicado)",
+   961→        provincia=province or "No detectada",
+   962→        ciudad=city or "No detectada",
+   963→        vehiculo=vehicle.title() if vehicle else "No mencionado",
+   964→        plataforma=plataforma_display,
+   965→        fecha=fecha_display,
+   966→        urgencia=urgency,
+   967→        confianza=confidence,
+   968→        whatsapp=whatsapp,
+   969→        telefono=phone,
+   970→        perfil=profile_link,
+   971→        publicacion=url,
+   972→        cita=make_cita(name, snippet),
+   973→        score=score,
+   974→        lead_reason=problema_corto,
+   975→        query=query,
+   976→    )
+   977→
+   978→
+   979→# ===========================================================================
+   980→# Loop
+   981→# ===========================================================================
+   982→def dedup(leads: List[Lead]) -> List[Lead]:
+   983→    seen: Set[str] = set()
+   984→    out = []
+   985→    for lead in leads:
+   986→        key = lead.publicacion or lead.cita[:100]
+   987→        if key in seen:
+   988→            continue
+   989→        seen.add(key)
+   990→        out.append(lead)
+   991→    return out
+   992→
+   993→
+   994→def run_pipeline() -> Dict[str, Any]:
+   995→    print("=" * 70, file=sys.stderr)
+   996→    print("  RADAR DE OPORTUNIDADES PRO — Reporte ejecutivo comercial", file=sys.stderr)
+   997→    print("=" * 70, file=sys.stderr)
+   998→
+   999→    all_leads: List[Lead] = []
+  1000→    all_raw: List[Dict[str, Any]] = []
+  1001→    seen_queries: Set[str] = set()
+  1002→    iterations = 0
+  1003→
+  1004→    query_queue = list(QUERIES)
+  1005→
+  1006→    while iterations < MAX_ITERATIONS:
+  1007→        calientes = sum(1 for l in all_leads if l.category == "LEAD_CALIENTE")
+  1008→        if calientes >= MIN_LEADS_CALIENTES:
+  1009→            print(f"\n  [success] {calientes} leads calientes. Parando.", file=sys.stderr)
+  1010→            break
+  1011→
+  1012→        if not query_queue:
+  1013→            print(f"\n  [info] Queries agotadas. Parando.", file=sys.stderr)
+  1014→            break
+  1015→
+  1016→        query_cat, query = query_queue.pop(0)
+  1017→        if query in seen_queries:
+  1018→            continue
+  1019→        seen_queries.add(query)
+  1020→        iterations += 1
+  1021→
+  1022→        print(f"\n  [iter {iterations}/{MAX_ITERATIONS}] [{query_cat}] '{query}'", file=sys.stderr)
+  1023→        print(f"    Calientes: {sum(1 for l in all_leads if l.category == 'LEAD_CALIENTE')}/{MIN_LEADS_CALIENTES}", file=sys.stderr)
+  1024→
+  1025→        results = web_search(query, num=RESULTS_PER_QUERY)
+  1026→        for r in results:
+  1027→            r["_query"] = query
+  1028→        all_raw.extend(results)
+  1029→
+  1030→        new_count = 0
+  1031→        for r in results:
+  1032→            lead = build_lead(r, query)
+  1033→            if lead is None:
+  1034→                continue
+  1035→            all_leads.append(lead)
+  1036→            new_count += 1
+  1037→
+  1038→        print(f"    Resultados: {len(results)} | Nuevos leads: {new_count}", file=sys.stderr)
+  1039→        time.sleep(2.0)
+  1040→
+  1041→    all_leads = dedup(all_leads)
+  1042→
+  1043→    calientes = [l for l in all_leads if l.category == "LEAD_CALIENTE"]
+  1044→    comerciales = [l for l in all_leads if l.category == "LEAD_COMERCIAL"]
+  1045→
+  1046→    calientes.sort(key=lambda l: (l.score, l.urgencia, l.confianza), reverse=True)
+  1047→    comerciales.sort(key=lambda l: (l.score, l.urgencia, l.confianza), reverse=True)
+  1048→
+  1049→    contacts = [l for l in all_leads if l.whatsapp or l.telefono]
+  1050→
+  1051→    output = {
+  1052→        "project": "Radar de Oportunidades PRO",
+  1053→        "version": "5.0",
+  1054→        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+  1055→        "summary": {
+  1056→            "iterations": iterations,
+  1057→            "queries_executed": len(seen_queries),
+  1058→            "total_search_results": len(all_raw),
+  1059→            "leads_calientes": len(calientes),
+  1060→            "leads_comerciales": len(comerciales),
+  1061→            "contactos_publicos": len(contacts),
+  1062→            "success_met": len(calientes) >= MIN_LEADS_CALIENTES,
+  1063→        },
+  1064→        "leads_calientes": [l.to_dict() for l in calientes],
+  1065→        "leads_comerciales": [l.to_dict() for l in comerciales],
+  1066→    }
+  1067→
+  1068→    OUTPUT_JSON.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
+  1069→    RAW_PATH.write_text(json.dumps(all_raw, ensure_ascii=False, indent=2), encoding="utf-8")
+  1070→
+  1071→    print(f"\n  Calientes: {len(calientes)} | Comerciales: {len(comerciales)} | Contactos: {len(contacts)}", file=sys.stderr)
+  1072→    print(f"  Output: {OUTPUT_JSON}", file=sys.stderr)
+  1073→
+  1074→    return output
+  1075→
+  1076→
+  1077→# ===========================================================================
+  1078→# Generación de reporte ejecutivo comercial
+  1079→# ===========================================================================
+  1080→def stars(score: int) -> str:
+  1081→    if score >= 80: return "⭐⭐⭐⭐⭐"
+  1082→    if score >= 60: return "⭐⭐⭐⭐☆"
+  1083→    if score >= 40: return "⭐⭐⭐☆☆"
+  1084→    if score >= 20: return "⭐⭐☆☆☆"
+  1085→    return "⭐☆☆☆☆"
+  1086→
+  1087→
+  1088→def generate_report(output: Dict[str, Any]) -> str:
+  1089→    calientes = output["leads_calientes"]
+  1090→    comerciales = output["leads_comerciales"]
+  1091→    contacts = [l for l in calientes + comerciales if l.get("whatsapp") or l.get("telefono")]
+  1092→
+  1093→    lines = []
+  1094→    lines.append("# 🔍 RADAR DE OPORTUNIDADES — REPORTE EJECUTIVO COMERCIAL")
+  1095→    lines.append("")
+  1096→    lines.append(f"**Generado:** {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+  1097→    lines.append(f"**Misión:** Encontrar personas reales con problemas vehiculares públicos en Argentina")
+  1098→    lines.append(f"**Fuentes:** Reddit, Facebook, X, foros públicos (solo contenido público)")
+  1099→    lines.append("")
+  1100→    lines.append("---")
+  1101→    lines.append("")
+  1102→
+  1103→    # ===== 1) LEADS CALIENTES =====
+  1104→    lines.append("## 1) 🔥 LEADS CALIENTES (Dolor explícito)")
+  1105→    lines.append("")
+  1106→    lines.append(f"_{len(calientes)} personas con problema real declarado._")
+  1107→    lines.append("")
+  1108→
+  1109→    for i, l in enumerate(calientes, 1):
+  1110→        wa = l.get("whatsapp", "") or "No publicado"
+  1111→        ph = l.get("telefono", "") or "No publicado"
+  1112→        lines.append(f"### Lead #{i}")
+  1113→        lines.append(f"- **Problema:** {l['problema']}")
+  1114→        lines.append(f"- **Persona:** {l['persona']}")
+  1115→        lines.append(f"- **Provincia / ciudad:** {l['provincia']} / {l['ciudad']}")
+  1116→        lines.append(f"- **Vehículo:** {l['vehiculo']}")
+  1117→        lines.append(f"- **Plataforma:** {l['plataforma']}")
+  1118→        lines.append(f"- **Fecha:** {l['fecha']}")
+  1119→        lines.append(f"- **Urgencia:** {stars(l['urgencia'])} ({l['urgencia']}/100)")
+  1120→        lines.append(f"- **Confianza:** {l['confianza']}%")
+  1121→        lines.append(f"- **WhatsApp público:** {wa}")
+  1122→        lines.append(f"- **Teléfono público:** {ph}")
+  1123→        lines.append(f"- **Link:** {l['publicacion']}")
+  1124→        lines.append(f"- **Cita:** _{l['cita']}_")
+  1125→        lines.append("")
+  1126→
+  1127→    # ===== 2) LEADS COMERCIALES =====
+  1128→    lines.append("## 2) 🟡 LEADS COMERCIALES (Preventivos)")
+  1129→    lines.append("")
+  1130→    lines.append(f"_{len(comerciales)} señales preventivas (vende/permuto/consulta, sin dolor explícito)._")
+  1131→    lines.append("")
+  1132→
+  1133→    for i, l in enumerate(comerciales, 1):
+  1134→        wa = l.get("whatsapp", "") or "—"
+  1135→        ph = l.get("telefono", "") or "—"
+  1136→        contact_str = f"WA: {wa}" if wa != "—" else (f"Tel: {ph}" if ph != "—" else "Sin contacto público")
+  1137→        lines.append(f"**#{i}** {l['problema']} — {l['persona']} | {l['provincia']} | {l['vehiculo']} | {l['plataforma']} | {contact_str}")
+  1138→        lines.append(f"  📝 _{l['cita'][:120]}_")
+  1139→        lines.append(f"  🔗 {l['publicacion']}")
+  1140→        lines.append("")
+  1141→
+  1142→    # ===== 3) CONTACTOS PÚBLICOS =====
+  1143→    lines.append("## 3) 📞 CONTACTOS PÚBLICOS ENCONTRADOS")
+  1144→    lines.append("")
+  1145→    if contacts:
+  1146→        lines.append("| Persona | WhatsApp | Teléfono | Plataforma |")
+  1147→        lines.append("|---------|----------|----------|------------|")
+  1148→        for c in contacts:
+  1149→            lines.append(f"| {c['persona']} | {c.get('whatsapp') or '—'} | {c.get('telefono') or '—'} | {c['plataforma']} |")
+  1150→    else:
+  1151→        lines.append("_No se encontraron contactos públicos en este lote._")
+  1152→    lines.append("")
+  1153→
+  1154→    # ===== 4) RESUMEN FINAL =====
+  1155→    platform_counts = {}
+  1156→    for l in calientes + comerciales:
+  1157→        p = l["plataforma"]
+  1158→        platform_counts[p] = platform_counts.get(p, 0) + 1
+  1159→
+  1160→    problem_counts = {}
+  1161→    for l in calientes:
+  1162→        p = l["problema"]
+  1163→        problem_counts[p] = problem_counts.get(p, 0) + 1
+  1164→
+  1165→    lines.append("## 4) 📊 RESUMEN FINAL")
+  1166→    lines.append("")
+  1167→    lines.append(f"- **Leads calientes:** {len(calientes)}")
+  1168→    lines.append(f"- **Leads comerciales:** {len(comerciales)}")
+  1169→    lines.append(f"- **Contactos públicos:** {len(contacts)}")
+  1170→    lines.append("")
+  1171→    lines.append("**Por plataforma:**")
+  1172→    for p, n in sorted(platform_counts.items(), key=lambda x: -x[1]):
+  1173→        lines.append(f"- {p}: {n}")
+  1174→    lines.append("")
+  1175→    lines.append("**Tipos de dolor más frecuentes (leads calientes):**")
+  1176→    for p, n in sorted(problem_counts.items(), key=lambda x: -x[1]):
+  1177→        lines.append(f"- {p}: {n}")
+  1178→    lines.append("")
+  1179→    lines.append("---")
+  1180→    lines.append("")
+  1181→    lines.append("_Reporte generado automáticamente. Solo contenido público. Revisión humana obligatoria antes de contacto._")
+  1182→
+  1183→    return "\n".join(lines)
+  1184→
+  1185→
+  1186→# ===========================================================================
+  1187→# Main
+  1188→# ===========================================================================
+  1189→if __name__ == "__main__":
+  1190→    output = run_pipeline()
+  1191→    report = generate_report(output)
+  1192→    OUTPUT_REPORT.write_text(report, encoding="utf-8")
+  1193→    OUTPUT_TXT.write_text(report, encoding="utf-8")
+  1194→    print(report)
+  1195→
