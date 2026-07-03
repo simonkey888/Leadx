@@ -171,61 +171,82 @@ def search_duckduckgo(query: str, num: int = 10) -> List[Dict[str, Any]]:
 # Provider 2: Reddit JSON (público, sin API key)
 # ===========================================================================
 def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
-    """Busca en Reddit via JSON público (sin auth).
-    Por cada post, también trae los top comments para enriquecer el snippet.
+    """Busca en Reddit via DuckDuckGo (site:reddit.com) + scrapea cada post via old.reddit.com.
+    Esto evita el bloqueo directo al endpoint /search.json de Reddit.
     """
     import sys as _sys
-    encoded = urllib.parse.quote(query)
-    # Reddit search JSON endpoint (público)
-    url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
-    print(f"    [reddit] searching: {query[:60]}", file=_sys.stderr)
+    print(f"    [reddit] searching (via DDG + old.reddit.com): {query[:60]}", file=_sys.stderr)
+    
+    # Paso 1: DuckDuckGo para encontrar URLs de Reddit
+    ddg_query = f"site:reddit.com {query}"
+    ddg_results = search_duckduckgo(ddg_query, num=num * 2)
+    reddit_urls = [r for r in ddg_results if "reddit.com" in r.get("url", "").lower() and "/comments/" in r.get("url", "")]
+    
+    print(f"    [reddit] DDG found {len(reddit_urls)} reddit post URLs", file=_sys.stderr)
+    
+    if not reddit_urls:
+        # Fallback al endpoint directo (puede que funcione a veces)
+        encoded = urllib.parse.quote(query)
+        url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
 
-    # Reddit bloquea UAs de bots. Usar UA de browser real + headers completos.
-    # Ademas, usar old.reddit.com que es mas permisivo.
-    url = url.replace("https://www.reddit.com", "https://old.reddit.com")
-    try:
-        req = urllib.request.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        req.add_header("Accept", "text/html,application/json,application/xhtml+xml,*/*")
-        req.add_header("Accept-Language", "es-AR,es;q=0.9,en;q=0.8")
-        req.add_header("Accept-Encoding", "identity")  # evitar gzip
-        req.add_header("Connection", "keep-alive")
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8", errors="replace"))
-    except Exception as e:
-        print(f"    [reddit] ERROR: {e}", file=_sys.stderr)
-        # Fallback: intentar con www.reddit.com sin el .json (RSS)
+    # Para cada URL de Reddit encontrada por DDG, scrapear el post completo via old.reddit.com/.json
+    results = []
+    for r in reddit_urls[:num]:
+        post_url = r["url"]
+        # Extraer permalink
+        permalink = post_url.replace("https://www.reddit.com", "").replace("https://reddit.com", "").split("?")[0]
+        json_url = f"https://old.reddit.com{permalink}.json?limit=10"
         try:
-            rss_url = f"https://www.reddit.com/search.rss?q={encoded}&sort=new&limit={num}"
-            req2 = urllib.request.Request(rss_url)
-            req2.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            with urllib.request.urlopen(req2, timeout=15) as resp2:
-                rss_content = resp2.read().decode("utf-8", errors="replace")
-            # Parse RSS XML simple
-            import re as _re
-            items = _re.findall(r"<item>(.*?)</item>", rss_content, _re.DOTALL)
-            results = []
-            for item in items[:num]:
-                title_m = _re.search(r"<title>(.*?)</title>", item, _re.DOTALL)
-                link_m = _re.search(r"<link>(.*?)</link>", item, _re.DOTALL)
-                desc_m = _re.search(r"<description><!\[CDATA\[(.*?)\]\]></description>", item, _re.DOTALL)
-                author_m = _re.search(r"<dc:creator>(.*?)</dc:creator>", item, _re.DOTALL)
-                date_m = _re.search(r"<pubDate>(.*?)</pubDate>", item, _re.DOTALL)
-                if title_m and link_m:
+            req = urllib.request.Request(json_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            req.add_header("Accept", "text/html,application/json,*/*")
+            req.add_header("Accept-Language", "es-AR,es;q=0.9")
+            req.add_header("Accept-Encoding", "identity")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                pdata = json.loads(resp.read().decode("utf-8", errors="replace"))
+            
+            if isinstance(pdata, list) and len(pdata) >= 1:
+                post_data = pdata[0].get("data",{}).get("children",[])
+                if post_data:
+                    p = post_data[0].get("data",{})
+                    author = p.get("author","")
+                    if author == "[deleted]":
+                        author = ""
+                    selftext = p.get("selftext","")[:3000]
+                    # Top comments
+                    comments_text = []
+                    if len(pdata) >= 2:
+                        for c in pdata[1].get("data",{}).get("children",[])[:10]:
+                            cbody = c.get("data",{}).get("body","")
+                            if cbody and len(cbody) > 20 and cbody != "[deleted]":
+                                comments_text.append(cbody[:500])
+                    full_snippet = (selftext + " " + " ".join(comments_text))[:6000]
                     results.append({
-                        "title": title_m.group(1)[:200],
-                        "url": link_m.group(1),
-                        "snippet": (desc_m.group(1) if desc_m else "")[:3000],
-                        "source": "reddit_rss",
-                        "date": date_m.group(1) if date_m else "",
-                        "username": author_m.group(1) if author_m else "",
-                        "author": author_m.group(1) if author_m else "",
+                        "title": p.get("title", r.get("title",""))[:200],
+                        "url": post_url,
+                        "snippet": full_snippet,
+                        "source": "reddit",
+                        "date": "",
+                        "username": author,
+                        "author": author,
+                        "permalink": permalink,
                     })
-            print(f"    [reddit] RSS fallback: got {len(results)} results", file=_sys.stderr)
-            return results[:num]
-        except Exception as e2:
-            print(f"    [reddit] RSS fallback ERROR: {e2}", file=_sys.stderr)
-            return []
+            time.sleep(0.5)
+        except Exception as e:
+            # Si el scrape falla, usar el snippet de DDG
+            print(f"    [reddit] scrape fail for {post_url[:60]}: {e}", file=_sys.stderr)
+            results.append({
+                "title": r.get("title","")[:200],
+                "url": post_url,
+                "snippet": r.get("snippet","")[:3000],
+                "source": "reddit_ddg",
+                "date": r.get("date",""),
+                "username": "",
+                "author": "",
+            })
+    
+    print(f"    [reddit] got {len(results)} enriched posts", file=_sys.stderr)
+    return results[:num]
 
     print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
