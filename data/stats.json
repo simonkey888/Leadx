@@ -1,41 +1,12 @@
 {
-  "total_runs": 7,
-  "last_run": "2026-07-03T19:23:41.020500+00:00",
-  "last_run_id": "068079038af5",
-  "total_leads_all_time": 152,
-  "total_hot_leads_all_time": 128,
-  "avg_hot_per_run": 18.3,
-  "runs_today": 7,
+  "total_runs": 8,
+  "last_run": "2026-07-03T19:26:17.341101+00:00",
+  "last_run_id": "f5be5981e498",
+  "total_leads_all_time": 164,
+  "total_hot_leads_all_time": 138,
+  "avg_hot_per_run": 17.2,
+  "runs_today": 8,
   "last_7_days": [
-    {
-      "run_id": "3ee5e69bccbb",
-      "generated_at": "2026-07-03T12:34:24.258083+00:00",
-      "summary": {
-        "total_leads": 31,
-        "hot_leads": 25,
-        "warm_leads": 6,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "avg_score": 65.8,
-        "avg_score_hot": 70.4,
-        "conversion_probability": 80.6,
-        "by_category": {
-          "TRANSFER_PROBLEM": 10,
-          "FINE_DISPUTE": 19,
-          "DOCUMENTATION_ISSUE": 2
-        },
-        "by_platform": {
-          "Reddit": 31
-        },
-        "by_province": {
-          "Córdoba": 2,
-          "CABA": 5,
-          "Salta": 2,
-          "Entre Ríos": 1
-        }
-      }
-    },
     {
       "run_id": "0d0317d8d2f1",
       "generated_at": "2026-07-03T18:58:58.307339+00:00",
@@ -199,6 +170,33 @@
           "Córdoba": 1,
           "CABA": 2,
           "Salta": 1
+        }
+      }
+    },
+    {
+      "run_id": "f5be5981e498",
+      "generated_at": "2026-07-03T19:26:17.341101+00:00",
+      "summary": {
+        "total_leads": 12,
+        "hot_leads": 10,
+        "warm_leads": 2,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 63.8,
+        "avg_score_hot": 66.5,
+        "conversion_probability": 83.3,
+        "by_category": {
+          "FINE_DISPUTE": 10,
+          "DOCUMENTATION_ISSUE": 2
+        },
+        "by_platform": {
+          "Reddit": 12
+        },
+        "by_province": {
+          "CABA": 1,
+          "Salta": 2
         }
       }
     }

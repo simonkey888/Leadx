@@ -193,5 +193,32 @@
         "Salta": 1
       }
     }
+  },
+  {
+    "run_id": "f5be5981e498",
+    "generated_at": "2026-07-03T19:26:17.341101+00:00",
+    "summary": {
+      "total_leads": 12,
+      "hot_leads": 10,
+      "warm_leads": 2,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 63.8,
+      "avg_score_hot": 66.5,
+      "conversion_probability": 83.3,
+      "by_category": {
+        "FINE_DISPUTE": 10,
+        "DOCUMENTATION_ISSUE": 2
+      },
+      "by_platform": {
+        "Reddit": 12
+      },
+      "by_province": {
+        "CABA": 1,
+        "Salta": 2
+      }
+    }
   }
 ]
