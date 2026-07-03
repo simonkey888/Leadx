@@ -189,20 +189,20 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         encoded = urllib.parse.quote(query)
         url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
 
-    # Para cada URL de Reddit encontrada por DDG, scrapear el post completo via old.reddit.com/.json
+    # Para cada URL de Reddit encontrada por DDG, scrapear el post completo via corsproxy.io
+    # (Reddit bloquea directo, pero corsproxy.io funciona)
     results = []
     for r in reddit_urls[:num]:
         post_url = r["url"]
-        # Extraer permalink
         permalink = post_url.replace("https://www.reddit.com", "").replace("https://reddit.com", "").split("?")[0]
-        json_url = f"https://old.reddit.com{permalink}.json?limit=10"
+        reddit_json_url = f"https://www.reddit.com{permalink}.json?limit=10"
+        # Usar corsproxy.io como proxy
+        json_url = f"https://corsproxy.io/?{urllib.parse.quote(reddit_json_url)}"
         try:
             req = urllib.request.Request(json_url)
             req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            req.add_header("Accept", "text/html,application/json,*/*")
-            req.add_header("Accept-Language", "es-AR,es;q=0.9")
-            req.add_header("Accept-Encoding", "identity")
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            req.add_header("Accept", "application/json, text/html, */*")
+            with urllib.request.urlopen(req, timeout=12) as resp:
                 pdata = json.loads(resp.read().decode("utf-8", errors="replace"))
             
             if isinstance(pdata, list) and len(pdata) >= 1:
@@ -216,10 +216,9 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
                     # Top comments
                     comments_text = []
                     if len(pdata) >= 2:
-                        for c in pdata[1].get("data",{}).get("children",[])[:10]:
-                            cbody = c.get("data",{}).get("body","")
-                            if cbody and len(cbody) > 20 and cbody != "[deleted]":
-                                comments_text.append(cbody[:500])
+                        for c in c_data_iter(pdata[1]):
+                            if c and len(c) > 20 and c != "[deleted]":
+                                comments_text.append(c[:500])
                     full_snippet = (selftext + " " + " ".join(comments_text))[:6000]
                     results.append({
                         "title": p.get("title", r.get("title",""))[:200],
@@ -231,9 +230,9 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
                         "author": author,
                         "permalink": permalink,
                     })
-            time.sleep(0.5)
+            time.sleep(0.3)
         except Exception as e:
-            # Si el scrape falla, usar el snippet de DDG
+            # Si el scrape falla, usar el snippet de DDG (sin author)
             print(f"    [reddit] scrape fail for {post_url[:60]}: {e}", file=_sys.stderr)
             results.append({
                 "title": r.get("title","")[:200],
@@ -247,6 +246,15 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
     
     print(f"    [reddit] got {len(results)} enriched posts", file=_sys.stderr)
     return results[:num]
+
+
+def c_data_iter(comment_listing):
+    """Itera sobre los bodies de comments de un listing de Reddit."""
+    try:
+        for c in comment_listing.get("data",{}).get("children",[])[:10]:
+            yield c.get("data",{}).get("body","")
+    except Exception:
+        return
 
     print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
