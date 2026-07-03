@@ -24,6 +24,7 @@ import hashlib
 import json
 import random
 import re
+import re as _re
 import time
 import urllib.parse
 import urllib.request
@@ -179,15 +180,52 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
     url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
     print(f"    [reddit] searching: {query[:60]}", file=_sys.stderr)
 
-    # Reddit requiere un UA custom (no genérico)
+    # Reddit bloquea UAs de bots. Usar UA de browser real + headers completos.
+    # Ademas, usar old.reddit.com que es mas permisivo.
+    url = url.replace("https://www.reddit.com", "https://old.reddit.com")
     try:
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", "RadarLeadsBot/1.0 (lead intelligence research)")
+        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        req.add_header("Accept", "text/html,application/json,application/xhtml+xml,*/*")
+        req.add_header("Accept-Language", "es-AR,es;q=0.9,en;q=0.8")
+        req.add_header("Accept-Encoding", "identity")  # evitar gzip
+        req.add_header("Connection", "keep-alive")
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8", errors="replace"))
     except Exception as e:
         print(f"    [reddit] ERROR: {e}", file=_sys.stderr)
-        return []
+        # Fallback: intentar con www.reddit.com sin el .json (RSS)
+        try:
+            rss_url = f"https://www.reddit.com/search.rss?q={encoded}&sort=new&limit={num}"
+            req2 = urllib.request.Request(rss_url)
+            req2.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            with urllib.request.urlopen(req2, timeout=15) as resp2:
+                rss_content = resp2.read().decode("utf-8", errors="replace")
+            # Parse RSS XML simple
+            import re as _re
+            items = _re.findall(r"<item>(.*?)</item>", rss_content, _re.DOTALL)
+            results = []
+            for item in items[:num]:
+                title_m = _re.search(r"<title>(.*?)</title>", item, _re.DOTALL)
+                link_m = _re.search(r"<link>(.*?)</link>", item, _re.DOTALL)
+                desc_m = _re.search(r"<description><!\[CDATA\[(.*?)\]\]></description>", item, _re.DOTALL)
+                author_m = _re.search(r"<dc:creator>(.*?)</dc:creator>", item, _re.DOTALL)
+                date_m = _re.search(r"<pubDate>(.*?)</pubDate>", item, _re.DOTALL)
+                if title_m and link_m:
+                    results.append({
+                        "title": title_m.group(1)[:200],
+                        "url": link_m.group(1),
+                        "snippet": (desc_m.group(1) if desc_m else "")[:3000],
+                        "source": "reddit_rss",
+                        "date": date_m.group(1) if date_m else "",
+                        "username": author_m.group(1) if author_m else "",
+                        "author": author_m.group(1) if author_m else "",
+                    })
+            print(f"    [reddit] RSS fallback: got {len(results)} results", file=_sys.stderr)
+            return results[:num]
+        except Exception as e2:
+            print(f"    [reddit] RSS fallback ERROR: {e2}", file=_sys.stderr)
+            return []
 
     print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
@@ -237,9 +275,11 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
             continue
         try:
             time.sleep(1.0)  # rate limit
-            comments_url = f"https://www.reddit.com{permalink}.json?limit=10"
+            comments_url = f"https://old.reddit.com{permalink}.json?limit=10"
             req2 = urllib.request.Request(comments_url)
-            req2.add_header("User-Agent", "RadarLeadsBot/1.0 (lead intelligence research)")
+            req2.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            req2.add_header("Accept", "text/html,application/json,*/*")
+            req2.add_header("Accept-Language", "es-AR,es;q=0.9")
             with urllib.request.urlopen(req2, timeout=10) as resp2:
                 cdata = json.loads(resp2.read().decode("utf-8", errors="replace"))
             if isinstance(cdata, list) and len(cdata) >= 2:
@@ -378,6 +418,139 @@ def enrich_reddit_post(url: str) -> Dict[str, Any]:
 
     return result
 
+
+
+# ===========================================================================
+# Provider 4: Telegram public channels (t.me/s/<channel>)
+# ===========================================================================
+TELEGRAM_CHANNELS_AR = [
+    "MultasArgentina",
+    "AutosUsadosAR",
+    "GestoriaAutomotor",
+    "TramitesArgentina",
+    "InfraccionesAR",
+]
+
+def search_telegram(query: str, num: int = 10) -> List[Dict[str, Any]]:
+    """Busca en canales públicos de Telegram via t.me/s/ (sin auth)."""
+    import sys as _sys
+    results = []
+    query_lower = query.lower()
+    # Quitar site:xxx de la query para buscar texto
+    clean_query = _re.sub(r"site:\S+", "", query_lower).strip()
+    if not clean_query:
+        return []
+    
+    keywords = [w for w in clean_query.split() if len(w) > 2][:5]
+    if not keywords:
+        return []
+    
+    for channel in TELEGRAM_CHANNELS_AR:
+        try:
+            url = f"https://t.me/s/{channel}"
+            req = urllib.request.Request(url)
+            req.add_header("User-Agent", random.choice(USER_AGENTS))
+            req.add_header("Accept-Language", "es-AR,es;q=0.9")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                html = resp.read().decode("utf-8", errors="replace")
+            
+            # Parse simple HTML: buscar divs con clase tgme_widget_message_text
+            import re as _re2
+            posts = _re2.findall(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', html, _re2.DOTALL)
+            dates = _re2.findall(r'<time datetime="([^"]+)"', html)
+            for i, post_html in enumerate(posts[:20]):
+                # Strip HTML tags
+                text = _re2.sub(r"<[^>]+>", " ", post_html)
+                text = _re2.sub(r"&amp;", "&", text)
+                text = _re2.sub(r"&lt;", "<", text)
+                text = _re2.sub(r"&gt;", ">", text)
+                text = _re2.sub(r"&quot;", '"', text)
+                text = _re2.sub(r"&#39;", "'", text)
+                text = _re2.sub(r"\s+", " ", text).strip()
+                if not text or len(text) < 30:
+                    continue
+                # Filtrar por keywords
+                text_lower = text.lower()
+                if not any(kw in text_lower for kw in keywords):
+                    continue
+                date = dates[i] if i < len(dates) else ""
+                results.append({
+                    "title": text[:120],
+                    "url": f"https://t.me/s/{channel}",
+                    "snippet": text[:3000],
+                    "source": "telegram",
+                    "date": date,
+                    "username": channel,
+                    "author": channel,
+                })
+            time.sleep(1.0)
+        except Exception as e:
+            print(f"    [telegram] {channel} error: {e}", file=_sys.stderr)
+            continue
+    
+    print(f"    [telegram] got {len(results)} results", file=_sys.stderr)
+    return results[:num]
+
+
+# ===========================================================================
+# Provider 5: MercadoLibre API pública (sin auth)
+# ===========================================================================
+def search_mercadolibre(query: str, num: int = 10) -> List[Dict[str, Any]]:
+    """Busca publicaciones en MercadoLibre Argentina via API pública."""
+    import sys as _sys
+    # Quitar site:xxx
+    clean_query = _re.sub(r"site:\S+", "", query).strip()
+    if not clean_query:
+        return []
+    
+    encoded = urllib.parse.quote(clean_query)
+    url = f"https://api.mercadolibre.com/sites/MLA/search?q={encoded}&limit={num}&condition=used"
+    
+    try:
+        req = urllib.request.Request(url)
+        req.add_header("User-Agent", random.choice(USER_AGENTS))
+        req.add_header("Accept", "application/json")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception as e:
+        print(f"    [ml] ERROR: {e}", file=_sys.stderr)
+        return []
+    
+    results = []
+    for item in data.get("results", [])[:num]:
+        title = item.get("title", "")
+        price = item.get("price", 0)
+        permalink = item.get("permalink", "")
+        seller = item.get("seller", {})
+        seller_nick = seller.get("nickname", "")
+        seller_id = seller.get("id", "")
+        # Questions endpoint (público)
+        questions_text = ""
+        try:
+            q_url = f"https://api.mercadolibre.com/questions/search?item={item.get('id','')}"
+            q_req = urllib.request.Request(q_url)
+            q_req.add_header("User-Agent", random.choice(USER_AGENTS))
+            with urllib.request.urlopen(q_req, timeout=5) as q_resp:
+                q_data = json.loads(q_resp.read().decode("utf-8", errors="replace"))
+            qs = [q.get("text","") for q in q_data.get("questions", [])[:5]]
+            questions_text = " ".join(qs)
+        except Exception:
+            pass
+        
+        snippet = f"Precio: ${price}. Vendedor: {seller_nick}. Preguntas: {questions_text}"[:3000]
+        results.append({
+            "title": title[:200],
+            "url": permalink,
+            "snippet": snippet,
+            "source": "mercadolibre",
+            "date": "",
+            "username": seller_nick,
+            "author": seller_nick,
+        })
+    
+    print(f"    [ml] got {len(results)} results", file=_sys.stderr)
+    return results
+
 def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """
     Busca usando múltiples providers en orden de fallback.
@@ -395,10 +568,28 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     # Si la query es site:reddit.com, usar search_reddit directamente (trae author + comments)
     if "site:reddit.com" in query.lower():
         try:
-            # Extraer la query real sin el site:reddit.com
             real_query = query.lower().replace("site:reddit.com", "").strip()
             reddit = search_reddit(real_query, num=num)
             all_results.extend(reddit)
+            return all_results[:num * 2]
+        except Exception:
+            pass
+
+    # Si la query es site:mercadolibre.com, usar ML API
+    if "site:mercadolibre" in query.lower() or "site:mla" in query.lower():
+        try:
+            real_query = _re.sub(r"site:\S+", "", query, flags=_re.IGNORECASE).strip()
+            ml = search_mercadolibre(real_query, num=num)
+            all_results.extend(ml)
+            return all_results[:num * 2]
+        except Exception:
+            pass
+
+    # Si la query menciona telegram, usar provider telegram
+    if "site:telegram" in query.lower() or "telegram" in query.lower():
+        try:
+            tg = search_telegram(query, num=num)
+            all_results.extend(tg)
             return all_results[:num * 2]
         except Exception:
             pass
