@@ -54,5 +54,33 @@
         "Salta": 1
       }
     }
+  },
+  {
+    "run_id": "e87611ceb144",
+    "generated_at": "2026-07-03T19:05:46.396965+00:00",
+    "summary": {
+      "total_leads": 20,
+      "hot_leads": 17,
+      "warm_leads": 3,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "avg_score": 66.8,
+      "avg_score_hot": 70.0,
+      "conversion_probability": 85.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 8,
+        "FINE_DISPUTE": 10,
+        "DOCUMENTATION_ISSUE": 2
+      },
+      "by_platform": {
+        "Reddit": 20
+      },
+      "by_province": {
+        "Córdoba": 1,
+        "CABA": 2,
+        "Salta": 2
+      }
+    }
   }
 ]
