@@ -1,0 +1,32 @@
+[
+  {
+    "run_id": "d988ed6cd64c",
+    "generated_at": "2026-07-03T11:39:09.956338+00:00",
+    "summary": {
+      "total_leads": 71,
+      "hot_leads": 61,
+      "warm_leads": 10,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "avg_score": 71.3,
+      "avg_score_hot": 75.7,
+      "conversion_probability": 85.9,
+      "by_category": {
+        "TRANSFER_PROBLEM": 31,
+        "FINE_DISPUTE": 36,
+        "DOCUMENTATION_ISSUE": 4
+      },
+      "by_platform": {
+        "Reddit": 51,
+        "Facebook": 20
+      },
+      "by_province": {
+        "Buenos Aires": 5,
+        "CABA": 2,
+        "Entre Ríos": 1,
+        "La Plata": 1
+      }
+    }
+  }
+]

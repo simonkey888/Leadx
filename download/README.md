@@ -1,239 +1,226 @@
-# Radar Leads PRO — Dashboard Prototype
+# Radar Leads PRO — Dashboard + Pipeline
 
-Prototipo funcional completo del dashboard para el sistema Radar de Leads Fotomultas.
-Diseñado para validar UX y arquitectura antes de construir el backend de scraping.
+Sistema de detección de oportunidades comerciales públicas relacionadas con
+fotomultas, libre deuda, transferencia y regularización vehicular en Argentina.
 
-## Entregables
+## Arquitectura
 
-| Archivo | Tamaño | Descripción |
-|---------|--------|-------------|
-| `dashboard_prototype.html` | 128 KB | Dashboard single-file, funciona offline |
-| `sample_dashboard_payload.json` | 105 KB | 80 leads simulados con schema completo |
+```
+static_dashboard + dynamic_json
+
+┌─────────────────────────────────────────────────────────┐
+│  GitHub Actions (cron 0 */3 * * *)                      │
+│  ↓                                                       │
+│  python generate_payload.py                              │
+│  ↓                                                       │
+│  z-ai web_search → extract → normalize → score → dedup  │
+│  ↓                                                       │
+│  data/dashboard_payload.json  (overwrite)                │
+│  data/stats.json              (update)                   │
+│  data/history.json            (append)                   │
+│  ↓                                                       │
+│  git commit + push                                       │
+└─────────────────────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────────────────────┐
+│  GitHub Pages (static hosting)                          │
+│  ↓                                                       │
+│  dashboard_prototype.html (FIJO, nunca se regenera)     │
+│  ↓                                                       │
+│  fetch('/data/dashboard_payload.json')                   │
+│  ↓                                                       │
+│  Render dashboard con datos actualizados                 │
+│  Auto-refresh cada 60s                                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Regla de oro:** el HTML del dashboard NUNCA se regenera. Sólo se actualizan los JSONs.
+
+## Archivos del proyecto
+
+| Archivo | Rol | Se regenera? |
+|---------|-----|---------------|
+| `dashboard_prototype.html` | Frontend (single-file, 130KB) | ❌ No, es fijo |
+| `generate_payload.py` | Pipeline (genera JSONs) | ❌ No, es código |
+| `data/dashboard_payload.json` | Datos live del dashboard | ✅ Sí, cada 3h |
+| `data/stats.json` | Métricas acumuladas | ✅ Sí, cada 3h |
+| `data/history.json` | Historial de runs | ✅ Sí, cada 3h (append) |
+| `.github/workflows/radar-cron.yml` | Cron job | ❌ No, es config |
+| `sample_dashboard_payload.json` | Ejemplo de payload | ❌ No, es referencia |
 
 ## Cómo usar
 
-### 1. Abrir el dashboard
+### Local (desarrollo)
 
-Doble click en `dashboard_prototype.html` — se abre en cualquier browser moderno.
-No requiere servidor, no requiere internet, no requiere Node.
+```bash
+# 1. Generar payload
+python generate_payload.py
 
-### 2. Conectar datos reales (futuro)
-
-Reemplazar la constante embebida `DASHBOARD_PAYLOAD` en el HTML por un fetch:
-
-```javascript
-// ANTES (prototipo con datos simulados):
-const DASHBOARD_PAYLOAD = { leads: [...], metrics: {...}, ... };
-
-// DESPUÉS (producción con Cloudflare Worker):
-const DASHBOARD_PAYLOAD = await fetch('/data/dashboard_payload.json').then(r => r.json());
+# 2. Abrir dashboard
+# Opción A: doble click en dashboard_prototype.html
+#   → fetch falla (file://), usa datos embebidos del prototipo
+#
+# Opción B: server local
+python -m http.server 8000
+#   → abrir http://localhost:8000/dashboard_prototype.html
+#   → fetch('./data/dashboard_payload.json') funciona
 ```
 
-El schema del payload debe respetar el formato de `sample_dashboard_payload.json`:
+### Producción (GitHub Pages)
 
+```bash
+# 1. Push al repo
+git add .
+git commit -m "init radar"
+git push
+
+# 2. Activar GitHub Pages
+#    Settings → Pages → Source: main branch → / (root)
+#    URL: https://<usuario>.github.io/<repo>/dashboard_prototype.html
+
+# 3. Configurar secret ZAI_API_KEY
+#    Settings → Secrets and Variables → Actions → New secret
+#    Name: ZAI_API_KEY
+#    Value: <tu-api-key-de-z-ai>
+
+# 4. El cron job corre cada 3 horas automáticamente
+#    O disparar manualmente: Actions → Radar Leads → Run workflow
+```
+
+## Pipeline (7 pasos)
+
+### 1. collect_public_sources
+Búsquedas públicas vía z-ai web_search CLI. 20 queries orientadas a dolor explícito:
+- Reddit: `site:reddit.com no puedo transferir auto argentina`
+- Facebook: `site:facebook.com me llegó fotomulta`
+- X: `site:x.com multa transferencia problema`
+- Frases humanas: `me llegó una multa y no es mi auto`
+
+### 2. extract_entities
+Extrae: persona, problema, provincia, ciudad, vehículo, patente, fecha, contacto, whatsapp, teléfono, source_url, platform, quoted_text.
+
+### 3. normalize_records
+- Fechas → ISO 8601 cuando es posible
+- Teléfonos → formato E.164
+- URLs → canonical (sin tracking params)
+- Snippets → trim
+- Provincias → nombres estandarizados
+
+### 4. classify_and_score
+3 labels: `real_lead` (score >= 60) | `commercial_signal` (30-59) | `reject` (< 30)
+
+Scoring:
+| Signal | Puntos |
+|--------|--------|
+| multa_or_fotomulta | +60 |
+| transfer_problem | +45 |
+| libre_deuda_problem | +35 |
+| 08_or_document_problem | +40 |
+| public_contact_visible | +25 |
+| recent_0_3_days | +20 |
+| recent_4_7_days | +10 |
+| argentina_signal | +15 |
+| institutional_penalty | -40 |
+| generic_penalty | -30 |
+| foreign_country_penalty | -80 |
+
+### 5. deduplicate_cases
+SHA-256 composite hash de: `normalized_text + source_url + persona + platform`
+
+### 6. build_dashboard_payload
+Genera payload con schema:
 ```json
 {
-  "leads": [
-    {
-      "id": "hash16chars",
-      "score": 85,
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "person_name": "Carlos Mendoza",
-      "username": "carlos_mendoza",
-      "profile_url": "https://facebook.com/user/carlos_mendoza",
-      "post_url": "https://facebook.com/post/abc123",
-      "platform": "Facebook",
-      "date": "2026-07-03T10:30:00+00:00",
-      "discovery_timestamp": "2026-07-03T11:00:00+00:00",
-      "province": "Buenos Aires",
-      "city": "La Plata",
-      "country": "Argentina",
-      "vehicle": "Ford Fiesta",
-      "patent": "AB123CD",
-      "phone": "01112345678",
-      "whatsapp": "5491112345678",
-      "whatsapp_link": "https://wa.me/5491112345678",
-      "snippet": "Texto original del post...",
-      "has_phone": true,
-      "has_whatsapp": true,
-      "urgency_detected": true,
-      "urgency_keywords_found": ["urgente", "hoy"],
-      "recent_post": true,
-      "explicit_transfer_problem": true,
-      "multa_related": false,
-      "preventive_signal": false,
-      "institutional_source": false,
-      "unclear_country": false,
-      "review_state": "new",
-      "score_breakdown": {
-        "base": 20,
-        "has_phone": 25,
-        "has_whatsapp": 25,
-        "urgency_detected": 20,
-        "recent_post": 15,
-        "explicit_transfer_problem": 30
-      }
-    }
-  ],
-  "metrics": {
-    "total_leads": 80,
-    "hot_leads": 23,
-    "commercial_leads": 27,
-    "contactable": 28,
-    "with_whatsapp": 20,
-    "with_phone": 12,
-    "avg_score": 54.2,
-    "conversion_probability": 28.7,
-    "by_category": {"TRANSFER_PROBLEM": 35, "FINE_DISPUTE": 25, ...},
-    "by_platform": {"Facebook": 40, "Reddit": 20, ...},
-    "by_province": {"Buenos Aires": 30, "CABA": 15, ...},
-    "runtime_seconds": 18.4,
-    "queries_executed": 20
-  },
-  "execution_log": [...],
-  "generated_at": "2026-07-03T11:00:00+00:00",
-  "runtime_ms": 18400
+  "generated_at": "ISO timestamp",
+  "run_id": "hash12",
+  "summary": { "total_leads": N, "hot_leads": N, ... },
+  "leads_hot": [...],
+  "leads_warm": [...],
+  "insights": ["patrón 1", "patrón 2", ...],
+  "meta": { "version": "1.0", "runtime_seconds": N }
 }
 ```
 
-## Features del dashboard
+### 7. publish_artifacts
+- Overwrite `data/dashboard_payload.json`
+- Append a `data/history.json` (últimas 100 runs)
+- Update `data/stats.json` (métricas acumuladas)
+- Git commit + push (en GitHub Actions)
+
+## Dashboard
 
 ### Command Center (NOC-style)
+6 KPIs + Insights IA:
+- 🔥 Leads críticos (score >= 90)
+- 🟢 Nuevos desde última ejecución
+- 📞 Con WhatsApp disponible
+- ⏰ Próximos a vencer (>3 días sin revisar)
+- 📈 Conversión estimada
+- 🧠 Insights IA (patrones auto-detectados)
 
-Panel ejecutivo arriba del dashboard con 6 KPIs + bloque Insights IA:
+### Features
+- Virtual scroll (10K+ leads sin lag)
+- Drawer lateral (score breakdown, reasoning, notes)
+- Filtros temporales + quick filters + búsqueda instantánea
+- Keyboard shortcuts (/, j, k, Enter, Esc, r, c, i, e)
+- localStorage (estado de revisión + notas)
+- Export JSON / CSV
+- Auto-refresh cada 60s
+- Responsive mobile
 
-1. **🔥 Leads críticos** — score >= 90, requieren atención hoy
-2. **🟢 Nuevos desde última ejecución** — delta vs run anterior
-3. **📞 Con WhatsApp disponible** — count + % del total
-4. **⏰ Próximos a vencer** — leads >3 días sin revisar
-5. **📈 Conversión estimada** — % de leads con score >= 70
-6. **🧠 Insights IA** — patrón automático detectado del lote actual
+### Fetch dinámico
+El dashboard intenta cargar datos en este orden:
+1. `fetch('/data/dashboard_payload.json')` (producción)
+2. `fetch('./data/dashboard_payload.json')` (local con server)
+3. `fetch('data/dashboard_payload.json')` (relativo)
+4. Fallback a `__EMBEDDED_PAYLOAD__` (datos embebidos del prototipo)
 
-### Tabla de leads (virtual scroll)
+## Compliance
 
-14 columnas con sort, filter, resize. Virtual scroll para manejar 10,000+ leads
-sólo renderizando las filas visibles (~17 a la vez).
+- ✅ `only_public_data` — sólo contenido público indexado
+- ✅ `no_login_scraping` — nunca bypass de logins
+- ✅ `no_private_harvesting` — no recolecta datos privados
+- ✅ `no_auto_messaging` — no envía mensajes automáticos
+- ✅ `human_review_required` — revisión humana obligatoria antes de contacto
+- ✅ `pii_handling` — store_minimized (sólo lo públicamente visible)
 
-### Drawer de detalle
+## Deployment (free stack)
 
-Click en cualquier lead abre un drawer lateral derecho (480px) con:
-- Score breakdown visual (cada señal con su peso)
-- Señales detectadas (chips)
-- Evidence (texto completo del post)
-- Reasoning (explicación auto-generada del score)
-- Datos de contacto (con botones copiar)
-- Link al post original
-- Timeline de cambios de estado
-- Notas persistentes (localStorage)
+| Componente | Servicio | Costo |
+|------------|----------|-------|
+| Cron job | GitHub Actions | Gratis |
+| Hosting | GitHub Pages | Gratis |
+| Repo | GitHub | Gratis |
+| Buscador | z-ai web_search | API key |
+| CDN (opcional) | Cloudflare | Gratis |
 
-### Analytics
-
-5 mini-charts en SVG puro (sin librería):
-- Top problems (bar)
-- Top provinces (bar)
-- Top sources (bar)
-- Hot hours (cuándo se publican más leads, 0-23h)
-- Trend últimos 7 días (line)
-
-### Acciones por lead
-
-- Abrir publicación (link externo)
-- Abrir WhatsApp (wa.me link)
-- Copiar teléfono
-- Copiar enlace
-- Marcar revisado / contactado / ignorar
-- Agregar nota (persiste en localStorage)
-- Exportar lead individual (JSON)
-- Exportar todos (JSON / CSV)
-
-### Filtros
-
-**Temporales:** Hoy | 24h | 3 días | Semana | Todo
-
-**Quick filters (chips toggle):**
-- Solo calientes (score >= 70)
-- Solo con WhatsApp
-- Solo con teléfono
-- Solo Reddit / Facebook / X / MercadoLibre
-- Solo recientes (< 24h)
-- No revisados
-- Contactados
-
-**Búsqueda instantánea** (debounced 100ms) sobre todos los campos de texto.
-
-### Keyboard shortcuts
-
-| Tecla | Acción |
-|-------|--------|
-| `/` | Focus búsqueda |
-| `j` / `k` | Navegar leads abajo/arriba |
-| `Enter` | Abrir drawer |
-| `Esc` | Cerrar drawer |
-| `r` | Marcar revisado |
-| `c` | Marcar contactado |
-| `i` | Ignorar |
-| `e` | Exportar JSON |
-
-### Persistencia
-
-- Estado de revisión por lead (new/reviewed/contacted/ignored) → localStorage
-- Notas por lead → localStorage
-- Sobrevive recarga del browser
-
-## Performance
-
-| Métrica | Target | Real |
-|---------|--------|------|
-| Tamaño archivo | < 150 KB | 128 KB ✓ |
-| Render inicial | < 100 ms | 11-15 ms ✓ |
-| 10,000 leads | sin lag | virtual scroll ✓ |
-| Dependencias externas | 0 | 0 ✓ |
-
-## Design system
-
-- **Tema:** Dark mode (GitHub dark palette)
-- **Accent:** Salesforce blue #0176D3
-- **Score colors:** red (0-39) / yellow (40-69) / green (70-89) / blue (90-100)
-- **Tipografía:** system-ui, 14px base
-- **Inspiración:** Salesforce Lightning + Linear + Notion
-
-## Arquitectura futura (Cloudflare Worker-ready)
-
-El dashboard está estructurado para conectar a un backend sin cambiar la interfaz:
-
+### Opcional: dominio custom
 ```
-[Cron-job.org] → POST /run → [Cloudflare Worker] → [z-ai web_search]
-                                                       ↓
-                                              [Pipeline scoring]
-                                                       ↓
-                                              [R2: dashboard_payload.json]
-                                                       ↓
-                                              [KV: leads_latest]
-                                                       ↓
-[Browser] → GET dashboard.html → [Cloudflare Pages] → fetch dashboard_payload.json
+Cloudflare → CNAME → <usuario>.github.io
 ```
 
-**Para activar producción:**
+## Operación
 
-1. Desplegar Cloudflare Worker con endpoint `POST /run` que ejecute el pipeline
-2. Worker guarda `dashboard_payload.json` en R2
-3. Dashboard hace `fetch('/data/dashboard_payload.json')` en lugar de usar datos embebidos
-4. Cron-job.org dispara `POST /run` cada 3 horas
+### Cambiar frecuencia del cron
+Editar `.github/workflows/radar-cron.yml`:
+```yaml
+schedule:
+  - cron: '0 */3 * * *'  # cada 3 horas
+  # - cron: '0 * * * *'   # cada hora
+  # - cron: '0 9,12,18 * * *'  # 3 veces al día
+```
 
-No se requiere cambiar nada en el dashboard para esta transición.
+### Ejecutar manualmente
+GitHub → Actions → "Radar Leads — Cron Pipeline" → Run workflow
 
-## Limitaciones del prototipo
+### Ver historial
+`data/history.json` contiene las últimas 100 runs con summary de cada una.
 
-- Los 80 leads son simulados (no provienen de búsquedas reales)
-- El bloque "Insights IA" detecta patrones con heurísticas locales (no usa LLM)
-- No hay backend — todo corre en el browser
-- El export de CSV/JSON descarga archivos locales
-
-## Próximos pasos sugeridos
-
-1. **Validar UX** con operadores reales (1-2 semanas de uso)
-2. **Conectar pipeline real** (reemplazar DASHBOARD_PAYLOAD por fetch)
-3. **Desplegar Cloudflare Worker** con el pipeline de `radar_leads_v1.py` portado a JS
-4. **Configurar cron-job.org** cada 3 horas
-5. **Iterar scoring** basado en feedback de operadores
+### Métricas acumuladas
+`data/stats.json` tiene:
+- total_runs
+- total_leads_all_time
+- total_hot_leads_all_time
+- avg_hot_per_run
+- runs_today
+- last_7_days (resúmenes)

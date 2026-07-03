@@ -1,0 +1,70 @@
+name: Radar Leads — Cron Pipeline
+
+on:
+  schedule:
+    # Cada 3 horas UTC (0 */3 * * *)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Permite ejecutar manualmente
+
+permissions:
+  contents: write # Para commitear los JSONs actualizados
+
+jobs:
+  run-radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install z-ai CLI
+        run: |
+          npm install -g z-ai-web-dev-sdk
+          echo "z-ai installed: $(which z-ai)"
+
+      - name: Configure z-ai credentials
+        env:
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+        run: |
+          # El SDK lee la API key de env var o config file
+          mkdir -p ~/.config/z-ai
+          echo "{\"apiKey\":\"$ZAI_API_KEY\"}" > ~/.config/z-ai/config.json
+
+      - name: Run pipeline
+        run: |
+          python generate_payload.py
+
+      - name: Commit and push artifacts
+        run: |
+          git config user.name "Radar Bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+          
+          # Stage los 3 JSONs
+          git add data/dashboard_payload.json data/stats.json data/history.json
+          
+          # Commit si hay cambios
+          git diff --staged --quiet || git commit -m "radar: update payloads $(date -u '+%Y-%m-%d %H:%M UTC')"
+          
+          # Push
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Radar Pipeline Run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f data/dashboard_payload.json ]; then
+            echo "✅ Payload generated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            python -c "import json; d=json.load(open('data/dashboard_payload.json')); print(json.dumps(d['summary'], indent=2))" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Payload not generated" >> $GITHUB_STEP_SUMMARY
+          fi

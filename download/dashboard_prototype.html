@@ -1152,7 +1152,60 @@ input, select, textarea {
      fetch('/data/dashboard_payload.json').then(r => r.json())
    ============================================================ */
 
-const DASHBOARD_PAYLOAD = {
+// === DYNAMIC JSON FETCH (with fallback to embedded data) ===
+// En producción: fetch('/data/dashboard_payload.json')
+// En prototipo: usar datos embebidos si fetch falla
+let DASHBOARD_PAYLOAD = null;
+
+async function loadData() {
+  // Intentar fetch del JSON dinámico primero
+  const FETCH_URLS = [
+    '/data/dashboard_payload.json',
+    './data/dashboard_payload.json',
+    'data/dashboard_payload.json',
+  ];
+  
+  for (const url of FETCH_URLS) {
+    try {
+      const resp = await fetch(url, { cache: 'no-store' });
+      if (resp.ok) {
+        DASHBOARD_PAYLOAD = await resp.json();
+        console.log('[Radar] Loaded dynamic payload from', url);
+        return true;
+      }
+    } catch (e) {
+      // file:// protocol or CORS — fallthrough to embedded
+    }
+  }
+  
+  // Fallback: usar datos embebidos del prototipo
+  if (window.__EMBEDDED_PAYLOAD__) {
+    DASHBOARD_PAYLOAD = window.__EMBEDDED_PAYLOAD__;
+    console.log('[Radar] Using embedded payload (offline mode)');
+    return true;
+  }
+  
+  console.error('[Radar] No payload available');
+  return false;
+}
+
+// Auto-refresh cada 60 segundos (solo si hay fetch dinámico)
+let AUTO_REFRESH_INTERVAL = null;
+function startAutoRefresh() {
+  if (AUTO_REFRESH_INTERVAL) clearInterval(AUTO_REFRESH_INTERVAL);
+  AUTO_REFRESH_INTERVAL = setInterval(async () => {
+    const ok = await loadData();
+    if (ok) {
+      applyFilters();
+      updateAnalytics();
+      updateCommandCenter();
+    }
+  }, 60000); // 60s
+}
+
+// Datos embebidos del prototipo (se mueven a __EMBEDDED_PAYLOAD__)
+window.__EMBEDDED_PAYLOAD__ = {
+  {
   generated_at: "2024-09-26T10:42:13-03:00",
   runtime_ms: 1842,
   execution_log: [
@@ -2178,7 +2231,24 @@ function init() {
 }
 
 // boot
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", init)
+}
+
+
+// === INIT ===
+(async function init() {
+  const ok = await loadData();
+  if (ok) {
+    expandLeads();
+    applyFilters();
+    updateAnalytics();
+    updateCommandCenter();
+    startAutoRefresh();
+  } else {
+    document.getElementById('leads-container').innerHTML = '<div class="empty">No se pudieron cargar los datos.</div>';
+  }
+})();
+
 </script>
 </body>
 </html>
