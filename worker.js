@@ -175,22 +175,69 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     flex-wrap: wrap;
   }
   .lead-card .actions a, .lead-card .actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: #0f172a;
     color: #cbd5e1;
     border: 1px solid #334155;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
   }
   .lead-card .actions a:hover, .lead-card .actions button:hover {
-    background: #1e293b;
-    border-color: #475569;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .lead-card .actions a.wa { color: #25d366; border-color: #1f5e3d; }
-  .lead-card .actions a.wa:hover { background: #1f5e3d; }
+  .lead-card .actions a svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  /* Reddit brand */
+  .lead-card .actions a.btn-reddit {
+    background: #ff4500; color: white; border-color: #ff4500;
+  }
+  .lead-card .actions a.btn-reddit:hover { background: #cc3700; }
+  /* WhatsApp brand */
+  .lead-card .actions a.btn-whatsapp {
+    background: #25d366; color: white; border-color: #25d366;
+  }
+  .lead-card .actions a.btn-whatsapp:hover { background: #1da851; }
+  /* MercadoLibre brand */
+  .lead-card .actions a.btn-ml {
+    background: #ffe600; color: #2d3277; border-color: #ffe600;
+  }
+  .lead-card .actions a.btn-ml:hover { background: #d4c200; }
+  /* Facebook brand */
+  .lead-card .actions a.btn-facebook {
+    background: #1877f2; color: white; border-color: #1877f2;
+  }
+  .lead-card .actions a.btn-facebook:hover { background: #0f5ec7; }
+  /* X/Twitter brand */
+  .lead-card .actions a.btn-x {
+    background: #000; color: white; border-color: #333;
+  }
+  .lead-card .actions a.btn-x:hover { background: #1a1a1a; }
+  /* Phone */
+  .lead-card .actions a.btn-phone {
+    background: #0f172a; color: #93c5fd; border-color: #1e40af;
+  }
+  .lead-card .actions a.btn-phone:hover { background: #1e293b; }
+  /* Email */
+  .lead-card .actions a.btn-email {
+    background: #0f172a; color: #fbbf24; border-color: #92400e;
+  }
+  .lead-card .actions a.btn-email:hover { background: #1e293b; }
+  /* Generic source */
+  .lead-card .actions a.btn-source {
+    background: #1e293b; color: #cbd5e1; border-color: #475569;
+  }
+  .lead-card .actions a.btn-source:hover { background: #334155; }
   .empty {
     text-align: center;
     padding: 60px 32px;
@@ -349,6 +396,43 @@ function scoreClass(s) {
   return 'cold';
 }
 
+// ─── SVG ICONS (inline, no external deps) ───
+const ICONS = {
+  reddit: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12c0-1.7-1.4-3-3-3-.8 0-1.5.3-2 .8-.6-.4-1.3-.7-2-.9V7.5c0-.8-.6-1.4-1.4-1.4H8.4c-.8 0-1.4.6-1.4 1.4v.4c-.7.2-1.4.5-2 .9-.5-.5-1.2-.8-2-.8-1.7 0-3 1.3-3 3 0 1.2.7 2.2 1.7 2.7-.1.4-.1.7-.1 1.1 0 3.3 3.8 6 8.5 6s8.5-2.7 8.5-6c0-.4 0-.7-.1-1.1 1-.5 1.5-1.5 1.5-2.7zm-12 4c-1.1 0-2-.6-2-1.5s.9-1.5 2-1.5 2 .6 2 1.5-.9 1.5-2 1.5zm5 0c-1.1 0-2-.6-2-1.5s.9-1.5 2-1.5 2 .6 2 1.5-.9 1.5-2 1.5z"/></svg>',
+  whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.5.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.4zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3C4.1 14.9 3.7 13.5 3.7 12 3.7 7.3 7.3 3.7 12 3.7s8.3 3.6 8.3 8.3-3.6 8.3-8.3 8.3z"/></svg>',
+  ml: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 6l1.7 12.5c.1.5.5.9 1 .9h14.6c.5 0 .9-.4 1-.9L22 6H2zm10 9.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z"/></svg>',
+  facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12c0-6.6-5.4-12-12-12S0 5.4 0 12c0 6 4.4 11 10.1 11.9V15.5H7.1V12h3V9.4c0-3 1.8-4.6 4.5-4.6 1.3 0 2.7.2 2.7.2v2.9h-1.5c-1.5 0-2 .9-2 1.9V12h3.3l-.5 3.5h-2.8v8.4C19.6 23 24 18 24 12z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.2 2H21l-6.5 7.4L22 22h-6l-4.7-6.1L5.8 22H3l7-8L2 2h6.2l4.3 5.7L18.2 2zm-1 18h1.7L7.9 3.8H6.1L17.2 20z"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  source: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+};
+
+// Detecta plataforma desde URL → devuelve {icon, label, btnClass}
+function detectPlatform(url) {
+  if (!url) return {icon: ICONS.source, label: 'Fuente', btnClass: 'btn-source'};
+  const u = url.toLowerCase();
+  if (u.includes('reddit.com')) return {icon: ICONS.reddit, label: 'Reddit', btnClass: 'btn-reddit'};
+  if (u.includes('whatsapp.') || u.includes('wa.me')) return {icon: ICONS.whatsapp, label: 'WhatsApp', btnClass: 'btn-whatsapp'};
+  if (u.includes('mercadolibre.') || u.includes('mercadolivre.')) return {icon: ICONS.ml, label: 'MercadoLibre', btnClass: 'btn-ml'};
+  if (u.includes('facebook.')) return {icon: ICONS.facebook, label: 'Facebook', btnClass: 'btn-facebook'};
+  if (u.includes('twitter.') || u.includes('x.com')) return {icon: ICONS.x, label: 'X', btnClass: 'btn-x'};
+  return {icon: ICONS.source, label: 'Fuente', btnClass: 'btn-source'};
+}
+
+// Construye el HTML de un botón de acción con branding
+function actionButton(url, overrideIcon, overrideLabel, overrideClass) {
+  if (!url) return '';
+  const p = detectPlatform(url);
+  const icon = overrideIcon || p.icon;
+  const label = overrideLabel || p.label;
+  const cls = overrideClass || p.btnClass;
+  const isTel = url.startsWith('tel:');
+  const isMail = url.startsWith('mailto:');
+  const target = (isTel || isMail) ? '' : ' target="_blank" rel="noopener"';
+  return '<a class="' + cls + '" href="' + escapeHtml(url) + '"' + target + '>' + icon + '<span>' + escapeHtml(label) + '</span></a>';
+}
+
 function renderStats(p) {
   const leads = (p.leads_all || []).map(normalizeLead);
   const hot = leads.filter(l => l.score >= 50).length;
@@ -396,27 +480,36 @@ function renderLeads(p) {
     const cls = l.score >= 80 ? 'urgent' : l.score >= 50 ? 'hot' : 'normal';
     const sCls = scoreClass(l.score);
     const fechaStr = l.fecha ? new Date(l.fecha).toLocaleDateString('es-AR') : '';
+    // Construir botones de acción con branding (sin duplicados)
+    const seenUrls = new Set();
     const actions = [];
 
-    // Acción principal: abrir fuente
-    actions.push('<a href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">🔗 Fuente</a>');
+    function addAction(url, icon, label, cls) {
+      if (!url || seenUrls.has(url)) return;
+      seenUrls.add(url);
+      actions.push(actionButton(url, icon, label, cls));
+    }
 
-    // WhatsApp
+    // WhatsApp (botón verde branded, SIEMPRE que haya número)
     if (l.whatsapp) {
       const wa = l.whatsapp.replace(/[^0-9]/g, '');
-      actions.push('<a class="wa" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">🟢 WhatsApp</a>');
+      if (wa) addAction('https://wa.me/' + wa, ICONS.whatsapp, 'WhatsApp', 'btn-whatsapp');
     }
-
     // Phone
     if (l.phone) {
-      actions.push('<a href="tel:' + escapeHtml(l.phone) + '">📞 Llamar</a>');
+      addAction('tel:' + l.phone, ICONS.phone, 'Llamar', 'btn-phone');
     }
+    // Email (si existe)
+    if (l.email) {
+      addAction('mailto:' + l.email, ICONS.email, 'Email', 'btn-email');
+    }
+    // Fuente principal (URL del lead) — branded según plataforma
+    addAction(l.url);
 
-    // Acciones del pipeline
+    // Acciones adicionales del pipeline (que no sean la fuente ya agregada)
     (l.actions || []).forEach(a => {
       if (!a || !a.url) return;
-      const label = a.label || a.type || 'acción';
-      actions.push('<a href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener">' + escapeHtml(label) + '</a>');
+      addAction(a.url, null, a.label);
     });
 
     const extraChips = [];
