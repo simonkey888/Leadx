@@ -45,8 +45,8 @@ STATS_PATH = DATA_DIR / "stats.json"
 HISTORY_PATH = DATA_DIR / "history.json"
 
 # Performance
-MAX_RUNTIME_SECONDS = 180
-RATE_LIMIT_MS = 5000  # 5s entre queries para evitar 429 de Reddit RSS
+MAX_RUNTIME_SECONDS = 240
+RATE_LIMIT_MS = 10000  # 10s entre queries para evitar 429 de Reddit RSS
 MAX_RESULTS_PER_QUERY = 10
 
 # ===========================================================================
