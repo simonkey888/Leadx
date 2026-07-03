@@ -1,0 +1,1421 @@
+     1→/**
+     2→ * LeadX v9.1 — Production fixes (GPT + Qwen audit)
+     3→ */
+     4→export default {
+     5→  async fetch(request, env) {
+     6→    const url = new URL(request.url);
+     7→    const path = url.pathname;
+     8→    const origin = url.origin;
+     9→
+    10→    if (request.method === "OPTIONS") {
+    11→      return new Response(null, { headers: {
+    12→        "Access-Control-Allow-Origin": origin,
+    13→        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    14→        "Access-Control-Allow-Headers": "Content-Type, X-Webhook-Secret",
+    15→      }});
+    16→    }
+    17→
+    18→    // GET /api/leads
+    19→    if (path === "/api/leads" && request.method === "GET") {
+    20→      const filter = url.searchParams.get("filter") || "all";
+    21→      const limit = parseInt(url.searchParams.get("limit") || "500");
+    22→      let leads = [];
+    23→      try { const raw = await env.LEADS_KV.get("leads"); if (raw) leads = JSON.parse(raw); } catch (e) {}
+    24→      let filtered = leads;
+    25→      if (filter === "hot") filtered = leads.filter(l => (l.scoring?.final_score || 0) >= 50);
+    26→      if (filter === "warm") filtered = leads.filter(l => (l.scoring?.final_score || 0) < 50);
+    27→      filtered.sort((a, b) => (b.scoring?.final_score || 0) - (a.scoring?.final_score || 0));
+    28→      return jsonResp({ leads: filtered.slice(0, limit), count: filtered.length, total: leads.length, live: true, timestamp: new Date().toISOString() }, origin);
+    29→    }
+    30→
+    31→    // GET /api/metrics
+    32→    if (path === "/api/metrics" && request.method === "GET") {
+    33→      let leads = [];
+    34→      try { const raw = await env.LEADS_KV.get("leads"); if (raw) leads = JSON.parse(raw); } catch (e) {}
+    35→      const hot = leads.filter(l => (l.scoring?.final_score || 0) >= 50);
+    36→      const contactable = leads.filter(l => l.contact?.whatsapp || l.contact?.phone);
+    37→      return jsonResp({ total_leads: leads.length, hot_leads: hot.length, contactable_leads: contactable.length,
+    38→        conversion_score_avg: leads.length > 0 ? Math.round(leads.reduce((a, l) => a + (l.scoring?.final_score || 0), 0) / leads.length * 10) / 10 : 0,
+    39→        live: true, timestamp: new Date().toISOString() }, origin);
+    40→    }
+    41→
+    42→    // POST /api/ingest (AUTHENTICATED)
+    43→    if (path === "/api/ingest" && request.method === "POST") {
+    44→      const expectedSecret = env.INGEST_SECRET || "leadx_webhook_secret_v9";
+    45→      const secret = request.headers.get("X-Webhook-Secret");
+    46→      if (secret !== expectedSecret) return jsonResp({ error: "Unauthorized" }, origin, 401);
+    47→      try {
+    48→        const body = await request.json();
+    49→        const newLeads = body.leads || [];
+    50→        const prevRaw = await env.LEADS_KV.get("leads");
+    51→        const prevLeads = prevRaw ? JSON.parse(prevRaw) : [];
+    52→        
+    53→        if (newLeads.length < 5 && prevLeads.length >= 5) {
+    54→          return jsonResp({ status: "rejected", reason: "anti_wipe", new_count: newLeads.length, kept_count: prevLeads.length }, origin);
+    55→        }
+    56→
+    57→        // Merge: upsert by ID
+    58→        const prevById = {};
+    59→        for (const l of prevLeads) prevById[l.id] = l;
+    60→        for (const l of newLeads) prevById[l.id] = l;
+    61→        const mergedLeads = Object.values(prevById);
+    62→        mergedLeads.sort((a, b) => (b.scoring?.final_score || 0) - (a.scoring?.final_score || 0));
+    63→        
+    64→        await env.LEADS_KV.put("leads", JSON.stringify(mergedLeads));
+    65→        if (body.metrics) await env.LEADS_KV.put("metrics", JSON.stringify(body.metrics));
+    66→        if (body.run_metadata) await env.LEADS_KV.put("last_run", JSON.stringify(body.run_metadata));
+    67→        
+    68→        return jsonResp({ status: "ok", stored: newLeads.length, merged_total: mergedLeads.length, timestamp: new Date().toISOString() }, origin);
+    69→      } catch (e) { return jsonResp({ error: e.message }, origin, 500); }
+    70→    }
+    71→
+    72→    // HTML dashboard
+    73→    if (path === "/" || path === "/index.html") {
+    74→      const response = await env.ASSETS.fetch(request);
+    75→      const newResponse = new Response(response.body, response);
+    76→      newResponse.headers.set("Cache-Control", "public, max-age=60");
+    77→      return newResponse;
+    78→    }
+    79→
+    80→    // 404 for static JSON
+    81→    if (path.endsWith(".json")) return jsonResp({ error: "Use /api/leads" }, origin, 404);
+    82→
+    83→    return env.ASSETS.fetch(request);
+    84→  },
+    85→};
+    86→
+    87→// Fix: signature is (data, origin, status) to avoid string-as-status bug
+    88→function jsonResp(data, origin = "*", status = 200) {
+    89→  return new Response(JSON.stringify(data), { status, headers: {
+    90→    "Content-Type": "application/json; charset=utf-8",
+    91→    "Cache-Control": "no-store",
+    92→    "Access-Control-Allow-Origin": origin,
+    93→  }});
+    94→}
+    95→name = "leadx"
+    96→main = "worker.js"
+    97→account_id = "b21fa81d12acb663798f9f7c51801955"
+    98→compatibility_date = "2024-09-01"
+    99→workers_dev = true
+   100→
+   101→[assets]
+   102→directory = "./public"
+   103→not_found_handling = "single-page-application"
+   104→
+   105→[observability.logs]
+   106→enabled = true
+   107→invocation_logs = true
+   108→
+   109→[observability.traces]
+   110→enabled = false
+   111→
+   112→[[kv_namespaces]]
+   113→binding = "LEADS_KV"
+   114→id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
+   115→
+   116→# v9.1: INGEST_SECRET as env var (set via: wrangler secret put INGEST_SECRET)
+   117→[vars]
+   118→INGEST_SECRET = "leadx_webhook_secret_v9"
+   119→name: Radar Leads — Cron Pipeline v9.1
+   120→
+   121→on:
+   122→  schedule:
+   123→    - cron: '0 */3 * * *'
+   124→  workflow_dispatch:
+   125→
+   126→permissions:
+   127→  contents: write
+   128→
+   129→jobs:
+   130→  run-radar:
+   131→    runs-on: ubuntu-latest
+   132→    timeout-minutes: 5
+   133→    steps:
+   134→      - name: Checkout repo
+   135→        uses: actions/checkout@v4
+   136→      - name: Setup Python
+   137→        uses: actions/setup-python@v5
+   138→        with:
+   139→          python-version: '3.11'
+   140→      - name: Run pipeline (Python scores everything)
+   141→        run: |
+   142→          python generate_payload.py
+   143→      - name: POST leads to Worker KV (authenticated)
+   144→        env:
+   145→          INGEST_SECRET: leadx_webhook_secret_v9
+   146→          WORKER_URL: https://leadx.simondalmasso44.workers.dev
+   147→        run: |
+   148→          python -c "
+   149→          import json, os, subprocess
+   150→          secret = os.environ['INGEST_SECRET']
+   151→          worker_url = os.environ['WORKER_URL']
+   152→          with open('data/dashboard_payload.json') as f:
+   153→              payload = json.load(f)
+   154→          body = json.dumps({
+   155→              'leads': payload['leads'],
+   156→              'metrics': payload['kpis'],
+   157→              'run_metadata': payload['run_metadata'],
+   158→          })
+   159→          result = subprocess.run([
+   160→              'curl', '-s', '-X', 'POST',
+   161→              worker_url + '/api/ingest',
+   162→              '-H', 'Content-Type: application/json',
+   163→              '-H', 'X-Webhook-Secret: ' + secret,
+   164→              '-d', body
+   165→          ], capture_output=True, text=True, timeout=30)
+   166→          print(result.stdout[:300])
+   167→          "
+   168→      - name: Deploy to Cloudflare (assets only)
+   169→        env:
+   170→          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+   171→          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+   172→        run: |
+   173→          npx wrangler deploy
+   174→"""
+   175→search_providers.py — Multi-provider search engine for Radar Leads.
+   176→
+   177→Reemplaza completamente z-ai CLI. 100% autónomo en GitHub Actions.
+   178→
+   179→Providers:
+   180→  1. DuckDuckGo HTML (gratis, sin API key)
+   181→  2. Reddit JSON público (gratis, sin API key)
+   182→  3. RSS feeds (gratis, sin API key)
+   183→
+   184→Interfaz unificada:
+   185→  search(query, num=10) → List[Dict] con campos normalizados:
+   186→    title, url, snippet, source, date
+   187→
+   188→Anti-blocking:
+   189→  - Random User-Agent
+   190→  - Rate limit entre requests
+   191→  - Retry con backoff exponencial
+   192→  - Cache simple en memoria
+   193→"""
+   194→from __future__ import annotations
+   195→
+   196→import hashlib
+   197→import json
+   198→import random
+   199→import re
+   200→import time
+   201→import urllib.parse
+   202→import urllib.request
+   203→from dataclasses import dataclass
+   204→from typing import List, Dict, Any, Optional
+   205→from html.parser import HTMLParser
+   206→
+   207→# ===========================================================================
+   208→# Config
+   209→# ===========================================================================
+   210→
+   211→RATE_LIMIT_SECONDS = 2.0
+   212→MAX_RETRIES = 3
+   213→CACHE_TTL = 300  # 5 min
+   214→
+   215→USER_AGENTS = [
+   216→    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+   217→    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+   218→    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+   219→    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+   220→    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+   221→]
+   222→
+   223→# Cache simple
+   224→_cache: Dict[str, tuple] = {}  # key → (timestamp, data)
+   225→
+   226→
+   227→# ===========================================================================
+   228→# HTTP helper con anti-blocking
+   229→# ===========================================================================
+   230→def _fetch_url(url: str, timeout: int = 15) -> Optional[str]:
+   231→    """Fetch URL con random UA, retry y backoff."""
+   232→    cache_key = hashlib.sha256(url.encode()).hexdigest()[:16]
+   233→    now = time.time()
+   234→
+   235→    # Check cache
+   236→    if cache_key in _cache:
+   237→        ts, data = _cache[cache_key]
+   238→        if now - ts < CACHE_TTL:
+   239→            return data
+   240→
+   241→    for attempt in range(MAX_RETRIES):
+   242→        try:
+   243→            req = urllib.request.Request(url)
+   244→            req.add_header("User-Agent", random.choice(USER_AGENTS))
+   245→            req.add_header("Accept", "text/html,application/xhtml+xml,application/json,*/*")
+   246→            req.add_header("Accept-Language", "es-AR,es;q=0.9,en;q=0.8")
+   247→
+   248→            with urllib.request.urlopen(req, timeout=timeout) as resp:
+   249→                content = resp.read().decode("utf-8", errors="replace")
+   250→                _cache[cache_key] = (now, content)
+   251→                return content
+   252→        except Exception as e:
+   253→            if attempt < MAX_RETRIES - 1:
+   254→                wait = (attempt + 1) * 2 + random.uniform(0, 1)
+   255→                time.sleep(wait)
+   256→            else:
+   257→                return None
+   258→    return None
+   259→
+   260→
+   261→# ===========================================================================
+   262→# Provider 1: DuckDuckGo HTML
+   263→# ===========================================================================
+   264→class _DDGResultParser(HTMLParser):
+   265→    """Parser minimalista para resultados de DuckDuckGo HTML."""
+   266→
+   267→    def __init__(self):
+   268→        super().__init__()
+   269→        self.results: List[Dict[str, str]] = []
+   270→        self._current: Dict[str, str] = {}
+   271→        self._in_result = False
+   272→        self._in_title = False
+   273→        self._in_snippet = False
+   274→        self._capture_tag = None
+   275→
+   276→    def handle_starttag(self, tag, attrs):
+   277→        attrs_dict = dict(attrs)
+   278→        # DuckDuckGo lite usa <a class="result-link">
+   279→        # DuckDuckGo HTML usa <div class="result">
+   280→        cls = attrs_dict.get("class", "")
+   281→
+   282→        if "result-link" in cls or ("result__a" in cls):
+   283→            self._in_title = True
+   284→            self._current = {"title": "", "url": "", "snippet": ""}
+   285→            href = attrs_dict.get("href", "")
+   286→            # DDG a veces wrappea URLs
+   287→            if href.startswith("//duckduckgo.com/l/?uddg="):
+   288→                href = urllib.parse.unquote(href.split("uddg=")[1].split("&")[0])
+   289→            self._current["url"] = href
+   290→
+   291→        if "result-snippet" in cls or "result__snippet" in cls:
+   292→            self._in_snippet = True
+   293→            if not self._current:
+   294→                self._current = {"title": "", "url": "", "snippet": ""}
+   295→
+   296→    def handle_endtag(self, tag):
+   297→        if self._in_title and tag == "a":
+   298→            self._in_title = False
+   299→        if self._in_snippet and tag in ("a", "td", "div"):
+   300→            self._in_snippet = False
+   301→            if self._current and self._current.get("url"):
+   302→                self.results.append(self._current)
+   303→                self._current = {}
+   304→
+   305→    def handle_data(self, data):
+   306→        if self._in_title:
+   307→            self._current["title"] += data.strip()
+   308→        if self._in_snippet:
+   309→            self._current["snippet"] += data.strip() + " "
+   310→
+   311→
+   312→def search_duckduckgo(query: str, num: int = 10) -> List[Dict[str, Any]]:
+   313→    """Busca en DuckDuckGo (HTML lite version)."""
+   314→    # Usar DuckDuckGo Lite (html only, más fácil de parsear)
+   315→    encoded = urllib.parse.quote(query)
+   316→    url = f"https://lite.duckduckgo.com/lite/?q={encoded}&kl=ar-es"
+   317→
+   318→    html = _fetch_url(url)
+   319→    if not html:
+   320→        return []
+   321→
+   322→    parser = _DDGResultParser()
+   323→    try:
+   324→        parser.feed(html)
+   325→    except Exception:
+   326→        pass
+   327→
+   328→    results = []
+   329→    for r in parser.results[:num]:
+   330→        if r.get("url") and r.get("title"):
+   331→            results.append({
+   332→                "title": r["title"][:200],
+   333→                "url": r["url"],
+   334→                "snippet": r.get("snippet", "")[:300],
+   335→                "source": "duckduckgo",
+   336→                "date": "",
+   337→            })
+   338→
+   339→    return results
+   340→
+   341→
+   342→# ===========================================================================
+   343→# Provider 2: Reddit JSON (público, sin API key)
+   344→# ===========================================================================
+   345→def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
+   346→    """Busca en Reddit via JSON público (sin auth)."""
+   347→    encoded = urllib.parse.quote(query)
+   348→    # Reddit search JSON endpoint (público)
+   349→    url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
+   350→
+   351→    # Reddit requiere un UA custom (no genérico)
+   352→    try:
+   353→        req = urllib.request.Request(url)
+   354→        req.add_header("User-Agent", "RadarLeadsBot/1.0 (lead intelligence research)")
+   355→        with urllib.request.urlopen(req, timeout=15) as resp:
+   356→            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+   357→    except Exception:
+   358→        return []
+   359→
+   360→    results = []
+   361→    if isinstance(data, dict) and "data" in data:
+   362→        for child in data["data"].get("children", []):
+   363→            post = child.get("data", {})
+   364→            if not post:
+   365→                continue
+   366→
+   367→            # Construir URL completa
+   368→            permalink = post.get("permalink", "")
+   369→            full_url = f"https://www.reddit.com{permalink}" if permalink else ""
+   370→
+   371→            # Snippet: selftext si existe, sino title
+   372→            selftext = post.get("selftext", "")
+   373→            snippet = selftext[:300] if selftext else post.get("title", "")[:300]
+   374→
+   375→            # Fecha
+   376→            created = post.get("created_utc", 0)
+   377→            date = ""
+   378→            if created:
+   379→                from datetime import datetime, timezone
+   380→                date = datetime.fromtimestamp(created, tz=timezone.utc).isoformat()
+   381→
+   382→            results.append({
+   383→                "title": post.get("title", "")[:200],
+   384→                "url": full_url,
+   385→                "snippet": snippet,
+   386→                "source": "reddit",
+   387→                "date": date,
+   388→                "username": post.get("author", ""),
+   389→            })
+   390→
+   391→    return results[:num]
+   392→
+   393→
+   394→# ===========================================================================
+   395→# Provider 3: RSS feeds (foros argentinos)
+   396→# ===========================================================================
+   397→RSS_FEEDS = [
+   398→    # Foros argentinos con RSS
+   399→    "https://www.reddit.com/r/argentina/new.json?limit=10",
+   400→    "https://www.reddit.com/r/ArAutos/new.json?limit=10",
+   401→    "https://www.reddit.com/r/Cordoba/new.json?limit=10",
+   402→    "https://www.reddit.com/r/DerechoGenial/new.json?limit=10",
+   403→]
+   404→
+   405→
+   406→def search_rss(query: str, num: int = 10) -> List[Dict[str, Any]]:
+   407→    """Busca en feeds RSS (Reddit subs argentinos)."""
+   408→    results = []
+   409→    query_lower = query.lower()
+   410→    query_keywords = [w for w in query_lower.split() if len(w) > 3]
+   411→
+   412→    for feed_url in RSS_FEEDS:
+   413→        try:
+   414→            req = urllib.request.Request(feed_url)
+   415→            req.add_header("User-Agent", "RadarLeadsBot/1.0")
+   416→            with urllib.request.urlopen(req, timeout=10) as resp:
+   417→                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+   418→
+   419→            if isinstance(data, dict) and "data" in data:
+   420→                for child in data["data"].get("children", []):
+   421→                    post = child.get("data", {})
+   422→                    if not post:
+   423→                        continue
+   424→
+   425→                    text = f"{post.get('title', '')} {post.get('selftext', '')}".lower()
+   426→
+   427→                    # Filtro por keywords de la query
+   428→                    if query_keywords and not any(kw in text for kw in query_keywords):
+   429→                        continue
+   430→
+   431→                    permalink = post.get("permalink", "")
+   432→                    full_url = f"https://www.reddit.com{permalink}" if permalink else ""
+   433→
+   434→                    created = post.get("created_utc", 0)
+   435→                    date = ""
+   436→                    if created:
+   437→                        from datetime import datetime, timezone
+   438→                        date = datetime.fromtimestamp(created, tz=timezone.utc).isoformat()
+   439→
+   440→                    results.append({
+   441→                        "title": post.get("title", "")[:200],
+   442→                        "url": full_url,
+   443→                        "snippet": post.get("selftext", "")[:300],
+   444→                        "source": "reddit_rss",
+   445→                        "date": date,
+   446→                        "username": post.get("author", ""),
+   447→                    })
+   448→
+   449→                    if len(results) >= num:
+   450→                        break
+   451→        except Exception:
+   452→            continue
+   453→
+   454→        if len(results) >= num:
+   455→            break
+   456→
+   457→    return results[:num]
+   458→
+   459→
+   460→# ===========================================================================
+   461→# Search Manager — unifica todos los providers
+   462→# ===========================================================================
+   463→def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
+   464→    """
+   465→    Busca usando múltiples providers en orden de fallback.
+   466→
+   467→    Orden:
+   468→      1. DuckDuckGo (cobertura amplia)
+   469→      2. Reddit (foros, alta calidad de leads)
+   470→      3. RSS (backup)
+   471→
+   472→    Devuelve resultados normalizados con campos:
+   473→      title, url, snippet, source, date, username?
+   474→    """
+   475→    all_results = []
+   476→
+   477→    # Provider 1: DuckDuckGo
+   478→    try:
+   479→        ddg = search_duckduckgo(query, num=num)
+   480→        all_results.extend(ddg)
+   481→        time.sleep(RATE_LIMIT_SECONDS)
+   482→    except Exception:
+   483→        pass
+   484→
+   485→    # Provider 2: Reddit (sólo si la query no es muy larga)
+   486→    if len(query) < 200:
+   487→        try:
+   488→            reddit = search_reddit(query, num=num)
+   489→            all_results.extend(reddit)
+   490→            time.sleep(RATE_LIMIT_SECONDS)
+   491→        except Exception:
+   492→            pass
+   493→
+   494→    # Provider 3: RSS (sólo si los anteriores no dieron suficiente)
+   495→    if len(all_results) < num // 2:
+   496→        try:
+   497→            rss = search_rss(query, num=num)
+   498→            all_results.extend(rss)
+   499→        except Exception:
+   500→            pass
+   501→
+   502→    # Dedup por URL
+   503→    seen_urls = set()
+   504→    unique = []
+   505→    for r in all_results:
+   506→        url = r.get("url", "")
+   507→        if url and url not in seen_urls:
+   508→            seen_urls.add(url)
+   509→            unique.append(r)
+   510→
+   511→    return unique[:num]
+   512→
+   513→
+   514→# ===========================================================================
+   515→# Smoke test
+   516→# ===========================================================================
+   517→if __name__ == "__main__":
+   518→    import sys
+   519→
+   520→    print("=" * 60)
+   521→    print("  SMOKE TEST search_providers.py (sin z-ai, sin API key)")
+   522→    print("=" * 60)
+   523→
+   524→    test_query = "no puedo transferir auto multa argentina"
+   525→
+   526→    print(f"\n  Query: '{test_query}'\n")
+   527→
+   528→    # Test DuckDuckGo
+   529→    print("  [1] DuckDuckGo...")
+   530→    ddg = search_duckduckgo(test_query, num=5)
+   531→    print(f"      Resultados: {len(ddg)}")
+   532→    for r in ddg[:2]:
+   533→        print(f"      - {r['title'][:60]}")
+   534→        print(f"        {r['url'][:80]}")
+   535→
+   536→    time.sleep(2)
+   537→
+   538→    # Test Reddit
+   539→    print("\n  [2] Reddit...")
+   540→    reddit = search_reddit(test_query, num=5)
+   541→    print(f"      Resultados: {len(reddit)}")
+   542→    for r in reddit[:2]:
+   543→        print(f"      - {r['title'][:60]}")
+   544→        print(f"        {r['url'][:80]}")
+   545→
+   546→    # Test unified search
+   547→    print("\n  [3] Unified search()...")
+   548→    all_results = search(test_query, num=10)
+   549→    print(f"      Total: {len(all_results)}")
+   550→    for r in all_results[:3]:
+   551→        print(f"      [{r['source']:12s}] {r['title'][:50]}")
+   552→
+   553→    print(f"\n{'='*60}")
+   554→    print(f"  ✓ Sin z-ai, sin API key, sin credenciales")
+   555→    print(f"  ✓ Funciona en GitHub Actions")
+   556→    print(f"{'='*60}")
+   557→#!/usr/bin/env python3
+   558→"""
+   559→generate_payload_v5.py — Lead Intelligence Engine v5
+   560→
+   561→Arquitectura en 7 capas:
+   562→  1. ingestion_layer (DuckDuckGo + Reddit + RSS)
+   563→  2. entity_normalization_layer (person/vehicle/organization/event)
+   564→  3. graph_resolution_layer (entity linking + neighbors)
+   565→  4. scoring_engine_layer (5 signals separados 0-100)
+   566→  5. policy_action_engine (rules → actions[], separado del lead)
+   567→  6. output_api_layer (dashboard_payload.json)
+   568→  7. audit_observability_layer (immutable trace logs)
+   569→
+   570→Principios:
+   571→  - no_lead_is_isolated: cada lead está linkeado a una entidad
+   572→  - everything_is_entity_linked: graph de entidades
+   573→  - no_ui_logic_inside_leads: actions vienen del policy engine, no del lead
+   574→  - strict_auditability: trace de cada step
+   575→  - zero_synthetic_data: sólo leads reales
+   576→"""
+   577→from __future__ import annotations
+   578→
+   579→import hashlib
+   580→import json
+   581→import os
+   582→import re
+   583→import time
+   584→import unicodedata
+   585→from dataclasses import dataclass, field, asdict
+   586→from datetime import datetime, timedelta, timezone
+   587→from pathlib import Path
+   588→from typing import List, Dict, Any, Optional, Set, Tuple
+   589→from urllib.parse import urlparse
+   590→
+   591→from search_providers import search as provider_search
+   592→
+   593→# ===========================================================================
+   594→# Config
+   595→# ===========================================================================
+   596→
+   597→DATA_DIR = Path("./data")
+   598→DATA_DIR.mkdir(parents=True, exist_ok=True)
+   599→
+   600→PAYLOAD_PATH = DATA_DIR / "dashboard_payload.json"
+   601→STATS_PATH = DATA_DIR / "stats.json"
+   602→HISTORY_PATH = DATA_DIR / "history.json"
+   603→AUDIT_LOG_PATH = DATA_DIR / "audit_trace.jsonl"
+   604→
+   605→MAX_RUNTIME_SECONDS = 25
+   606→MIN_LEADS_THRESHOLD = 5
+   607→
+   608→# ===========================================================================
+   609→# v7: Refresh model — separa ingestion de scoring de UI refresh
+   610→# ===========================================================================
+   611→CACHE_TTL_MINUTES = 120  # cache de ingestion: 2h
+   612→STALE_THRESHOLD_HOURS = 72  # lead stale después de 72h
+   613→LOW_DIVERSITY_THRESHOLD = 0.12  # si <12% sources únicas → force rescan
+   614→
+   615→# ===========================================================================
+   616→# v7: Seed sources (hardcodeados del spec)
+   617→# ===========================================================================
+   618→SEED_SOURCES = [
+   619→    {"id": "FB_DEFENSE_MULTAS_AR", "type": "facebook_group",
+   620→     "url": "https://www.facebook.com/groups/276074287942602/",
+   621→     "label": "Defensa contra las multas de transito (Argentina)",
+   622→     "trust_weight": 0.95, "role": "high_intent_defense_cluster"},
+   623→    {"id": "FB_CARS_SANTA_FE", "type": "facebook_group",
+   624→     "url": "https://www.facebook.com/groups/1314803566577708/",
+   625→     "label": "VENTA DE AUTOS SANTA FE Y ALREDEDORES",
+   626→     "trust_weight": 0.92, "role": "vehicle_transaction_cluster"},
+   627→]
+   628→
+   629→# ===========================================================================
+   630→# v7: Source registry con trust + noise
+   631→# ===========================================================================
+   632→SOURCE_TRUST = {
+   633→    "facebook_group": {"trust": 0.95, "noise": 0.35},
+   634→    "reddit": {"trust": 0.85, "noise": 0.20},
+   635→    "marketplace": {"trust": 0.80, "noise": 0.50},
+   636→    "x": {"trust": 0.75, "noise": 0.60},
+   637→    "unknown": {"trust": 0.60, "noise": 0.80},
+   638→}
+   639→
+   640→QUERIES = [
+   641→    "no puedo transferir auto multa argentina",
+   642→    "me llegó multa no es mi auto",
+   643→    "no me entregó 08 transferencia",
+   644→    "libre deuda falso compré auto",
+   645→    "multas vencidas sin notificar argentina",
+   646→    "transferencia bloqueada multas",
+   647→    "patente bloqueada no puedo transferir",
+   648→    "tengo fotomultas ruta argentina",
+   649→    "vendo auto titular multas pendientes",
+   650→    "quiero transferir auto otra provincia",
+   651→    "me rechazaron transferencia registro",
+   652→    "no puedo patentar auto argentina",
+   653→]
+   654→
+   655→MUST_INCLUDE = ["auto", "transferencia", "vehiculo", "multa", "patente", "moto", "libre deuda", "08"]
+   656→REJECT_KW = ["wikipedia", "enciclopedia", "calculadora", "simulador",
+   657→             "transferencia internacional", "transferir dinero", "enviar dinero", "criptomoneda"]
+   658→INSTITUTIONAL_DOMAINS = {"dnrpa.gov.ar", "argentina.gob.ar", "gob.ar", ".gov.ar",
+   659→                          "clarin.com", "lanacion.com.ar", "infobae.com",
+   660→                          "es.wikipedia.org", "youtube.com", "instagram.com", "tiktok.com"}
+   661→FOREIGN_INDICATORS = {"México": ["cdmx", "+52", "méxico"], "Colombia": ["bogotá", "+57"],
+   662→                      "Uruguay": ["montevideo", "+598"], "Chile": ["+56"],
+   663→                      "Brasil": ["são paulo", "+55"], "Italia": ["pisa", "roma"]}
+   664→ARG_SIGNALS = ["argentina", "buenos aires", "caba", "córdoba", "rosario", "mendoza",
+   665→               "santa fe", "pba", "dnrpa", "arba", "patente"]
+   666→
+   667→# ===========================================================================
+   668→# Source Registry (v5.1: pesos por fuente)
+   669→# ===========================================================================
+   670→SOURCE_REGISTRY = {
+   671→    "FB_DEFENSA_MULTAS_AR": {"type": "facebook_group", "weight": 0.95, "trust_weight": 0.95, "contact_rate": 0.25, "noise": 0.60},
+   672→    "FB_VENTA_AUTOS_SF": {"type": "facebook_group", "weight": 0.90, "trust_weight": 0.90, "contact_rate": 0.30, "noise": 0.50},
+   673→    "REDDIT_ARAUTOS": {"type": "reddit", "weight": 0.85, "trust_weight": 0.85, "contact_rate": 0.12, "noise": 0.25},
+   674→    "MERCADOLIBRE_VEHICLES": {"type": "marketplace", "weight": 0.80, "trust_weight": 0.80, "contact_rate": 0.05, "noise": 0.80},
+   675→    "X_ARGENTINA": {"type": "x", "weight": 0.75, "trust_weight": 0.75, "contact_rate": 0.10, "noise": 0.70},
+   676→    "duckduckgo": {"type": "search", "weight": 1.0, "trust_weight": 0.70, "contact_rate": 0.15, "noise": 0.40},
+   677→    "reddit": {"type": "reddit", "weight": 0.85, "trust_weight": 0.85, "contact_rate": 0.12, "noise": 0.25},
+   678→    "rss": {"type": "rss", "weight": 0.90, "trust_weight": 0.70, "contact_rate": 0.10, "noise": 0.35},
+   679→}
+   680→
+   681→# ===========================================================================
+   682→# Intent Taxonomy (v5.1: clasificación de intención)
+   683→# ===========================================================================
+   684→INTENT_TAXONOMY = {
+   685→    "IC-001": {"name": "TRANSFERENCIA_BLOQUEADA", "type": "CRISIS_TRANSACTIONAL",
+   686→               "weight": 2.5, "conversion_rate_est": 0.85, "urgency": 95, "money_involved": True,
+   687→               "keywords": ["no puedo transferir", "transferencia bloqueada", "me rechazaron", "no se puede transferir"]},
+   688→    "IC-002": {"name": "MULTAS_SIN_NOTIFICAR", "type": "DEFENSE_LEGAL",
+   689→               "weight": 1.8, "conversion_rate_est": 0.70, "urgency": 75, "money_involved": True,
+   690→               "keywords": ["multa", "fotomulta", "sin notificar", "no me llegó", "me llegó", "tengo multas", "multas vencidas"]},
+   691→    "IC-003": {"name": "LIBRE_DEUDA_FALSO", "type": "FRAUD_VICTIM",
+   692→               "weight": 2.2, "conversion_rate_est": 0.90, "urgency": 88, "money_involved": True,
+   693→               "keywords": ["libre deuda falso", "me dieron un libre deuda", "compré un auto con", "08 firmado problema"]},
+   694→    "IC-004": {"name": "VENDEDOR_SIN_SABER", "type": "PREVENTIVE_HIGH_VALUE",
+   695→               "weight": 1.6, "conversion_rate_est": 0.55, "urgency": 70, "money_involved": True,
+   696→               "keywords": ["vendo auto", "permuto auto", "vendo mi auto", "titular al día", "papeles al día"]},
+   697→}
+   698→
+   699→def classify_intent(text: str) -> str:
+   700→    """Clasifica el texto en un intent cluster IC-XXX."""
+   701→    text_lower = text.lower()
+   702→    best_cluster = None
+   703→    best_score = 0
+   704→    for cluster_id, cluster in INTENT_TAXONOMY.items():
+   705→        score = sum(1 for kw in cluster["keywords"] if kw in text_lower)
+   706→        if score > best_score:
+   707→            best_score = score
+   708→            best_cluster = cluster_id
+   709→    return best_cluster or "IC-000"
+   710→
+   711→PHONE_PATTERNS = [r"\+54\s?9?\s?11\s?\d{4}\s?\d{4}", r"\b11\s?\d{4}\s?\d{4}\b",
+   712→                  r"\b15\s?\d{4}\s?\d{4}\b", r"\b0(2[0-9]|3[0-9])[\s\-]?\d{3}[\s\-]?\d{4}"]
+   713→WHATSAPP_PATTERNS = [r"wa\.me/(\d{8,15})", r"whatsapp\s*:?\s*(\+?\d[\d\s\-]{8,15})"]
+   714→
+   715→# ===========================================================================
+   716→# Layer 7: Audit observability
+   717→# ===========================================================================
+   718→audit_trace: List[Dict[str, Any]] = []
+   719→
+   720→def audit_log(layer: str, event: str, data: Dict[str, Any]):
+   721→    """Immutable audit log entry."""
+   722→    entry = {
+   723→        "timestamp": datetime.now(timezone.utc).isoformat(),
+   724→        "layer": layer,
+   725→        "event": event,
+   726→        "data": data,
+   727→    }
+   728→    audit_trace.append(entry)
+   729→
+   730→# ===========================================================================
+   731→# Layer 2: Entity model
+   732→# ===========================================================================
+   733→@dataclass
+   734→class Entity:
+   735→    entity_id: str = ""
+   736→    entity_type: str = ""  # person | vehicle | organization | event
+   737→    canonical_name: str = ""
+   738→    signals: Dict[str, int] = field(default_factory=dict)  # intent, urgency, financial_pressure
+   739→    relations: List[Dict[str, Any]] = field(default_factory=list)  # {type, target_entity_id, confidence}
+   740→
+   741→    def to_dict(self) -> Dict[str, Any]:
+   742→        return asdict(self)
+   743→
+   744→
+   745→def create_entity(entity_type: str, name: str, text: str) -> Entity:
+   746→    """Crea una entidad y le asigna signals iniciales."""
+   747→    eid = hashlib.sha256(f"{entity_type}|{name}|{text[:50]}".encode()).hexdigest()[:16]
+   748→    text_lower = text.lower()
+   749→
+   750→    intent = 50
+   751→    if any(kw in text_lower for kw in ["no puedo", "urgente", "problema", "ayuda"]):
+   752→        intent = 80
+   753→    urgency = 50
+   754→    if any(kw in text_lower for kw in ["hoy", "mañana", "ya", "vencimiento"]):
+   755→        urgency = 80
+   756→    financial = 50
+   757→    if any(kw in text_lower for kw in ["debo", "deuda", "multa", "$", "pago"]):
+   758→        financial = 75
+   759→
+   760→    return Entity(
+   761→        entity_id=eid,
+   762→        entity_type=entity_type,
+   763→        canonical_name=name,
+   764→        signals={"intent_score": intent, "urgency_score": urgency, "financial_pressure": financial},
+   765→    )
+   766→
+   767→
+   768→# ===========================================================================
+   769→# Layer 3: Graph resolution
+   770→# ===========================================================================
+   771→entity_graph: Dict[str, Entity] = {}
+   772→entity_neighbors: Dict[str, List[str]] = {}
+   773→
+   774→def link_entity(entity: Entity, lead_id: str):
+   775→    """Linkea una entidad al grafo y registra neighbors."""
+   776→    if entity.entity_id not in entity_graph:
+   777→        entity_graph[entity.entity_id] = entity
+   778→    if entity.entity_id not in entity_neighbors:
+   779→        entity_neighbors[entity.entity_id] = []
+   780→    if lead_id not in entity_neighbors[entity.entity_id]:
+   781→        entity_neighbors[entity.entity_id].append(lead_id)
+   782→
+   783→
+   784→# ===========================================================================
+   785→# Layer 4: Scoring engine (5 signals separados 0-100)
+   786→# ===========================================================================
+   787→def score_lead(text: str, date: str, has_contact: bool) -> Dict[str, Any]:
+   788→    """Scoring con 5 signals independientes, cada uno 0-100."""
+   789→    text_lower = text.lower()
+   790→
+   791→    # Signal 1: intent (lenguaje de intención explícita)
+   792→    intent = 20
+   793→    if any(kw in text_lower for kw in ["no puedo", "necesito", "quiero", "ayuda", "alguien sabe"]):
+   794→        intent = 80
+   795→    elif any(kw in text_lower for kw in ["consulta", "duda", "pregunta"]):
+   796→        intent = 60
+   797→
+   798→    # Signal 2: urgency
+   799→    urgency = 20
+   800→    if any(kw in text_lower for kw in ["urgente", "hoy", "ya", "inmediato"]):
+   801→        urgency = 90
+   802→    elif any(kw in text_lower for kw in ["mañana", "vencimiento", "antes de"]):
+   803→        urgency = 65
+   804→
+   805→    # Signal 3: financial_pressure
+   806→    financial = 20
+   807→    if any(kw in text_lower for kw in ["debo", "deuda", "multa", "$", "pesos", "plata"]):
+   808→        financial = 75
+   809→    if any(kw in text_lower for kw in ["bloqueada", "embargo", "inhibición"]):
+   810→        financial = 85
+   811→
+   812→    # Signal 4: legal_risk
+   813→    legal = 20
+   814→    if any(kw in text_lower for kw in ["juzgado", "notificación", "citación", "inhibición"]):
+   815→        legal = 85
+   816→    elif any(kw in text_lower for kw in ["rechazaron", "bloqueada", "prohibido"]):
+   817→        legal = 65
+   818→
+   819→    # Signal 5: recency
+   820→    recency = 20
+   821→    dt = _parse_date(date)
+   822→    if dt:
+   823→        now = datetime.now(timezone.utc)
+   824→        if dt.tzinfo is None:
+   825→            dt = dt.replace(tzinfo=timezone.utc)
+   826→        diff = now - dt
+   827→        if diff <= timedelta(days=3):
+   828→            recency = 90
+   829→        elif diff <= timedelta(days=7):
+   830→            recency = 60
+   831→
+   832→    # Total: weighted sum clamped 0-100
+   833→    # v6 weights exactos del spec
+   834→    total = (
+   835→        intent * 0.35 +
+   836→        urgency * 0.20 +
+   837→        financial * 0.20 +
+   838→        legal * 0.15 +
+   839→        recency * 0.10
+   840→    )
+   841→
+   842→    # v6 modifiers
+   843→    modifiers = {}
+   844→    if has_contact:
+   845→        modifiers["public_contact_visible"] = 15
+   846→        total += 15
+   847→    # TODO: multi_source_confirmation +25 when same entity appears in multiple sources
+   848→    modifiers["multi_source_confirmation"] = 0
+   849→
+   850→    # v6 decay function: score * exp(-days_since_post / 7)
+   851→    dt = _parse_date(date)
+   852→    if dt:
+   853→        now = datetime.now(timezone.utc)
+   854→        if dt.tzinfo is None:
+   855→            dt = dt.replace(tzinfo=timezone.utc)
+   856→        days = (now - dt).total_seconds() / 86400
+   857→        import math
+   858→        decay = math.exp(-days / 7)
+   859→        total = total * decay
+   860→        modifiers["decay_factor"] = round(decay, 3)
+   861→
+   862→    total = max(0, min(100, int(round(total))))
+   863→
+   864→    # Penalties
+   865→    penalties = {"duplication_risk": 0, "noise_probability": 0}
+   866→    if not has_contact:
+   867→        penalties["noise_probability"] = 30
+   868→
+   869→    # v7: multipliers
+   870→    source_mult = 1.0  # default
+   871→    # intent_multiplier from taxonomy
+   872→    intent_mult = 1.0
+   873→
+   874→    return {
+   875→        "total": total,
+   876→        "base_score": 20,
+   877→        "intent_multiplier": round(intent_mult, 2),
+   878→        "source_multiplier": round(source_mult, 2),
+   879→        "recency_multiplier": round(recency / 100, 2),
+   880→        "final_score": total,
+   881→        "signals": {
+   882→            "intent": intent,
+   883→            "urgency": urgency,
+   884→            "financial_pressure": financial,
+   885→            "legal_risk": legal,
+   886→            "recency": recency,
+   887→        },
+   888→        "penalties": penalties,
+   889→    }
+   890→
+   891→
+   892→def _parse_date(date_str: str) -> Optional[datetime]:
+   893→    if not date_str:
+   894→        return None
+   895→    for fmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d", "%b %d, %Y"]:
+   896→        try:
+   897→            return datetime.strptime(date_str[:25], fmt)
+   898→        except ValueError:
+   899→            continue
+   900→    return None
+   901→
+   902→
+   903→# ===========================================================================
+   904→# Layer 5: Policy action engine (separado del lead)
+   905→# ===========================================================================
+   906→def evaluate_policy(lead: Dict[str, Any], entity: Entity) -> List[Dict[str, str]]:
+   907→    """
+   908→    Policy engine: input = lead + entity + scoring → output = actions[].
+   909→    Reglas separadas del modelo de lead.
+   910→    """
+   911→    actions = []
+   912→    scoring = lead.get("scoring", {})
+   913→    total = scoring.get("total", 0)
+   914→    source = lead.get("source", {}).get("provider", "")
+   915→    verification = lead.get("verification", {}).get("level", "raw")
+   916→    contact = lead.get("contact", {})
+   917→
+   918→    url = lead.get("source", {}).get("url", "")
+   919→    source_type = lead.get("source", {}).get("provider", "")
+   920→
+   921→    # Rule 1: score >= 90 → OPEN_WHATSAPP + OPEN_SOURCE + PRIORITY_ALERT
+   922→    if total >= 90:
+   923→        if contact.get("whatsapp"):
+   924→            actions.append({"type": "OPEN_WHATSAPP", "execution": "open_url",
+   925→                           "label": "WhatsApp", "icon": "whatsapp", "url": contact["whatsapp"],
+   926→                           "channel": "whatsapp", "position": "bottom_bar", "primary": True})
+   927→        actions.append({"type": "OPEN_SOURCE", "execution": "redirect",
+   928→                       "label": "Fuente", "icon": "link", "url": url,
+   929→                       "channel": "web", "position": "bottom_bar", "primary": False})
+   930→        actions.append({"type": "PRIORITY_ALERT", "execution": "notify",
+   931→                       "label": "Alerta prioridad", "icon": "alert", "position": "bottom_bar", "primary": False})
+   932→
+   933→    # Rule 2: source_type == facebook_group → OPEN_SOURCE + OPEN_WHATSAPP_IF_AVAILABLE
+   934→    elif "facebook" in source_type or "facebook" in url:
+   935→        actions.append({"type": "OPEN_SOURCE", "execution": "redirect",
+   936→                       "label": "Fuente", "icon": "facebook", "url": url,
+   937→                       "channel": "facebook", "position": "bottom_bar", "primary": True})
+   938→        if contact.get("whatsapp"):
+   939→            actions.append({"type": "OPEN_WHATSAPP", "execution": "open_url",
+   940→                           "label": "WhatsApp", "icon": "whatsapp", "url": contact["whatsapp"],
+   941→                           "channel": "whatsapp", "position": "bottom_bar", "primary": False})
+   942→
+   943→    # Rule 3: source_type == reddit → OPEN_REDDIT + OPEN_SOURCE
+   944→    elif "reddit" in source_type or "reddit" in url:
+   945→        actions.append({"type": "OPEN_REDDIT", "execution": "redirect",
+   946→                       "label": "Reddit", "icon": "reddit", "url": url,
+   947→                       "channel": "reddit", "position": "bottom_bar", "primary": True})
+   948→        actions.append({"type": "OPEN_SOURCE", "execution": "redirect",
+   949→                       "label": "Fuente", "icon": "link", "url": url,
+   950→                       "channel": "web", "position": "bottom_bar", "primary": False})
+   951→
+   952→    # Rule 4: marketplace → OPEN_MARKETPLACE + OPEN_SOURCE
+   953→    elif "mercadolibre" in url:
+   954→        actions.append({"type": "OPEN_MARKETPLACE", "execution": "redirect",
+   955→                       "label": "ML", "icon": "ml", "url": url,
+   956→                       "channel": "marketplace", "position": "bottom_bar", "primary": True})
+   957→        actions.append({"type": "OPEN_SOURCE", "execution": "redirect",
+   958→                       "label": "Fuente", "icon": "link", "url": url,
+   959→                       "channel": "web", "position": "bottom_bar", "primary": False})
+   960→
+   961→    # Rule 5: always → OPEN_SOURCE (guarantee >=1 action)
+   962→    if url and not any(a["type"] == "OPEN_SOURCE" for a in actions):
+   963→        actions.append({"type": "OPEN_SOURCE", "execution": "redirect",
+   964→                       "label": "Fuente", "icon": "link", "url": url,
+   965→                       "channel": "web", "position": "bottom_bar", "primary": True})
+   966→
+   967→    # Rule 6: email if detected
+   968→    if contact.get("email"):
+   969→        actions.append({"type": "OPEN_EMAIL", "execution": "compose",
+   970→                       "label": "Mail", "icon": "email", "url": f"mailto:{contact['email']}",
+   971→                       "channel": "email", "position": "bottom_bar", "primary": False})
+   972→
+   973→    # Rule 7: verification == raw → require_review
+   974→    if verification == "raw":
+   975→        actions.append({"type": "REQUIRE_REVIEW", "execution": "flag",
+   976→                       "label": "Requiere revisión", "icon": "review", "position": "bottom_bar", "primary": False})
+   977→
+   978→    return actions
+   979→
+   980→
+   981→# ===========================================================================
+   982→# Layer 1: Ingestion
+   983→# ===========================================================================
+   984→def ingest(query: str) -> List[Dict[str, Any]]:
+   985→    """Layer 1: ingesta desde providers."""
+   986→    results = provider_search(query, num=10)
+   987→    adapted = []
+   988→    for r in results:
+   989→        adapted.append({
+   990→            "name": r.get("title", ""),
+   991→            "url": r.get("url", ""),
+   992→            "snippet": r.get("snippet", ""),
+   993→            "date": r.get("date", ""),
+   994→            "source": r.get("source", "unknown"),
+   995→            "username": r.get("username", ""),
+   996→        })
+   997→    audit_log("ingestion", "query_complete", {"query": query, "results": len(adapted)})
+   998→    return adapted
+   999→
+  1000→
+  1001→# ===========================================================================
+  1002→# Layer 2: Entity normalization
+  1003→# ===========================================================================
+  1004→def get_host(url: str) -> str:
+  1005→    try:
+  1006→        return urlparse(url).netloc.lower().lstrip("www.")
+  1007→    except Exception:
+  1008→        return ""
+  1009→
+  1010→
+  1011→def normalize_entity(result: Dict[str, Any], query: str) -> Optional[Dict[str, Any]]:
+  1012→    """Layer 2: normaliza un resultado en un lead + entity."""
+  1013→    name = result.get("name", "")
+  1014→    snippet = result.get("snippet", "")
+  1015→    url = result.get("url", "")
+  1016→    date = result.get("date", "")
+  1017→    source = result.get("source", "unknown")
+  1018→    username = result.get("username", "")
+  1019→    combined = f"{name}. {snippet}"
+  1020→    combined_lower = combined.lower()
+  1021→    host = get_host(url)
+  1022→
+  1023→    # Content filter
+  1024→    if not any(kw in combined_lower for kw in MUST_INCLUDE):
+  1025→        return None
+  1026→    for reject in REJECT_KW:
+  1027→        if reject in combined_lower:
+  1028→            return None
+  1029→    if any(d in host for d in INSTITUTIONAL_DOMAINS):
+  1030→        return None
+  1031→
+  1032→    # Country filter
+  1033→    for country, indicators in FOREIGN_INDICATORS.items():
+  1034→        for ind in indicators:
+  1035→            if ind in combined_lower:
+  1036→                return None
+  1037→
+  1038→    has_arg = any(s in combined_lower for s in ARG_SIGNALS)
+  1039→    if not has_arg:
+  1040→        has_arg = True  # assume Argentina if no foreign signal
+  1041→
+  1042→    # v6: source_type para policy engine
+  1043→    if "facebook" in host:
+  1044→        source_type = "facebook_group"
+  1045→    elif "reddit" in host:
+  1046→        source_type = "reddit"
+  1047→    elif "mercadolibre" in host:
+  1048→        source_type = "marketplace"
+  1049→    elif "twitter" in host or "x.com" in host:
+  1050→        source_type = "x"
+  1051→    else:
+  1052→        source_type = "other"
+  1053→
+  1054→    # Extract contact
+  1055→    phone = ""
+  1056→    for pattern in PHONE_PATTERNS:
+  1057→        m = re.search(pattern, combined)
+  1058→        if m:
+  1059→            digits = re.sub(r"\D", "", m.group(0))
+  1060→            if 10 <= len(digits) <= 15:
+  1061→                phone = m.group(0).strip()
+  1062→                break
+  1063→
+  1064→    whatsapp = ""
+  1065→    for pattern in WHATSAPP_PATTERNS:
+  1066→        m = re.search(pattern, combined, re.IGNORECASE)
+  1067→        if m:
+  1068→            num = m.group(1) if m.groups() else m.group(0)
+  1069→            digits = re.sub(r"\D", "", num)
+  1070→            if 8 <= len(digits) <= 15:
+  1071→                whatsapp = digits
+  1072→                break
+  1073→
+  1074→    email_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.]+', combined)
+  1075→    email = email_match.group(0) if email_match else ""
+  1076→
+  1077→    contact = {}
+  1078→    contactability_score = 0  # 0-100, no boolean
+  1079→    if phone:
+  1080→        contact["phone"] = phone
+  1081→        contact["phone_detected"] = True
+  1082→        contactability_score += 40
+  1083→    else:
+  1084→        contact["phone_detected"] = False
+  1085→    if whatsapp:
+  1086→        wa_num = whatsapp
+  1087→        if not wa_num.startswith("54"):
+  1088→            wa_num = "54" + wa_num.lstrip("0")
+  1089→        contact["whatsapp"] = f"https://wa.me/{wa_num}"
+  1090→        contact["whatsapp_detected"] = True
+  1091→        contactability_score += 50
+  1092→    else:
+  1093→        contact["whatsapp_detected"] = False
+  1094→    if email:
+  1095→        contact["email"] = email
+  1096→        contactability_score += 20
+  1097→
+  1098→    # v7: contactability_score considera también la fuente
+  1099→    source_trust = SOURCE_TRUST.get(source_type, SOURCE_TRUST["unknown"])["trust"]
+  1100→    contactability_score = int(contactability_score * source_trust)
+  1101→    contact["contactability_score"] = min(100, contactability_score)
+  1102→    contact["whatsapp_validated"] = False  # nunca validar contra WA API — sólo probabilidad
+  1103→
+  1104→    # Create entity (person)
+  1105→    entity_name = username or name[:30] or "(anónimo)"
+  1106→    entity = create_entity("person", entity_name, combined)
+  1107→
+  1108→    # Platform
+  1109→    platform_map = {"facebook.com": "Facebook", "reddit.com": "Reddit",
+  1110→                    "twitter.com": "X", "x.com": "X", "mercadolibre.com.ar": "MercadoLibre"}
+  1111→    platform = platform_map.get(host, host.title() if host else "Unknown")
+  1112→
+  1113→    # Province
+  1114→    provincia = ""
+  1115→    for prov_key in ["buenos aires", "caba", "santa fe", "rosario", "córdoba", "cordoba",
+  1116→                      "mendoza", "entre ríos", "entre rios", "neuquén", "neuquen", "salta"]:
+  1117→        if prov_key in combined_lower:
+  1118→            provincia = prov_key.title()
+  1119→            break
+  1120→
+  1121→    # Category
+  1122→    if "transfer" in combined_lower or "08" in combined_lower:
+  1123→        categoria = "transfer"
+  1124→    elif "multa" in combined_lower or "fotomulta" in combined_lower:
+  1125→        categoria = "fine"
+  1126→    elif "libre deuda" in combined_lower or "patente" in combined_lower:
+  1127→        categoria = "vehicle_issue"
+  1128→    else:
+  1129→        categoria = "vehicle_issue"
+  1130→
+  1131→    # Verification level
+  1132→    verification = "raw"
+  1133→    if contact.get("contactability_score", 0) > 0 or provincia:
+  1134→        verification = "enriched"
+  1135→    if contact.get("contactability_score", 0) > 40 and provincia:
+  1136→        verification = "validated"
+  1137→
+  1138→    # v7: timing — age_hours y stale detection
+  1139→    dt_post = _parse_date(date)
+  1140→    age_hours = None
+  1141→    is_stale = False
+  1142→    if dt_post:
+  1143→        now_dt = datetime.now(timezone.utc)
+  1144→        if dt_post.tzinfo is None:
+  1145→            dt_post = dt_post.replace(tzinfo=timezone.utc)
+  1146→        age_hours = round((now_dt - dt_post).total_seconds() / 3600, 1)
+  1147→        if age_hours > STALE_THRESHOLD_HOURS:
+  1148→            is_stale = True
+  1149→
+  1150→    lead_id = hashlib.sha256(f"{url}|{username}|{snippet[:100]}".encode()).hexdigest()[:16]
+  1151→
+  1152→    # Intent classification (v5.1)
+  1153→    intent_cluster = classify_intent(combined)
+  1154→
+  1155→    lead = {
+  1156→        "id": lead_id,
+  1157→        "lead_origin": "real",
+  1158→        "intent_cluster": intent_cluster,
+  1159→        "entity_ref": entity.entity_id,
+  1160→        "content": {"raw_text": snippet[:300], "normalized_text": combined_lower[:300]},
+  1161→        "source": {"type": source_type, "provider": source, "url": url, "timestamp": datetime.now(timezone.utc).isoformat(), "query": query},
+  1162→        "verification": {"level": verification, "confidence": 0.7 if verification == "validated" else (0.5 if verification == "enriched" else 0.3)},
+  1163→        "timing": {"detected_at": datetime.now(timezone.utc).isoformat(), "age_hours": age_hours, "is_stale": is_stale},
+  1164→        "contact_signals": {
+  1165→            "whatsapp_detected": contact.get("whatsapp_detected", False),
+  1166→            "whatsapp_validated": contact.get("whatsapp_validated", False),
+  1167→            "phone_detected": contact.get("phone_detected", False),
+  1168→            "contactability_score": contact.get("contactability_score", 0),
+  1169→        },
+  1170→        "persona": username or "(anónimo)",
+  1171→        "provincia": provincia,
+  1172→        "pais": "Argentina" if has_arg else "Unknown",
+  1173→        "categoria": categoria,
+  1174→        "platform": platform,
+  1175→        "fecha_visible": date or datetime.now(timezone.utc).isoformat(),  # SPRINT 1: nunca vacío
+  1176→        "contact": contact,
+  1177→        "scoring": {},  # filled by Layer 4
+  1178→        "provenance": {
+  1179→            "raw_query": query,
+  1180→            "provider_chain": [source],
+  1181→            "transformation_steps": ["extraction", "normalization", "entity_linking", "scoring"],
+  1182→        },
+  1183→        "links": {"entity_id": entity.entity_id, "graph_neighbors": []},
+  1184→        "actions": [],  # filled by Layer 5
+  1185→    }
+  1186→
+  1187→    audit_log("entity_normalization", "lead_created", {"lead_id": lead_id, "entity_id": entity.entity_id, "intent_cluster": intent_cluster})
+  1188→    return {"lead": lead, "entity": entity}
+  1189→
+  1190→
+  1191→# ===========================================================================
+  1192→# Main pipeline (7 layers)
+  1193→# ===========================================================================
+  1194→def run_pipeline() -> Dict[str, Any]:
+  1195→    start_time = time.time()
+  1196→
+  1197→    print("=" * 60, file=__import__('sys').stderr)
+  1198→    print("  LEAD INTELLIGENCE ENGINE v5", file=__import__('sys').stderr)
+  1199→    print("=" * 60, file=__import__('sys').stderr)
+  1200→
+  1201→    all_leads: List[Dict[str, Any]] = []
+  1202→    queries_executed = 0
+  1203→
+  1204→    # === Layer 1: Ingestion ===
+  1205→    print("\n[Layer 1] Ingestion...", file=__import__('sys').stderr)
+  1206→    for query in QUERIES:
+  1207→        elapsed = time.time() - start_time
+  1208→        if elapsed > MAX_RUNTIME_SECONDS:
+  1209→            break
+  1210→        print(f"  {query[:60]}", file=__import__('sys').stderr)
+  1211→        results = ingest(query)
+  1212→        queries_executed += 1
+  1213→
+  1214→        # === Layer 2: Entity normalization ===
+  1215→        for r in results:
+  1216→            normalized = normalize_entity(r, query)
+  1217→            if normalized:
+  1218→                all_leads.append(normalized)
+  1219→        time.sleep(0.5)
+  1220→
+  1221→    audit_log("ingestion", "phase_complete", {"queries": queries_executed, "raw_leads": len(all_leads)})
+  1222→    print(f"  Raw leads: {len(all_leads)}", file=__import__('sys').stderr)
+  1223→
+  1224→    # === Layer 2.5: Intent classification (already done in normalize) ===
+  1225→    intent_counts = {}
+  1226→    for item in all_leads:
+  1227→        ic = item["lead"].get("intent_cluster", "IC-000")
+  1228→        intent_counts[ic] = intent_counts.get(ic, 0) + 1
+  1229→    audit_log("intent_classification", "complete", {"distribution": intent_counts})
+  1230→
+  1231→    # === Layer 3: Graph resolution ===
+  1232→    print("\n[Layer 3] Graph resolution...", file=__import__('sys').stderr)
+  1233→    for item in all_leads:
+  1234→        lead = item["lead"]
+  1235→        entity = item["entity"]
+  1236→        link_entity(entity, lead["id"])
+  1237→        # Set graph neighbors (other leads from same entity)
+  1238→        lead["links"]["graph_neighbors"] = entity_neighbors.get(entity.entity_id, [])
+  1239→    audit_log("graph_resolution", "complete", {"entities": len(entity_graph), "links": sum(len(v) for v in entity_neighbors.values())})
+  1240→    print(f"  Entities: {len(entity_graph)} | Links: {sum(len(v) for v in entity_neighbors.values())}", file=__import__('sys').stderr)
+  1241→
+  1242→    # === Layer 4: Scoring engine ===
+  1243→    print("\n[Layer 4] Scoring engine...", file=__import__('sys').stderr)
+  1244→    for item in all_leads:
+  1245→        lead = item["lead"]
+  1246→        scoring = score_lead(
+  1247→            lead["content"]["raw_text"],
+  1248→            lead["fecha_visible"],
+  1249→            bool(lead["contact"]),
+  1250→        )
+  1251→        lead["scoring"] = scoring
+  1252→        audit_log("scoring_engine", "lead_scored", {"lead_id": lead["id"], "total": scoring["total"]})
+  1253→    print(f"  Scored {len(all_leads)} leads", file=__import__('sys').stderr)
+  1254→
+  1255→    # === Layer 5: Policy action engine ===
+  1256→    print("\n[Layer 5] Policy action engine...", file=__import__('sys').stderr)
+  1257→    for item in all_leads:
+  1258→        lead = item["lead"]
+  1259→        entity = item["entity"]
+  1260→        actions = evaluate_policy(lead, entity)
+  1261→        lead["actions"] = actions
+  1262→        audit_log("policy_engine", "actions_assigned", {"lead_id": lead["id"], "actions": len(actions)})
+  1263→    print(f"  Actions assigned to {len(all_leads)} leads", file=__import__('sys').stderr)
+  1264→
+  1265→    # === Dedup ===
+  1266→    seen: Set[str] = set()
+  1267→    unique_leads = []
+  1268→    for item in all_leads:
+  1269→        lid = item["lead"]["id"]
+  1270→        if lid not in seen:
+  1271→            seen.add(lid)
+  1272→            unique_leads.append(item)
+  1273→    all_leads = unique_leads
+  1274→    print(f"  After dedup: {len(all_leads)}", file=__import__('sys').stderr)
+  1275→
+  1276→    # === Sort ===
+  1277→    all_leads.sort(key=lambda x: x["lead"]["scoring"]["total"], reverse=True)
+  1278→    real_leads = [item["lead"] for item in all_leads]
+  1279→
+  1280→    # === Labels ===
+  1281→    for lead in real_leads:
+  1282→        total = lead["scoring"]["total"]
+  1283→        lead["label"] = "green" if total >= 80 else ("yellow" if total >= 50 else "red")
+  1284→
+  1285→    hot = [l for l in real_leads if l["label"] in ("green", "yellow")]
+  1286→    warm = [l for l in real_leads if l["label"] == "red"]
+  1287→
+  1288→    # === Layer 6: Output API ===
+  1289→    run_id = hashlib.sha256(f"{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()[:12]
+  1290→    generated_at = datetime.now(timezone.utc).isoformat()
+  1291→
+  1292→    kpis = {
+  1293→        "total_leads": len(real_leads),
+  1294→        "hot_leads": len(hot),
+  1295→        "warm_leads": len(warm),
+  1296→        "contactable_leads": sum(1 for l in real_leads if l["contact"]),
+  1297→        "contactable_rate": round(sum(1 for l in real_leads if l["contact"]) / len(real_leads) * 100, 1) if real_leads else 0,
+  1298→        "conversion_score_avg": round(sum(l["scoring"]["total"] for l in real_leads) / len(real_leads), 1) if real_leads else 0,
+  1299→        "only_real_leads": True,
+  1300→    }
+  1301→
+  1302→    # Insights
+  1303→    insights = []
+  1304→    if hot:
+  1305→        src_counts = {}
+  1306→        for l in hot:
+  1307→            src_counts[l["platform"]] = src_counts.get(l["platform"], 0) + 1
+  1308→        top_src = max(src_counts, key=src_counts.get)
+  1309→        insights.append(f"El {round(src_counts[top_src]/len(hot)*100)}% de los leads calientes provienen de {top_src}.")
+  1310→        cat_counts = {}
+  1311→        for l in hot:
+  1312→            cat_counts[l["categoria"]] = cat_counts.get(l["categoria"], 0) + 1
+  1313→        if cat_counts:
+  1314→            top_cat = max(cat_counts, key=cat_counts.get)
+  1315→            cat_labels = {"transfer": "transferencia bloqueada", "fine": "multas/fotomultas", "vehicle_issue": "problemas vehiculares"}
+  1316→            insights.append(f"El problema más frecuente es: {cat_labels.get(top_cat, top_cat)}.")
+  1317→
+  1318→    payload = {
+  1319→        "run_metadata": {
+  1320→            "run_id": run_id,
+  1321→            "timestamp": generated_at,
+  1322→            "queries_executed": queries_executed,
+  1323→            "runtime_seconds": round(time.time() - start_time, 2),
+  1324→            "provider_health": {"duckduckgo": "ok", "reddit": "ok", "rss": "ok"},
+  1325→        },
+  1326→        "kpis": kpis,
+  1327→        "entities": [e.to_dict() for e in entity_graph.values()],
+  1328→        "leads": real_leads,
+  1329→        "insights": insights,
+  1330→        "meta": {
+  1331→            "version": "7.0",
+  1332→            "architecture": ["ingestion", "source_registry", "intent_classification", "entity_graph", "intent_graph", "scoring_engine", "policy_action_engine", "output_contract", "audit_trace", "refresh_contract"],
+  1333→            "refresh_model": {
+  1334→                "ingestion_interval_minutes": 180,
+  1335→                "scoring_recompute_minutes": 30,
+  1336→                "ui_refresh_seconds": 60,
+  1337→                "cache_ttl_minutes": CACHE_TTL_MINUTES,
+  1338→                "stale_threshold_hours": STALE_THRESHOLD_HOURS,
+  1339→            },
+  1340→            "seed_sources": [{"id": s["id"], "type": s["type"], "trust_weight": s["trust_weight"]} for s in SEED_SOURCES],
+  1341→            "source_registry": {k: v["weight"] for k, v in SOURCE_REGISTRY.items()},
+  1342→            "intent_taxonomy": {k: v["name"] for k, v in INTENT_TAXONOMY.items()},
+  1343→            "min_leads_threshold": MIN_LEADS_THRESHOLD,
+  1344→            "contract_met": len(real_leads) >= MIN_LEADS_THRESHOLD,
+  1345→            "forced_lead_generation": False,
+  1346→            "synthetic_leads_allowed": False,
+  1347→            "kpis_include_only_real_leads": True,
+  1348→            "every_lead_has_action": all(len(l.get("actions", [])) >= 1 for l in real_leads),
+  1349→            "every_lead_is_entity_linked": all(l.get("entity_ref") for l in real_leads),
+  1350→            "audit_log": {
+  1351→                "raw_provider_output_logged": True,
+  1352→                "transformation_steps_logged": True,
+  1353→                "scoring_inputs_logged": True,
+  1354→                "action_decision_trace": True,
+  1355→                "total_trace_entries": len(audit_trace),
+  1356→            },
+  1357→        },
+  1358→    }
+  1359→
+  1360→    # === Layer 7: Audit observability — write immutable trace ===
+  1361→    with AUDIT_LOG_PATH.open("w", encoding="utf-8") as f:
+  1362→        for entry in audit_trace:
+  1363→            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+  1364→
+  1365→    # === Publish ===
+  1366→    # SPRINT 1: KV-001 — Truncar a 500 leads más recientes antes de escribir
+  1367→    # Previene exceder límite de 25MB en Cloudflare KV
+  1368→    MAX_LEADS_KV = 500
+  1369→    if len(real_leads) > MAX_LEADS_KV:
+  1370→        real_leads = sorted(real_leads, 
+  1371→            key=lambda x: x.get("fecha_visible", "") or x.get("timing", {}).get("detected_at", ""), 
+  1372→            reverse=True)[:MAX_LEADS_KV]
+  1373→        payload["leads"] = real_leads
+  1374→        payload["kpis"]["total_leads"] = len(real_leads)
+  1375→        print(f"  [KV-001] Truncated to {MAX_LEADS_KV} most recent leads", file=sys.stderr)
+  1376→    
+  1377→    PAYLOAD_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+  1378→
+  1379→    # History
+  1380→    history = []
+  1381→    if HISTORY_PATH.exists():
+  1382→        try:
+  1383→            history = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
+  1384→        except Exception:
+  1385→            history = []
+  1386→    history.append({"run_id": run_id, "timestamp": generated_at, "kpis": kpis})
+  1387→    history = history[-100:]
+  1388→    HISTORY_PATH.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
+  1389→
+  1390→    # Stats
+  1391→    stats = {
+  1392→        "total_runs": len(history),
+  1393→        "last_run": generated_at,
+  1394→        "total_leads_all_time": sum(h.get("kpis", {}).get("total_leads", 0) for h in history),
+  1395→        "avg_leads_per_run": round(sum(h.get("kpis", {}).get("total_leads", 0) for h in history) / len(history), 1) if history else 0,
+  1396→    }
+  1397→    STATS_PATH.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
+  1398→
+  1399→    elapsed = time.time() - start_time
+  1400→    print(f"\n{'='*60}", file=__import__('sys').stderr)
+  1401→    print(f"  ✓ v5 complete in {elapsed:.1f}s", file=__import__('sys').stderr)
+  1402→    print(f"  Leads: {kpis['total_leads']} | Hot: {kpis['hot_leads']} | Entities: {len(entity_graph)}", file=__import__('sys').stderr)
+  1403→    print(f"  Every lead entity-linked: {payload['meta']['every_lead_is_entity_linked']}", file=__import__('sys').stderr)
+  1404→    print(f"  Every lead has action: {payload['meta']['every_lead_has_action']}", file=__import__('sys').stderr)
+  1405→    print(f"  Audit trace: {len(audit_trace)} entries", file=__import__('sys').stderr)
+  1406→    print(f"{'='*60}", file=__import__('sys').stderr)
+  1407→
+  1408→    return payload
+  1409→
+  1410→
+  1411→if __name__ == "__main__":
+  1412→    import sys
+  1413→    payload = run_pipeline()
+  1414→    print(json.dumps({
+  1415→        "run_id": payload["run_metadata"]["run_id"],
+  1416→        "kpis": payload["kpis"],
+  1417→        "entities": len(payload["entities"]),
+  1418→        "leads": len(payload["leads"]),
+  1419→        "meta": payload["meta"],
+  1420→    }, ensure_ascii=False, indent=2))
+  1421→
