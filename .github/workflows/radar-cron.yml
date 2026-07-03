@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run pipeline (sin z-ai, sin API key)
+      - name: Run pipeline
         run: |
           python generate_payload.py
 
@@ -41,7 +41,41 @@ jobs:
           git diff --staged --quiet || git commit -m "radar: auto-update $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
 
-      - name: Deploy to Cloudflare
+      - name: Push leads to Worker KV via /api/ingest
+        env:
+          WORKER_URL: https://leadx.simondalmasso44.workers.dev
+          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+        run: |
+          python -c "
+          import os, json, urllib.request, sys
+          url = os.environ['WORKER_URL'] + '/api/ingest'
+          secret = os.environ['INGEST_SECRET']
+          with open('data/dashboard_payload.json') as f:
+              payload = json.load(f)
+          leads = payload.get('leads_all', [])
+          print(f'Leads a subir: {len(leads)}')
+          data = json.dumps(payload).encode('utf-8')
+          req = urllib.request.Request(
+              url,
+              data=data,
+              headers={
+                  'Content-Type': 'application/json',
+                  'X-Webhook-Secret': secret
+              },
+              method='POST'
+          )
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  body = resp.read().decode('utf-8')
+                  print(f'HTTP {resp.status}')
+                  print(body[:500])
+          except urllib.error.HTTPError as e:
+              print(f'HTTP Error {e.code}')
+              print(e.read().decode('utf-8')[:500])
+              sys.exit(1)
+          "
+
+      - name: Deploy Worker to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
