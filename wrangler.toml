@@ -1,9 +1,19 @@
 name = "leadx"
 main = "worker.js"
-account_id = "b21fa81d12acb663798f9f7c51801955"
-compatibility_date = "2024-09-01"
-workers_dev = true
+compatibility_date = "2024-09-25"
+account_id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
 
-[assets]
-directory = "./public"
-not_found_handling = "single-page-application"
+# KV namespace binding
+[[kv_namespaces]]
+binding = "LEADX_KV"
+id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
+
+# Observability
+[observability]
+enabled = true
+
+# INGEST_SECRET debe definirse como secret (no como var):
+#   wrangler secret put INGEST_SECRET
+# NO lo pongas en este archivo como var.
+
+# NO hay [assets] ni [site] — el HTML está embebido en worker.js
