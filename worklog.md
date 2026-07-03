@@ -465,3 +465,77 @@ Archivos generados:
 - scripts/radar/radar_v2.py
 - download/radar_v2_output.json (17 leads rankeados, 17KB)
 - download/radar_v2_raw_search.json (150 resultados crudos, 74KB)
+
+---
+Task ID: dashboard-prototype-v1
+Agent: frontend-styling-expert
+Task: Build single-file HTML dashboard prototype for "Radar Leads PRO" — lead intelligence dashboard for Argentine vehicle-fines gestoría. FULL_BUILD prototype with virtual scroll, dark mode, drawer, keyboard shortcuts, and 10K simulated leads.
+
+Work Log:
+- Created /home/z/my-project/download/dashboard_prototype.html (single file, 128KB, 2184 lines)
+- NO external dependencies (no CDN, no frameworks, no React/Vue/Angular); works offline via file://
+- Design system: GitHub dark (#0d1117) + Salesforce blue (#0176D3) + Linear/Notion polish
+  - Score colors: 0-39 red #f85149, 40-69 yellow #d29922, 70-89 green #2ea043, 90-100 blue #58a6ff
+  - System-ui typography, 14px base, tight spacing, minimal animations (140ms transitions)
+- LAYOUT (top-to-bottom):
+  1. Sticky header (60px): brand + 6 stat badges + JSON/CSV export buttons
+  2. Command center (160px): 6 KPI cards + 1 AI Insights block (auto-generated pattern detection)
+  3. Analytics row (190px): 5 mini charts (problems, provinces, sources, hot hours 0-23h, 7-day trend)
+  4. Sticky filters (50px): 5 time filters + 10 toggle chips + debounced search (100ms) + sort dropdown
+  5. Virtual-scroll table (14 cols): Score | Prob | Persona | Problema | Provincia | Ciudad | Vehículo |
+     Patente | Urgencia | Fecha | Fuente | Contacto | Estado | Acciones — column resize, sticky header
+  6. Lead drawer (480px): score big + badge + breakdown + signals + reasoning + evidence + contact +
+     timeline + notes (localStorage) + 8 action buttons
+- DATA: 80 realistic Argentine leads embedded as RAW_LEADS in <script>, then expanded to 10,000 via
+  expandLeads() with varied scores across all 4 ranges, 4 problems (TRANSFER_PROBLEM, FINE_DISPUTE,
+  OWNERSHIP_ISSUE, DOCUMENTATION_ISSUE), 6 provinces (BA, CABA, Santa Fe, Córdoba, Mendoza, Entre Ríos),
+  4 sources (Facebook, Reddit, X, MercadoLibre), some with phone/WhatsApp, dates spread across 7 days.
+- PERFORMANCE OPTIMIZATIONS:
+  - Lazy reasoning generation: buildReasoning() deferred to drawer-open (saves ~50ms on boot)
+  - Deferred expandLeads + applyFilters via setTimeout(0) so DOMContentLoaded fires immediately
+  - Result: DOMContentLoaded 11-15ms (target <100ms), Load 14-33ms
+  - Virtual scroll: only ~17-20 rows rendered at a time (with 5-row buffer above/below)
+  - Scroll handler rAF-throttled
+  - InnerHTML string building (no DOM manipulation per row) for speed
+- KEYBOARD SHORTCUTS (all tested working):
+  /  focus search | j/k navigate | Enter open drawer | Esc close | r reviewed | c contacted | i ignored | e export JSON
+- PERSISTENCE (localStorage):
+  - State changes (reviewed/contacted/ignored) per lead ID — survives reload
+  - Notes per lead ID — survives reload
+  - Key: radar_leads_pro_state_v1, radar_notes_<leadId>
+- EXPORTS: JSON (10K leads with full schema), CSV (15 cols, 10K rows), single-lead JSON from drawer
+- RESPONSIVE: under 768px, columns collapse to 5 essential (Score, Persona, Problema, Fuente, Estado)
+- POLISH: shimmer on initial load (600ms sweep), hover states, score bars with color by range,
+  problem badges (color-coded), estado chips (color + dot), urgency fire icon, sparklines in KPIs,
+  gradient AI insights card, toast notifications for actions, copy buttons with confirmation
+
+Structure for future Cloudflare Worker connection:
+- DASHBOARD_PAYLOAD const with schema: {leads, metrics, execution_log, generated_at, runtime_ms}
+- Comment at line ~1148 indicates where future fetch('/data/dashboard_payload.json') would replace it
+
+Testing performed (Playwright Python):
+- JS syntax validated via Node (no parse errors)
+- 0 console errors, 0 page errors across all tests
+- DOM load 11-15ms (3 runs, all <100ms target)
+- File size 128KB (<150KB target)
+- 10,000 leads filtered + sorted in <30ms
+- Virtual scroll: scroll events render in ~66ms each (rAF-throttled)
+- All 10 chip filters return correct row counts after fix (scrollTop reset on filter change)
+- Sort: score_desc → first row score 100; urgency_desc → first row has 🔥 icon; date_desc → most recent first
+- Drawer: 7 score-breakdown rows, 8 signal chips, evidence box (189 chars), reasoning, timeline all render
+- localStorage state persists across reload (estado chip + notes both confirmed)
+- JSON export: 10,000 leads, first lead score 100; CSV export: 10,000 lines, correct header
+- Single-lead export: lead_<id>.json downloaded
+- Mobile viewport 375x812: only 5 essential columns visible (Score, Persona, Problema, Fuente, Estado)
+
+Stage Summary:
+- Single-file premium SaaS-quality dashboard prototype delivered at /home/z/my-project/download/dashboard_prototype.html
+- 128KB, renders in 11-15ms, handles 10,000 leads with virtual scroll, 0 console errors
+- All required features implemented: 6 KPI cards, AI insights, 5 analytics charts, 14-col table,
+  drawer with 8 actions, keyboard shortcuts, exports, localStorage persistence, responsive mobile
+- Design follows Salesforce Lightning + Linear + Notion aesthetic with dark theme primary
+- Ready to connect to Cloudflare Worker by replacing DASHBOARD_PAYLOAD const with fetch() call
+- Schema matches spec: {leads, metrics, execution_log, generated_at}
+
+Files created:
+- /home/z/my-project/download/dashboard_prototype.html (128KB, single file, no external deps)

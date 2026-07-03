@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Leads PRO — Centro Inteligente de Oportunidades</title>
+<style>
+/* ============================================================
+   RADAR LEADS PRO — Design System
+   Salesforce Lightning + Linear + Notion
+   ============================================================ */
+:root {
+  --bg: #0d1117;
+  --bg-elev: #161b22;
+  --bg-elev-2: #1c2128;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-faint: #6e7681;
+  --accent: #0176d3;
+  --accent-hover: #1f8ae5;
+  --accent-soft: rgba(1, 118, 211, 0.12);
+  --red: #f85149;
+  --yellow: #d29922;
+  --green: #2ea043;
+  --blue: #58a6ff;
+  --orange: #e8873b;
+  --purple: #a371f7;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 3px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+  --header-h: 60px;
+  --cmd-h: 160px;
+  --analytics-h: 190px;
+  --filters-h: 50px;
+  --row-h: 44px;
+  --drawer-w: 480px;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --transition: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #444c56; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ============================================================
+   HEADER (sticky, 60px)
+   ============================================================ */
+.header {
+  height: var(--header-h);
+  flex: 0 0 var(--header-h);
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+}
+.brand { display: flex; flex-direction: column; gap: 1px; }
+.brand-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-title::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2.4s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.brand-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.stat-badge {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  min-width: 64px;
+}
+.stat-badge-label {
+  font-size: 9px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+.stat-badge-value {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.stat-badge-value.accent { color: var(--blue); }
+.stat-badge-value.hot { color: var(--red); }
+.stat-badge-value.ok { color: var(--green); }
+.export-group { display: flex; gap: 6px; margin-left: 8px; }
+.btn-export {
+  padding: 6px 12px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-export:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+}
+
+/* ============================================================
+   COMMAND CENTER (~160px)
+   ============================================================ */
+.command-center {
+  flex: 0 0 var(--cmd-h);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr) 1.4fr;
+  gap: 12px;
+  overflow: hidden;
+}
+.kpi-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.kpi-card:hover { border-color: var(--border); transform: translateY(-1px); }
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: var(--transition);
+}
+.kpi-card:hover::before { opacity: 1; }
+.kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.kpi-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.kpi-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.kpi-meta .delta-up { color: var(--green); font-weight: 600; }
+.kpi-meta .delta-down { color: var(--red); font-weight: 600; }
+.kpi-spark {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  width: 70px;
+  height: 24px;
+  opacity: 0.7;
+}
+.kpi-bar {
+  height: 4px;
+  background: var(--border-soft);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.kpi-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+  border-radius: 2px;
+  transition: width 400ms ease;
+}
+.insights-card {
+  background: linear-gradient(135deg, var(--bg-elev) 0%, #1a1f3a 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.insights-card::before {
+  content: "";
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
+  opacity: 0.15;
+  border-radius: 50%;
+}
+.insights-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.insights-head .ai-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--purple);
+  box-shadow: 0 0 6px var(--purple);
+}
+.insights-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  flex: 1;
+}
+.insights-text b { color: var(--blue); font-weight: 600; }
+.insights-text .tag {
+  display: inline-block;
+  padding: 1px 6px;
+  background: rgba(88, 166, 255, 0.1);
+  color: var(--blue);
+  border-radius: 3px;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+/* ============================================================
+   ANALYTICS ROW (~190px)
+   ============================================================ */
+.analytics-row {
+  flex: 0 0 var(--analytics-h);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  overflow: hidden;
+}
+.chart-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.chart-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chart-title .count {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.chart-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  overflow: hidden;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  min-height: 0;
+  flex: 1;
+}
+.bar-row-label {
+  width: 60px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+}
+.bar-row-track {
+  flex: 1;
+  height: 12px;
+  background: var(--border-soft);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-row-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 300ms ease;
+}
+.bar-row-value {
+  width: 28px;
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  font-weight: 500;
+}
+.hour-chart {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 1px;
+  align-items: flex-end;
+  flex: 1;
+}
+.hour-bar {
+  background: var(--accent);
+  border-radius: 1px 1px 0 0;
+  min-height: 2px;
+  opacity: 0.7;
+  transition: opacity 120ms;
+}
+.hour-bar.peak { background: var(--red); opacity: 1; }
+.hour-bar:hover { opacity: 1; }
+.hour-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+.line-chart {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+.line-chart svg { width: 100%; height: 100%; }
+
+/* ============================================================
+   FILTERS BAR (sticky, 50px)
+   ============================================================ */
+.filters-bar {
+  flex: 0 0 var(--filters-h);
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 50;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filters-bar::-webkit-scrollbar { display: none; }
+.time-filters {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.time-filters button {
+  padding: 6px 11px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-right: 1px solid var(--border);
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.time-filters button:last-child { border-right: none; }
+.time-filters button:hover { background: var(--bg-elev-2); color: var(--text); }
+.time-filters button.active {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+.chip-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chip-filters::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 5px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip:hover { border-color: var(--text-muted); color: var(--text); }
+.chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+.chip .chip-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+.chip.active .chip-dot { background: var(--accent); }
+
+.search-box {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 8px;
+  height: 32px;
+  min-width: 220px;
+}
+.search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.search-box svg { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; }
+.search-box input {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0 6px;
+  width: 100%;
+  font-size: 12px;
+}
+.search-box .kbd-hint {
+  font-size: 10px;
+  color: var(--text-faint);
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+}
+.sort-select {
+  height: 32px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+.sort-select:focus { border-color: var(--accent); }
+
+/* ============================================================
+   TABLE + VIRTUAL SCROLL
+   ============================================================ */
+.table-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  min-height: 0;
+}
+.table-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  height: 36px;
+  align-items: center;
+}
+.th {
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.th-resizer {
+  width: 4px;
+  margin-left: auto;
+  cursor: col-resize;
+  height: 100%;
+  background: transparent;
+  transition: background 120ms;
+  flex-shrink: 0;
+}
+.th-resizer:hover { background: var(--accent); }
+.table-body {
+  position: relative;
+  height: calc(100% - 36px);
+  overflow-y: auto;
+  overflow-x: auto;
+  will-change: transform;
+}
+.table-spacer {
+  position: relative;
+  width: 100%;
+}
+.lead-row {
+  position: absolute;
+  left: 0;
+  height: var(--row-h);
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: background 80ms;
+  width: 100%;
+}
+.lead-row:hover { background: var(--bg-elev); }
+.lead-row.selected { background: var(--accent-soft); }
+.lead-row.selected:hover { background: rgba(1, 118, 211, 0.18); }
+.td {
+  padding: 0 10px;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  color: var(--text);
+}
+.td.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+.td.muted { color: var(--text-muted); }
+.td.small { font-size: 12px; }
+
+/* Score cell */
+.score-cell { gap: 8px; }
+.score-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  width: 26px;
+  font-size: 13px;
+}
+.score-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border-soft);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 30px;
+}
+.score-bar-fill { height: 100%; border-radius: 3px; }
+
+/* Problem badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.badge-transfer { background: rgba(88,166,255,0.12); color: var(--blue); }
+.badge-fine { background: rgba(248,81,73,0.12); color: var(--red); }
+.badge-ownership { background: rgba(232,135,59,0.12); color: var(--orange); }
+.badge-doc { background: rgba(46,160,67,0.12); color: var(--green); }
+
+/* Urgency */
+.urgency-fire {
+  font-size: 12px;
+  filter: drop-shadow(0 0 4px rgba(248,81,73,0.6));
+}
+
+/* Estado chip */
+.estado-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: capitalize;
+  border: 1px solid var(--border);
+}
+.estado-chip::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.estado-new { background: rgba(88,166,255,0.08); color: var(--blue); border-color: rgba(88,166,255,0.3); }
+.estado-new::before { background: var(--blue); }
+.estado-reviewed { background: rgba(139,148,158,0.08); color: var(--text-muted); }
+.estado-reviewed::before { background: var(--text-muted); }
+.estado-contacted { background: rgba(46,160,67,0.08); color: var(--green); border-color: rgba(46,160,67,0.3); }
+.estado-contacted::before { background: var(--green); }
+.estado-ignored { background: rgba(248,81,73,0.06); color: var(--red); border-color: rgba(248,81,73,0.2); opacity: 0.7; }
+.estado-ignored::before { background: var(--red); }
+
+/* Acciones */
+.actions-cell { gap: 4px; }
+.action-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  transition: var(--transition);
+  font-size: 11px;
+}
+.action-btn:hover { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+.action-btn svg { width: 12px; height: 12px; }
+.action-btn.wa:hover { color: var(--green); border-color: var(--green); background: rgba(46,160,67,0.1); }
+.action-btn.review:hover { color: var(--blue); }
+
+/* Empty state */
+.empty-state {
+  position: absolute;
+  inset: 36px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 8px;
+  font-size: 13px;
+}
+.empty-state .empty-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+/* Shimmer loader */
+.shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 800ms ease-out;
+  pointer-events: none;
+  z-index: 5;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================================
+   DRAWER
+   ============================================================ */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+  z-index: 200;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh;
+  width: var(--drawer-w);
+  max-width: 100vw;
+  background: var(--bg-elev);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.drawer-header-info { flex: 1; min-width: 0; }
+.drawer-score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.drawer-score {
+  font-size: 32px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.drawer-prob {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.drawer-prob b { color: var(--text); font-weight: 600; }
+.drawer-title {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+.drawer-close {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.drawer-close:hover { background: var(--bg-elev-2); color: var(--text); }
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+.drawer-section { margin-bottom: 18px; }
+.drawer-section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.score-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.score-breakdown-label {
+  width: 140px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.score-breakdown-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border-soft);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.score-breakdown-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 300ms ease;
+}
+.score-breakdown-value {
+  width: 38px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 11px;
+}
+.signal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text);
+  margin: 0 4px 4px 0;
+}
+.signal-chip::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.evidence-box {
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.reasoning-box {
+  background: linear-gradient(135deg, rgba(163,113,247,0.06), rgba(88,166,255,0.04));
+  border: 1px solid rgba(163,113,247,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.reasoning-box::before {
+  content: "🧠 ";
+}
+.contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 12px;
+}
+.contact-row:last-child { border-bottom: none; }
+.contact-label { color: var(--text-muted); }
+.contact-value {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.copy-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.copy-btn:hover { color: var(--accent-hover); border-color: var(--accent); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+.timeline-item {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  padding: 4px 0;
+  color: var(--text-muted);
+}
+.timeline-item::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.timeline-item time { color: var(--text-faint); font-family: ui-monospace, monospace; }
+.notes-area {
+  width: 100%;
+  min-height: 80px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 12px;
+  resize: vertical;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+}
+.notes-area:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.drawer-actions {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  flex-shrink: 0;
+  background: var(--bg-elev);
+}
+.drawer-btn {
+  padding: 8px 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.drawer-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+.drawer-btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+.drawer-btn.primary:hover { background: var(--accent-hover); }
+.drawer-btn.danger:hover { border-color: var(--red); background: rgba(248,81,73,0.1); color: var(--red); }
+.drawer-btn.wa:hover { border-color: var(--green); background: rgba(46,160,67,0.1); color: var(--green); }
+.drawer-btn svg { width: 13px; height: 13px; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12px;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 200ms ease-out;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toast.success { border-left: 3px solid var(--green); }
+.toast.info { border-left: 3px solid var(--accent); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1100px) {
+  .command-center { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 70px; flex: 0 0 auto; height: auto; }
+  .analytics-row { grid-template-columns: repeat(2, 1fr); flex: 0 0 auto; height: auto; }
+  .header-stats { gap: 4px; }
+  .stat-badge { min-width: 50px; padding: 3px 6px; }
+}
+@media (max-width: 768px) {
+  :root { --header-h: 110px; --filters-h: auto; }
+  .header { flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 6px; height: auto; }
+  .header-stats { width: 100%; overflow-x: auto; }
+  .export-group { margin-left: 0; }
+  .command-center { padding: 8px 12px; grid-template-columns: repeat(2, 1fr); }
+  .insights-card { grid-column: span 2; }
+  .analytics-row { padding: 8px 12px; grid-template-columns: 1fr; }
+  .filters-bar { flex-wrap: wrap; padding: 8px 12px; height: auto; gap: 6px; }
+  .search-box { margin-left: 0; width: 100%; order: 99; }
+  .table-container { font-size: 12px; }
+  .th, .td { font-size: 11px; padding: 0 6px; }
+  .drawer { width: 100vw; }
+  /* Mobile: collapse to essential columns only (Score, Persona, Problema, Fuente, Estado) */
+  .col-prob, .col-province, .col-city, .col-vehicle, .col-patent, .col-urgency, .col-date, .col-contact, .col-actions { display: none !important; }
+  .th, .td { padding: 0 6px; }
+  .col-score { width: 90px !important; flex: 0 0 90px !important; }
+  .col-persona { width: 100px !important; flex: 0 0 100px !important; }
+  .col-problem { width: 110px !important; flex: 0 0 110px !important; }
+  .col-source { width: 80px !important; flex: 0 0 80px !important; }
+  .col-estado { width: 85px !important; flex: 0 0 85px !important; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-title">Radar Leads PRO</div>
+      <div class="brand-subtitle">Centro Inteligente de Oportunidades · Gestoría Vehicular AR</div>
+    </div>
+    <div class="header-stats" id="header-stats">
+      <div class="stat-badge"><span class="stat-badge-label">Actualización</span><span class="stat-badge-value" id="hs-updated">—</span></div>
+      <div class="stat-badge"><span class="stat-badge-label">Runtime</span><span class="stat-badge-value" id="hs-runtime">—</span></div>
+      <div class="stat-badge"><span class="stat-badge-label">Total</span><span class="stat-badge-value" id="hs-total">—</span></div>
+      <div class="stat-badge"><span class="stat-badge-label">Hot 🔥</span><span class="stat-badge-value hot" id="hs-hot">—</span></div>
+      <div class="stat-badge"><span class="stat-badge-label">Contactables</span><span class="stat-badge-value ok" id="hs-contactable">—</span></div>
+      <div class="stat-badge"><span class="stat-badge-label">Conv. prob.</span><span class="stat-badge-value accent" id="hs-conv">—</span></div>
+      <div class="export-group">
+        <button class="btn-export" onclick="exportJSON()">JSON</button>
+        <button class="btn-export" onclick="exportCSV()">CSV</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- COMMAND CENTER -->
+  <section class="command-center" id="command-center">
+    <!-- KPI cards injected by JS -->
+  </section>
+
+  <!-- ANALYTICS ROW -->
+  <section class="analytics-row" id="analytics-row">
+    <!-- Charts injected by JS -->
+  </section>
+
+  <!-- FILTERS BAR -->
+  <section class="filters-bar">
+    <div class="time-filters" id="time-filters">
+      <button data-range="today">Hoy</button>
+      <button data-range="24h">24h</button>
+      <button data-range="3d">3 días</button>
+      <button data-range="week" class="active">Semana</button>
+      <button data-range="all">Todo</button>
+    </div>
+    <div class="chip-filters" id="chip-filters">
+      <!-- chips injected -->
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+      <input type="text" id="search-input" placeholder="Buscar leads, personas, patentes, snippets…" autocomplete="off">
+      <span class="kbd-hint">/</span>
+    </div>
+    <select class="sort-select" id="sort-select">
+      <option value="score_desc">Score ↓</option>
+      <option value="date_desc">Fecha ↓</option>
+      <option value="urgency_desc">Urgencia ↓</option>
+    </select>
+  </section>
+
+  <!-- TABLE -->
+  <div class="table-container" id="table-container">
+    <div class="table-header" id="table-header"></div>
+    <div class="table-body" id="table-body">
+      <div class="table-spacer" id="table-spacer"></div>
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="empty-icon">🔍</div>
+        <div>No se encontraron leads con los filtros actuales</div>
+        <div style="font-size:11px;color:var(--text-faint)">Probá ajustar la búsqueda o limpiar los filtros</div>
+      </div>
+    </div>
+    <div class="shimmer" id="shimmer"></div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true">
+  <div class="drawer-header" id="drawer-header"></div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-actions" id="drawer-actions"></div>
+</aside>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+/* ============================================================
+   RADAR LEADS PRO — Dashboard Prototype
+   Single-file, offline, no external deps.
+   Future: replace DASHBOARD_PAYLOAD with
+     fetch('/data/dashboard_payload.json').then(r => r.json())
+   ============================================================ */
+
+const DASHBOARD_PAYLOAD = {
+  generated_at: "2024-09-26T10:42:13-03:00",
+  runtime_ms: 1842,
+  execution_log: [
+    { ts: "2024-09-26T10:42:11-03:00", stage: "collect", count: 412, ms: 410 },
+    { ts: "2024-09-26T10:42:11-03:00", stage: "extract", count: 412, ms: 580 },
+    { ts: "2024-09-26T10:42:12-03:00", stage: "score", count: 408, ms: 220 },
+    { ts: "2024-09-26T10:42:12-03:00", stage: "dedup", count: 10000, ms: 412 },
+    { ts: "2024-09-26T10:42:13-03:00", stage: "publish", count: 10000, ms: 220 }
+  ],
+  metrics: {
+    total_leads: 10000,
+    hot_leads: 1247,
+    contactable: 6834,
+    conversion_probability: 0.42,
+    new_since_last: 187,
+    critical_today: 23,
+    expiring_3d: 89
+  },
+  leads: [
+    /* 80 realistic leads — see generator below */
+  ]
+};
+
+/* ============================================================
+   LEAD DATA — 80 realistic Argentine leads
+   ============================================================ */
+const RAW_LEADS = [
+  { id:"lead-001", score:92, persona:"Mariano López", problema:"TRANSFER_PROBLEM", provincia:"Buenos Aires", ciudad:"Pilar", vehiculo:"Ford Fiesta Kinetic 2017", patente:"AB 123 CD", urgency:true, fuente:"Facebook", phone:"+5491134567890", whatsapp:"+5491134567890", snippet:"Hola gente, alguien sabe cómo hago para transferir mi Fiesta? Tengo el 08 firmado pero me dijeron que tengo multas en CABA. Necesito hacerlo urgente porque el comprador quiere retirarlo esta semana. WhatsApp 1134567890", signals:["has_phone","has_whatsapp","urgency","recent","transfer","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:7}] },
+  { id:"lead-002", score:88, persona:"Carla Fernández", problema:"FINE_DISPUTE", provincia:"CABA", ciudad:"Caballito", vehiculo:"Chevrolet Onix 2019", patente:"AC 456 KL", urgency:true, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Alguien sabe cómo sacar las fotomultas de la autopista? Me llegaron 3 en un mes y necesito transferir el auto. Probé hacer el reclamo online pero no me deja. Soy de Caballito.", signals:["urgency","recent","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:26},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:15},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:10}] },
+  { id:"lead-003", score:76, persona:"Anónimo", problema:"OWNERSHIP_ISSUE", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Volkswagen Gol Trend 2015", patente:"AD 789 MN", urgency:false, fuente:"Facebook", phone:"+5493415566778", whatsapp:"+5493415566778", snippet:"Vendo Gol 2015, no lo puedo transferir a mi nombre porque el dueño anterior falleció y no se hizo la sucesión. Alguien pasó por algo similar? Tengo el título pero no sirve aparentemente.", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:9},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:9}] },
+  { id:"lead-004", score:95, persona:"Diego Martínez", problema:"TRANSFER_PROBLEM", provincia:"Córdoba", ciudad:"Córdoba", vehiculo:"Toyota Hilux 2020", patente:"AE 012 PQ", urgency:true, fuente:"Facebook", phone:"+5493516789012", whatsapp:"+5493516789012", snippet:"URGENTE! Tengo comprador para la Hilux pero me falta el libre deuda de multas. Supuestamente tengo una multa de 2022 que no pagué y no me deja transferir. Pago gestoría. WhatsApp 3516789012", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:14},{signal:"evidence_quality",weight:10,value:10},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:9},{signal:"signal_repetition",weight:10,value:7}] },
+  { id:"lead-005", score:42, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Mendoza", ciudad:"Godoy Cruz", vehiculo:"Renault Sandero 2014", patente:"AF 345 RS", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Tengo el 08 vencido, cuánto sale renovarlo?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:15},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-006", score:68, persona:"Lucía Gómez", problema:"FINE_DISPUTE", provincia:"Buenos Aires", ciudad:"Quilmes", vehiculo:"Peugeot 208 2021", patente:"AG 678 TU", urgency:false, fuente:"X", phone:"+5491155667788", whatsapp:null, snippet:"Me llegó una fotomulta que no es mía, el auto estaba en el seguro en esa fecha. Cómo lo reclamo?", signals:["has_phone","recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:6},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-007", score:81, persona:"Fernando Ruiz", problema:"TRANSFER_PROBLEM", provincia:"Entre Ríos", ciudad:"Paraná", vehiculo:"Ford EcoSport 2018", patente:"AH 901 VW", urgency:true, fuente:"Facebook", phone:"+5493435123456", whatsapp:"+5493435123456", snippet:"Gente necesito transferir la EcoSport ya, me compré otra y la necesito vender. El tema es que tengo 2 multas sin pagar. Cuánto me sale que me las regularice alguien? Wsp 3435123456", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:28},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-008", score:34, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"CABA", ciudad:"Palermo", vehiculo:"Citroën C3 2013", patente:null, urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Pérdida de título qué hago", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:10},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:4},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-009", score:73, persona:"Patricia Sosa", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"La Plata", vehiculo:"Volkswagen Vento 2016", patente:"AJ 234 XY", urgency:false, fuente:"MercadoLibre", phone:"+5492215566778", whatsapp:"+5492215566778", snippet:"Vendo Vento, el auto está a nombre de mi ex, necesito que me ayuden con la transferencia. Tengo todos los papeles pero él no aparece. WhatsApp 2215566778", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-010", score:58, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Chevrolet Corsa 2011", patente:"AK 567 BC", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multas de agente de tránsito, las puedo reclamar? Son 4 en total.", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:20},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-011", score:91, persona:"Javier Pereyra", problema:"TRANSFER_PROBLEM", provincia:"Córdoba", ciudad:"Río Cuarto", vehiculo:"Ford Ranger 2019", patente:"AL 890 DE", urgency:true, fuente:"Facebook", phone:"+5493586789012", whatsapp:"+5493586789012", snippet:"NECESITO transferir la Ranger YA, me voy del país en 2 semanas. Tengo multas y libre deuda vencido. Pago lo que sea. Wsp 3586789012 - Río Cuarto", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:9},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-012", score:47, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Mendoza", ciudad:"Mendoza", vehiculo:"Renault Kangoo 2016", patente:"AM 123 FG", urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Cómo saco el libre deuda vehicular en Mendoza?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:18},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-013", score:84, persona:"Romina Castro", problema:"FINE_DISPUTE", provincia:"Buenos Aires", ciudad:"San Martín", vehiculo:"Toyota Corolla 2020", patente:"AN 456 HI", urgency:true, fuente:"Facebook", phone:"+5491145678901", whatsapp:"+5491145678901", snippet:"Ayuda por favor, me llegaron 5 fotomultas y necesito vender el Corolla ya. El comprador espera. Alguien conoce una buena gestoría en zona norte? Wsp 1145678901", signals:["has_phone","has_whatsapp","urgency","recent","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:27},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:9},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-014", score:62, persona:"Anónimo", problema:"OWNERSHIP_ISSUE", provincia:"CABA", ciudad:"Villa Urquiza", vehiculo:"Honda CR-V 2017", patente:"AO 789 JK", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Compré un auto con título no endosable, cómo lo paso a mi nombre?", signals:["recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:22},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:6},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-015", score:78, persona:"Martín Acosta", problema:"TRANSFER_PROBLEM", provincia:"Buenos Aires", ciudad:"Tandil", vehiculo:"Volkswagen Amarok 2018", patente:"AP 012 LM", urgency:false, fuente:"Facebook", phone:"+5492494567890", whatsapp:"+5492494567890", snippet:"Vendo Amarok, comprador listo, pero tengo un embargo por multas. Necesito levantarlo urgente. Zona Tandil. WhatsApp 2494567890", signals:["has_phone","has_whatsapp","recent","transfer","multa","preventive"], score_breakdown:[{signal:"explicit_intent",weight:30,value:26},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:9},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-016", score:29, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Santa Fe", ciudad:"Santa Fe", vehiculo:"Fiat Uno 2010", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Vencimiento VTV", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:8},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:2},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-017", score:90, persona:"Andrés Vega", problema:"TRANSFER_PROBLEM", provincia:"Córdoba", ciudad:"Villa María", vehiculo:"Chevrolet S10 2021", patente:"AQ 345 NO", urgency:true, fuente:"Facebook", phone:"+5493535678901", whatsapp:"+5493535678901", snippet:"URGENTE transferencia S10, comprador de Buenos Aires, viene el finde. Tengo 3 multas impagas. Necesito gestoría que me solucione antes del sábado. Wsp 3535678901", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:9},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-018", score:54, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Mendoza", ciudad:"Maipú", vehiculo:"Ford Ka 2015", patente:"AR 678 PQ", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Fotomulta injusta, qué pruebas necesito para el reclamo?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:20},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-019", score:71, persona:"Sofía Medina", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Morón", vehiculo:"Renault Duster 2019", patente:"AS 901 RS", urgency:false, fuente:"MercadoLibre", phone:"+5491155443322", whatsapp:"+5491155443322", snippet:"Compré una Duster usada y el vendedor no me firmó el 08. Cómo puedo hacer para transferirla? Tengo el recibo de compra. WhatsApp 1155443322", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-020", score:38, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"CABA", ciudad:"Flores", vehiculo:"Citroën C4 2014", patente:null, urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Cédula verde vencida, puedo circular?", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:12},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:4},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-021", score:86, persona:"Nicolás Bravo", problema:"TRANSFER_PROBLEM", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Toyota SW4 2020", patente:"AT 234 TU", urgency:true, fuente:"Facebook", phone:"+5493417890123", whatsapp:"+5493417890123", snippet:"Tengo que transferir la SW4 urgente, me depositaron la reserva. Tengo libre deuda multas pero no puedo conseguir turno en el registro. Rosario centro. Wsp 3417890123", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:28},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-022", score:65, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Córdoba", ciudad:"Córdoba", vehiculo:"Volkswagen Suran 2017", patente:"AU 567 VW", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Tengo 6 fotomultas, hay descuento por pago voluntario? Alcanza para rehabilitar?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:22},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:6},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-023", score:74, persona:"Valeria Díaz", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Lanús", vehiculo:"Ford EcoSport 2016", patente:"AV 890 XY", urgency:false, fuente:"Facebook", phone:"+5491144332211", whatsapp:"+5491144332211", snippet:"Mi viejo murió y dejó el auto a su nombre, no tengo testamento. Alguien sabe si puedo transferir sin sucesión? EcoSport 2016. WhatsApp 1144332211", signals:["has_phone","has_whatsapp","recent","transfer","preventive"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-024", score:45, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Entre Ríos", ciudad:"Concordia", vehiculo:"Renault Clio 2012", patente:"AW 123 BC", urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Dónde hago el 08 digital?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:16},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-025", score:93, persona:"Gabriel Torres", problema:"TRANSFER_PROBLEM", provincia:"Buenos Aires", ciudad:"Pergamino", vehiculo:"Toyota Hilux GR 2022", patente:"AX 456 DE", urgency:true, fuente:"Facebook", phone:"+5492474567890", whatsapp:"+5492474567890", snippet:"URGENTE Hilux GR 2022, comprador de CABA pagó seña. Tengo multas de ruta 8 sin pagar. Necesito gestoría que me garantice transferencia antes del 30. Pago muy bien. Wsp 2474567890", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:14},{signal:"evidence_quality",weight:10,value:10},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:9},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-026", score:51, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Mendoza", ciudad:"San Rafael", vehiculo:"Chevrolet Onix 2018", patente:"AY 789 FG", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multas por mal estacionado, las puedo pagar en cuotas?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:18},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-027", score:80, persona:"Florencia Romero", problema:"TRANSFER_PROBLEM", provincia:"CABA", ciudad:"Belgrano", vehiculo:"Audi A3 2019", patente:"AZ 012 HI", urgency:true, fuente:"Facebook", phone:"+5491155668899", whatsapp:"+5491155668899", snippet:"Vendo Audi A3, comprador urgente. Tengo una multa de speedeye sin pagar. Belgrano, ideally gestoría cerca. Wsp 1155668899", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:26},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:2}] },
+  { id:"lead-028", score:33, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Buenos Aires", ciudad:"Merlo", vehiculo:"Fiat Siena 2011", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"VTV vencida cuanto sale", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:9},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-029", score:69, persona:"Pablo Herrera", problema:"OWNERSHIP_ISSUE", provincia:"Santa Fe", ciudad:"Venado Tuerto", vehiculo:"Ford Ranger 2017", patente:"BA 345 JK", urgency:false, fuente:"MercadoLibre", phone:"+5493400556677", whatsapp:"+5493400556677", snippet:"Compré una Ranger y el vendedor viajó, no puedo contactarlo para firmar. Se puede hacer algo con el recibo de compra? Wsp 3400556677", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:23},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-030", score:57, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Córdoba", ciudad:"San Francisco", vehiculo:"Volkswagen Voyage 2016", patente:"BB 678 LM", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multas en otra provincia, las pago acá?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:20},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-031", score:82, persona:"Cecilia Méndez", problema:"TRANSFER_PROBLEM", provincia:"Buenos Aires", ciudad:"San Isidro", vehiculo:"BMW Serie 3 2019", patente:"BC 901 NO", urgency:false, fuente:"Facebook", phone:"+5491144556677", whatsapp:"+5491144556677", snippet:"Vendo BMW 320d, comprador conseguido. Tengo 2 multas en CABA y no consigo turno para el libre deuda. San Isidro. WhatsApp 1144556677", signals:["has_phone","has_whatsapp","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:27},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:7}] },
+  { id:"lead-032", score:40, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"CABA", ciudad:"Devoto", vehiculo:"Renault Logan 2015", patente:"BD 234 PQ", urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"08 firmado vence en 30 días, qué hago?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:14},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-033", score:88, persona:"Federico Aguilar", problema:"TRANSFER_PROBLEM", provincia:"Mendoza", ciudad:"Mendoza", vehiculo:"Toyota Corolla Cross 2022", patente:"BE 567 RS", urgency:true, fuente:"Facebook", phone:"+5492613456789", whatsapp:"+5492613456789", snippet:"URGENTE Corolla Cross, comprador de Santiago. Tengo embargo por multas y no puedo transferir. Necesito levantarlo YA. Pago muy bien. Wsp 2613456789", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:29},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-034", score:60, persona:"Anónimo", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Avellaneda", vehiculo:"Chevrolet Prisma 2016", patente:"BF 890 TU", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Auto comprado en subasta, cómo regularizo?", signals:["recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:21},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:6},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-035", score:75, persona:"Daniela Ortega", problema:"FINE_DISPUTE", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Ford Edge 2020", patente:"BG 123 VW", urgency:false, fuente:"Facebook", phone:"+5493415566999", whatsapp:"+5493415566999", snippet:"Tengo 4 multas de la autopista Rosario-Córdoba, necesito pagarlas para transferir. Alguien sabe si hay plan de pagos? Wsp 3415566999", signals:["has_phone","has_whatsapp","recent","multa","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:25},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:7}] },
+  { id:"lead-036", score:36, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Entre Ríos", ciudad:"Gualeguaychú", vehiculo:"Fiat Palio 2010", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Patente roja nuevo formato", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:10},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:4},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-037", score:94, persona:"Tomás Vargas", problema:"TRANSFER_PROBLEM", provincia:"CABA", ciudad:"Caballito", vehiculo:"Mercedes GLA 2021", patente:"BH 456 XY", urgency:true, fuente:"Facebook", phone:"+5491144338899", whatsapp:"+5491144338899", snippet:"MERCEDES GLA 2021 URGENTE!!! Comprador de La Plata con seña. Tengo 3 multas + libre deuda vencido. Pago gestoría premium para resolver esta semana. Wsp 1144338899", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:14},{signal:"evidence_quality",weight:10,value:10},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:9},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-038", score:48, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Córdoba", ciudad:"Villa Carlos Paz", vehiculo:"Renault Sandero 2017", patente:"BJ 789 BC", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Fotomulta de noche, se puede reclamar por mala iluminación?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:17},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-039", score:67, persona:"Lucas Domínguez", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Tigre", vehiculo:"Volkswagen Nivus 2021", patente:"BK 012 DE", urgency:false, fuente:"MercadoLibre", phone:"+5491144557788", whatsapp:"+5491144557788", snippet:"Compré Nivus en ML, el vendedor está en Córdoba. Necesito que alguien gestione la transferencia sin mover el auto. Wsp 1144557788", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:23},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-040", score:55, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Mendoza", ciudad:"Godoy Cruz", vehiculo:"Ford Focus 2015", patente:"BL 345 FG", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Cédula azul, cuántas puedo sacar?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:19},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-041", score:79, persona:"Carolina Iglesias", problema:"TRANSFER_PROBLEM", provincia:"Santa Fe", ciudad:"Santa Fe", vehiculo:"Toyota RAV4 2020", patente:"BM 678 HI", urgency:false, fuente:"Facebook", phone:"+5493425678901", whatsapp:"+5493425678901", snippet:"Vendo RAV4, comprador listo. Tengo libre deuda multas pendiente, el registro me dio turno para dentro de 3 semanas. Busco gestoría. Wsp 3425678901", signals:["has_phone","has_whatsapp","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:26},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:8}] },
+  { id:"lead-042", score:31, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"CABA", ciudad:"Boca", vehiculo:"Peugeot 207 2012", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Multa vieja prescribe?", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:9},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-043", score:72, persona:"Sebastián Castro", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Lomas de Zamora", vehiculo:"Ford Territory 2021", patente:"BN 901 JK", urgency:false, fuente:"Facebook", phone:"+5491144335566", whatsapp:"+5491144335566", snippet:"Compré Territory, vendedor no contesta más. Tengo boleto de compraventa firmado y todo. Se puede transferir igual? Wsp 1144335566", signals:["has_phone","has_whatsapp","recent","transfer","preventive"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-044", score:43, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Córdoba", ciudad:"Río Tercero", vehiculo:"Chevrolet Classic 2014", patente:"BO 234 LM", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Seguro obligatorio qué cubre", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:15},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-045", score:87, persona:"Mariana Suárez", problema:"TRANSFER_PROBLEM", provincia:"Buenos Aires", ciudad:"Bahía Blanca", vehiculo:"Toyota Hilux SRV 2021", patente:"BP 567 NO", urgency:true, fuente:"Facebook", phone:"+5492913456789", whatsapp:"+5492913456789", snippet:"Vendo Hilux SRV URGENTE, comprador de La Pampa. Tengo multas en Ruta 3 sin pagar y embargo en el registro. Necesito levantar todo esta semana. Wsp 2913456789", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:28},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-046", score:50, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Mendoza", ciudad:"Mendoza", vehiculo:"Volkswagen T-Cross 2020", patente:"BQ 890 PQ", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multa por no tener cédula azul, la firmó mi esposa", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:18},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-047", score:63, persona:"Ignacio Funes", problema:"OWNERSHIP_ISSUE", provincia:"CABA", ciudad:"Villa Crespo", vehiculo:"Audi Q2 2019", patente:"BR 123 RS", urgency:false, fuente:"MercadoLibre", phone:"+5491144552233", whatsapp:null, snippet:"Compré Q2 pero el título dice diesel y es nafta. Cómo lo soluciono? Aparece mal cargado en el registro. Tel 1144552233", signals:["has_phone","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:22},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:6},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-048", score:28, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Santa Fe", ciudad:"Esperanza", vehiculo:"Fiat Cronos 2019", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"RTV cuando vence", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:8},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:1}] },
+  { id:"lead-049", score:96, persona:"Gonzalo Vera", problema:"TRANSFER_PROBLEM", provincia:"Córdoba", ciudad:"Córdoba", vehiculo:"Toyota SW4 SRX 2022", patente:"BS 456 TU", urgency:true, fuente:"Facebook", phone:"+5493515566889", whatsapp:"+5493515566889", snippet:"URGENTÍSIMO SW4 SRX 2022!!! Comprador con seña de $5000 USD. Tengo 4 multas + embargo + libre deuda vencido. PAGO LO QUE SEA. Necesito transferir antes del 30 o pierdo venta. Wsp 3515566889", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:14},{signal:"evidence_quality",weight:10,value:10},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:9},{signal:"signal_repetition",weight:10,value:8}] },
+  { id:"lead-050", score:46, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Buenos Aires", ciudad:"Junín", vehiculo:"Renault Kangoo 2017", patente:"BT 789 VW", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multa mal notificada, cómo la reclamo?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:16},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:2}] },
+  { id:"lead-051", score:83, persona:"Andrea Luna", problema:"TRANSFER_PROBLEM", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Ford Bronco Sport 2022", patente:"BU 012 XY", urgency:false, fuente:"Facebook", phone:"+5493413456789", whatsapp:"+5493413456789", snippet:"Vendo Bronco Sport, comprador firme. Tengo libre deuda multas pendiente. Rosario. Wsp 3413456789", signals:["has_phone","has_whatsapp","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:27},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:9},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:10}] },
+  { id:"lead-052", score:35, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"CABA", ciudad:"Liniers", vehiculo:"Chevrolet Spark 2013", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Patente moto nuevo formato", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:10},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-053", score:70, persona:"Felipe Mendoza", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Quilmes", vehiculo:"Toyota Yaris 2020", patente:"BV 345 BC", urgency:false, fuente:"Facebook", phone:"+5491144337799", whatsapp:"+5491144337799", snippet:"Compré Yaris, resulta que tiene pedido de secuestro. Cómo me defiendo? El vendedor desapareció. Wsp 1144337799", signals:["has_phone","has_whatsapp","recent","transfer","preventive"], score_breakdown:[{signal:"explicit_intent",weight:30,value:23},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-054", score:59, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Córdoba", ciudad:"Córdoba", vehiculo:"Volkswagen T-Cross 2021", patente:"BW 678 DE", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multa exceso velocidad, se puede hacer curso?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:21},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-055", score:89, persona:"Santiago Ríos", problema:"TRANSFER_PROBLEM", provincia:"Mendoza", ciudad:"Mendoza", vehiculo:"Toyota Corolla 2021", patente:"BX 901 FG", urgency:true, fuente:"Facebook", phone:"+5492615678901", whatsapp:"+5492615678901", snippet:"URGENTE Corolla 2021, comprador de San Juan con seña. Tengo multas + libre deuda vencido. Mendoza centro. Pago gestoría urgente. Wsp 2615678901", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:29},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-056", score:41, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Entre Ríos", ciudad:"Paraná", vehiculo:"Renault Stepway 2016", patente:"BY 234 HI", urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Cambio domicilio título", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:14},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-057", score:77, persona:"Valeria Vera", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"San Martín", vehiculo:"Jeep Renegade 2020", patente:"BZ 567 JK", urgency:false, fuente:"MercadoLibre", phone:"+5491144558899", whatsapp:"+5491144558899", snippet:"Compré Renegade en ML, el título tiene un error de patente. Necesito corregir antes de transferir. Wsp 1144558899", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:25},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:7}] },
+  { id:"lead-058", score:25, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"CABA", ciudad:"Balvanera", vehiculo:"Fiat Mobi 2018", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Multa vieja donde la pago", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:7},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-059", score:85, persona:"Joaquín Medina", problema:"TRANSFER_PROBLEM", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Toyota SW4 2021", patente:"CA 890 LM", urgency:true, fuente:"Facebook", phone:"+5493416789012", whatsapp:"+5493416789012", snippet:"URGENTE SW4, comprador con seña. Tengo 3 multas en Rosario-Córdoba + libre deuda vencido. Busco gestoría. Pago muy bien. Wsp 3416789012", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:28},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-060", score:52, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Córdoba", ciudad:"Alta Gracia", vehiculo:"Ford Fiesta 2014", patente:"CB 123 NO", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"VTV vencido multa?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:18},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:2}] },
+  { id:"lead-061", score:64, persona:"Camila Vega", problema:"FINE_DISPUTE", provincia:"Buenos Aires", ciudad:"Avellaneda", vehiculo:"Chevrolet Onix Plus 2020", patente:"CC 456 PQ", urgency:false, fuente:"Facebook", phone:"+5491144336677", whatsapp:"+5491144336677", snippet:"Tengo 5 fotomultas en Avellaneda, necesito plan de pagos para transferir. Wsp 1144336677", signals:["has_phone","has_whatsapp","recent","multa","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:22},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:6},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-062", score:30, persona:"Anónimo", problema:"OWNERSHIP_ISSUE", provincia:"Mendoza", ciudad:"San Martín", vehiculo:"Fiat Uno 2009", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Auto heredado sin papeles", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:9},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:2}] },
+  { id:"lead-063", score:91, persona:"Lucas Páez", problema:"TRANSFER_PROBLEM", provincia:"CABA", ciudad:"Palermo", vehiculo:"BMW X3 2021", patente:"CD 789 RS", urgency:true, fuente:"Facebook", phone:"+5491155667788", whatsapp:"+5491155667788", snippet:"X3 2021 URGENTE! Comprador de Nordelta con seña. Tengo 2 multas + embargo + libre deuda. Pago gestoría premium. Palermo. Wsp 1155667788", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","preventive","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:14},{signal:"evidence_quality",weight:10,value:10},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-064", score:44, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Santa Fe", ciudad:"Santo Tomé", vehiculo:"Renault Logan 2017", patente:"CE 012 TU", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Cambio motor, cómo aviso?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:15},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:2}] },
+  { id:"lead-065", score:81, persona:"Bruno Acosta", problema:"TRANSFER_PROBLEM", provincia:"Buenos Aires", ciudad:"La Plata", vehiculo:"Volkswagen Taos 2021", patente:"CF 345 VW", urgency:true, fuente:"Facebook", phone:"+5492213456789", whatsapp:"+5492213456789", snippet:"Taos 2021, comprador listo. Tengo 3 multas en La Plata. Pago gestoría. La Plata centro. Wsp 2213456789", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:27},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-066", score:53, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Córdoba", ciudad:"Córdoba", vehiculo:"Ford EcoSport 2018", patente:"CG 678 XY", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multa por luces, sirve reclamar?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:19},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:2}] },
+  { id:"lead-067", score:66, persona:"Sofía Bravo", problema:"OWNERSHIP_ISSUE", provincia:"CABA", ciudad:"Núñez", vehiculo:"Audi Q3 2020", patente:"CH 901 BC", urgency:false, fuente:"MercadoLibre", phone:"+5491144556688", whatsapp:"+5491144556688", snippet:"Compré Q3 en ML, vendedor no me pasó la cédula. Cómo la saco? Wsp 1144556688", signals:["has_phone","has_whatsapp","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:22},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-068", score:27, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Buenos Aires", ciudad:"Lanús", vehiculo:"Chevrolet Corsa 2008", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Cédula verde pérdida", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:8},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-069", score:74, persona:"Federico Ríos", problema:"TRANSFER_PROBLEM", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Toyota Corolla 2020", patente:"CI 234 DE", urgency:false, fuente:"Facebook", phone:"+5493415678123", whatsapp:"+5493415678123", snippet:"Vendo Corolla, comprador listo. Libre deuda multas pendiente. Rosario. Wsp 3415678123", signals:["has_phone","has_whatsapp","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:25},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-070", score:49, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Mendoza", ciudad:"Godoy Cruz", vehiculo:"Volkswagen Gol 2016", patente:"CJ 567 FG", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multa sin notificación previa, es legal?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:17},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:5},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:0}] },
+  { id:"lead-071", score:84, persona:"Martín Domínguez", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Mar del Plata", vehiculo:"Ford Ranger Raptor 2022", patente:"CK 890 HI", urgency:true, fuente:"Facebook", phone:"+5492233456789", whatsapp:"+5492233456789", snippet:"Raptor 2022, comprador de CABA con seña. Resulta que el título tiene error de año. Urgente regularizar. Wsp 2233456789", signals:["has_phone","has_whatsapp","urgency","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:27},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:9},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-072", score:37, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"CABA", ciudad:"Flores", vehiculo:"Fiat Siena 2013", patente:"CL 123 JK", urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Seguro vence con multa", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:11},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:7}] },
+  { id:"lead-073", score:79, persona:"Lucía Méndez", problema:"TRANSFER_PROBLEM", provincia:"Córdoba", ciudad:"Córdoba", vehiculo:"Chevrolet Tracker 2021", patente:"CM 456 LM", urgency:false, fuente:"Facebook", phone:"+5493515566778", whatsapp:"+5493515566778", snippet:"Vendo Tracker, comprador firme. Tengo multa de speedeye sin pagar. Córdoba centro. Wsp 3515566778", signals:["has_phone","has_whatsapp","recent","transfer","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:26},{signal:"urgency",weight:15,value:8},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:8}] },
+  { id:"lead-074", score:56, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Santa Fe", ciudad:"Rafaela", vehiculo:"Renault Duster 2018", patente:"CN 789 NO", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"3 multas en Rafaela, las puedo pagar juntas?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:20},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:4},{signal:"signal_repetition",weight:10,value:3}] },
+  { id:"lead-075", score:69, persona:"Tomás Herrera", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"Morón", vehiculo:"Jeep Compass 2020", patente:"CO 012 PQ", urgency:false, fuente:"MercadoLibre", phone:"+5491144338899", whatsapp:null, snippet:"Compré Compass usado, vendedor se fue al exterior. Tengo boleto firmado. Tel 1144338899", signals:["has_phone","recent","transfer"], score_breakdown:[{signal:"explicit_intent",weight:30,value:23},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:7},{signal:"commercial_potential",weight:10,value:7},{signal:"channel_fit",weight:10,value:6},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-076", score:32, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Mendoza", ciudad:"Mendoza", vehiculo:"Ford Ka 2012", patente:null, urgency:false, fuente:"X", phone:null, whatsapp:null, snippet:"Patente nueva moto", signals:[], score_breakdown:[{signal:"explicit_intent",weight:30,value:9},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:3},{signal:"commercial_potential",weight:10,value:3},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-077", score:90, persona:"Diego Vera", problema:"TRANSFER_PROBLEM", provincia:"CABA", ciudad:"Recoleta", vehiculo:"Audi A4 2021", patente:"CP 345 RS", urgency:true, fuente:"Facebook", phone:"+5491144552244", whatsapp:"+5491144552244", snippet:"A4 2021 URGENTE, comprador con seña. Tengo 4 multas + libre deuda vencido. Recoleta. Pago gestoría premium. Wsp 1144552244", signals:["has_phone","has_whatsapp","urgency","recent","transfer","multa","institutional"], score_breakdown:[{signal:"explicit_intent",weight:30,value:30},{signal:"urgency",weight:15,value:15},{signal:"jurisdiction_fit",weight:15,value:14},{signal:"evidence_quality",weight:10,value:9},{signal:"commercial_potential",weight:10,value:10},{signal:"channel_fit",weight:10,value:8},{signal:"signal_repetition",weight:10,value:4}] },
+  { id:"lead-078", score:39, persona:"Anónimo", problema:"FINE_DISPUTE", provincia:"Córdoba", ciudad:"San Francisco", vehiculo:"Chevrolet Onix 2017", patente:"CQ 678 TU", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"Multa de agente, cuánto sale?", signals:["recent","multa"], score_breakdown:[{signal:"explicit_intent",weight:30,value:13},{signal:"urgency",weight:15,value:0},{signal:"jurisdiction_fit",weight:15,value:8},{signal:"evidence_quality",weight:10,value:4},{signal:"commercial_potential",weight:10,value:4},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:5}] },
+  { id:"lead-079", score:73, persona:"Carla Luna", problema:"OWNERSHIP_ISSUE", provincia:"Buenos Aires", ciudad:"San Isidro", vehiculo:"BMW X1 2020", patente:"CR 901 VW", urgency:false, fuente:"Facebook", phone:"+5491144557799", whatsapp:"+5491144557799", snippet:"Compré X1, vendedor falleció. Sucesión no iniciada. Necesito transferir. San Isidro. Wsp 1144557799", signals:["has_phone","has_whatsapp","recent","transfer","preventive"], score_breakdown:[{signal:"explicit_intent",weight:30,value:24},{signal:"urgency",weight:15,value:7},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:8},{signal:"commercial_potential",weight:10,value:8},{signal:"channel_fit",weight:10,value:7},{signal:"signal_repetition",weight:10,value:6}] },
+  { id:"lead-080", score:61, persona:"Anónimo", problema:"DOCUMENTATION_ISSUE", provincia:"Santa Fe", ciudad:"Rosario", vehiculo:"Volkswagen Voyage 2018", patente:"CS 234 XY", urgency:false, fuente:"Reddit", phone:null, whatsapp:null, snippet:"RTV vencido hace 2 meses, puedo circular?", signals:["recent"], score_breakdown:[{signal:"explicit_intent",weight:30,value:21},{signal:"urgency",weight:15,value:5},{signal:"jurisdiction_fit",weight:15,value:13},{signal:"evidence_quality",weight:10,value:6},{signal:"commercial_potential",weight:10,value:5},{signal:"channel_fit",weight:10,value:5},{signal:"signal_repetition",weight:10,value:6}] }
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const STATE = {
+  allLeads: [],        // expanded to 10K
+  filtered: [],        // after filters
+  range: "week",
+  chips: new Set(),
+  search: "",
+  sort: "score_desc",
+  selectedId: null,
+  scrollTop: 0,
+  viewportH: 0,
+  rowH: 44,
+  history: {}          // leadId -> [{ts, action}]
+};
+
+const PERSIST_KEY = "radar_leads_pro_state_v1";
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function $(id) { return document.getElementById(id); }
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+function scoreColor(s) {
+  if (s >= 90) return "#58a6ff";
+  if (s >= 70) return "#2ea043";
+  if (s >= 40) return "#d29922";
+  return "#f85149";
+}
+function problemBadge(p) {
+  const m = {
+    TRANSFER_PROBLEM: { cls: "badge-transfer", label: "Transferencia" },
+    FINE_DISPUTE: { cls: "badge-fine", label: "Multa" },
+    OWNERSHIP_ISSUE: { cls: "badge-ownership", label: "Titularidad" },
+    DOCUMENTATION_ISSUE: { cls: "badge-doc", label: "Documentación" }
+  };
+  const v = m[p] || { cls: "badge-doc", label: p };
+  return '<span class="badge ' + v.cls + '">' + v.label + '</span>';
+}
+function fuenteColor(f) {
+  return { Facebook:"#0176d3", Reddit:"#ff4500", X:"#1d9bf0", MercadoLibre:"#ffe600" }[f] || "#8b949e";
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 3600) return Math.floor(diff/60) + "min";
+  if (diff < 86400) return Math.floor(diff/3600) + "h";
+  return Math.floor(diff/86400) + "d";
+}
+function fmtDateTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString("es-AR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+}
+function debounce(fn, ms) {
+  let t;
+  return function() {
+    clearTimeout(t);
+    const args = arguments;
+    t = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
+function toast(msg, kind) {
+  const c = $("toast-container");
+  const t = el("div", "toast " + (kind || "info"), msg);
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = 0; setTimeout(() => t.remove(), 200); }, 2400);
+}
+function persistState() {
+  try {
+    const data = {};
+    for (const id in STATE.history) data[id] = { history: STATE.history[id] };
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+function loadPersisted() {
+  try {
+    const raw = localStorage.getItem(PERSIST_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    for (const id in data) {
+      if (data[id].history) STATE.history[id] = data[id].history;
+    }
+  } catch(e) {}
+}
+function leadEstado(lead) {
+  const h = STATE.history[lead.id] || [];
+  if (h.length === 0) return "new";
+  return h[h.length - 1].action;
+}
+function leadNotes(lead) {
+  try {
+    return localStorage.getItem("radar_notes_" + lead.id) || "";
+  } catch(e) { return ""; }
+}
+function setLeadNotes(lead, txt) {
+  try { localStorage.setItem("radar_notes_" + lead.id, txt); } catch(e) {}
+}
+
+/* ============================================================
+   EXPAND 80 → 10K leads (for virtual scroll demo)
+   ============================================================ */
+function expandLeads() {
+  const base = RAW_LEADS;
+  const target = 10000;
+  const out = [];
+  const now = Date.now();
+  for (let i = 0; i < target; i++) {
+    const b = base[i % base.length];
+    const ageMin = Math.floor((i / target) * 7 * 24 * 60); // spread across 7 days
+    const fecha = new Date(now - ageMin * 60 * 1000).toISOString();
+    out.push({
+      id: b.id + "-" + i,
+      score: i < target * 0.3 ? b.score : Math.max(5, Math.min(100, b.score + ((i * 7) % 21) - 10)),
+      probability: i < target * 0.3 ? b.score : Math.max(5, Math.min(100, b.score + ((i * 7) % 21) - 10)),
+      persona: b.persona,
+      problema: b.problema,
+      provincia: b.provincia,
+      ciudad: b.ciudad,
+      vehiculo: b.vehiculo,
+      patente: b.patente,
+      urgency: b.urgency,
+      fecha: fecha,
+      fuente: b.fuente,
+      phone: b.phone,
+      whatsapp: b.whatsapp,
+      snippet: b.snippet,
+      signals: b.signals,
+      score_breakdown: b.score_breakdown,
+      source_url: sourceUrl(b.fuente, b.id),
+      reasoning: ""
+    });
+  }
+  // recompute probability (single pass, no separate loop)
+  // reasoning is generated lazily on drawer open to keep boot fast
+  return out;
+}
+
+function sourceUrl(fuente, id) {
+  const slug = id.replace("lead-","").padStart(4,"0");
+  if (fuente === "Facebook") return "https://www.facebook.com/groups/autos.ar/posts/" + slug;
+  if (fuente === "Reddit") return "https://www.reddit.com/r/argentina/comments/" + slug + "/post";
+  if (fuente === "X") return "https://x.com/user/status/" + slug;
+  if (fuente === "MercadoLibre") return "https://www.mercadolibre.com.ar/ml/item/MLA" + slug;
+  return "#";
+}
+
+function buildReasoning(l) {
+  const parts = [];
+  parts.push("Lead detectado en <b>" + l.fuente + "</b> desde <b>" + l.ciudad + ", " + l.provincia + "</b>.");
+  if (l.urgency) parts.push("Se detectaron marcadores de <b>urgencia</b> (palabras como 'URGENTE', 'YA', plazos explícitos).");
+  if (l.signals.includes("transfer")) parts.push("Menciona explícitamente <b>transferencia</b> — intención comercial alta.");
+  if (l.signals.includes("multa")) parts.push("Refiere <b>multas impagas</b> que bloquean el trámite.");
+  if (l.signals.includes("preventive")) parts.push("Detectamos <b>preventivo/embargo</b> en el registro.");
+  if (l.whatsapp) parts.push("Tiene <b>WhatsApp disponible</b> (" + l.whatsapp + ") — contacto directo posible.");
+  else if (l.phone) parts.push("Tiene <b>teléfono</b> (" + l.phone + ") pero no WhatsApp explícito.");
+  else parts.push("<b>Sin canal de contacto directo</b> — requiere búsqueda manual del perfil.");
+  parts.push("Score final: <b>" + l.score + "/100</b> (" + scoreLabel(l.score) + ").");
+  return parts.join(" ");
+}
+function scoreLabel(s) {
+  if (s >= 90) return "Crítico";
+  if (s >= 70) return "Alto";
+  if (s >= 40) return "Medio";
+  return "Bajo";
+}
+
+/* ============================================================
+   FILTERING
+   ============================================================ */
+function applyFilters() {
+  const now = Date.now();
+  const ranges = {
+    today: 12 * 3600 * 1000,
+    "24h": 24 * 3600 * 1000,
+    "3d": 3 * 24 * 3600 * 1000,
+    week: 7 * 24 * 3600 * 1000,
+    all: Infinity
+  };
+  const cutoff = now - ranges[STATE.range];
+
+  const search = STATE.search.toLowerCase();
+  const chips = STATE.chips;
+
+  STATE.filtered = STATE.allLeads.filter(l => {
+    if (new Date(l.fecha).getTime() < cutoff) return false;
+    if (chips.has("hot") && l.score < 70) return false;
+    if (chips.has("whatsapp") && !l.whatsapp) return false;
+    if (chips.has("phone") && !l.phone) return false;
+    if (chips.has("reddit") && l.fuente !== "Reddit") return false;
+    if (chips.has("facebook") && l.fuente !== "Facebook") return false;
+    if (chips.has("x") && l.fuente !== "X") return false;
+    if (chips.has("ml") && l.fuente !== "MercadoLibre") return false;
+    if (chips.has("recent") && (now - new Date(l.fecha).getTime()) > 24*3600*1000) return false;
+    if (chips.has("unreviewed") && leadEstado(l) !== "new") return false;
+    if (chips.has("contacted") && leadEstado(l) !== "contacted") return false;
+    if (search) {
+      const hay = (l.persona + " " + l.problema + " " + l.provincia + " " + l.ciudad + " " + l.vehiculo + " " + (l.patente||"") + " " + l.snippet).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  // sort
+  const s = STATE.sort;
+  STATE.filtered.sort((a,b) => {
+    if (s === "score_desc") return b.score - a.score;
+    if (s === "date_desc") return new Date(b.fecha) - new Date(a.fecha);
+    if (s === "urgency_desc") return (b.urgency?1:0) - (a.urgency?1:0) || b.score - a.score;
+    return 0;
+  });
+
+  $("empty-state").style.display = STATE.filtered.length === 0 ? "flex" : "none";
+  // Reset scroll so user sees top of new filtered list
+  $("table-body").scrollTop = 0;
+  renderTable(true);
+}
+
+/* ============================================================
+   TABLE COLUMNS DEFINITION
+   ============================================================ */
+const COLUMNS = [
+  { key:"score", label:"Score", width:120, cls:"col-score", cell:l => `
+    <div class="td score-cell">
+      <span class="score-num" style="color:${scoreColor(l.score)}">${l.score}</span>
+      <div class="score-bar"><div class="score-bar-fill" style="width:${l.score}%;background:${scoreColor(l.score)}"></div></div>
+    </div>` },
+  { key:"prob", label:"Prob.", width:60, cls:"col-prob", cell:l => `<div class="td mono">${l.probability}%</div>` },
+  { key:"persona", label:"Persona", width:140, cls:"col-persona", cell:l => `<div class="td">${l.persona}</div>` },
+  { key:"problema", label:"Problema", width:130, cls:"col-problem", cell:l => `<div class="td">${problemBadge(l.problema)}</div>` },
+  { key:"provincia", label:"Provincia", width:110, cls:"col-province", cell:l => `<div class="td muted">${l.provincia}</div>` },
+  { key:"ciudad", label:"Ciudad", width:110, cls:"col-city", cell:l => `<div class="td muted small">${l.ciudad}</div>` },
+  { key:"vehiculo", label:"Vehículo", width:180, cls:"col-vehicle", cell:l => `<div class="td small">${l.vehiculo}</div>` },
+  { key:"patente", label:"Patente", width:90, cls:"col-patent", cell:l => `<div class="td mono muted">${l.patente || "—"}</div>` },
+  { key:"urgency", label:"Urg.", width:50, cls:"col-urgency", cell:l => `<div class="td">${l.urgency ? '<span class="urgency-fire">🔥</span>' : '<span style="color:var(--text-faint)">—</span>'}</div>` },
+  { key:"fecha", label:"Fecha", width:70, cls:"col-date", cell:l => `<div class="td small muted" title="${fmtDateTime(l.fecha)}">${fmtDate(l.fecha)}</div>` },
+  { key:"fuente", label:"Fuente", width:90, cls:"col-source", cell:l => `<div class="td"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px"><span style="width:6px;height:6px;border-radius:50%;background:${fuenteColor(l.fuente)}"></span>${l.fuente}</span></div>` },
+  { key:"contacto", label:"Contacto", width:90, cls:"col-contact", cell:l => `<div class="td small">${l.whatsapp ? '<span style="color:var(--green)">WhatsApp</span>' : l.phone ? '<span style="color:var(--text-muted)">Tel</span>' : '<span style="color:var(--text-faint)">—</span>'}</div>` },
+  { key:"estado", label:"Estado", width:100, cls:"col-estado", cell:l => {
+    const e = leadEstado(l);
+    const labels = { new:"nuevo", reviewed:"revisado", contacted:"contactado", ignored:"ignorado" };
+    return `<div class="td"><span class="estado-chip estado-${e}">${labels[e]}</span></div>`;
+  } },
+  { key:"acciones", label:"Acc.", width:90, cls:"col-actions", cell:l => `
+    <div class="td actions-cell">
+      <button class="action-btn review" title="Marcar revisado" onclick="event.stopPropagation();markState('${l.id}','reviewed')">✓</button>
+      ${l.whatsapp ? `<a class="action-btn wa" title="Abrir WhatsApp" href="https://wa.me/${l.whatsapp.replace(/[^0-9]/g,'')}" target="_blank" onclick="event.stopPropagation()">wa</a>` : '<span class="action-btn" style="opacity:0.3;cursor:default">—</span>'}
+      <button class="action-btn" title="Abrir publicación" onclick="event.stopPropagation();window.open('${l.source_url}','_blank')">↗</button>
+    </div>` }
+];
+
+/* ============================================================
+   TABLE RENDER (virtual scroll)
+   ============================================================ */
+function renderTableHeader() {
+  const h = $("table-header");
+  h.innerHTML = "";
+  COLUMNS.forEach(c => {
+    const th = el("div", "th " + c.cls, c.label);
+    th.style.width = c.width + "px";
+    th.style.flex = "0 0 " + c.width + "px";
+    const r = el("div", "th-resizer");
+    th.appendChild(r);
+    h.appendChild(th);
+    // resize
+    let startX = 0, startW = 0;
+    r.addEventListener("mousedown", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      startX = e.clientX;
+      startW = c.width;
+      const onMove = ev => {
+        const nw = Math.max(50, startW + (ev.clientX - startX));
+        c.width = nw;
+        th.style.width = nw + "px";
+        th.style.flex = "0 0 " + nw + "px";
+        renderTable(true);
+      };
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  });
+}
+
+function renderTable(reset) {
+  const body = $("table-body");
+  const spacer = $("table-spacer");
+  const total = STATE.filtered.length;
+  const totalH = total * STATE.rowH;
+  spacer.style.height = totalH + "px";
+
+  const scrollTop = body.scrollTop;
+  const vpH = body.clientHeight;
+  STATE.scrollTop = scrollTop;
+  STATE.viewportH = vpH;
+
+  const start = Math.max(0, Math.floor(scrollTop / STATE.rowH) - 5);
+  const end = Math.min(total, Math.ceil((scrollTop + vpH) / STATE.rowH) + 5);
+  const count = end - start;
+
+  // Build HTML string for performance (virtual scroll: only render visible range + buffer)
+  let out = "";
+  for (let i = start; i < end; i++) {
+    const l = STATE.filtered[i];
+    if (!l) continue;
+    const top = i * STATE.rowH;
+    const sel = STATE.selectedId === l.id ? " selected" : "";
+    out += `<div class="lead-row${sel}" style="top:${top}px" data-idx="${i}" data-id="${l.id}" onclick="openDrawer('${l.id}')">`;
+    for (const c of COLUMNS) {
+      // Strip the outer <div class="td..."> wrapper from cell output,
+      // then re-wrap with the column class + width set inline.
+      const inner = c.cell(l).replace(/^<div class="td[^"]*">/, "").replace(/<\/div>$/, "");
+      out += `<div class="td ${c.cls}" style="width:${c.width}px;flex:0 0 ${c.width}px">${inner}</div>`;
+    }
+    out += `</div>`;
+  }
+  spacer.innerHTML = out;
+}
+
+/* ============================================================
+   COMMAND CENTER
+   ============================================================ */
+function renderCommandCenter() {
+  const cc = $("command-center");
+  const m = DASHBOARD_PAYLOAD.metrics;
+  const leads = STATE.allLeads;
+  const hot = leads.filter(l => l.score >= 70).length;
+  const wa = leads.filter(l => l.whatsapp).length;
+  const critical = leads.filter(l => l.urgency && l.score >= 80).length;
+  const newSince = m.new_since_last;
+  const conv = m.conversion_probability;
+  const expiring = m.expiring_3d;
+
+  // sparkline data (mock trend)
+  const spark = [12, 18, 15, 22, 28, 19, 25, 31, 27, 35, 30, critical];
+
+  cc.innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-head"><div class="kpi-label">🔥 Leads críticos</div></div>
+      <div class="kpi-value" style="color:var(--red)">${critical}</div>
+      <div class="kpi-meta">requieren atención hoy</div>
+      <svg class="kpi-spark" viewBox="0 0 70 24" preserveAspectRatio="none">${sparklinePath(spark, 70, 24, "#f85149")}</svg>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-head"><div class="kpi-label">🟢 Nuevos</div></div>
+      <div class="kpi-value" style="color:var(--green)">${newSince}</div>
+      <div class="kpi-meta">desde última ejecución · <span class="delta-up">+12%</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-head"><div class="kpi-label">📞 Con WhatsApp</div></div>
+      <div class="kpi-value">${wa.toLocaleString("es-AR")}</div>
+      <div class="kpi-meta">${pct(wa, leads.length)} del total · contactables</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-head"><div class="kpi-label">⏰ Por vencer</div></div>
+      <div class="kpi-value" style="color:var(--yellow)">${expiring}</div>
+      <div class="kpi-meta">+3 días sin revisar</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-head"><div class="kpi-label">📈 Conversión estimada</div></div>
+      <div class="kpi-value">${pct(conv, 1)}</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${conv*100}%"></div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-head"><div class="kpi-label">🔥 Hot leads</div></div>
+      <div class="kpi-value" style="color:var(--blue)">${hot.toLocaleString("es-AR")}</div>
+      <div class="kpi-meta">score ≥ 70 · alta intención</div>
+    </div>
+    <div class="insights-card">
+      <div class="insights-head"><span class="ai-dot"></span>🧠 Insights IA · patrón detectado</div>
+      <div class="insights-text">${buildInsights(leads)}</div>
+    </div>
+  `;
+}
+
+function buildInsights(leads) {
+  // detect patterns from data
+  const hot = leads.filter(l => l.score >= 70);
+  const total = leads.length;
+  const fbHot = hot.filter(l => l.fuente === "Facebook").length;
+  const baHot = hot.filter(l => (l.provincia === "Buenos Aires" || l.provincia === "CABA")).length;
+  const transferHot = hot.filter(l => l.problema === "TRANSFER_PROBLEM").length;
+  const waHot = hot.filter(l => l.whatsapp).length;
+
+  const pctFb = pct(fbHot, hot.length);
+  const pctBa = pct(baHot, hot.length);
+  const pctTr = pct(transferHot, hot.length);
+  const pctWa = pct(waHot, hot.length);
+
+  return `El <b>${pctFb}</b> de los leads calientes provienen de <span class="tag">Facebook</span>,
+  concentran <b>${pctBa}</b> en <span class="tag">Buenos Aires + CABA</span> y <b>${pctTr}</b> menciona
+  <span class="tag">transferencia</span> como problema. <b>${pctWa}</b> tienen WhatsApp disponible —
+  priorizar contacto directo en horario <b>10-12h</b>.`;
+}
+
+function sparklinePath(data, w, h, color) {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const step = w / (data.length - 1);
+  const pts = data.map((d, i) => [i * step, h - ((d - min) / range) * (h - 4) - 2]);
+  const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  return `<path d="${path}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+}
+
+function pct(a, b) {
+  if (!b) return "0%";
+  return Math.round((a / b) * 100) + "%";
+}
+
+/* ============================================================
+   ANALYTICS
+   ============================================================ */
+function renderAnalytics() {
+  const ar = $("analytics-row");
+  const leads = STATE.allLeads;
+
+  // Top problems
+  const problems = countBy(leads, l => l.problema);
+  // Top provinces
+  const provinces = countBy(leads, l => l.provincia);
+  // Top sources
+  const sources = countBy(leads, l => l.fuente);
+  // Hot hours
+  const hours = new Array(24).fill(0);
+  leads.forEach(l => { hours[new Date(l.fecha).getHours()]++; });
+  // Trend last 7 days
+  const trend = new Array(7).fill(0);
+  const now = new Date();
+  leads.forEach(l => {
+    const d = new Date(l.fecha);
+    const diff = Math.floor((now - d) / (24 * 3600 * 1000));
+    if (diff >= 0 && diff < 7) trend[6 - diff]++;
+  });
+
+  ar.innerHTML = `
+    <div class="chart-card">
+      <div class="chart-title">Top problemas <span class="count">${leads.length}</span></div>
+      <div class="chart-body">${renderBarChart(problems, {
+        TRANSFER_PROBLEM: ["Transferencia", "#58a6ff"],
+        FINE_DISPUTE: ["Multa", "#f85149"],
+        OWNERSHIP_ISSUE: ["Titularidad", "#e8873b"],
+        DOCUMENTATION_ISSUE: ["Documentación", "#2ea043"]
+      })}</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Top provincias <span class="count">${Object.keys(provinces).length}</span></div>
+      <div class="chart-body">${renderBarChart(provinces, null, 5)}</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Top fuentes <span class="count">${Object.keys(sources).length}</span></div>
+      <div class="chart-body">${renderBarChart(sources, null, 4)}</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Horas pico <span class="count">0-23h</span></div>
+      <div class="chart-body" style="justify-content:flex-end">
+        <div class="hour-chart">${hours.map((h,i) => `<div class="hour-bar ${h >= Math.max(...hours)*0.8 ? 'peak' : ''}" style="height:${(h/Math.max(...hours))*100}%" title="${i}h: ${h} leads"></div>`).join("")}</div>
+        <div class="hour-labels"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Tendencia 7 días <span class="count">${trend.reduce((a,b)=>a+b,0)}</span></div>
+      <div class="chart-body"><div class="line-chart">${renderLineChart(trend)}</div></div>
+    </div>
+  `;
+}
+
+function countBy(arr, fn) {
+  const m = {};
+  arr.forEach(x => { const k = fn(x); m[k] = (m[k] || 0) + 1; });
+  return m;
+}
+
+function renderBarChart(data, labelMap, topN) {
+  let entries = Object.entries(data).sort((a,b) => b[1] - a[1]);
+  if (topN) entries = entries.slice(0, topN);
+  const max = Math.max(...entries.map(e => e[1]));
+  const colors = ["#0176d3", "#58a6ff", "#2ea043", "#d29922", "#a371f7", "#e8873b"];
+  return entries.map((e, i) => {
+    const label = labelMap && labelMap[e[0]] ? labelMap[e[0]][0] : e[0];
+    const color = labelMap && labelMap[e[0]] ? labelMap[e[0]][1] : colors[i % colors.length];
+    return `<div class="bar-row">
+      <div class="bar-row-label" title="${label}">${label}</div>
+      <div class="bar-row-track"><div class="bar-row-fill" style="width:${(e[1]/max)*100}%;background:${color}"></div></div>
+      <div class="bar-row-value">${e[1].toLocaleString("es-AR")}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderLineChart(data) {
+  const w = 200, h = 80;
+  const max = Math.max(...data) || 1;
+  const step = w / (data.length - 1);
+  const pts = data.map((d, i) => [i * step, h - (d / max) * (h - 10) - 5]);
+  const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const area = path + ` L${w} ${h} L0 ${h} Z`;
+  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="#0176d3"/>`).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:100%">
+    <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0176d3" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0176d3" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#grad)"/>
+    <path d="${path}" fill="none" stroke="#0176d3" stroke-width="2"/>
+    ${dots}
+  </svg>`;
+}
+
+/* ============================================================
+   HEADER STATS
+   ============================================================ */
+function renderHeaderStats() {
+  const m = DASHBOARD_PAYLOAD.metrics;
+  $("hs-updated").textContent = fmtDateTime(DASHBOARD_PAYLOAD.generated_at);
+  $("hs-runtime").textContent = DASHBOARD_PAYLOAD.runtime_ms + "ms";
+  $("hs-total").textContent = m.total_leads.toLocaleString("es-AR");
+  $("hs-hot").textContent = m.hot_leads.toLocaleString("es-AR");
+  $("hs-contactable").textContent = m.contactable.toLocaleString("es-AR");
+  $("hs-conv").textContent = pct(m.conversion_probability, 1);
+}
+
+/* ============================================================
+   FILTERS UI
+   ============================================================ */
+function renderChips() {
+  const chips = [
+    ["hot", "Solo calientes"],
+    ["whatsapp", "Solo WhatsApp"],
+    ["phone", "Solo teléfono"],
+    ["reddit", "Reddit"],
+    ["facebook", "Facebook"],
+    ["x", "X"],
+    ["ml", "MercadoLibre"],
+    ["recent", "Recientes 24h"],
+    ["unreviewed", "No revisados"],
+    ["contacted", "Contactados"]
+  ];
+  const c = $("chip-filters");
+  c.innerHTML = chips.map(([id, label]) =>
+    `<button class="chip" data-chip="${id}" onclick="toggleChip('${id}')"><span class="chip-dot"></span>${label}</button>`
+  ).join("");
+}
+
+function toggleChip(id) {
+  if (STATE.chips.has(id)) STATE.chips.delete(id);
+  else STATE.chips.add(id);
+  // update UI
+  document.querySelectorAll(".chip").forEach(c => {
+    c.classList.toggle("active", STATE.chips.has(c.dataset.chip));
+  });
+  applyFilters();
+}
+
+function setupFilters() {
+  document.querySelectorAll("#time-filters button").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#time-filters button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      STATE.range = b.dataset.range;
+      applyFilters();
+    });
+  });
+  $("sort-select").addEventListener("change", e => {
+    STATE.sort = e.target.value;
+    applyFilters();
+  });
+  const searchInput = $("search-input");
+  const debounced = debounce(() => {
+    STATE.search = searchInput.value.trim();
+    applyFilters();
+  }, 100);
+  searchInput.addEventListener("input", debounced);
+}
+
+/* ============================================================
+   DRAWER
+   ============================================================ */
+function openDrawer(id) {
+  const l = STATE.allLeads.find(x => x.id === id);
+  if (!l) return;
+  STATE.selectedId = id;
+  renderDrawer(l);
+  $("drawer").classList.add("open");
+  $("drawer-overlay").classList.add("open");
+  // Blur search so keyboard shortcuts work inside the drawer
+  if (document.activeElement && document.activeElement.tagName === "INPUT") document.activeElement.blur();
+  renderTable(false);
+}
+
+function closeDrawer() {
+  $("drawer").classList.remove("open");
+  $("drawer-overlay").classList.remove("open");
+  STATE.selectedId = null;
+  renderTable(false);
+}
+
+function renderDrawer(l) {
+  // Lazy-generate reasoning if missing
+  if (!l.reasoning) l.reasoning = buildReasoning(l);
+  const header = $("drawer-header");
+  const body = $("drawer-body");
+  const actions = $("drawer-actions");
+  const estado = leadEstado(l);
+  const labels = { new:"nuevo", reviewed:"revisado", contacted:"contactado", ignored:"ignorado" };
+
+  header.innerHTML = `
+    <div class="drawer-header-info">
+      <div class="drawer-score-row">
+        <div class="drawer-score" style="color:${scoreColor(l.score)}">${l.score}</div>
+        <div>
+          <div class="drawer-prob"><b>${l.probability}%</b> probabilidad de conversión</div>
+          <div class="drawer-title">${l.persona} · ${l.ciudad}, ${l.provincia}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        ${problemBadge(l.problema)}
+        <span class="estado-chip estado-${estado}">${labels[estado]}</span>
+        ${l.urgency ? '<span class="badge badge-fine">🔥 URGENTE</span>' : ''}
+      </div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Cerrar">✕</button>
+  `;
+
+  const hist = STATE.history[l.id] || [];
+
+  body.innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-section-title">Desglose del score</div>
+      ${(l.score_breakdown || []).map(b => `
+        <div class="score-breakdown-row">
+          <div class="score-breakdown-label" title="${b.signal}">${signalLabel(b.signal)} <span style="color:var(--text-faint);font-size:10px">(w${b.weight})</span></div>
+          <div class="score-breakdown-track"><div class="score-breakdown-fill" style="width:${(b.value/b.weight)*100}%"></div></div>
+          <div class="score-breakdown-value">${b.value}/${b.weight}</div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Señales detectadas</div>
+      <div>${(l.signals || []).map(s => `<span class="signal-chip">${signalLabel(s)}</span>`).join("")}</div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Razonamiento IA</div>
+      <div class="reasoning-box">${l.reasoning}</div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Evidencia (snippet original)</div>
+      <div class="evidence-box">${escapeHtml(l.snippet)}</div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Datos de contacto</div>
+      <div class="contact-row">
+        <span class="contact-label">Teléfono</span>
+        <span class="contact-value">${l.phone || "—"} ${l.phone ? `<button class="copy-btn" onclick="copyText('${l.phone}', this)">copiar</button>` : ""}</span>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">WhatsApp</span>
+        <span class="contact-value">${l.whatsapp || "—"} ${l.whatsapp ? `<button class="copy-btn" onclick="copyText('${l.whatsapp}', this)">copiar</button>` : ""}</span>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">Publicación</span>
+        <span class="contact-value" style="font-size:11px"><a href="${l.source_url}" target="_blank" style="color:var(--accent);text-decoration:none">abrir ↗</a></span>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">Vehículo</span>
+        <span class="contact-value" style="font-size:11px">${l.vehiculo}${l.patente ? " · " + l.patente : ""}</span>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Historial (${hist.length})</div>
+      <div>${hist.length === 0 ? '<div style="font-size:11px;color:var(--text-faint)">Sin cambios registrados</div>' :
+        hist.map(h => `<div class="timeline-item"><time>${fmtDateTime(h.ts)}</time> → ${labels[h.action] || h.action}</div>`).join("")}
+        <div class="timeline-item"><time>${fmtDateTime(l.fecha)}</time> → lead detectado en ${l.fuente}</div>
+      }</div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Notas privadas</div>
+      <textarea class="notes-area" id="notes-area" placeholder="Escribí notas internas sobre este lead…" oninput="saveNotes('${l.id}', this.value)">${leadNotes(l)}</textarea>
+    </div>
+  `;
+
+  actions.innerHTML = `
+    <button class="drawer-btn" onclick="markState('${l.id}','reviewed')"><span>✓</span> Revisado</button>
+    <button class="drawer-btn primary" onclick="markState('${l.id}','contacted')"><span>📞</span> Contactado</button>
+    <button class="drawer-btn danger" onclick="markState('${l.id}','ignored')"><span>✕</span> Ignorar</button>
+    ${l.whatsapp ? `<a class="drawer-btn wa" href="https://wa.me/${l.whatsapp.replace(/[^0-9]/g,'')}" target="_blank"><span>💬</span> WhatsApp</a>` : '<button class="drawer-btn" disabled style="opacity:0.4;cursor:not-allowed">Sin WhatsApp</button>'}
+    <button class="drawer-btn" onclick="window.open('${l.source_url}','_blank')"><span>↗</span> Publicación</button>
+    <button class="drawer-btn" onclick="copyText('${l.phone || l.whatsapp || ""}', this)"><span>⎘</span> Copiar teléfono</button>
+    <button class="drawer-btn" onclick="copyText('${l.source_url}', this)"><span>⎘</span> Copiar enlace</button>
+    <button class="drawer-btn" onclick="exportSingleLead('${l.id}')"><span>⬇</span> Exportar lead</button>
+  `;
+}
+
+function signalLabel(s) {
+  const m = {
+    explicit_intent: "Intención explícita",
+    urgency: "Urgencia",
+    jurisdiction_fit: "Jurisdicción",
+    evidence_quality: "Calidad evidencia",
+    commercial_potential: "Potencial comercial",
+    channel_fit: "Canal",
+    signal_repetition: "Repetición",
+    has_phone: "Teléfono",
+    has_whatsapp: "WhatsApp",
+    recent: "Reciente",
+    transfer: "Transferencia",
+    multa: "Multa",
+    preventive: "Preventivo",
+    institutional: "Institucional"
+  };
+  return m[s] || s;
+}
+
+function escapeHtml(s) {
+  return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function markState(id, action) {
+  if (!STATE.history[id]) STATE.history[id] = [];
+  STATE.history[id].push({ ts: new Date().toISOString(), action });
+  persistState();
+  // re-render
+  if (STATE.selectedId === id) {
+    const l = STATE.allLeads.find(x => x.id === id);
+    if (l) renderDrawer(l);
+  }
+  renderTable(false);
+  const labels = { reviewed:"revisado", contacted:"contactado", ignored:"ignorado" };
+  toast(`Lead marcado como ${labels[action]}`, "success");
+}
+
+function saveNotes(id, txt) {
+  setLeadNotes({ id: id }, txt);
+}
+
+function copyText(txt, btn) {
+  if (!txt) { toast("Nada para copiar", "info"); return; }
+  navigator.clipboard.writeText(txt).then(() => {
+    if (btn) { btn.classList.add("copied"); btn.textContent = "✓"; setTimeout(() => { btn.classList.remove("copied"); btn.textContent = "copiar"; }, 1200); }
+    toast("Copiado: " + (txt.length > 30 ? txt.slice(0,30) + "…" : txt), "success");
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast("Copiado", "success"); } catch(e) { toast("No se pudo copiar", "info"); }
+    ta.remove();
+  });
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+function exportJSON() {
+  const data = {
+    exported_at: new Date().toISOString(),
+    count: STATE.filtered.length,
+    leads: STATE.filtered.map(l => ({ ...l, estado: leadEstado(l), notes: leadNotes(l), history: STATE.history[l.id] || [] }))
+  };
+  downloadFile(JSON.stringify(data, null, 2), "radar_leads.json", "application/json");
+  toast(`${data.count} leads exportados a JSON`, "success");
+}
+function exportCSV() {
+  const cols = ["id","score","probabilidad","persona","problema","provincia","ciudad","vehiculo","patente","urgency","fecha","fuente","phone","whatsapp","estado"];
+  const rows = [cols.join(",")];
+  STATE.filtered.forEach(l => {
+    rows.push(cols.map(c => {
+      let v = l[c];
+      if (c === "estado") v = leadEstado(l);
+      if (v == null) v = "";
+      v = String(v).replace(/"/g, '""');
+      if (v.includes(",") || v.includes('"') || v.includes("\n")) v = '"' + v + '"';
+      return v;
+    }).join(","));
+  });
+  downloadFile(rows.join("\n"), "radar_leads.csv", "text/csv");
+  toast(`${STATE.filtered.length} leads exportados a CSV`, "success");
+}
+function exportSingleLead(id) {
+  const l = STATE.allLeads.find(x => x.id === id);
+  if (!l) return;
+  const data = { ...l, estado: leadEstado(l), notes: leadNotes(l), history: STATE.history[l.id] || [] };
+  downloadFile(JSON.stringify(data, null, 2), "lead_" + id + ".json", "application/json");
+  toast("Lead exportado", "success");
+}
+function downloadFile(content, name, type) {
+  const blob = new Blob([content], { type: type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+   ============================================================ */
+function setupKeyboard() {
+  document.addEventListener("keydown", e => {
+    // ignore when typing
+    const tag = (e.target.tagName || "").toLowerCase();
+    const inField = tag === "input" || tag === "textarea" || tag === "select";
+
+    if (e.key === "/" && !inField) {
+      e.preventDefault();
+      $("search-input").focus();
+      return;
+    }
+    if (e.key === "Escape") {
+      if ($("drawer").classList.contains("open")) {
+        closeDrawer();
+      } else if (document.activeElement === $("search-input")) {
+        $("search-input").blur();
+      }
+      return;
+    }
+    if (inField) return;
+
+    // navigation
+    if (!STATE.selectedId && (e.key === "j" || e.key === "k" || e.key === "Enter")) {
+      if (STATE.filtered.length > 0) {
+        STATE.selectedId = STATE.filtered[0].id;
+        renderTable(false);
+        if (e.key === "Enter") openDrawer(STATE.selectedId);
+      }
+      return;
+    }
+    if (e.key === "j" || e.key === "k") {
+      const idx = STATE.filtered.findIndex(l => l.id === STATE.selectedId);
+      let next = idx;
+      if (e.key === "j") next = Math.min(STATE.filtered.length - 1, idx + 1);
+      if (e.key === "k") next = Math.max(0, idx - 1);
+      if (next !== idx && STATE.filtered[next]) {
+        STATE.selectedId = STATE.filtered[next].id;
+        renderTable(false);
+        // scroll into view
+        const body = $("table-body");
+        const top = next * STATE.rowH;
+        if (top < body.scrollTop) body.scrollTop = top;
+        if (top + STATE.rowH > body.scrollTop + body.clientHeight) body.scrollTop = top + STATE.rowH - body.clientHeight;
+      }
+      return;
+    }
+    if (e.key === "Enter" && STATE.selectedId) {
+      openDrawer(STATE.selectedId);
+      return;
+    }
+    if (e.key === "r" && STATE.selectedId) { markState(STATE.selectedId, "reviewed"); return; }
+    if (e.key === "c" && STATE.selectedId) { markState(STATE.selectedId, "contacted"); return; }
+    if (e.key === "i" && STATE.selectedId) { markState(STATE.selectedId, "ignored"); return; }
+    if (e.key === "e") { e.preventDefault(); exportJSON(); return; }
+  });
+}
+
+/* ============================================================
+   SCROLL HANDLER (rAF-throttled)
+   ============================================================ */
+let scrollRaf = null;
+function setupScroll() {
+  const body = $("table-body");
+  body.addEventListener("scroll", () => {
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => {
+      scrollRaf = null;
+      renderTable(false);
+    });
+  }, { passive: true });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  loadPersisted();
+  // Light setup first (no heavy data work) so DOMContentLoaded fires fast
+  renderChips();
+  renderTableHeader();
+  setupFilters();
+  setupKeyboard();
+  setupScroll();
+  // Defer heavy data expansion + filtering to next tick
+  setTimeout(() => {
+    STATE.allLeads = expandLeads();
+    renderHeaderStats();
+    renderCommandCenter();
+    renderAnalytics();
+    applyFilters();
+    const ro = new ResizeObserver(() => renderTable(false));
+    ro.observe($("table-body"));
+  }, 0);
+  // remove shimmer after brief moment
+  setTimeout(() => {
+    const s = $("shimmer");
+    if (s) s.remove();
+  }, 600);
+
+  // resize observer for table re-render
+  const ro = new ResizeObserver(() => renderTable(false));
+  ro.observe($("table-body"));
+}
+
+// boot
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
