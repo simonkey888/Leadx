@@ -248,5 +248,45 @@
         "Salta": 1
       }
     }
+  },
+  {
+    "run_id": "777633133eba",
+    "generated_at": "2026-07-03T19:35:01.461544+00:00",
+    "summary": {
+      "total_leads": 32,
+      "hot_leads": 24,
+      "warm_leads": 8,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 73.4,
+      "avg_score_hot": 83.5,
+      "conversion_probability": 75.0,
+      "by_category": {
+        "FINE_DISPUTE": 10,
+        "TRANSFER_PROBLEM": 22
+      },
+      "by_platform": {
+        "Duckduckgo.Com": 1,
+        "Facebook": 17,
+        "Argentina.Gob.Ar": 1,
+        "Informes.Vip": 1,
+        "Portaldeabogados.Com": 1,
+        "Patente.Ar": 2,
+        "Tn.Com.Ar": 1,
+        "2.Jus.Gov.Ar": 1,
+        "Iprofesional.Com": 1,
+        "Multas.Ar": 2,
+        "Estudiojuridicomogliani.Com.Ar": 1,
+        "Multasonline.Com.Ar": 1,
+        "Multabot.Com.Ar": 1,
+        "Reclamosonline.Com.Ar": 1
+      },
+      "by_province": {
+        "CABA": 1,
+        "La Plata": 1
+      }
+    }
   }
 ]
