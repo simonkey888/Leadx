@@ -545,5 +545,35 @@
         "La Plata": 1
       }
     }
+  },
+  {
+    "run_id": "f5bd1d55aaab",
+    "generated_at": "2026-07-03T21:55:44.597321+00:00",
+    "summary": {
+      "total_leads": 16,
+      "hot_leads": 15,
+      "warm_leads": 1,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 68.1,
+      "avg_score_hot": 70.3,
+      "conversion_probability": 93.8,
+      "by_category": {
+        "TRANSFER_PROBLEM": 3,
+        "OTHER": 1,
+        "FINE_DISPUTE": 12
+      },
+      "by_platform": {
+        "Reddit": 16
+      },
+      "by_province": {
+        "Salta": 1,
+        "CABA": 4,
+        "Córdoba": 1,
+        "Buenos Aires": 1
+      }
+    }
   }
 ]
