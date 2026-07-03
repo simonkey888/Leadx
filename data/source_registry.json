@@ -1,0 +1,343 @@
+{
+  "metadata": {
+    "version": "10.2",
+    "created_at": "2026-07-03T22:33:56.147502+00:00",
+    "updated_at": "2026-07-03T22:34:36.735231+00:00"
+  },
+  "sources": [
+    {
+      "id": "a755e92b4a54",
+      "name": "r/ArAutos",
+      "canonical_url": "https://www.reddit.com/r/ArAutos/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147584+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "71b34c65d8d3",
+      "name": "r/argentina",
+      "canonical_url": "https://www.reddit.com/r/argentina/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147625+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "1baf5e15cef6",
+      "name": "r/Cordoba",
+      "canonical_url": "https://www.reddit.com/r/Cordoba/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147656+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "3841ccc90db4",
+      "name": "r/BuenosAires",
+      "canonical_url": "https://www.reddit.com/r/BuenosAires/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147674+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "a7d3637c18c3",
+      "name": "r/DerechoGenial",
+      "canonical_url": "https://www.reddit.com/r/DerechoGenial/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147689+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "9cd28278d81d",
+      "name": "r/AskArgentina",
+      "canonical_url": "https://www.reddit.com/r/AskArgentina/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147702+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "68d63ef10246",
+      "name": "r/PreguntasReddit",
+      "canonical_url": "https://www.reddit.com/r/PreguntasReddit/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147717+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "7587eda59c40",
+      "name": "r/Mendoza",
+      "canonical_url": "https://www.reddit.com/r/Mendoza/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147739+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "c825395fb4db",
+      "name": "r/Rosario",
+      "canonical_url": "https://www.reddit.com/r/Rosario/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147754+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "0d284a9b7d51",
+      "name": "r/Salta",
+      "canonical_url": "https://www.reddit.com/r/Salta/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147766+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "eeee1a0b6dcb",
+      "name": "more info",
+      "canonical_url": "https://duckduckgo.com/duckduckgo-help-pages/company/ads-by-microsoft-on-duckduckgo-private-search",
+      "domain": "duckduckgo.com",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 70,
+      "discovered_at": "2026-07-03T22:34:01.697653+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "449f3f73ede5",
+      "name": "Voy a ver un auto sin mecánico, recomendaciones?",
+      "canonical_url": "https://reddit.com/r/ArAutos/comments/1jv9h7v/voy_a_ver_un_auto_sin_mecánico_recomendaciones",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 85,
+      "discovered_at": "2026-07-03T22:34:01.697826+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    }
+  ]
+}

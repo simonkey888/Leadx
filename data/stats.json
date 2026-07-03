@@ -1,60 +1,12 @@
 {
-  "total_runs": 18,
-  "last_run": "2026-07-03T21:55:44.597321+00:00",
-  "last_run_id": "f5bd1d55aaab",
-  "total_leads_all_time": 434,
-  "total_hot_leads_all_time": 357,
-  "avg_hot_per_run": 19.8,
-  "runs_today": 18,
+  "total_runs": 19,
+  "last_run": "2026-07-03T22:36:19.069081+00:00",
+  "last_run_id": "a95c921ed7e0",
+  "total_leads_all_time": 435,
+  "total_hot_leads_all_time": 358,
+  "avg_hot_per_run": 18.8,
+  "runs_today": 19,
   "last_7_days": [
-    {
-      "run_id": "8cbb920fea17",
-      "generated_at": "2026-07-03T19:51:49.810808+00:00",
-      "summary": {
-        "total_leads": 42,
-        "hot_leads": 35,
-        "warm_leads": 7,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 76.9,
-        "avg_score_hot": 83.6,
-        "conversion_probability": 83.3,
-        "by_category": {
-          "FINE_DISPUTE": 20,
-          "TRANSFER_PROBLEM": 22
-        },
-        "by_platform": {
-          "Duckduckgo.Com": 1,
-          "Facebook": 20,
-          "Carchecking.Com.Ar": 2,
-          "Dotor.Com.Ar": 1,
-          "Portaldeabogados.Com": 2,
-          "Argentina.Gob.Ar": 1,
-          "Reddit": 1,
-          "Autos0Km.Org": 1,
-          "Infobue.Com.Ar": 1,
-          "Informes.Vip": 1,
-          "Tn.Com.Ar": 1,
-          "Patente.Ar": 1,
-          "Globe.Blogconect.Com": 1,
-          "2.Jus.Gov.Ar": 1,
-          "Iprofesional.Com": 1,
-          "Multas.Ar": 2,
-          "Estudiojuridicomogliani.Com.Ar": 1,
-          "Multasonline.Com.Ar": 1,
-          "Licenciaconducir.Com.Ar": 1,
-          "Multabot.Com.Ar": 1
-        },
-        "by_province": {
-          "CABA": 2,
-          "La Plata": 1,
-          "Avellaneda": 1,
-          "Salta": 1
-        }
-      }
-    },
     {
       "run_id": "fcb23ae45d0f",
       "generated_at": "2026-07-03T19:55:44.808282+00:00",
@@ -238,6 +190,31 @@
           "CABA": 4,
           "Córdoba": 1,
           "Buenos Aires": 1
+        }
+      }
+    },
+    {
+      "run_id": "a95c921ed7e0",
+      "generated_at": "2026-07-03T22:36:19.069081+00:00",
+      "summary": {
+        "total_leads": 1,
+        "hot_leads": 1,
+        "warm_leads": 0,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 75.0,
+        "avg_score_hot": 75.0,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "TRANSFER_PROBLEM": 1
+        },
+        "by_platform": {
+          "Reddit": 1
+        },
+        "by_province": {
+          "CABA": 1
         }
       }
     }
