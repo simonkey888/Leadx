@@ -1,0 +1,9 @@
+name = "leadx"
+main = "worker.js"
+account_id = "b21fa81d12acb663798f9f7c51801955"
+compatibility_date = "2024-09-01"
+workers_dev = true
+
+[assets]
+directory = "./public"
+not_found_handling = "single-page-application"

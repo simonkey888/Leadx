@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Radar Leads Dashboard Payload",
+  "description": "Schema for dashboard_payload.json — the single source of truth for the Radar Leads PRO dashboard",
+  "type": "object",
+  "required": ["generated_at", "run_id", "summary", "leads_hot", "leads_warm", "insights", "meta"],
+  "properties": {
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the payload was generated"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this pipeline run (hash)"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_leads", "hot_leads", "warm_leads", "contactable"],
+      "properties": {
+        "total_leads": { "type": "integer", "minimum": 0 },
+        "hot_leads": { "type": "integer", "minimum": 0 },
+        "warm_leads": { "type": "integer", "minimum": 0 },
+        "contactable": { "type": "integer", "minimum": 0 },
+        "with_whatsapp": { "type": "integer", "minimum": 0 },
+        "with_phone": { "type": "integer", "minimum": 0 },
+        "avg_score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "avg_score_hot": { "type": "number", "minimum": 0, "maximum": 100 },
+        "conversion_probability": { "type": "number", "minimum": 0, "maximum": 100 },
+        "by_category": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "by_platform": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "by_province": { "type": "object", "additionalProperties": { "type": "integer" } }
+      }
+    },
+    "leads_hot": {
+      "type": "array",
+      "description": "Hot leads with explicit pain (score >= 60)",
+      "items": { "$ref": "#/definitions/Lead" }
+    },
+    "leads_warm": {
+      "type": "array",
+      "description": "Warm/preventive leads (score 30-59)",
+      "items": { "$ref": "#/definitions/Lead" }
+    },
+    "insights": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Auto-generated pattern insights from the current batch"
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "pipeline_steps": { "type": "array", "items": { "type": "string" } },
+        "scoring_rules": { "type": "object" },
+        "runtime_seconds": { "type": "number" },
+        "queries_executed": { "type": "integer" }
+      }
+    }
+  },
+  "definitions": {
+    "Lead": {
+      "type": "object",
+      "required": ["id", "score", "label"],
+      "properties": {
+        "id": { "type": "string", "description": "SHA-256 hash (16 chars) of composite key" },
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "label": { "type": "string", "enum": ["real_lead", "commercial_signal", "reject"] },
+        "problem_category": { "type": "string", "enum": ["TRANSFER_PROBLEM", "FINE_DISPUTE", "OWNERSHIP_ISSUE", "DOCUMENTATION_ISSUE", "OTHER"] },
+        "problem_summary": { "type": "string" },
+        "persona": { "type": "string" },
+        "provincia": { "type": "string" },
+        "ciudad": { "type": "string" },
+        "pais": { "type": "string" },
+        "vehiculo": { "type": "string" },
+        "patente": { "type": "string" },
+        "fecha_visible": { "type": "string" },
+        "fecha_iso": { "type": "string", "format": "date-time" },
+        "platform": { "type": "string" },
+        "source_url": { "type": "string", "format": "uri" },
+        "quoted_text": { "type": "string" },
+        "contacto_publico": { "type": "boolean" },
+        "whatsapp_publico": { "type": "string" },
+        "whatsapp_link": { "type": "string", "format": "uri" },
+        "telefono_publico": { "type": "string" },
+        "telefono_e164": { "type": "string" },
+        "score_breakdown": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "detected_signals": { "type": "array", "items": { "type": "string" } },
+        "discovery_timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
