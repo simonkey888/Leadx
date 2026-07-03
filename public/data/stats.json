@@ -1,39 +1,38 @@
 {
   "total_runs": 1,
-  "last_run": "2026-07-03T11:39:09.956338+00:00",
-  "last_run_id": "d988ed6cd64c",
-  "total_leads_all_time": 71,
-  "total_hot_leads_all_time": 61,
-  "avg_hot_per_run": 61.0,
+  "last_run": "2026-07-03T12:34:24.258083+00:00",
+  "last_run_id": "3ee5e69bccbb",
+  "total_leads_all_time": 31,
+  "total_hot_leads_all_time": 25,
+  "avg_hot_per_run": 25.0,
   "runs_today": 1,
   "last_7_days": [
     {
-      "run_id": "d988ed6cd64c",
-      "generated_at": "2026-07-03T11:39:09.956338+00:00",
+      "run_id": "3ee5e69bccbb",
+      "generated_at": "2026-07-03T12:34:24.258083+00:00",
       "summary": {
-        "total_leads": 71,
-        "hot_leads": 61,
-        "warm_leads": 10,
+        "total_leads": 31,
+        "hot_leads": 25,
+        "warm_leads": 6,
         "contactable": 0,
         "with_whatsapp": 0,
         "with_phone": 0,
-        "avg_score": 71.3,
-        "avg_score_hot": 75.7,
-        "conversion_probability": 85.9,
+        "avg_score": 65.8,
+        "avg_score_hot": 70.4,
+        "conversion_probability": 80.6,
         "by_category": {
-          "TRANSFER_PROBLEM": 31,
-          "FINE_DISPUTE": 36,
-          "DOCUMENTATION_ISSUE": 4
+          "TRANSFER_PROBLEM": 10,
+          "FINE_DISPUTE": 19,
+          "DOCUMENTATION_ISSUE": 2
         },
         "by_platform": {
-          "Reddit": 51,
-          "Facebook": 20
+          "Reddit": 31
         },
         "by_province": {
-          "Buenos Aires": 5,
-          "CABA": 2,
-          "Entre Ríos": 1,
-          "La Plata": 1
+          "Córdoba": 2,
+          "CABA": 5,
+          "Salta": 2,
+          "Entre Ríos": 1
         }
       }
     }

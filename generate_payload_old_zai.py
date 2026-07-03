@@ -6,7 +6,7 @@ Arquitectura: static_dashboard + dynamic_json.
 El HTML del dashboard NUNCA se regenera. Sólo se actualizan los JSONs.
 
 7 pasos:
-  1. collect_public_sources (search_providers web_search)
+  1. collect_public_sources (z-ai web_search)
   2. extract_entities
   3. normalize_records
   4. classify_and_score
@@ -37,7 +37,7 @@ from urllib.parse import urlparse
 # Config
 # ===========================================================================
 
-DATA_DIR = Path("./data")
+DATA_DIR = Path("/home/z/my-project/download/data")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 PAYLOAD_PATH = DATA_DIR / "dashboard_payload.json"
@@ -247,29 +247,34 @@ class Lead:
 
 
 # ===========================================================================
-# search_providers web_search
+# z-ai web_search
 # ===========================================================================
-# Import search providers (DuckDuckGo + Reddit + RSS, sin search_providers)
-from search_providers import search as provider_search
-
-
 def web_search(query: str, num: int = 10) -> List[Dict[str, Any]]:
-    """Wrapper que usa search_providers en vez de search_providers CLI."""
-    try:
-        results = provider_search(query, num=num)
-        adapted = []
-        for r in results:
-            adapted.append({
-                "name": r.get("title", ""),
-                "url": r.get("url", ""),
-                "snippet": r.get("snippet", ""),
-                "date": r.get("date", ""),
-                "host_name": r.get("url", ""),
-            })
-        return adapted
-    except Exception as e:
-        print(f"  [search error] {e}", file=sys.stderr)
-        return []
+    args = json.dumps({"query": query, "num": num}, ensure_ascii=False)
+    tmp_file = f"/tmp/gen_payload_{hash(query) & 0xFFFFFFFF:x}.json"
+    for attempt in range(3):
+        try:
+            result = subprocess.run(
+                ["z-ai", "function", "-n", "web_search", "-a", args, "-o", tmp_file],
+                capture_output=True, text=True, timeout=20,
+            )
+            if result.returncode != 0:
+                stderr = result.stderr.lower()
+                if "429" in stderr or "too many requests" in stderr:
+                    wait = 5 * (attempt + 1)
+                    print(f"  [rate-limit] {wait}s", file=sys.stderr)
+                    time.sleep(wait)
+                    continue
+                return []
+            with open(tmp_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, list) else []
+        except Exception:
+            return []
+        finally:
+            if os.path.exists(tmp_file):
+                os.remove(tmp_file)
+    return []
 
 
 # ===========================================================================
@@ -329,7 +334,7 @@ def phone_to_e164(phone: str) -> str:
 # Step 1: Collect
 # ===========================================================================
 def collect_public_sources() -> List[Dict[str, Any]]:
-    """Recolecta resultados de búsquedas públicas via search_providers web_search."""
+    """Recolecta resultados de búsquedas públicas via z-ai web_search."""
     print("[Step 1] Collecting public sources...", file=sys.stderr)
     all_results = []
     for i, query in enumerate(QUERIES):
