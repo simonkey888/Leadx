@@ -1,7 +1,7 @@
 name = "leadx"
 main = "worker.js"
 compatibility_date = "2024-09-25"
-account_id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
+account_id = "b21fa81d12acb663798f9f7c51801955"
 
 # KV namespace binding
 [[kv_namespaces]]
