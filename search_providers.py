@@ -170,7 +170,9 @@ def search_duckduckgo(query: str, num: int = 10) -> List[Dict[str, Any]]:
 # Provider 2: Reddit JSON (público, sin API key)
 # ===========================================================================
 def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
-    """Busca en Reddit via JSON público (sin auth)."""
+    """Busca en Reddit via JSON público (sin auth).
+    Por cada post, también trae los top comments para enriquecer el snippet.
+    """
     encoded = urllib.parse.quote(query)
     # Reddit search JSON endpoint (público)
     url = f"https://www.reddit.com/search.json?q={encoded}&sort=new&limit={num}&type=link"
@@ -195,9 +197,14 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
             permalink = post.get("permalink", "")
             full_url = f"https://www.reddit.com{permalink}" if permalink else ""
 
-            # Snippet: selftext si existe, sino title
+            # Snippet: selftext completo si existe, sino title
             selftext = post.get("selftext", "")
-            snippet = selftext[:300] if selftext else post.get("title", "")[:300]
+            snippet = selftext[:3000] if selftext else post.get("title", "")[:300]
+
+            # Author (username)
+            author = post.get("author", "")
+            if author == "[deleted]" or author == "AutoModerator":
+                author = ""
 
             # Fecha
             created = post.get("created_utc", 0)
@@ -212,8 +219,42 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
                 "snippet": snippet,
                 "source": "reddit",
                 "date": date,
-                "username": post.get("author", ""),
+                "username": author,
+                "author": author,
+                "permalink": permalink,
             })
+
+    # Opcional: traer top comments de los primeros 5 posts para enriquecer
+    # (con rate limit para no ser bloqueados)
+    for i, r in enumerate(results[:5]):
+        permalink = r.get("permalink", "")
+        if not permalink:
+            continue
+        try:
+            time.sleep(1.0)  # rate limit
+            comments_url = f"https://www.reddit.com{permalink}.json?limit=10"
+            req2 = urllib.request.Request(comments_url)
+            req2.add_header("User-Agent", "RadarLeadsBot/1.0 (lead intelligence research)")
+            with urllib.request.urlopen(req2, timeout=10) as resp2:
+                cdata = json.loads(resp2.read().decode("utf-8", errors="replace"))
+            if isinstance(cdata, list) and len(cdata) >= 2:
+                comments_text = []
+                for c in cdata[1].get("data", {}).get("children", [])[:10]:
+                    body = c.get("data", {}).get("body", "")
+                    if body and len(body) > 20 and body != "[deleted]" and body != "[removed]":
+                        comments_text.append(body[:500])
+                if comments_text:
+                    # Agregar comments al snippet para extraccion
+                    r["snippet"] = (r["snippet"] + " " + " ".join(comments_text))[:6000]
+                    # Author real (del post, no comments)
+                    if not r["username"] and cdata[0].get("data",{}).get("children",[]):
+                        post_full = cdata[0]["data"]["children"][0].get("data",{})
+                        a = post_full.get("author","")
+                        if a and a != "[deleted]":
+                            r["username"] = a
+                            r["author"] = a
+        except Exception:
+            continue
 
     return results[:num]
 
