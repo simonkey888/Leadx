@@ -45,8 +45,8 @@ STATS_PATH = DATA_DIR / "stats.json"
 HISTORY_PATH = DATA_DIR / "history.json"
 
 # Performance
-MAX_RUNTIME_SECONDS = 120
-RATE_LIMIT_MS = 2000
+MAX_RUNTIME_SECONDS = 180
+RATE_LIMIT_MS = 5000  # 5s entre queries para evitar 429 de Reddit RSS
 MAX_RESULTS_PER_QUERY = 10
 
 # ===========================================================================
@@ -54,31 +54,17 @@ MAX_RESULTS_PER_QUERY = 10
 # ===========================================================================
 
 QUERIES = [
-    # Reddit
-    "site:reddit.com no puedo transferir auto argentina",
-    "site:reddit.com me llegó multa argentina",
-    "site:reddit.com libre deuda problema argentina",
+    # Reddit (endpoint /search.rss que SI trae author /u/xxx)
+    "site:reddit.com no puedo transferir auto multa",
+    "site:reddit.com me llegó multa no es mi auto",
+    "site:reddit.com libre deuda falso transferencia",
     "site:reddit.com fotomulta reclamo argentina",
-    "site:reddit.com multa no es mi auto",
-    "site:reddit.com 08 firmado problema",
-    # Facebook
-    "site:facebook.com no puedo transferir auto multa",
-    "site:facebook.com me llegó fotomulta",
-    "site:facebook.com libre deuda falso",
-    "site:facebook.com vendedor no entregó 08",
-    "site:facebook.com tengo multas impagas",
-    # X
-    "site:x.com multa transferencia problema argentina",
-    "site:x.com fotomulta reclamo",
-    # Sin site: — frases humanas
-    "no puedo transferir auto por multas argentina",
-    "me llegó una multa y no es mi auto",
-    "me dieron un libre deuda falso",
-    "multas vencidas sin notificar argentina",
-    "el vendedor no me entregó el 08",
-    "quiero transferir auto radicado otra provincia",
-    "patente bloqueada no puedo transferir",
-    "tengo fotomultas de ruta argentina",
+    "site:reddit.com vendedor no entregó 08",
+    "site:reddit.com multas impagas transferir",
+    "site:reddit.com compre auto multas anteriores",
+    "site:reddit.com patente bloqueada registro",
+    # Telegram (t.me/s/ scrapea canal publico)
+    "site:telegram multas argentina transferencia",
 ]
 
 # ===========================================================================
