@@ -741,15 +741,24 @@ def search_facebook_via_ddg(query: str, num: int = 10) -> List[Dict[str, Any]]:
         
         # Extraer group_name de la URL
         # facebook.com/groups/multasargentina/posts/123456
+        # o facebook.com/groups/276074287942602/permalink/...
         import re as _re2
         group_match = _re2.search(r"/groups/([^/?#]+)", url)
-        group_name = ""
+        group_id_raw = ""
         if group_match:
-            raw = group_match.group(1)
-            group_name = raw.replace("-", " ").replace("_", " ").title()
+            group_id_raw = group_match.group(1)
         
-        snippet = r.get("snippet", "")
+        # Si group_id es solo numeros (ID interno FB), usar el title del result
+        # Title suele ser "Nombre del Grupo - Facebook"
         title = r.get("title", "")
+        snippet = r.get("snippet", "")
+        
+        if group_id_raw.isdigit():
+            # Extraer nombre del grupo del title
+            # "Defensas contra las Multas de Transito (Argentina) - Facebook"
+            group_name = title.replace(" | Facebook", "").replace(" - Facebook", "").strip()
+        else:
+            group_name = group_id_raw.replace("-", " ").replace("_", " ").title()
         
         if not snippet and not title:
             continue
@@ -762,7 +771,7 @@ def search_facebook_via_ddg(query: str, num: int = 10) -> List[Dict[str, Any]]:
             "snippet": snippet[:3000],
             "source": "facebook_groups",
             "date": r.get("date", ""),
-            "username": group_name,  # usamos el grupo como "author"
+            "username": group_name,
             "author": group_name,
             "group_name": group_name,
         })
