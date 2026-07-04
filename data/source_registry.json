@@ -2,7 +2,7 @@
   "metadata": {
     "version": "10.2",
     "created_at": "2026-07-03T22:33:56.147502+00:00",
-    "updated_at": "2026-07-04T01:44:58.618839+00:00"
+    "updated_at": "2026-07-04T01:47:52.240792+00:00"
   },
   "sources": [
     {
@@ -458,6 +458,87 @@
       "noise_score": 0,
       "final_score": 80,
       "discovered_at": "2026-07-04T00:46:18.805584+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "4aa0c4cac591",
+      "name": "Cómo transferir un auto con 08 firmado (guía práctica completa)",
+      "canonical_url": "https://tramitesypermisos.org/transferir-auto-08-firmado",
+      "domain": "tramitesypermisos.org",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 70,
+      "discovered_at": "2026-07-04T01:47:45.860264+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "088f24c48a5e",
+      "name": "¿Si tengo el 08 firmado puedo transferir un vehículo?",
+      "canonical_url": "https://autofichas.com.ar/general/si-tengo-el-08-firmado-puedo-transferir-un-vehiculo",
+      "domain": "autofichas.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T01:47:45.860395+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "2be4de5f2dea",
+      "name": "Comprar auto con 08 firmado: riesgos, precauciones y qué tener en ...",
+      "canonical_url": "https://registrodeautomotores.com/comprar-auto-con-08-firmado-riesgos",
+      "domain": "registrodeautomotores.com",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 70,
+      "discovered_at": "2026-07-04T01:47:45.860520+00:00",
       "discovery_origin": "web_search",
       "topics": [
         "multas",

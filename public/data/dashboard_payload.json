@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-04T01:45:23.536767+00:00",
-  "run_id": "02c75f06a12e",
+  "generated_at": "2026-07-04T01:48:18.529953+00:00",
+  "run_id": "e201d121b13e",
   "summary": {
     "total_leads": 6,
     "hot_leads": 4,
@@ -61,7 +61,7 @@
         "recent_4_7_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535612+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528751+00:00"
     },
     {
       "id": "da45252c989b5c27",
@@ -96,7 +96,7 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535154+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528298+00:00"
     },
     {
       "id": "b498eed22b5f5436",
@@ -129,7 +129,7 @@
         "multa_fotomulta",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.534858+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.527991+00:00"
     },
     {
       "id": "28e3318e4e90dd8a",
@@ -164,7 +164,7 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.534930+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528065+00:00"
     },
     {
       "id": "283f12434688b4eb",
@@ -197,7 +197,7 @@
         "document_08",
         "recent_4_7_days"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535689+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528825+00:00"
     },
     {
       "id": "942b4461ea8ad59b",
@@ -230,7 +230,7 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535404+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528541+00:00"
     }
   ],
   "leads_hot": [
@@ -269,7 +269,7 @@
         "recent_4_7_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535612+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528751+00:00"
     },
     {
       "id": "da45252c989b5c27",
@@ -304,7 +304,7 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535154+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528298+00:00"
     },
     {
       "id": "b498eed22b5f5436",
@@ -337,7 +337,7 @@
         "multa_fotomulta",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.534858+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.527991+00:00"
     },
     {
       "id": "28e3318e4e90dd8a",
@@ -372,7 +372,7 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.534930+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528065+00:00"
     }
   ],
   "leads_warm": [
@@ -407,7 +407,7 @@
         "document_08",
         "recent_4_7_days"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535689+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528825+00:00"
     },
     {
       "id": "942b4461ea8ad59b",
@@ -440,7 +440,7 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:45:23.535404+00:00"
+      "discovery_timestamp": "2026-07-04T01:48:18.528541+00:00"
     }
   ],
   "insights": [
@@ -473,7 +473,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 47.17,
+    "runtime_seconds": 49.2,
     "queries_executed": 2
   }
 }
