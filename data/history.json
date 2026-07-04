@@ -993,5 +993,30 @@
         "Tigre": 1
       }
     }
+  },
+  {
+    "run_id": "aa96ddb86e3a",
+    "generated_at": "2026-07-04T17:07:49.457499+00:00",
+    "summary": {
+      "total_leads": 1,
+      "hot_leads": 1,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 75.0,
+      "avg_score_hot": 75.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 1
+      },
+      "by_platform": {
+        "Reddit": 1
+      },
+      "by_province": {
+        "CABA": 1
+      }
+    }
   }
 ]

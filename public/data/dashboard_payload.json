@@ -1,132 +1,29 @@
 {
-  "generated_at": "2026-07-04T15:58:11.944372+00:00",
-  "run_id": "1d50322a2dfc",
+  "generated_at": "2026-07-04T17:07:49.457499+00:00",
+  "run_id": "aa96ddb86e3a",
   "summary": {
-    "total_leads": 6,
-    "hot_leads": 6,
+    "total_leads": 1,
+    "hot_leads": 1,
     "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 85.0,
-    "avg_score_hot": 85.0,
+    "avg_score": 75.0,
+    "avg_score_hot": 75.0,
     "conversion_probability": 100.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 4,
-      "FINE_DISPUTE": 2
+      "TRANSFER_PROBLEM": 1
     },
     "by_platform": {
-      "Reddit": 6
+      "Reddit": 1
     },
     "by_province": {
-      "CABA": 1,
-      "Tigre": 1
+      "CABA": 1
     }
   },
   "leads_all": [
     {
-      "id": "24b86c6ed785c59e",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/SufficientNewt8009",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-19T00:23:07+00:00",
-      "fecha_iso": "2026-06-19T00:23:07+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1u9n2xi/denuncia_de_venta",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>En las operaciones de compra de usado en donde entregas un auto + plata y la persona pide 08 en blanco para despues poder venderlo, que se hace para resguardar? denuncia de venta? lo perjudico en algo o lo obligo a transferir?</p> <p>Otra duda, suelen tardar en impa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.942898+00:00"
-    },
-    {
-      "id": "540b0386b7e55a24",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/rightmanatwrongplace",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T23:26:00+00:00",
-      "fecha_iso": "2026-06-17T23:26:00+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u8q3fl/fiz_a_venda_de_um_carro_e_o_rapaz_sumiu_ou",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Então resumidamente eu tinha um carro que já tava bem perrengado com defeito e etc, acabei por deixá-lo parado e nem me organizei para arrumar pois não estava mais compensando (carro 2006 começou a fumar e defeito depois de entrar água) acabei negociando com um rapa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.943166+00:00"
-    },
-    {
-      "id": "a34bc8b9c05824c9",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/TheFloatingSoap",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-06-16T12:32:44+00:00",
-      "fecha_iso": "2026-06-16T12:32:44+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u7c89k/despachante_quer_transferir_multas_de_um_veículo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Resumindo vendi uma moto pra um rapaz que provavelmente fez rolo e já passou pra um terceiro sem transferir, agora o abençoado resolveu tirar carteira e descobriu que tá cheio de multa no CPF. </p> <p>O despachante entrou em contato comigo querendo que eu cancele a",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.943425+00:00"
-    },
-    {
       "id": "97f856a5633eb5df",
       "score": 75,
       "label": "real_lead",
@@ -159,176 +56,11 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T15:58:11.942235+00:00"
-    },
-    {
-      "id": "de7ab37d0df81010",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/joseluisoff",
-      "provincia": "Tigre",
-      "ciudad": "Tigre",
-      "pais": "Argentina",
-      "vehiculo": "camioneta",
-      "patente": "",
-      "fecha_visible": "2026-06-22T22:21:38+00:00",
-      "fecha_iso": "2026-06-22T22:21:38+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ucyzhu/alguien_tapó_su_patente_a_propósito_y_las_multas",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Soy de CABA. Hace unos 6 meses entré a corroborar si tenía infracciones impagas en PBA y me encontré con 5 multas. Me cagué todo, pero al revisar el lugar decía Tigre y Campana, dos lugares por los que no paso nunca. Al revisar las fotos veo que se trata de una cami",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.942779+00:00"
-    },
-    {
-      "id": "7ea138671786d191",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Able_Swan_6174",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T03:06:04+00:00",
-      "fecha_iso": "2026-06-17T03:06:04+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/chile/comments/1u7ygvu/la_magra_y_triste_lista_de_beneficios_sociales",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><ol> <li><p>Programas habitacionales: Prohibición de acceder a procesos de postulación e ingreso a diversos programas del Ministerio de Vivienda y Urbanismo, como el de Protección del Patrimonio Familiar, Subsidio Habitacional y habitabilidad rural, entre otros.</p></l",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.943343+00:00"
+      "discovery_timestamp": "2026-07-04T17:07:49.456915+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "24b86c6ed785c59e",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/SufficientNewt8009",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-19T00:23:07+00:00",
-      "fecha_iso": "2026-06-19T00:23:07+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1u9n2xi/denuncia_de_venta",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>En las operaciones de compra de usado en donde entregas un auto + plata y la persona pide 08 en blanco para despues poder venderlo, que se hace para resguardar? denuncia de venta? lo perjudico en algo o lo obligo a transferir?</p> <p>Otra duda, suelen tardar en impa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.942898+00:00"
-    },
-    {
-      "id": "540b0386b7e55a24",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/rightmanatwrongplace",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T23:26:00+00:00",
-      "fecha_iso": "2026-06-17T23:26:00+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u8q3fl/fiz_a_venda_de_um_carro_e_o_rapaz_sumiu_ou",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Então resumidamente eu tinha um carro que já tava bem perrengado com defeito e etc, acabei por deixá-lo parado e nem me organizei para arrumar pois não estava mais compensando (carro 2006 começou a fumar e defeito depois de entrar água) acabei negociando com um rapa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.943166+00:00"
-    },
-    {
-      "id": "a34bc8b9c05824c9",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/TheFloatingSoap",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-06-16T12:32:44+00:00",
-      "fecha_iso": "2026-06-16T12:32:44+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u7c89k/despachante_quer_transferir_multas_de_um_veículo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Resumindo vendi uma moto pra um rapaz que provavelmente fez rolo e já passou pra um terceiro sem transferir, agora o abençoado resolveu tirar carteira e descobriu que tá cheio de multa no CPF. </p> <p>O despachante entrou em contato comigo querendo que eu cancele a",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.943425+00:00"
-    },
-    {
       "id": "97f856a5633eb5df",
       "score": 75,
       "label": "real_lead",
@@ -361,77 +93,13 @@
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T15:58:11.942235+00:00"
-    },
-    {
-      "id": "de7ab37d0df81010",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/joseluisoff",
-      "provincia": "Tigre",
-      "ciudad": "Tigre",
-      "pais": "Argentina",
-      "vehiculo": "camioneta",
-      "patente": "",
-      "fecha_visible": "2026-06-22T22:21:38+00:00",
-      "fecha_iso": "2026-06-22T22:21:38+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ucyzhu/alguien_tapó_su_patente_a_propósito_y_las_multas",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Soy de CABA. Hace unos 6 meses entré a corroborar si tenía infracciones impagas en PBA y me encontré con 5 multas. Me cagué todo, pero al revisar el lugar decía Tigre y Campana, dos lugares por los que no paso nunca. Al revisar las fotos veo que se trata de una cami",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.942779+00:00"
-    },
-    {
-      "id": "7ea138671786d191",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Able_Swan_6174",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T03:06:04+00:00",
-      "fecha_iso": "2026-06-17T03:06:04+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/chile/comments/1u7ygvu/la_magra_y_triste_lista_de_beneficios_sociales",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><ol> <li><p>Programas habitacionales: Prohibición de acceder a procesos de postulación e ingreso a diversos programas del Ministerio de Vivienda y Urbanismo, como el de Protección del Patrimonio Familiar, Subsidio Habitacional y habitabilidad rural, entre otros.</p></l",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T15:58:11.943343+00:00"
+      "discovery_timestamp": "2026-07-04T17:07:49.456915+00:00"
     }
   ],
   "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 17% de los leads calientes son de CABA.",
+    "El 100% de los leads calientes son de CABA.",
     "El problema más frecuente es: Problema de transferencia.",
     "0% de los leads calientes tienen contacto público visible."
   ],
@@ -459,7 +127,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 49.07,
-    "queries_executed": 2
+    "runtime_seconds": 50.34,
+    "queries_executed": 1
   }
 }
