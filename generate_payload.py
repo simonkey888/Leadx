@@ -409,10 +409,22 @@ def collect_public_sources() -> List[Dict[str, Any]]:
 
     # Nota: el enrich separado fue reemplazado por la logica inline en search_reddit
     # que trae selftext completo + top 10 comments por post en una sola pasada.
-    # Si search_reviders.search_reddit falla al traer comments (rate limit/blocked),
-    # el snippet igual va a tener el selftext completo.
     reddit_count = sum(1 for r in all_results if "reddit.com" in r.get("url", ""))
     print(f"  Reddit posts in results: {reddit_count}", file=sys.stderr)
+
+    # ML Questions Radar — siempre corre (no depende del grupo rotativo)
+    try:
+        from search_providers import search_mercadolibre_questions
+        ml_leads = search_mercadolibre_questions(num=15)
+        if ml_leads:
+            for ml in ml_leads:
+                ml["_query"] = "mercadolibre_questions_radar"
+            all_results.extend(ml_leads)
+            print(f"  ML Questions Radar: +{len(ml_leads)} leads", file=sys.stderr)
+        else:
+            print(f"  ML Questions Radar: 0 leads (posible 403 o sin resultados)", file=sys.stderr)
+    except Exception as e:
+        print(f"  ML Questions Radar ERROR: {e}", file=sys.stderr)
 
     return all_results
 
