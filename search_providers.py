@@ -908,135 +908,42 @@ def fetch_ml_seller_contact(seller_id: str) -> dict:
     return contact
 
 def search_mercadolibre_questions(num: int = 15) -> List[Dict[str, Any]]:
-    """Busca avisos de autos con preguntas sobre multas/transferencias.
-    
-    Flujo:
-    1. Pre-filtrar items por titulo (ML_TITLE_QUERIES)
-    2. Para cada item, pedir questions
-    3. Filtrar questions por keywords de multa
-    4. Lead con seller.nickname como author
+    """Llama al endpoint /api/ml-questions del Worker que hace fetch a ML API
+    desde IP de Cloudflare edge (evita 403 de GH Actions).
     """
+    import os as _os
     import sys as _sys
-    print(f"    [ml] searching questions radar", file=_sys.stderr)
+    worker_url = _os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    secret = _os.environ.get("INGEST_SECRET", "")
     
-    leads = []
-    item_ids_seen = set()
-    total_items_processed = 0
+    if not secret:
+        print(f"    [ml] SKIP: INGEST_SECRET no configurado", file=_sys.stderr)
+        return []
     
-    for query in ML_TITLE_QUERIES:
-        if total_items_processed >= ML_MAX_TOTAL_ITEMS:
-            break
-        
-        encoded_q = urllib.parse.quote(query)
-        search_url = (
-            f"{ML_BASE}/sites/{ML_SITE_ID}/search"
-            f"?q={encoded_q}"
-            f"&category={ML_CATEGORY_AUTOS}"
-            f"&sort=date_desc"
-            f"&limit={ML_MAX_ITEMS_PER_QUERY}"
-        )
-        
-        data = _ml_get(search_url)
-        if not data:
-            continue
-        
-        items = data.get("results", [])
-        print(f"    [ml] query '{query}' -> {len(items)} items", file=_sys.stderr)
-        
-        for item in items:
-            if total_items_processed >= ML_MAX_TOTAL_ITEMS:
-                break
-            item_id = item.get("id", "")
-            if not item_id or item_id in item_ids_seen:
-                continue
-            item_ids_seen.add(item_id)
-            total_items_processed += 1
-            
-            # Pedir questions de este item
-            q_url = (
-                f"{ML_BASE}/questions/search"
-                f"?item={item_id}"
-                f"&status=ANSWERED"
-                f"&limit=50"
-            )
-            q_data = _ml_get(q_url)
-            if not q_data:
-                time.sleep(1)
-                continue
-            
-            questions = q_data.get("questions", [])
-            if not questions:
-                time.sleep(1)
-                continue
-            
-            # Filtrar questions por keywords de multa
-            for q in questions:
-                q_text = (q.get("text", "") or "").lower()
-                if not any(kw in q_text for kw in ML_MULTA_KEYWORDS):
-                    continue
-                
-                # Hit! Lead con problema de multa
-                seller = item.get("seller", {})
-                location = item.get("address", {}) or item.get("location", {})
-                title = item.get("title", "")
-                price = item.get("price", 0)
-                permalink = item.get("permalink", "")
-                
-                answer = q.get("answer") or {}
-                answer_text = answer.get("text", "")
-                
-                body = (
-                    f"Pregunta del comprador: \"{q.get('text', '')}\"\n"
-                    f"Respuesta del vendedor: \"{answer_text}\"\n"
-                    f"Auto: {title} - Precio: ${price:,.0f}"
-                )
-                
-                provincia = _ml_normalize_provincia(
-                    location.get("state_name", "") or location.get("state", {}).get("name", "")
-                )
-                
-                lead_dict = {
-                    "title": f"[ML] {title[:120]}",
-                    "url": permalink,
-                    "snippet": body[:3000],
-                    "source": "mercadolibre_questions",
-                    "date": (q.get("date_created") or "")[:10],
-                    "username": seller.get("nickname", ""),
-                    "author": seller.get("nickname", ""),
-                    "seller_id": str(seller.get("id", "")),
-                    "has_answer": bool(answer),
-                    "question_text": q.get("text", ""),
-                    "price": price,
-                    "provincia_ml": provincia,
-                }
-                
-                # Enriquecer con contacto del vendedor ML (endpoint publico)
-                seller_id_str = str(seller.get("id", ""))
-                if seller_id_str:
-                    try:
-                        ml_contact = fetch_ml_seller_contact(seller_id_str)
-                        if ml_contact:
-                            if ml_contact.get("email"):
-                                lead_dict["email_publico"] = ml_contact["email"]
-                            if ml_contact.get("phone"):
-                                lead_dict["telefono_publico"] = ml_contact["phone"]
-                                # Si es telefono, tambien es whatsapp potencial
-                                lead_dict["whatsapp_publico"] = ml_contact["phone"]
-                            if ml_contact.get("is_professional"):
-                                lead_dict["is_professional_seller"] = True
-                            lead_dict["contact_source"] = ml_contact.get("contact_source", "")
-                    except Exception:
-                        pass
-                
-                leads.append(lead_dict)
-            
-            time.sleep(1)  # rate limit amable
-        
-        time.sleep(1)
+    print(f"    [ml] calling Worker /api/ml-questions (Cloudflare edge)", file=_sys.stderr)
     
-    print(f"    [ml] got {len(leads)} leads con questions de multa ({total_items_processed} items procesados)",
-          file=_sys.stderr)
-    return leads[:num]
+    url = f"{worker_url}/api/ml-questions"
+    try:
+        req = urllib.request.Request(url)
+        req.add_header("X-Webhook-Secret", secret)
+        req.add_header("Accept", "application/json")
+        req.add_header("User-Agent", "LeadX-Pipeline/2.0")
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        
+        if not data.get("ok"):
+            print(f"    [ml] Worker error: {data.get('error','?')}", file=_sys.stderr)
+            return []
+        
+        leads = data.get("leads", [])
+        contactables = data.get("contactables", 0)
+        items_processed = data.get("items_processed", 0)
+        print(f"    [ml] Worker OK: {len(leads)} leads, {contactables} contactables, {items_processed} items",
+              file=_sys.stderr)
+        return leads[:num]
+    except Exception as e:
+        print(f"    [ml] Worker call failed: {e}", file=_sys.stderr)
+        return []
 
 def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """

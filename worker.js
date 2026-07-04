@@ -792,6 +792,149 @@ export default {
       }
     }
 
+    // ─── GET /api/ml-questions ─── ML Questions Radar via Cloudflare edge IP
+    // (evita 403 de ML API desde GH Actions datacenter IPs)
+    if (url.pathname === '/api/ml-questions' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+
+      const ML_BASE = "https://api.mercadolibre.com";
+      const MULTA_KW = ["multa", "infraccion", "libre deuda", "deuda",
+                        "fotomulta", "puede transferir", "transferencia",
+                        "patente", "08", "cedula", "transferir"];
+      const TITLE_Q = ["transferir urgente", "no puedo transferir",
+                       "con multa", "deuda patente", "libre deuda",
+                       "transferencia pendiente"];
+      const MAX_ITEMS_PER_QUERY = 3;
+      const MAX_TOTAL_ITEMS = 10;
+
+      const allLeads = [];
+      const seenItems = new Set();
+      let totalProcessed = 0;
+
+      const mlFetch = async (path) => {
+        try {
+          const r = await fetch(`${ML_BASE}${path}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+              "Accept": "application/json"
+            }
+          });
+          if (!r.ok) return null;
+          return r.json();
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const processItem = async (item) => {
+        if (!item || !item.id) return;
+        if (seenItems.has(item.id)) return;
+        seenItems.add(item.id);
+        totalProcessed++;
+
+        const qData = await mlFetch(
+          `/questions/search?item=${item.id}&status=ANSWERED&limit=50`
+        );
+        if (!qData || !qData.questions || !qData.questions.length) return;
+
+        // Fetch seller contact (1 call per item, opcional)
+        let sellerContact = {};
+        const sellerId = item.seller && item.seller.id;
+        if (sellerId) {
+          const sData = await mlFetch(`/users/${sellerId}`);
+          if (sData) {
+            const phone = sData.phone;
+            const email = sData.email;
+            if (phone && phone.number) {
+              const digits = String(phone.area_code || "") + String(phone.number);
+              sellerContact.phone = digits.replace(/\D/g, "");
+            }
+            if (email && !email.includes("mercadolibre") && !email.includes("noreply")) {
+              sellerContact.email = email.toLowerCase().trim();
+            }
+            sellerContact.is_professional = (sData.tags || []).some(t =>
+              ["car_dealer", "real_estate_agency", "meli_choice", "large_seller"].includes(t)
+            );
+            if (sData.nickname && !item.seller.nickname) {
+              item.seller.nickname = sData.nickname;
+            }
+          }
+        }
+
+        for (const q of qData.questions) {
+          const qText = (q.text || "").toLowerCase();
+          if (!MULTA_KW.some(kw => qText.includes(kw))) continue;
+
+          const hasContact = !!(sellerContact.phone || sellerContact.email);
+
+          allLeads.push({
+            id: `ml_q_${q.id || item.id}`,
+            source: "mercadolibre_questions",
+            source_label: "MercadoLibre",
+            author: (item.seller && item.seller.nickname) || "",
+            title: `[ML] ${(item.title || "").slice(0, 120)}`,
+            snippet: `Pregunta: "${q.text}"\nRespuesta: "${(q.answer && q.answer.text) || ""}"\nAuto: ${item.title} - $${(item.price || 0).toLocaleString()}`.slice(0, 3000),
+            url: item.permalink || "",
+            fecha_iso: (q.date_created || "").slice(0, 10),
+            provincia: (item.address && item.address.state_name) || "",
+            platform: "MercadoLibre",
+            score: 0,
+            // Campos extra
+            whatsapp_publico: sellerContact.phone || "",
+            telefono_publico: sellerContact.phone || "",
+            email_publico: sellerContact.email || "",
+            seller_id: String(sellerId || ""),
+            question_text: q.text || "",
+            has_answer: !!(q.answer),
+            price: item.price || 0,
+            is_professional_seller: sellerContact.is_professional || false,
+            contact_source: hasContact ? "ml_seller_profile" : "",
+          });
+        }
+      };
+
+      try {
+        // Busqueda 1: titulos con keywords de multa (pre-filtrado, Claude fix)
+        for (const q of TITLE_Q) {
+          if (totalProcessed >= MAX_TOTAL_ITEMS) break;
+          const data = await mlFetch(
+            `/sites/MLA/search?q=${encodeURIComponent(q)}&category=MLA1744&sort=date_desc&limit=${MAX_ITEMS_PER_QUERY}`
+          );
+          if (data && data.results) {
+            for (const item of data.results) {
+              if (totalProcessed >= MAX_TOTAL_ITEMS) break;
+              await processItem(item);
+            }
+          }
+        }
+
+        // Busqueda 2: autos recientes genericos (red mas amplia)
+        if (totalProcessed < MAX_TOTAL_ITEMS) {
+          const generic = await mlFetch(
+            `/sites/MLA/search?category=MLA1744&sort=date_desc&limit=15`
+          );
+          if (generic && generic.results) {
+            for (const item of generic.results.slice(0, MAX_TOTAL_ITEMS - totalProcessed)) {
+              await processItem(item);
+            }
+          }
+        }
+
+        return jsonResponse({
+          ok: true,
+          leads: allLeads,
+          total: allLeads.length,
+          contactables: allLeads.filter(l => l.whatsapp_publico || l.email_publico).length,
+          items_processed: seenItems.size,
+        }, corsHeaders);
+      } catch (err) {
+        return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   }
