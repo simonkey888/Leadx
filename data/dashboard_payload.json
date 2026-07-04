@@ -1,110 +1,45 @@
 {
-  "generated_at": "2026-07-04T22:54:40.843730+00:00",
-  "run_id": "8a3e69f7e12c",
+  "generated_at": "2026-07-04T23:58:42.994112+00:00",
+  "run_id": "8ba2830eefcf",
   "summary": {
-    "total_leads": 3,
-    "hot_leads": 2,
-    "warm_leads": 1,
+    "total_leads": 1,
+    "hot_leads": 1,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 56.7,
-    "avg_score_hot": 67.5,
-    "conversion_probability": 66.7,
+    "avg_score": 75.0,
+    "avg_score_hot": 75.0,
+    "conversion_probability": 100.0,
     "by_category": {
-      "OTHER": 1,
-      "FINE_DISPUTE": 2
+      "TRANSFER_PROBLEM": 1
     },
     "by_platform": {
-      "Reddit": 3
+      "Reddit": 1
     },
     "by_province": {
-      "La Plata": 1
+      "CABA": 1
     }
   },
   "leads_all": [
     {
-      "id": "db1d1e8fafb1063b",
+      "id": "28e3318e4e90dd8a",
       "score": 75,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/NAiKfoll",
-      "provincia": "La Plata",
-      "ciudad": "La Plata",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-18T18:23:01+00:00",
-      "fecha_iso": "2026-06-18T18:23:01+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni/\"> <img src=\"https://preview.redd.it/ni9r4mq2138h1.png?width=140&amp;height=82&amp;auto=webp&amp;s=5b82fa51fa3523aa0293d3f4fd1beb025db32743\" alt=\"AFP Provida no paga la",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T22:54:40.842621+00:00"
-    },
-    {
-      "id": "30c037cc653595ca",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/NAiKfoll",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-18T19:41:39+00:00",
-      "fecha_iso": "2026-06-18T19:41:39+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/derechoenchile/comments/1u9g8f3/afp_provida_no_paga_la_pensión_de_alimentos_ni",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas tardes a todos:</p> <p>Les vengo a consultar sobre algo que me pasó. Resulta que el juez del tribunal de familia de mi ciudad ordenó retener del dinero de la pensión que recibe mi papá todos los meses, ya que por ley están obligados a hacerlo, pero no lo esta",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T22:54:40.842474+00:00"
-    },
-    {
-      "id": "d0ed650cec3b75e2",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/John_sunday",
-      "provincia": "",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Maximum_Guard5610",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
-      "patente": "SDS100",
-      "fecha_visible": "2026-07-02T02:56:45+00:00",
-      "fecha_iso": "2026-07-02T02:56:45+00:00",
+      "patente": "",
+      "fecha_visible": "2026-07-03T16:07:14+00:00",
+      "fecha_iso": "2026-07-03T16:07:14+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/policescanner/comments/1ul67ec/web_app_to_control_sds100_and_share_a_scan_session",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/policescanner/comments/1ul67ec/web_app_to_control_sds100_and_share_a_scan_session/\"> <img src=\"https://preview.redd.it/cjqb1fixdqah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=7c313eb435e798362e9d5ba5fae3f19b5b473df8\" alt=\"W",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -112,100 +47,36 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "08_or_document_problem": 40,
         "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "document_08",
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T22:54:40.841716+00:00"
+      "discovery_timestamp": "2026-07-04T23:58:42.992469+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "db1d1e8fafb1063b",
+      "id": "28e3318e4e90dd8a",
       "score": 75,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/NAiKfoll",
-      "provincia": "La Plata",
-      "ciudad": "La Plata",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-18T18:23:01+00:00",
-      "fecha_iso": "2026-06-18T18:23:01+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni/\"> <img src=\"https://preview.redd.it/ni9r4mq2138h1.png?width=140&amp;height=82&amp;auto=webp&amp;s=5b82fa51fa3523aa0293d3f4fd1beb025db32743\" alt=\"AFP Provida no paga la",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T22:54:40.842621+00:00"
-    },
-    {
-      "id": "30c037cc653595ca",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/NAiKfoll",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-18T19:41:39+00:00",
-      "fecha_iso": "2026-06-18T19:41:39+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/derechoenchile/comments/1u9g8f3/afp_provida_no_paga_la_pensión_de_alimentos_ni",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas tardes a todos:</p> <p>Les vengo a consultar sobre algo que me pasó. Resulta que el juez del tribunal de familia de mi ciudad ordenó retener del dinero de la pensión que recibe mi papá todos los meses, ya que por ley están obligados a hacerlo, pero no lo esta",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T22:54:40.842474+00:00"
-    }
-  ],
-  "leads_warm": [
-    {
-      "id": "d0ed650cec3b75e2",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/John_sunday",
-      "provincia": "",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Maximum_Guard5610",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
-      "patente": "SDS100",
-      "fecha_visible": "2026-07-02T02:56:45+00:00",
-      "fecha_iso": "2026-07-02T02:56:45+00:00",
+      "patente": "",
+      "fecha_visible": "2026-07-03T16:07:14+00:00",
+      "fecha_iso": "2026-07-03T16:07:14+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/policescanner/comments/1ul67ec/web_app_to_control_sds100_and_share_a_scan_session",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/policescanner/comments/1ul67ec/web_app_to_control_sds100_and_share_a_scan_session/\"> <img src=\"https://preview.redd.it/cjqb1fixdqah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=7c313eb435e798362e9d5ba5fae3f19b5b473df8\" alt=\"W",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -213,22 +84,24 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "08_or_document_problem": 40,
         "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "document_08",
         "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T22:54:40.841716+00:00"
+      "discovery_timestamp": "2026-07-04T23:58:42.992469+00:00"
     }
   ],
+  "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 50% de los leads calientes son de La Plata.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "0% de los leads calientes tienen contacto público visible.",
-    "1 leads calientes muestran señales de urgencia temporal."
+    "El 100% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Problema de transferencia.",
+    "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -254,7 +127,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 48.01,
+    "runtime_seconds": 60.8,
     "queries_executed": 1
   }
 }
