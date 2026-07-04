@@ -1088,5 +1088,31 @@
         "CABA": 1
       }
     }
+  },
+  {
+    "run_id": "8a3e69f7e12c",
+    "generated_at": "2026-07-04T22:54:40.843730+00:00",
+    "summary": {
+      "total_leads": 3,
+      "hot_leads": 2,
+      "warm_leads": 1,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 56.7,
+      "avg_score_hot": 67.5,
+      "conversion_probability": 66.7,
+      "by_category": {
+        "OTHER": 1,
+        "FINE_DISPUTE": 2
+      },
+      "by_platform": {
+        "Reddit": 3
+      },
+      "by_province": {
+        "La Plata": 1
+      }
+    }
   }
 ]

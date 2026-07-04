@@ -1,38 +1,12 @@
 {
-  "total_runs": 38,
-  "last_run": "2026-07-04T21:55:12.258048+00:00",
-  "last_run_id": "f57522756798",
-  "total_leads_all_time": 504,
-  "total_hot_leads_all_time": 415,
-  "avg_hot_per_run": 10.9,
-  "runs_today": 19,
+  "total_runs": 39,
+  "last_run": "2026-07-04T22:54:40.843730+00:00",
+  "last_run_id": "8a3e69f7e12c",
+  "total_leads_all_time": 507,
+  "total_hot_leads_all_time": 417,
+  "avg_hot_per_run": 10.7,
+  "runs_today": 20,
   "last_7_days": [
-    {
-      "run_id": "cf6e1482cb71",
-      "generated_at": "2026-07-04T12:04:24.776815+00:00",
-      "summary": {
-        "total_leads": 4,
-        "hot_leads": 2,
-        "warm_leads": 2,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 57.5,
-        "avg_score_hot": 80.0,
-        "conversion_probability": 50.0,
-        "by_category": {
-          "OTHER": 2,
-          "FINE_DISPUTE": 2
-        },
-        "by_platform": {
-          "Reddit": 4
-        },
-        "by_province": {
-          "Salta": 1
-        }
-      }
-    },
     {
       "run_id": "12e37acee616",
       "generated_at": "2026-07-04T14:26:09.594979+00:00",
@@ -175,6 +149,32 @@
         },
         "by_province": {
           "CABA": 1
+        }
+      }
+    },
+    {
+      "run_id": "8a3e69f7e12c",
+      "generated_at": "2026-07-04T22:54:40.843730+00:00",
+      "summary": {
+        "total_leads": 3,
+        "hot_leads": 2,
+        "warm_leads": 1,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 56.7,
+        "avg_score_hot": 67.5,
+        "conversion_probability": 66.7,
+        "by_category": {
+          "OTHER": 1,
+          "FINE_DISPUTE": 2
+        },
+        "by_platform": {
+          "Reddit": 3
+        },
+        "by_province": {
+          "La Plata": 1
         }
       }
     }
