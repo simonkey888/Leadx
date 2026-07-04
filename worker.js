@@ -815,7 +815,8 @@ function applyFilters() {
 
 // ── RENDER TABLE ───────────────────────────────────────────────────────────
 function renderTable() {
-  applyFilters(); // re-run search
+  // NO llamar applyFilters() aquí — causa recursión infinita
+  // (applyFilters llama a renderTable al final)
   const leads = S.filtered;
 
   if (!leads.length) {
