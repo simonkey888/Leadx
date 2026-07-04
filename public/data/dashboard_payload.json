@@ -1,46 +1,46 @@
 {
-  "generated_at": "2026-07-04T00:44:14.221816+00:00",
-  "run_id": "282aff560262",
+  "generated_at": "2026-07-04T00:46:58.848789+00:00",
+  "run_id": "6d625ebfb6c6",
   "summary": {
-    "total_leads": 6,
-    "hot_leads": 5,
-    "warm_leads": 1,
+    "total_leads": 3,
+    "hot_leads": 3,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 84.2,
-    "avg_score_hot": 92.0,
-    "conversion_probability": 83.3,
+    "avg_score": 83.3,
+    "avg_score_hot": 83.3,
+    "conversion_probability": 100.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 6
+      "FINE_DISPUTE": 2,
+      "TRANSFER_PROBLEM": 1
     },
     "by_platform": {
-      "Reddit": 6
+      "Reddit": 3
     },
     "by_province": {
-      "Buenos Aires": 1,
-      "La Plata": 1
+      "CABA": 1
     }
   },
   "leads_all": [
     {
-      "id": "ec1c754045fcba60",
-      "score": 100,
+      "id": "da45252c989b5c27",
+      "score": 95,
       "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/marcelzzin18",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Tiny-Bluebird-3467",
       "provincia": "",
       "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-03T18:45:04+00:00",
-      "fecha_iso": "2026-07-03T18:45:04+00:00",
+      "fecha_visible": "2026-07-03T15:59:58+00:00",
+      "fecha_iso": "2026-07-03T15:59:58+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/carros/comments/1ummmt1/transferencia_digital",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Boa tarde, povo!<br/> Comprei um carro faz 2 meses, fiz trasnferencia digital la na hora, eu e vendedor assinamos tudo certinho e ja apareceu na minha cnh digital o ATPV-E. No dia seguinte fiz a vistoria, deu tudo certo, e uns dias depois (nao deu os 30 dias) paguei",
+      "source_url": "https://www.reddit.com/r/DatingRO/comments/1umic23/f_mid_20s_dog",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buna tuturor!<br/> Pe scurt, am atat de multa iubire de oferit si caut iubirea vietii mele.<br/> Voi imparti restul textului in 2 parti, una despre mine si una despre ce mi-ar placea la un barbat.<br/> Sunt in mid 20s (imi doresc pe cineva mai mare decat mine, intre",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -49,33 +49,66 @@
       "email_publico": "",
       "score_breakdown": {
         "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "recent_0_3_days",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-04T00:46:58.830615+00:00"
+    },
+    {
+      "id": "b498eed22b5f5436",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/WillLife",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-03T16:11:43+00:00",
+      "fecha_iso": "2026-07-03T16:11:43+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umingb/llevaste_a_la_vtv_algún_auto_con_la_oblea_varios",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Tuve al auto roto y en el medio se me venció la VTV por muchos meses. He leido comentarios de gente que lo llevó circulando con la VTV pasada y en la propia VTV lo inspectores de vialidad, y conociendo fecha y hora del turno, lo multaron por circular fuera de regla.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "recent_0_3_days": 20
       },
       "detected_signals": [
         "multa_fotomulta",
-        "transfer_problem",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210044+00:00"
+      "discovery_timestamp": "2026-07-04T00:46:58.830332+00:00"
     },
     {
-      "id": "b2315f5168d3202c",
-      "score": 100,
+      "id": "28e3318e4e90dd8a",
+      "score": 75,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Repulsive-Tap3890",
-      "provincia": "Buenos Aires",
+      "persona": "u/Maximum_Guard5610",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-29T20:07:45+00:00",
-      "fecha_iso": "2026-06-29T20:07:45+00:00",
+      "fecha_visible": "2026-07-03T16:07:14+00:00",
+      "fecha_iso": "2026-07-03T16:07:14+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1uj3ed8/multas_gba",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hace dos años vendi mi auto se hizo la transferencia sin problemas. Pero en el sistema de multas de GBA sigo figurando como titular de las multas que se estan realizando, pese a que en el registro automotor figura el cambio de titularidad correctamente y en otros si",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -83,168 +116,36 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "recent_4_7_days": 10,
+        "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "recent_4_7_days",
+        "document_08",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210152+00:00"
-    },
-    {
-      "id": "849be4a1a58bae1c",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Avelios09",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "nissan",
-      "patente": "",
-      "fecha_visible": "2026-06-25T19:28:56+00:00",
-      "fecha_iso": "2026-06-25T19:28:56+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lacamiseta/comments/1ufjzgx/renunciar_a_un_trabajo_donde_no_la_armo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Les doy contexto resumido para que se entienda mejor. </p> <p>Soy Psicologo recien egresado de la carrera, tambien soy foráneo donde vivo (pago mi renta y no tengo nada de familia en la ciudad) hice mis prácticas en Nissan en el área de calidad y logística porque un",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210328+00:00"
-    },
-    {
-      "id": "5a815764175343bf",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Ok_Role1494",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T01:15:43+00:00",
-      "fecha_iso": "2026-06-17T01:15:43+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/golpes/comments/1u7w4js/cursinho_profissionalizante",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Gente, eu to aqui mais pra alertar quem pensa em fazer cursinhos por q nao consegue pagar graduação, eu andando pela rua caçando trabalho fui me envolver com o q sequer conhecia e fui de boa fé pra dar uma chance por conta da bolsa q me deram e tambem do contato com",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210542+00:00"
-    },
-    {
-      "id": "46a7ffbced0899ef",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Electronic-Low-4436",
-      "provincia": "La Plata",
-      "ciudad": "La Plata",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-15T05:02:00+00:00",
-      "fecha_iso": "2026-06-15T05:02:00+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/AdSenseHispano/comments/1u66yvt/requisitos_de_elegibilidad_de_la_identidad_del",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>El acceso al programa AdSense exige que el solicitante demuestre su plena capacidad jurídica y la veracidad de su identidad fiscal para establecer una relación comercial contractualmente <a href=\"http://v%C3%A1lida.Google\">válida.Google</a> valida de forma estricta",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210685+00:00"
-    },
-    {
-      "id": "6e8bfce6777a51fc",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/dsfsoihs",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-06-09T20:18:36+00:00",
-      "fecha_iso": "2026-06-09T20:18:36+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Honduras/comments/1u1gjvr/freelancersremotos_que_usan_payoneer",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Yo recientemente comence a trabajar con una empresa en el extranjero que usa Deel para manejar los pagos. anteriormente, estuve freelancing y recibia pagos por medio de Veem directamente a mi tarjeta de debito y cuenta de Occidente. </p> <p>Por alguna razon, segun l",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210756+00:00"
+      "discovery_timestamp": "2026-07-04T00:46:58.830408+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "ec1c754045fcba60",
-      "score": 100,
+      "id": "da45252c989b5c27",
+      "score": 95,
       "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/marcelzzin18",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Tiny-Bluebird-3467",
       "provincia": "",
       "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-03T18:45:04+00:00",
-      "fecha_iso": "2026-07-03T18:45:04+00:00",
+      "fecha_visible": "2026-07-03T15:59:58+00:00",
+      "fecha_iso": "2026-07-03T15:59:58+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/carros/comments/1ummmt1/transferencia_digital",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Boa tarde, povo!<br/> Comprei um carro faz 2 meses, fiz trasnferencia digital la na hora, eu e vendedor assinamos tudo certinho e ja apareceu na minha cnh digital o ATPV-E. No dia seguinte fiz a vistoria, deu tudo certo, e uns dias depois (nao deu os 30 dias) paguei",
+      "source_url": "https://www.reddit.com/r/DatingRO/comments/1umic23/f_mid_20s_dog",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buna tuturor!<br/> Pe scurt, am atat de multa iubire de oferit si caut iubirea vietii mele.<br/> Voi imparti restul textului in 2 parti, una despre mine si una despre ce mi-ar placea la un barbat.<br/> Sunt in mid 20s (imi doresc pe cineva mai mare decat mine, intre",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -253,33 +154,66 @@
       "email_publico": "",
       "score_breakdown": {
         "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "recent_0_3_days",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-04T00:46:58.830615+00:00"
+    },
+    {
+      "id": "b498eed22b5f5436",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/WillLife",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-03T16:11:43+00:00",
+      "fecha_iso": "2026-07-03T16:11:43+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umingb/llevaste_a_la_vtv_algún_auto_con_la_oblea_varios",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Tuve al auto roto y en el medio se me venció la VTV por muchos meses. He leido comentarios de gente que lo llevó circulando con la VTV pasada y en la propia VTV lo inspectores de vialidad, y conociendo fecha y hora del turno, lo multaron por circular fuera de regla.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "recent_0_3_days": 20
       },
       "detected_signals": [
         "multa_fotomulta",
-        "transfer_problem",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210044+00:00"
+      "discovery_timestamp": "2026-07-04T00:46:58.830332+00:00"
     },
     {
-      "id": "b2315f5168d3202c",
-      "score": 100,
+      "id": "28e3318e4e90dd8a",
+      "score": 75,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Repulsive-Tap3890",
-      "provincia": "Buenos Aires",
+      "persona": "u/Maximum_Guard5610",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-29T20:07:45+00:00",
-      "fecha_iso": "2026-06-29T20:07:45+00:00",
+      "fecha_visible": "2026-07-03T16:07:14+00:00",
+      "fecha_iso": "2026-07-03T16:07:14+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1uj3ed8/multas_gba",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hace dos años vendi mi auto se hizo la transferencia sin problemas. Pero en el sistema de multas de GBA sigo figurando como titular de las multas que se estan realizando, pese a que en el registro automotor figura el cambio de titularidad correctamente y en otros si",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -287,156 +221,23 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "recent_4_7_days": 10,
+        "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "recent_4_7_days",
+        "document_08",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210152+00:00"
-    },
-    {
-      "id": "849be4a1a58bae1c",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Avelios09",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "nissan",
-      "patente": "",
-      "fecha_visible": "2026-06-25T19:28:56+00:00",
-      "fecha_iso": "2026-06-25T19:28:56+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lacamiseta/comments/1ufjzgx/renunciar_a_un_trabajo_donde_no_la_armo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Les doy contexto resumido para que se entienda mejor. </p> <p>Soy Psicologo recien egresado de la carrera, tambien soy foráneo donde vivo (pago mi renta y no tengo nada de familia en la ciudad) hice mis prácticas en Nissan en el área de calidad y logística porque un",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210328+00:00"
-    },
-    {
-      "id": "5a815764175343bf",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Ok_Role1494",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T01:15:43+00:00",
-      "fecha_iso": "2026-06-17T01:15:43+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/golpes/comments/1u7w4js/cursinho_profissionalizante",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Gente, eu to aqui mais pra alertar quem pensa em fazer cursinhos por q nao consegue pagar graduação, eu andando pela rua caçando trabalho fui me envolver com o q sequer conhecia e fui de boa fé pra dar uma chance por conta da bolsa q me deram e tambem do contato com",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210542+00:00"
-    },
-    {
-      "id": "46a7ffbced0899ef",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Electronic-Low-4436",
-      "provincia": "La Plata",
-      "ciudad": "La Plata",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-15T05:02:00+00:00",
-      "fecha_iso": "2026-06-15T05:02:00+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/AdSenseHispano/comments/1u66yvt/requisitos_de_elegibilidad_de_la_identidad_del",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>El acceso al programa AdSense exige que el solicitante demuestre su plena capacidad jurídica y la veracidad de su identidad fiscal para establecer una relación comercial contractualmente <a href=\"http://v%C3%A1lida.Google\">válida.Google</a> valida de forma estricta",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210685+00:00"
+      "discovery_timestamp": "2026-07-04T00:46:58.830408+00:00"
     }
   ],
-  "leads_warm": [
-    {
-      "id": "6e8bfce6777a51fc",
-      "score": 45,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/dsfsoihs",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-06-09T20:18:36+00:00",
-      "fecha_iso": "2026-06-09T20:18:36+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Honduras/comments/1u1gjvr/freelancersremotos_que_usan_payoneer",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Yo recientemente comence a trabajar con una empresa en el extranjero que usa Deel para manejar los pagos. anteriormente, estuve freelancing y recibia pagos por medio de Veem directamente a mi tarjeta de debito y cuenta de Occidente. </p> <p>Por alguna razon, segun l",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-04T00:44:14.210756+00:00"
-    }
-  ],
+  "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 20% de los leads calientes son de Buenos Aires.",
-    "El problema más frecuente es: Problema de transferencia.",
+    "El 33% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Disputa de multa/fotomulta.",
     "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
@@ -463,7 +264,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 65.78,
+    "runtime_seconds": 48.04,
     "queries_executed": 1
   }
 }
