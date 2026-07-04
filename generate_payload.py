@@ -45,27 +45,56 @@ STATS_PATH = DATA_DIR / "stats.json"
 HISTORY_PATH = DATA_DIR / "history.json"
 
 # Performance
-MAX_RUNTIME_SECONDS = 240
-RATE_LIMIT_MS = 10000  # 10s entre queries para evitar 429 de Reddit RSS
+MAX_RUNTIME_SECONDS = 200
+RATE_LIMIT_MS = 8000  # 8s entre queries (rotacion evita repetir, menos 429)
 MAX_RESULTS_PER_QUERY = 10
 
 # ===========================================================================
 # Queries (foco: dolor explícito + evento anterior)
 # ===========================================================================
 
-QUERIES = [
-    # Reddit (endpoint /search.rss que SI trae author /u/xxx)
-    "site:reddit.com no puedo transferir auto multa",
-    "site:reddit.com me llegó multa no es mi auto",
-    "site:reddit.com libre deuda falso transferencia",
-    "site:reddit.com fotomulta reclamo argentina",
-    "site:reddit.com vendedor no entregó 08",
-    "site:reddit.com multas impagas transferir",
-    "site:reddit.com compre auto multas anteriores",
-    "site:reddit.com patente bloqueada registro",
-    # Telegram (t.me/s/ scrapea canal publico)
-    "site:telegram multas argentina transferencia",
+# Rotacion de grupos de queries Reddit (Claude v2 idea):
+# Cada run usa solo 1 grupo (3 queries). Rota cada 3h.
+# Misma query no se repite hasta 18h -> evita 429.
+REDDIT_QUERY_GROUPS = [
+    [
+        "site:reddit.com no puedo transferir auto multa argentina",
+        "site:reddit.com me llego multa no es mi auto",
+        "site:foroargentina multa transferencia auto",
+    ],
+    [
+        "site:reddit.com fotomulta reclamo argentina",
+        "site:reddit.com vendedor no entrego 08",
+        "site:reddit.com multas impagas transferir",
+    ],
+    [
+        "site:reddit.com compre auto multas anteriores dueño",
+        "site:reddit.com patente bloqueada registro automotor",
+        "site:reddit.com transferencia rechazada multa",
+    ],
+    [
+        "site:reddit.com 08 firmado problema vendedor",
+        "site:reddit.com veraz cobranzas multa auto",
+        "site:reddit.com juez de faltas multa reclamo",
+    ],
+    [
+        "site:reddit.com cedula verde perdida transferir",
+        "site:reddit.com auto vendido no transfirieron",
+        "site:reddit.com multa vencida prescripcion",
+    ],
+    [
+        "site:reddit.com fotomulta ruta peaje argentina",
+        "site:reddit.com registro suspendido multas",
+        "site:reddit.com gestoria transferencia multa",
+    ],
 ]
+
+# El grupo activo se elige por timestamp (rota cada run)
+import time as _time_mod
+_CURRENT_GROUP_IDX = int((_time_mod.time() / 10800) % len(REDDIT_QUERY_GROUPS))  # 10800s = 3h
+
+QUERIES = REDDIT_QUERY_GROUPS[_CURRENT_GROUP_IDX]
+print(f"[pipeline] Usando query group {_CURRENT_GROUP_IDX}/{len(REDDIT_QUERY_GROUPS)-1}: {QUERIES}", file=sys.stderr)
 
 # ===========================================================================
 # Step 4: Scoring (exacto del spec)

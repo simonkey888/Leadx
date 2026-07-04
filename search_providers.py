@@ -50,6 +50,7 @@ USER_AGENTS = [
 
 # Cache simple
 _cache: Dict[str, tuple] = {}  # key → (timestamp, data)
+_rss_cache: Dict[str, tuple] = {}  # Reddit RSS: query_hash → (timestamp, results)
 
 
 # ===========================================================================
@@ -171,11 +172,20 @@ def search_duckduckgo(query: str, num: int = 10) -> List[Dict[str, Any]]:
 # Provider 2: Reddit JSON (público, sin API key)
 # ===========================================================================
 def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
-    """Busca en Reddit via DuckDuckGo (site:reddit.com) + scrapea cada post via old.reddit.com.
-    Esto evita el bloqueo directo al endpoint /search.json de Reddit.
-    """
+    """Busca en Reddit via /search.rss (Atom feed). Cache 1h en memoria."""
     import sys as _sys
-    print(f"    [reddit] searching (via DDG + old.reddit.com): {query[:60]}", file=_sys.stderr)
+    import hashlib as _hl
+    import time as _tm
+
+    # Cache check: si la misma query se pidio hace <1h, devolver cache
+    cache_key = _hl.sha256(query.encode()).hexdigest()[:12]
+    if cache_key in _rss_cache:
+        ts, cached = _rss_cache[cache_key]
+        if _tm.time() - ts < 3600:
+            print(f"    [reddit] cache hit ({len(cached)} items): {query[:50]}", file=_sys.stderr)
+            return cached[:num]
+
+    print(f"    [reddit] searching (via RSS): {query[:60]}", file=_sys.stderr)
     
     # Paso 1: DuckDuckGo para encontrar URLs de Reddit
     ddg_query = f"site:reddit.com {query}"
@@ -271,6 +281,9 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         })
     
     print(f"    [reddit] got {len(results)} posts with author", file=_sys.stderr)
+    # Guardar en cache 1h
+    if results:
+        _rss_cache[cache_key] = (_tm.time(), results)
     return results[:num]
 
 
@@ -606,6 +619,98 @@ def search_mercadolibre(query: str, num: int = 10) -> List[Dict[str, Any]]:
     print(f"    [ml] got {len(results)} results", file=_sys.stderr)
     return results
 
+
+
+# ===========================================================================
+# Provider 6: ForoArgentina.net (foro AR, sin rate limit agresivo)
+# ===========================================================================
+def search_foroargentina(query: str, num: int = 10) -> List[Dict[str, Any]]:
+    """Busca en foroargentina.net via su buscador interno."""
+    import sys as _sys
+    print(f"    [foro] searching: {query[:60]}", file=_sys.stderr)
+    
+    # Limpiar query: quitar site:xxx
+    clean_query = _re.sub(r"site:\S+", "", query).strip()
+    if not clean_query:
+        return []
+    
+    encoded = urllib.parse.quote(clean_query)
+    search_url = f"https://www.foroargentina.net/buscar?buscar={encoded}&ordenar=fecha"
+    
+    try:
+        req = urllib.request.Request(search_url)
+        req.add_header("User-Agent", random.choice(USER_AGENTS))
+        req.add_header("Accept-Language", "es-AR,es;q=0.9")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+    except Exception as e:
+        print(f"    [foro] ERROR: {e}", file=_sys.stderr)
+        return []
+    
+    # Parse simple: buscar links a /viewtopic.php?t=XXX
+    results = []
+    # Patron: <a href="./viewtopic.php?f=X&t=Y" class="topictitle">TITLE</a>
+    import re as _re2
+    matches = _re2.findall(r'<a[^>]*href="[^"]*viewtopic\.php[^"]*t=(\d+)[^"]*"[^>]*class="[^"]*topictitle[^"]*"[^>]*>([^<]+)</a>', html)
+    if not matches:
+        # Fallback: buscar cualquier link a viewtopic con texto
+        matches = _re2.findall(r'<a[^>]*href="((?:\./)?viewtopic\.php\?[^"]*t=\d+[^"]*)"[^>]*>([^<]{15,150})</a>', html)
+    
+    for tid, title in matches[:num]:
+        title = _re2.sub(r"<[^>]+>", "", title).strip()
+        if not title:
+            continue
+        # URL completa
+        if isinstance(tid, str) and tid.isdigit():
+            post_url = f"https://www.foroargentina.net/viewtopic.php?t={tid}"
+        else:
+            href = tid  # fallback caso 2
+            post_url = href if href.startswith("http") else f"https://www.foroargentina.net/{href.lstrip('./')}"
+        
+        results.append({
+            "title": title[:200],
+            "url": post_url,
+            "snippet": "",  # el search no da snippet, habria que scrapear el post
+            "source": "foroargentina",
+            "date": "",
+            "username": "",
+            "author": "",
+        })
+    
+    # Para cada resultado, scrapear el post para conseguir author + body
+    for r in results[:5]:  # solo top 5 para no abusar
+        try:
+            time.sleep(1.5)
+            req2 = urllib.request.Request(r["url"])
+            req2.add_header("User-Agent", random.choice(USER_AGENTS))
+            with urllib.request.urlopen(req2, timeout=10) as resp2:
+                post_html = resp2.read().decode("utf-8", errors="replace")
+            
+            # Author: <a class="username" ...>NAME</a> o <span class="postauthor">NAME</span>
+            author_m = _re2.search(r'class="username[^"]*"[^>]*>([^<]{3,30})<', post_html)
+            if not author_m:
+                author_m = _re2.search(r'class="postauthor"[^>]*>([^<]{3,30})<', post_html)
+            if author_m:
+                r["username"] = author_m.group(1).strip()
+                r["author"] = author_m.group(1).strip()
+            
+            # Body: <div class="content">...</div>
+            body_m = _re2.search(r'<div class="content"[^>]*>(.*?)</div>', post_html, _re2.DOTALL)
+            if body_m:
+                body = _re2.sub(r"<[^>]+>", " ", body_m.group(1))
+                body = body.replace("&amp;","&").replace("&lt;","<").replace("&gt;",">").replace("&quot;",'"').replace("&#39;","'")
+                r["snippet"] = _re2.sub(r"\s+", " ", body).strip()[:2000]
+            
+            # Date: <time datetime="2024-01-15...">
+            date_m = _re2.search(r'<time[^>]*datetime="([^"]+)"', post_html)
+            if date_m:
+                r["date"] = date_m.group(1)[:10]
+        except Exception:
+            continue
+    
+    print(f"    [foro] got {len(results)} results", file=_sys.stderr)
+    return results[:num]
+
 def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """
     Busca usando múltiples providers en orden de fallback.
@@ -645,6 +750,15 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
         try:
             tg = search_telegram(query, num=num)
             all_results.extend(tg)
+            return all_results[:num * 2]
+        except Exception:
+            pass
+
+    # Si la query menciona foroargentina, usar provider foroargentina
+    if "site:foroargentina" in query.lower() or "foroargentina" in query.lower():
+        try:
+            fa = search_foroargentina(query, num=num)
+            all_results.extend(fa)
             return all_results[:num * 2]
         except Exception:
             pass
