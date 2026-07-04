@@ -711,6 +711,65 @@ def search_foroargentina(query: str, num: int = 10) -> List[Dict[str, Any]]:
     print(f"    [foro] got {len(results)} results", file=_sys.stderr)
     return results[:num]
 
+
+
+# ===========================================================================
+# Provider 7: Facebook groups via DuckDuckGo (sin auth, sin cookies)
+# ===========================================================================
+def search_facebook_via_ddg(query: str, num: int = 10) -> List[Dict[str, Any]]:
+    """Busca posts de grupos publicos de Facebook via DuckDuckGo.
+    No requiere cuenta FB ni API key.
+    Devuelve leads con texto y link pero SIN author (limitacion de DDG snippets).
+    """
+    import sys as _sys
+    print(f"    [facebook] searching: {query[:60]}", file=_sys.stderr)
+    
+    # Si la query no tiene site:facebook.com, agregarlo
+    if "site:facebook.com" not in query.lower():
+        search_query = f"site:facebook.com/groups {query}"
+    else:
+        search_query = query
+    
+    # Usar search_duckduckgo existente
+    ddg_results = search_duckduckgo(search_query, num=num * 2)
+    
+    results = []
+    for r in ddg_results:
+        url = r.get("url", "")
+        if "facebook.com/groups" not in url:
+            continue
+        
+        # Extraer group_name de la URL
+        # facebook.com/groups/multasargentina/posts/123456
+        import re as _re2
+        group_match = _re2.search(r"/groups/([^/?#]+)", url)
+        group_name = ""
+        if group_match:
+            raw = group_match.group(1)
+            group_name = raw.replace("-", " ").replace("_", " ").title()
+        
+        snippet = r.get("snippet", "")
+        title = r.get("title", "")
+        
+        if not snippet and not title:
+            continue
+        if len(snippet) < 20 and len(title) < 10:
+            continue
+        
+        results.append({
+            "title": (title or snippet)[:200],
+            "url": url,
+            "snippet": snippet[:3000],
+            "source": "facebook_groups",
+            "date": r.get("date", ""),
+            "username": group_name,  # usamos el grupo como "author"
+            "author": group_name,
+            "group_name": group_name,
+        })
+    
+    print(f"    [facebook] got {len(results)} posts from FB groups", file=_sys.stderr)
+    return results[:num]
+
 def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """
     Busca usando múltiples providers en orden de fallback.
@@ -763,7 +822,16 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
         except Exception:
             pass
 
-    # Si la query es site:facebook.com o site:x.com, igual usar DuckDuckGo (no tenemos API directa)
+    # Si la query es site:facebook.com, usar provider dedicado
+    if "site:facebook.com" in query.lower():
+        try:
+            fb = search_facebook_via_ddg(query, num=num)
+            all_results.extend(fb)
+            return all_results[:num * 2]
+        except Exception:
+            pass
+
+    # Si la query es site:x.com o sin site:, usar DuckDuckGo
     # Provider 1: DuckDuckGo
     try:
         ddg = search_duckduckgo(query, num=num)

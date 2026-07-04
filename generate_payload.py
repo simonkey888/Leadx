@@ -70,16 +70,16 @@ REDDIT_QUERY_GROUPS = [
     [
         "site:reddit.com compre auto multas anteriores dueño",
         "site:reddit.com patente bloqueada registro automotor",
-        "site:reddit.com transferencia rechazada multa",
+        "site:facebook.com/groups multa transito argentina",
     ],
     [
         "site:reddit.com 08 firmado problema vendedor",
-        "site:reddit.com veraz cobranzas multa auto",
+        "site:facebook.com/groups fotomulta argentina",
         "site:reddit.com juez de faltas multa reclamo",
     ],
     [
         "site:reddit.com cedula verde perdida transferir",
-        "site:reddit.com auto vendido no transfirieron",
+        "site:facebook.com/groups libre deuda transferencia",
         "site:reddit.com multa vencida prescripcion",
     ],
     [
