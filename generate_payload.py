@@ -281,6 +281,8 @@ class Lead:
 # Import search providers (DuckDuckGo + Reddit + RSS, sin search_providers)
 from search_providers import search as provider_search
 from source_registry import run_discovery_and_update, get_approved_sources
+from pending_queries_kv import PendingQueryManager
+from search_providers import search_reddit_with_status, search_foroargentina
 from search_providers import enrich_reddit_post
 
 
@@ -362,16 +364,34 @@ def phone_to_e164(phone: str) -> str:
 # Step 1: Collect
 # ===========================================================================
 def collect_public_sources() -> List[Dict[str, Any]]:
-    """Recolecta resultados de búsquedas públicas via search_providers web_search."""
+    """Recolecta resultados de búsquedas públicas via search_providers web_search.
+    
+    Si una query Reddit devuelve 429, la agrega a PendingQueryManager global.
+    """
     print("[Step 1] Collecting public sources...", file=sys.stderr)
     all_results = []
+    # PQM global accesible desde collect_public_sources
+    global _pqm_global
     for i, query in enumerate(QUERIES):
         elapsed = time.time() - START_TIME
         if elapsed > MAX_RUNTIME_SECONDS:
             print(f"  [timeout] {elapsed:.1f}s", file=sys.stderr)
             break
         print(f"  [{i+1}/{len(QUERIES)}] {query[:60]}", file=sys.stderr)
-        results = web_search(query, num=MAX_RESULTS_PER_QUERY)
+        
+        # Si es query Reddit, usar wrapper con status para detectar 429
+        if "site:reddit.com" in query.lower():
+            results, got_429 = search_reddit_with_status(
+                query.lower().replace("site:reddit.com", "").strip(),
+                num=MAX_RESULTS_PER_QUERY
+            )
+            if got_429 and _pqm_global:
+                rss_url = f"https://www.reddit.com/search.rss?q={query}"
+                _pqm_global.add(rss_url, query, _CURRENT_GROUP_IDX)
+                print(f"  [PQM] 429 en '{query[:40]}' → agregado a pending", file=sys.stderr)
+        else:
+            results = web_search(query, num=MAX_RESULTS_PER_QUERY)
+        
         for r in results:
             r["_query"] = query
         all_results.extend(results)
@@ -914,10 +934,13 @@ def publish_artifacts(payload: Dict[str, Any], leads: List[Lead]) -> None:
 
 START_TIME = time.time()
 QUERIES_EXECUTED = 0
+_pqm_global = None  # PendingQueryManager global, seteado en run_pipeline
+_CURRENT_GROUP_IDX = 0
 
 
 def run_pipeline() -> Dict[str, Any]:
-    global QUERIES_EXECUTED
+    global QUERIES_EXECUTED, _pqm_global
+    _pqm_global = None  # se setea en Step 0.5
 
     print("=" * 60, file=sys.stderr)
     print("  RADAR LEADS — Payload Generator v1.0", file=sys.stderr)
@@ -929,8 +952,44 @@ def run_pipeline() -> Dict[str, Any]:
     except Exception as e:
         print(f"  [SourceHunter] WARNING: {e}", file=sys.stderr)
 
+    # Step 0.5: PendingQueryManager — reintenta queries que fallaron con 429
+    worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    ingest_secret = os.environ.get("INGEST_SECRET", "")
+    pqm = None
+    recovered_leads = []
+    if ingest_secret:
+        try:
+            pqm = PendingQueryManager(worker_url, ingest_secret)
+            _pqm_global = pqm  # accesible desde collect_public_sources
+            pqm.load()
+            # Reintentar pending primero (máx 2, antes del grupo rotativo)
+            recovered_raw = pqm.retry_pending(search_reddit_with_status)
+            print(f"  [PQM] Recuperadas {len(recovered_raw)} queries pendientes → {len(recovered_raw)} posts",
+                  file=sys.stderr)
+            # Agregar a raw_results para que pasen por extract_entities
+            for r in recovered_raw:
+                r["_query"] = f"pending_retry:{r.get('query','')}"
+                raw_results_pending = [r]  # placeholder
+            recovered_leads = recovered_raw
+        except Exception as e:
+            print(f"  [PQM] WARNING: {e}", file=sys.stderr)
+            pqm = None
+    else:
+        print("  [PQM] SKIP: INGEST_SECRET no configurado", file=sys.stderr)
+
     # Step 1: Collect
     raw_results = collect_public_sources()
+
+    # Agregar recovered_leads al inicio de raw_results
+    if recovered_leads:
+        for r in recovered_leads:
+            r["_query"] = r.get("_query", "pending_retry")
+        raw_results = recovered_leads + raw_results
+        print(f"  [PQM] Agregados {len(recovered_leads)} posts recuperados al pipeline",
+              file=sys.stderr)
+
+    # Step 1.5: Guardar PQM al final del run (en try/finally para que siempre guarde)
+    # Lo movemos al final del pipeline
     QUERIES_EXECUTED = len(set(r.get("_query", "") for r in raw_results))
 
     # Step 2: Extract
@@ -971,6 +1030,14 @@ def run_pipeline() -> Dict[str, Any]:
     print(f"  Hot: {payload['summary']['hot_leads']} | Warm: {payload['summary']['warm_leads']}", file=sys.stderr)
     print(f"  Payload: {PAYLOAD_PATH}", file=sys.stderr)
     print(f"{'='*60}", file=sys.stderr)
+
+    # Step 7.5: Guardar PQM al final
+    if pqm:
+        try:
+            pqm.save()
+            print(f"  [PQM] Estado final: {pqm.status()}", file=sys.stderr)
+        except Exception as e:
+            print(f"  [PQM] ERROR guardando: {e}", file=sys.stderr)
 
     return payload
 

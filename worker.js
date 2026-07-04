@@ -9,6 +9,8 @@
  *   GET  /api/leads     → JSON con leads desde KV
  *   GET  /api/metrics   → JSON con métricas
  *   POST /api/ingest    → Recibe batch del pipeline Python (auth: X-Webhook-Secret)
+ *   GET  /api/kv        → Lee key de KV (auth: X-Webhook-Secret)
+ *   POST /api/kv        → Escribe key a KV con TTL opcional (auth: X-Webhook-Secret)
  */
 
 // ─────────────────────────────────────────────────────────────
@@ -748,6 +750,45 @@ export default {
         }, corsHeaders);
       } catch (e) {
         return jsonResponse({ status: 'error', message: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/kv ─── (auth required)
+    if (url.pathname === '/api/kv' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const key = url.searchParams.get('key');
+      if (!key) return jsonResponse({ error: 'missing_key' }, corsHeaders, 400);
+      try {
+        const raw = await env.LEADX_KV.get(key);
+        if (raw === null) {
+          return jsonResponse({ error: 'not_found' }, corsHeaders, 404);
+        }
+        return jsonResponse({ value: JSON.parse(raw) }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/kv ─── (auth required)
+    if (url.pathname === '/api/kv' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const body = await request.json();
+        const { key, value, ttl } = body;
+        if (!key || value === undefined) {
+          return jsonResponse({ error: 'missing_key_or_value' }, corsHeaders, 400);
+        }
+        const putOptions = ttl ? { expirationTtl: ttl } : {};
+        await env.LEADX_KV.put(key, JSON.stringify(value), putOptions);
+        return jsonResponse({ ok: true, key }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, corsHeaders, 500);
       }
     }
 

@@ -839,3 +839,34 @@ if __name__ == "__main__":
     print(f"  ✓ Sin search_providers, sin API key, sin credenciales")
     print(f"  ✓ Funciona en GitHub Actions")
     print(f"{'='*60}")
+
+# ===========================================================================
+# Wrapper para PendingQueryManager: devuelve (leads, got_429)
+# ===========================================================================
+def search_reddit_with_status(query: str, num: int = 10):
+    """Wrapper de search_reddit que devuelve (leads, got_429).
+    
+    got_429=True si Reddit devolvió HTTP 429.
+    got_429=False si fue exitoso o falló por otra razón.
+    """
+    import sys as _sys
+    # Parchar temporalmente el print de error para detectar 429
+    _orig_stderr = _sys.stderr
+    _captured_err = []
+    class _StderrCapture:
+        def write(self, s):
+            _captured_err.append(s)
+            _orig_stderr.write(s)  # también imprimir normal
+        def flush(self):
+            _orig_stderr.flush()
+    _sys.stderr = _StderrCapture()
+    
+    try:
+        leads = search_reddit(query, num=num)
+        # Si hubo 429 en los logs, devolver True
+        err_text = "".join(_captured_err)
+        got_429 = "429" in err_text and "RSS search fail" in err_text
+        return leads, got_429
+    finally:
+        _sys.stderr = _orig_stderr
+
