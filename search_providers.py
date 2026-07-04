@@ -779,6 +779,192 @@ def search_facebook_via_ddg(query: str, num: int = 10) -> List[Dict[str, Any]]:
     print(f"    [facebook] got {len(results)} posts from FB groups", file=_sys.stderr)
     return results[:num]
 
+
+
+# ===========================================================================
+# Provider 8: MercadoLibre Questions Radar (sin auth, API publica)
+# ===========================================================================
+# Estrategia (Sakana+Claude corregido):
+# 1. Pre-filtrar items por titulo con keywords de problema
+# 2. Para cada item, pedir /questions/search?item=XXX
+# 3. Filtrar questions localmente por keywords de multa
+# 4. Author real = seller.nickname
+
+ML_BASE = "https://api.mercadolibre.com"
+ML_SITE_ID = "MLA"  # Argentina
+ML_CATEGORY_AUTOS = "MLA1744"  # Autos y Camionetas
+
+# Keywords para pre-filtrar TITULOS de items (Claude fix)
+ML_TITLE_QUERIES = [
+    "transferir urgente",
+    "no puedo transferir",
+    "con multa",
+    "deuda patente",
+    "libre deuda",
+    "transferencia pendiente",
+]
+
+# Keywords para filtrar preguntas de compradores
+ML_MULTA_KEYWORDS = [
+    "multa", "multas", "infraccion", "libre deuda", "deuda",
+    "fotomulta", "puede transferir", "transferencia", "patente",
+    "08", "cedula", "transferir",
+]
+
+# Max items por query (limitar para no quemar rate limit ML)
+ML_MAX_ITEMS_PER_QUERY = 3
+ML_MAX_TOTAL_ITEMS = 10
+
+
+def _ml_get(url: str) -> Optional[dict]:
+    """GET a ML API con timeout y manejo de errores."""
+    try:
+        req = urllib.request.Request(url)
+        req.add_header("User-Agent", random.choice(USER_AGENTS))
+        req.add_header("Accept", "application/json")
+        with urllib.request.urlopen(req, timeout=12) as r:
+            return json.loads(r.read().decode("utf-8", errors="replace"))
+    except Exception as e:
+        import sys as _sys
+        print(f"    [ml] ERROR {url[:80]}: {e}", file=_sys.stderr)
+        return None
+
+
+def _ml_normalize_provincia(raw: str) -> str:
+    """Normaliza nombres de provincia de ML."""
+    if not raw:
+        return ""
+    MAP = {
+        "Santa Fe": "Santa Fe",
+        "Buenos Aires": "Buenos Aires",
+        "Ciudad Autonoma de Buenos Aires": "CABA",
+        "Capital Federal": "CABA",
+        "Cordoba": "Cordoba",
+        "Entre Rios": "Entre Rios",
+        "Misiones": "Misiones",
+        "La Pampa": "La Pampa",
+        "Mendoza": "Mendoza",
+        "Tucuman": "Tucuman",
+        "Salta": "Salta",
+        "Chaco": "Chaco",
+        "Corrientes": "Corrientes",
+    }
+    # Quitar acentos para matching
+    raw_clean = raw.replace("ó","o").replace("á","a").replace("é","e").replace("í","i").replace("ú","u")
+    return MAP.get(raw_clean, raw)
+
+
+def search_mercadolibre_questions(num: int = 15) -> List[Dict[str, Any]]:
+    """Busca avisos de autos con preguntas sobre multas/transferencias.
+    
+    Flujo:
+    1. Pre-filtrar items por titulo (ML_TITLE_QUERIES)
+    2. Para cada item, pedir questions
+    3. Filtrar questions por keywords de multa
+    4. Lead con seller.nickname como author
+    """
+    import sys as _sys
+    print(f"    [ml] searching questions radar", file=_sys.stderr)
+    
+    leads = []
+    item_ids_seen = set()
+    total_items_processed = 0
+    
+    for query in ML_TITLE_QUERIES:
+        if total_items_processed >= ML_MAX_TOTAL_ITEMS:
+            break
+        
+        encoded_q = urllib.parse.quote(query)
+        search_url = (
+            f"{ML_BASE}/sites/{ML_SITE_ID}/search"
+            f"?q={encoded_q}"
+            f"&category={ML_CATEGORY_AUTOS}"
+            f"&sort=date_desc"
+            f"&limit={ML_MAX_ITEMS_PER_QUERY}"
+        )
+        
+        data = _ml_get(search_url)
+        if not data:
+            continue
+        
+        items = data.get("results", [])
+        print(f"    [ml] query '{query}' -> {len(items)} items", file=_sys.stderr)
+        
+        for item in items:
+            if total_items_processed >= ML_MAX_TOTAL_ITEMS:
+                break
+            item_id = item.get("id", "")
+            if not item_id or item_id in item_ids_seen:
+                continue
+            item_ids_seen.add(item_id)
+            total_items_processed += 1
+            
+            # Pedir questions de este item
+            q_url = (
+                f"{ML_BASE}/questions/search"
+                f"?item={item_id}"
+                f"&status=ANSWERED"
+                f"&limit=50"
+            )
+            q_data = _ml_get(q_url)
+            if not q_data:
+                time.sleep(1)
+                continue
+            
+            questions = q_data.get("questions", [])
+            if not questions:
+                time.sleep(1)
+                continue
+            
+            # Filtrar questions por keywords de multa
+            for q in questions:
+                q_text = (q.get("text", "") or "").lower()
+                if not any(kw in q_text for kw in ML_MULTA_KEYWORDS):
+                    continue
+                
+                # Hit! Lead con problema de multa
+                seller = item.get("seller", {})
+                location = item.get("address", {}) or item.get("location", {})
+                title = item.get("title", "")
+                price = item.get("price", 0)
+                permalink = item.get("permalink", "")
+                
+                answer = q.get("answer") or {}
+                answer_text = answer.get("text", "")
+                
+                body = (
+                    f"Pregunta del comprador: \"{q.get('text', '')}\"\n"
+                    f"Respuesta del vendedor: \"{answer_text}\"\n"
+                    f"Auto: {title} - Precio: ${price:,.0f}"
+                )
+                
+                provincia = _ml_normalize_provincia(
+                    location.get("state_name", "") or location.get("state", {}).get("name", "")
+                )
+                
+                leads.append({
+                    "title": f"[ML] {title[:120]}",
+                    "url": permalink,
+                    "snippet": body[:3000],
+                    "source": "mercadolibre_questions",
+                    "date": (q.get("date_created") or "")[:10],
+                    "username": seller.get("nickname", ""),
+                    "author": seller.get("nickname", ""),
+                    "seller_id": str(seller.get("id", "")),
+                    "has_answer": bool(answer),
+                    "question_text": q.get("text", ""),
+                    "price": price,
+                    "provincia_ml": provincia,
+                })
+            
+            time.sleep(1)  # rate limit amable
+        
+        time.sleep(1)
+    
+    print(f"    [ml] got {len(leads)} leads con questions de multa ({total_items_processed} items procesados)",
+          file=_sys.stderr)
+    return leads[:num]
+
 def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     """
     Busca usando múltiples providers en orden de fallback.
@@ -836,6 +1022,15 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
         try:
             fb = search_facebook_via_ddg(query, num=num)
             all_results.extend(fb)
+            return all_results[:num * 2]
+        except Exception:
+            pass
+
+    # Si la query es site:mercadolibre, usar ML Questions Radar
+    if "site:mercadolibre" in query.lower() or "site:mla" in query.lower():
+        try:
+            ml = search_mercadolibre_questions(num=num)
+            all_results.extend(ml)
             return all_results[:num * 2]
         except Exception:
             pass

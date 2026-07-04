@@ -84,7 +84,7 @@ REDDIT_QUERY_GROUPS = [
     ],
     [
         "site:reddit.com fotomulta ruta peaje argentina",
-        "site:reddit.com registro suspendido multas",
+        "site:mercadolibre multa transferir auto",
         "site:reddit.com gestoria transferencia multa",
     ],
 ]
@@ -543,6 +543,13 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "quoted_text": snippet[:300] if snippet else "",
         "host": host,
         "combined_text": combined,
+        # Campos extra de ML Questions (passthrough)
+        "source": result.get("source", ""),
+        "question_text": result.get("question_text", ""),
+        "has_answer": result.get("has_answer", True),
+        "price": result.get("price", 0),
+        "seller_id": result.get("seller_id", ""),
+        "provincia_ml": result.get("provincia_ml", ""),
     }
 
 
@@ -595,6 +602,30 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     signals = []
 
     # --- Scoring ---
+
+    # Boost ML Questions Radar (alta calidad - Sakana+Claude)
+    platform_str = (record.get("platform", "") or "").lower()
+    source_str = (record.get("source", "") or "").lower()
+    if "mercadolibre" in platform_str or "mercadolibre" in source_str:
+        score += 25
+        breakdown["ml_questions"] = 25
+        signals.append("ML_QUESTION_RADAR")
+        q_text = (record.get("question_text", "") or "").lower()
+        if "puede transferir" in q_text or "libre deuda" in q_text:
+            score += 15
+            breakdown["ml_urgencia"] = 15
+            signals.append("ML_URGENCIA_TRANSFERENCIA")
+        if not record.get("has_answer", True):
+            score += 5
+            breakdown["ml_no_answer"] = 5
+        try:
+            price = float(record.get("price", 0) or 0)
+            if price > 15000:
+                score += 10
+                breakdown["ml_premium"] = 10
+                signals.append("ML_AUTO_PREMIUM")
+        except (ValueError, TypeError):
+            pass
 
     # multa_or_fotomulta: +60
     if "multa" in text or "fotomulta" in text:
