@@ -1,46 +1,46 @@
 {
-  "generated_at": "2026-07-04T08:31:20.895618+00:00",
-  "run_id": "e613d16784d3",
+  "generated_at": "2026-07-04T10:52:25.745534+00:00",
+  "run_id": "0bb3fa0381d2",
   "summary": {
-    "total_leads": 6,
-    "hot_leads": 6,
-    "warm_leads": 0,
+    "total_leads": 4,
+    "hot_leads": 3,
+    "warm_leads": 1,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 67.5,
-    "avg_score_hot": 67.5,
-    "conversion_probability": 100.0,
+    "avg_score": 58.8,
+    "avg_score_hot": 66.7,
+    "conversion_probability": 75.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 2,
-      "FINE_DISPUTE": 4
+      "TRANSFER_PROBLEM": 3,
+      "OTHER": 1
     },
     "by_platform": {
-      "Reddit": 6
+      "Reddit": 4
     },
     "by_province": {
-      "CABA": 1
+      "CABA": 2
     }
   },
   "leads_all": [
     {
-      "id": "b744f4dd9d7012be",
-      "score": 95,
+      "id": "05e3a0134e080c0f",
+      "score": 75,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Sas9977",
-      "provincia": "",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/luisangel1712",
+      "provincia": "CABA",
       "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-05-24T01:54:24+00:00",
-      "fecha_iso": "2026-05-24T01:54:24+00:00",
+      "fecha_visible": "2026-07-03T01:27:40+00:00",
+      "fecha_iso": "2026-07-03T01:27:40+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tlypbs/multa_en_auto_usado",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Consulta, quizas pueden ayudar: un usado (por la dueña anterior) tenia una multa, se lo compro a una agencia y la agencia da el libre deuda y los otros papeles firmados y sellados, pero la multa sigue apareciendo como vencida y sin pagar, en la agencia no saben que",
+      "source_url": "https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de/\"> <img src=\"https://preview.redd.it/hz82xzmf3xah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=ea5c673c633ef0cda7c32901f648f90e47e9a2f4\" alt=\"Es",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -48,14 +48,16 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "libre_deuda_problem": 35
+        "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "libre_deuda"
+        "document_08",
+        "recent_0_3_days",
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882543+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.744031+00:00"
     },
     {
       "id": "a191a9dde0190822",
@@ -88,25 +90,25 @@
         "transfer_problem",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.881497+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.744901+00:00"
     },
     {
-      "id": "3e18d2d933242efd",
-      "score": 65,
+      "id": "4956ed1ed5d9ed4e",
+      "score": 60,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Temporary_Reach7292",
-      "provincia": "CABA",
+      "persona": "u/Bib_Vl",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-29T15:49:57+00:00",
-      "fecha_iso": "2026-06-29T15:49:57+00:00",
+      "fecha_visible": "2026-07-02T05:43:28+00:00",
+      "fecha_iso": "2026-07-02T05:43:28+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/AncientAmericas/comments/1uiwahv/se_puede_considerar_al_quipu_un_sistema_de",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/AncientAmericas/comments/1uiwahv/se_puede_considerar_al_quipu_un_sistema_de/\"> <img src=\"https://preview.redd.it/dmyjojgot8ah1.jpeg?width=640&amp;crop=smart&amp;auto=webp&amp;s=68d8c95a9953004108d45427bb3dd13ce5a07d96\" alt=\"¿Se puede considerar al q",
+      "source_url": "https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa/\"> <img src=\"https://preview.redd.it/bdvpcmb78rah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=d5ff96c1e1a2afc28dc432896c6015d354017083\" alt=\"Quieres ganar dinero desd",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -115,64 +117,31 @@
       "email_publico": "",
       "score_breakdown": {
         "08_or_document_problem": 40,
-        "recent_4_7_days": 10,
-        "argentina_signal": 15
+        "recent_0_3_days": 20
       },
       "detected_signals": [
         "document_08",
-        "recent_4_7_days",
-        "argentina"
+        "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.881956+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.744241+00:00"
     },
     {
-      "id": "5ce105110fcf2d87",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/didis-ptm-97",
-      "provincia": "",
+      "id": "c368f03631ebc541",
+      "score": 35,
+      "label": "commercial_signal",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/SweatyAd6567",
+      "provincia": "CABA",
       "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-08T22:34:07+00:00",
-      "fecha_iso": "2026-06-08T22:34:07+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Nicaragua/comments/1u0n313/nicaragua",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Mae, me multaron el sábado (ya andaba una multa vencida, así que fue mi culpa). El oficial no me regresó mi cédula (me di cuenta hasta hoy). Me dijeron que se iban a llevar el carro y, como prefiero morirme antes que dar mordida, les dije que estaba bien, que no ent",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882057+00:00"
-    },
-    {
-      "id": "a3bcfc2a008140e4",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Monosniper_",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-05T02:13:23+00:00",
-      "fecha_iso": "2026-06-05T02:13:23+00:00",
+      "fecha_visible": "2026-07-04T01:05:53+00:00",
+      "fecha_iso": "2026-07-04T01:05:53+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tx7swu/al_mecánico_le_pusieron_dos_multas_y_se_lavo_las",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Bueno eso resulta que tengo tenía el auto parado 6 meses y lo mandé al mecánico, ahora resulta que hoy el tipo fue a probar el auto y había un control, el tipo siguió y lo pararon, bueno, le clavaron dos multas una por estar sin el seguro y otra por la vtv vencida e",
+      "source_url": "https://www.reddit.com/r/PuertoRico/comments/1umvf0p/update_kia_puerto_rico",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/PuertoRico/comments/1umvf0p/update_kia_puerto_rico/\"> <img src=\"https://preview.redd.it/e41da35h44bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=aba9c9124933bc0f8b50c85e4626605b788eb216\" alt=\"UPDATE KIA Puerto Rico\" title=\"U",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -180,63 +149,34 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
       },
       "detected_signals": [
-        "multa_fotomulta"
+        "recent_0_3_days",
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882155+00:00"
-    },
-    {
-      "id": "66baefc372a1d3fd",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/tonecouves",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-01T09:28:11+00:00",
-      "fecha_iso": "2026-06-01T09:28:11+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/tudoCondominio/comments/1ttmyb3/alterações_ao_regulamento_interno_penalidades",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Olá a todos.</p> <p>Um dos pontos na assembleia é a aprovação do novo regulamento interno (proposto pela empresa de administração) que a única alteração que tem face ao atual é a alteração do artigo 28 que a seguir exponho:</p> <p>PENALIDADES ARTIGO 28°<br/> 1 - O p",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882467+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.745223+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "b744f4dd9d7012be",
-      "score": 95,
+      "id": "05e3a0134e080c0f",
+      "score": 75,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Sas9977",
-      "provincia": "",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/luisangel1712",
+      "provincia": "CABA",
       "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-05-24T01:54:24+00:00",
-      "fecha_iso": "2026-05-24T01:54:24+00:00",
+      "fecha_visible": "2026-07-03T01:27:40+00:00",
+      "fecha_iso": "2026-07-03T01:27:40+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tlypbs/multa_en_auto_usado",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Consulta, quizas pueden ayudar: un usado (por la dueña anterior) tenia una multa, se lo compro a una agencia y la agencia da el libre deuda y los otros papeles firmados y sellados, pero la multa sigue apareciendo como vencida y sin pagar, en la agencia no saben que",
+      "source_url": "https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de/\"> <img src=\"https://preview.redd.it/hz82xzmf3xah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=ea5c673c633ef0cda7c32901f648f90e47e9a2f4\" alt=\"Es",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -244,14 +184,16 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "libre_deuda_problem": 35
+        "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "libre_deuda"
+        "document_08",
+        "recent_0_3_days",
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882543+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.744031+00:00"
     },
     {
       "id": "a191a9dde0190822",
@@ -284,25 +226,25 @@
         "transfer_problem",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.881497+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.744901+00:00"
     },
     {
-      "id": "3e18d2d933242efd",
-      "score": 65,
+      "id": "4956ed1ed5d9ed4e",
+      "score": 60,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Temporary_Reach7292",
-      "provincia": "CABA",
+      "persona": "u/Bib_Vl",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-29T15:49:57+00:00",
-      "fecha_iso": "2026-06-29T15:49:57+00:00",
+      "fecha_visible": "2026-07-02T05:43:28+00:00",
+      "fecha_iso": "2026-07-02T05:43:28+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/AncientAmericas/comments/1uiwahv/se_puede_considerar_al_quipu_un_sistema_de",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/AncientAmericas/comments/1uiwahv/se_puede_considerar_al_quipu_un_sistema_de/\"> <img src=\"https://preview.redd.it/dmyjojgot8ah1.jpeg?width=640&amp;crop=smart&amp;auto=webp&amp;s=68d8c95a9953004108d45427bb3dd13ce5a07d96\" alt=\"¿Se puede considerar al q",
+      "source_url": "https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa/\"> <img src=\"https://preview.redd.it/bdvpcmb78rah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=d5ff96c1e1a2afc28dc432896c6015d354017083\" alt=\"Quieres ganar dinero desd",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -311,117 +253,55 @@
       "email_publico": "",
       "score_breakdown": {
         "08_or_document_problem": 40,
-        "recent_4_7_days": 10,
-        "argentina_signal": 15
+        "recent_0_3_days": 20
       },
       "detected_signals": [
         "document_08",
-        "recent_4_7_days",
-        "argentina"
+        "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-04T08:31:20.881956+00:00"
-    },
-    {
-      "id": "5ce105110fcf2d87",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/didis-ptm-97",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-08T22:34:07+00:00",
-      "fecha_iso": "2026-06-08T22:34:07+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Nicaragua/comments/1u0n313/nicaragua",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Mae, me multaron el sábado (ya andaba una multa vencida, así que fue mi culpa). El oficial no me regresó mi cédula (me di cuenta hasta hoy). Me dijeron que se iban a llevar el carro y, como prefiero morirme antes que dar mordida, les dije que estaba bien, que no ent",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882057+00:00"
-    },
-    {
-      "id": "a3bcfc2a008140e4",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Monosniper_",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-05T02:13:23+00:00",
-      "fecha_iso": "2026-06-05T02:13:23+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tx7swu/al_mecánico_le_pusieron_dos_multas_y_se_lavo_las",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Bueno eso resulta que tengo tenía el auto parado 6 meses y lo mandé al mecánico, ahora resulta que hoy el tipo fue a probar el auto y había un control, el tipo siguió y lo pararon, bueno, le clavaron dos multas una por estar sin el seguro y otra por la vtv vencida e",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882155+00:00"
-    },
-    {
-      "id": "66baefc372a1d3fd",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/tonecouves",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-01T09:28:11+00:00",
-      "fecha_iso": "2026-06-01T09:28:11+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/tudoCondominio/comments/1ttmyb3/alterações_ao_regulamento_interno_penalidades",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Olá a todos.</p> <p>Um dos pontos na assembleia é a aprovação do novo regulamento interno (proposto pela empresa de administração) que a única alteração que tem face ao atual é a alteração do artigo 28 que a seguir exponho:</p> <p>PENALIDADES ARTIGO 28°<br/> 1 - O p",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-04T08:31:20.882467+00:00"
+      "discovery_timestamp": "2026-07-04T10:52:25.744241+00:00"
     }
   ],
-  "leads_warm": [],
+  "leads_warm": [
+    {
+      "id": "c368f03631ebc541",
+      "score": 35,
+      "label": "commercial_signal",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/SweatyAd6567",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-04T01:05:53+00:00",
+      "fecha_iso": "2026-07-04T01:05:53+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/PuertoRico/comments/1umvf0p/update_kia_puerto_rico",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/PuertoRico/comments/1umvf0p/update_kia_puerto_rico/\"> <img src=\"https://preview.redd.it/e41da35h44bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=aba9c9124933bc0f8b50c85e4626605b788eb216\" alt=\"UPDATE KIA Puerto Rico\" title=\"U",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "recent_0_3_days",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-04T10:52:25.745223+00:00"
+    }
+  ],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 17% de los leads calientes son de CABA.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "0% de los leads calientes tienen contacto público visible.",
-    "2 leads calientes muestran señales de urgencia temporal."
+    "El 33% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Problema de transferencia.",
+    "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -447,7 +327,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 47.48,
-    "queries_executed": 2
+    "runtime_seconds": 60.74,
+    "queries_executed": 1
   }
 }
