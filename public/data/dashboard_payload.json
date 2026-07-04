@@ -1,48 +1,45 @@
 {
-  "generated_at": "2026-07-04T01:48:18.529953+00:00",
-  "run_id": "e201d121b13e",
+  "generated_at": "2026-07-04T05:42:33.853005+00:00",
+  "run_id": "01b56b5f2ff8",
   "summary": {
-    "total_leads": 6,
-    "hot_leads": 4,
-    "warm_leads": 2,
+    "total_leads": 2,
+    "hot_leads": 2,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 72.5,
-    "avg_score_hot": 87.5,
-    "conversion_probability": 66.7,
+    "avg_score": 100.0,
+    "avg_score_hot": 100.0,
+    "conversion_probability": 100.0,
     "by_category": {
-      "FINE_DISPUTE": 2,
-      "TRANSFER_PROBLEM": 3,
-      "OTHER": 1
+      "TRANSFER_PROBLEM": 2
     },
     "by_platform": {
-      "Reddit": 6
+      "Reddit": 2
     },
     "by_province": {
-      "CABA": 2,
-      "Tigre": 1
+      "CABA": 1
     }
   },
   "leads_all": [
     {
-      "id": "c5603f362003cff1",
+      "id": "3edc7ab1e0baf509",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Ferchulash",
-      "provincia": "Tigre",
-      "ciudad": "Tigre",
-      "pais": "Argentina",
-      "vehiculo": "moto",
+      "persona": "u/National-Effort-17",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-30T19:54:20+00:00",
-      "fecha_iso": "2026-06-30T19:54:20+00:00",
+      "fecha_visible": "2026-05-15T04:58:36+00:00",
+      "fecha_iso": "2026-05-15T04:58:36+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/MotosArg/comments/1ujzp2h/duda_por_permuta_de_motos",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola, estoy por permutar mi moto por otra<br/> Queremos realizar los trámites en simultáneo para seguridad de ambas partes.</p> <p>Los datos de radicación y domicilio son los siguientes:</p> <ul> <li><strong>Vehículo A (mi propiedad):</strong> Radicado en el Registr",
+      "source_url": "https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así/\"> <img src=\"https://preview.redd.it/46t9ndtpf81h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=f9f02955181b68dbf5a80fa86be2cf0b6d4e2fbc\" alt=\"Les pasó alguna",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -50,207 +47,71 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-04T05:42:33.851124+00:00"
+    },
+    {
+      "id": "7b1b683fe1e9b47d",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/ibuorofeno800",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "transfer_problem": 45,
         "08_or_document_problem": 40,
-        "recent_4_7_days": 10,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
         "transfer_problem",
         "document_08",
-        "recent_4_7_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528751+00:00"
-    },
-    {
-      "id": "da45252c989b5c27",
-      "score": 95,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Tiny-Bluebird-3467",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-03T15:59:58+00:00",
-      "fecha_iso": "2026-07-03T15:59:58+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DatingRO/comments/1umic23/f_mid_20s_dog",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buna tuturor!<br/> Pe scurt, am atat de multa iubire de oferit si caut iubirea vietii mele.<br/> Voi imparti restul textului in 2 parti, una despre mine si una despre ce mi-ar placea la un barbat.<br/> Sunt in mid 20s (imi doresc pe cineva mai mare decat mine, intre",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528298+00:00"
-    },
-    {
-      "id": "b498eed22b5f5436",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/WillLife",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-03T16:11:43+00:00",
-      "fecha_iso": "2026-07-03T16:11:43+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umingb/llevaste_a_la_vtv_algún_auto_con_la_oblea_varios",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Tuve al auto roto y en el medio se me venció la VTV por muchos meses. He leido comentarios de gente que lo llevó circulando con la VTV pasada y en la propia VTV lo inspectores de Vialidad Provincial, y conociendo fecha y hora del turno, lo multaron por circular fuer",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.527991+00:00"
-    },
-    {
-      "id": "28e3318e4e90dd8a",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Maximum_Guard5610",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-03T16:07:14+00:00",
-      "fecha_iso": "2026-07-03T16:07:14+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "document_08",
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528065+00:00"
-    },
-    {
-      "id": "283f12434688b4eb",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Sieghart4K",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-30T18:39:33+00:00",
-      "fecha_iso": "2026-06-30T18:39:33+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1ujxn4h/patentamiento_runa",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1ujxn4h/patentamiento_runa/\"> <img src=\"https://preview.redd.it/nrserpbbsgah1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=1225065c6e2dd0084bf4712aa35e4617c5f40832\" alt=\"Patentamiento RUNA\" title=\"Patentamiento RUNA\" /> </a> </t",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40,
-        "recent_4_7_days": 10
-      },
-      "detected_signals": [
-        "document_08",
-        "recent_4_7_days"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528825+00:00"
-    },
-    {
-      "id": "942b4461ea8ad59b",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Feel_Euphoria_",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-02T01:41:03+00:00",
-      "fecha_iso": "2026-07-02T01:41:03+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Euphoria3/comments/1ul4lhm/mi_opinión_sobre_el_desenlace_de_euphoria",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Euphoria3/comments/1ul4lhm/mi_opinión_sobre_el_desenlace_de_euphoria/\"> <img src=\"https://preview.redd.it/j6rogk580qah1.jpg?width=140&amp;height=78&amp;auto=webp&amp;s=99cf22fbcfadde67734351da3b3917e40cf9a572\" alt=\"Mi opinión sobre el desenlace de E",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528541+00:00"
+      "discovery_timestamp": "2026-07-04T05:42:33.851318+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "c5603f362003cff1",
+      "id": "3edc7ab1e0baf509",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Ferchulash",
-      "provincia": "Tigre",
-      "ciudad": "Tigre",
-      "pais": "Argentina",
-      "vehiculo": "moto",
+      "persona": "u/National-Effort-17",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-30T19:54:20+00:00",
-      "fecha_iso": "2026-06-30T19:54:20+00:00",
+      "fecha_visible": "2026-05-15T04:58:36+00:00",
+      "fecha_iso": "2026-05-15T04:58:36+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/MotosArg/comments/1ujzp2h/duda_por_permuta_de_motos",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola, estoy por permutar mi moto por otra<br/> Queremos realizar los trámites en simultáneo para seguridad de ambas partes.</p> <p>Los datos de radicación y domicilio son los siguientes:</p> <ul> <li><strong>Vehículo A (mi propiedad):</strong> Radicado en el Registr",
+      "source_url": "https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así/\"> <img src=\"https://preview.redd.it/46t9ndtpf81h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=f9f02955181b68dbf5a80fa86be2cf0b6d4e2fbc\" alt=\"Les pasó alguna",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -258,195 +119,58 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-04T05:42:33.851124+00:00"
+    },
+    {
+      "id": "7b1b683fe1e9b47d",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/ibuorofeno800",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "transfer_problem": 45,
         "08_or_document_problem": 40,
-        "recent_4_7_days": 10,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
         "transfer_problem",
         "document_08",
-        "recent_4_7_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528751+00:00"
-    },
-    {
-      "id": "da45252c989b5c27",
-      "score": 95,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Tiny-Bluebird-3467",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-03T15:59:58+00:00",
-      "fecha_iso": "2026-07-03T15:59:58+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DatingRO/comments/1umic23/f_mid_20s_dog",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buna tuturor!<br/> Pe scurt, am atat de multa iubire de oferit si caut iubirea vietii mele.<br/> Voi imparti restul textului in 2 parti, una despre mine si una despre ce mi-ar placea la un barbat.<br/> Sunt in mid 20s (imi doresc pe cineva mai mare decat mine, intre",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528298+00:00"
-    },
-    {
-      "id": "b498eed22b5f5436",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/WillLife",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-03T16:11:43+00:00",
-      "fecha_iso": "2026-07-03T16:11:43+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umingb/llevaste_a_la_vtv_algún_auto_con_la_oblea_varios",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Tuve al auto roto y en el medio se me venció la VTV por muchos meses. He leido comentarios de gente que lo llevó circulando con la VTV pasada y en la propia VTV lo inspectores de Vialidad Provincial, y conociendo fecha y hora del turno, lo multaron por circular fuer",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.527991+00:00"
-    },
-    {
-      "id": "28e3318e4e90dd8a",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Maximum_Guard5610",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-03T16:07:14+00:00",
-      "fecha_iso": "2026-07-03T16:07:14+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "document_08",
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528065+00:00"
+      "discovery_timestamp": "2026-07-04T05:42:33.851318+00:00"
     }
   ],
-  "leads_warm": [
-    {
-      "id": "283f12434688b4eb",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Sieghart4K",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-30T18:39:33+00:00",
-      "fecha_iso": "2026-06-30T18:39:33+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1ujxn4h/patentamiento_runa",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1ujxn4h/patentamiento_runa/\"> <img src=\"https://preview.redd.it/nrserpbbsgah1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=1225065c6e2dd0084bf4712aa35e4617c5f40832\" alt=\"Patentamiento RUNA\" title=\"Patentamiento RUNA\" /> </a> </t",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40,
-        "recent_4_7_days": 10
-      },
-      "detected_signals": [
-        "document_08",
-        "recent_4_7_days"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528825+00:00"
-    },
-    {
-      "id": "942b4461ea8ad59b",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Feel_Euphoria_",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-02T01:41:03+00:00",
-      "fecha_iso": "2026-07-02T01:41:03+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Euphoria3/comments/1ul4lhm/mi_opinión_sobre_el_desenlace_de_euphoria",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Euphoria3/comments/1ul4lhm/mi_opinión_sobre_el_desenlace_de_euphoria/\"> <img src=\"https://preview.redd.it/j6rogk580qah1.jpg?width=140&amp;height=78&amp;auto=webp&amp;s=99cf22fbcfadde67734351da3b3917e40cf9a572\" alt=\"Mi opinión sobre el desenlace de E",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T01:48:18.528541+00:00"
-    }
-  ],
+  "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 25% de los leads calientes son de CABA.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
+    "El 50% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Problema de transferencia.",
     "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
@@ -473,7 +197,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 49.2,
-    "queries_executed": 2
+    "runtime_seconds": 47.88,
+    "queries_executed": 1
   }
 }
