@@ -1,46 +1,12 @@
 {
-  "total_runs": 21,
-  "last_run": "2026-07-04T00:46:58.848789+00:00",
-  "last_run_id": "6d625ebfb6c6",
-  "total_leads_all_time": 444,
-  "total_hot_leads_all_time": 366,
-  "avg_hot_per_run": 17.4,
-  "runs_today": 2,
+  "total_runs": 22,
+  "last_run": "2026-07-04T01:11:20.798533+00:00",
+  "last_run_id": "4d7a0aaebed4",
+  "total_leads_all_time": 450,
+  "total_hot_leads_all_time": 370,
+  "avg_hot_per_run": 16.8,
+  "runs_today": 3,
   "last_7_days": [
-    {
-      "run_id": "61a8bf0abbbf",
-      "generated_at": "2026-07-03T20:06:07.485231+00:00",
-      "summary": {
-        "total_leads": 23,
-        "hot_leads": 17,
-        "warm_leads": 6,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 62.8,
-        "avg_score_hot": 69.1,
-        "conversion_probability": 73.9,
-        "by_category": {
-          "TRANSFER_PROBLEM": 11,
-          "OTHER": 1,
-          "FINE_DISPUTE": 11
-        },
-        "by_platform": {
-          "Reddit": 19,
-          "Portaldeabogados.Com": 1,
-          "Tn.Com.Ar": 1,
-          "2.Jus.Gov.Ar": 1,
-          "Iprofesional.Com": 1
-        },
-        "by_province": {
-          "Salta": 2,
-          "CABA": 3,
-          "Pilar": 1,
-          "Buenos Aires": 1
-        }
-      }
-    },
     {
       "run_id": "d0e36fade5d7",
       "generated_at": "2026-07-03T20:09:41.367952+00:00",
@@ -205,6 +171,34 @@
         },
         "by_province": {
           "CABA": 1
+        }
+      }
+    },
+    {
+      "run_id": "4d7a0aaebed4",
+      "generated_at": "2026-07-04T01:11:20.798533+00:00",
+      "summary": {
+        "total_leads": 6,
+        "hot_leads": 4,
+        "warm_leads": 2,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 72.5,
+        "avg_score_hot": 87.5,
+        "conversion_probability": 66.7,
+        "by_category": {
+          "FINE_DISPUTE": 2,
+          "TRANSFER_PROBLEM": 3,
+          "OTHER": 1
+        },
+        "by_platform": {
+          "Reddit": 6
+        },
+        "by_province": {
+          "CABA": 2,
+          "Tigre": 1
         }
       }
     }
