@@ -814,6 +814,7 @@ export default {
       const seenItems = new Set();
       let totalProcessed = 0;
 
+      const debugInfo = { fetches: [], errors: [] };
       const mlFetch = async (path) => {
         try {
           const r = await fetch(`${ML_BASE}${path}`, {
@@ -822,9 +823,15 @@ export default {
               "Accept": "application/json"
             }
           });
-          if (!r.ok) return null;
+          debugInfo.fetches.push({ path: path.slice(0, 80), status: r.status });
+          if (!r.ok) {
+            const text = await r.text().catch(() => "");
+            debugInfo.errors.push({ path: path.slice(0, 80), status: r.status, body: text.slice(0, 200) });
+            return null;
+          }
           return r.json();
         } catch (e) {
+          debugInfo.errors.push({ path: path.slice(0, 80), error: e.message });
           return null;
         }
       };
@@ -929,6 +936,7 @@ export default {
           total: allLeads.length,
           contactables: allLeads.filter(l => l.whatsapp_publico || l.email_publico).length,
           items_processed: seenItems.size,
+          debug: debugInfo,
         }, corsHeaders);
       } catch (err) {
         return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
