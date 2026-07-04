@@ -1,145 +1,43 @@
 {
-  "generated_at": "2026-07-04T12:04:24.776815+00:00",
-  "run_id": "cf6e1482cb71",
+  "generated_at": "2026-07-04T14:26:09.594979+00:00",
+  "run_id": "12e37acee616",
   "summary": {
-    "total_leads": 4,
-    "hot_leads": 2,
+    "total_leads": 2,
+    "hot_leads": 0,
     "warm_leads": 2,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 57.5,
-    "avg_score_hot": 80.0,
-    "conversion_probability": 50.0,
+    "avg_score": 47.5,
+    "avg_score_hot": 0,
+    "conversion_probability": 0.0,
     "by_category": {
-      "OTHER": 2,
-      "FINE_DISPUTE": 2
+      "TRANSFER_PROBLEM": 2
     },
     "by_platform": {
-      "Reddit": 4
+      "Reddit": 2
     },
-    "by_province": {
-      "Salta": 1
-    }
+    "by_province": {}
   },
   "leads_all": [
     {
-      "id": "eefbc069b8ccf75b",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Frequent_Dirt_1752",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-04T03:00:03+00:00",
-      "fecha_iso": "2026-07-04T03:00:03+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1umxq0r/me_pusieron_mal_una_multa_me_la_quitaron_pero_no",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas noches</p> <p>Tengo una duda y me serviría mucho de su ayuda</p> <p>Voy a ser lo más consistente posible</p> <p>- Me estacioné a las 21:00 sobre Paraguay 720</p> <p>- Era una isla de estacionamiento marcada por bolardos (esos conos de cemento) y con un espaci",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769250+00:00"
-    },
-    {
-      "id": "45f4f94e91b3e981",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/iamnotpedro1",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-04T02:29:03+00:00",
-      "fecha_iso": "2026-07-04T02:29:03+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/chile/comments/1umx41t/consulta_para_abogados_con_experiencia_en_juicios",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Tengo un problema en el departamento que compré. Está en el último piso de un edificio, y arriba los arquitectos no tuvieron mejor idea que instalar la sala de calderas que hace un ruido constante sobre 60 decibeles en los departamentos. El edificio ha recibido mult",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769452+00:00"
-    },
-    {
-      "id": "5e32e91f85fb1d2a",
-      "score": 35,
+      "id": "eba3f40ced72c04c",
+      "score": 55,
       "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/ArmDriBrand",
-      "provincia": "Salta",
-      "ciudad": "Salta",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-04T08:31:52+00:00",
-      "fecha_iso": "2026-07-04T08:31:52+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/stories/comments/1un3pxp/andrés_fierro_turina_1_los_niños_con_poderes",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>T2:E1 \"²⁄₂May: Desafíos de gravedad\"<br/> Sábado 29 de mayo de 2010<br/> Sara llegó al departamento junto con Samuel.<br/> — Andrés estuvo entrenando mucho desde la última vez — dijo Laura.<br/> — Samuel también. Pero creo que ya sé por qué sigue perdiendo — dijo Sa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769063+00:00"
-    },
-    {
-      "id": "389efb337adc6a46",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/MartinchoFacha",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Illustrious-Baker330",
       "provincia": "",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-04T02:07:45+00:00",
-      "fecha_iso": "2026-07-04T02:07:45+00:00",
+      "fecha_visible": "2026-05-20T20:13:05+00:00",
+      "fecha_iso": "2026-05-20T20:13:05+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/futbol/comments/1umwom6/que_puedo_hacer",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/futbol/comments/1umwom6/que_puedo_hacer/\"> <img src=\"https://preview.redd.it/nrjur0ahf4bh1.png?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=fcdac567e071c2bc0c82c9e2d65ebcdb9d585429\" alt=\"Que puedo hacer?\" title=\"Que puedo hacer?\"",
+      "source_url": "https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking/\"> <img src=\"https://preview.redd.it/c1u5o9i2nc2h1.png?width=140&amp;height=73&amp;auto=webp&amp;s=fa6a5f16b1f8a10e20be77f350d48a8aacabf65b\" alt=\"Vuelo en la Cessna 208B de B",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -147,34 +45,32 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "recent_0_3_days": 20,
+        "08_or_document_problem": 40,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "recent_0_3_days",
+        "document_08",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769531+00:00"
-    }
-  ],
-  "leads_hot": [
+      "discovery_timestamp": "2026-07-04T14:26:09.594671+00:00"
+    },
     {
-      "id": "eefbc069b8ccf75b",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Frequent_Dirt_1752",
+      "id": "99641fd956f94a81",
+      "score": 40,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/MarzipanNew835",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-04T03:00:03+00:00",
-      "fecha_iso": "2026-07-04T03:00:03+00:00",
+      "fecha_visible": "2026-06-09T18:52:54+00:00",
+      "fecha_iso": "2026-06-09T18:52:54+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1umxq0r/me_pusieron_mal_una_multa_me_la_quitaron_pero_no",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas noches</p> <p>Tengo una duda y me serviría mucho de su ayuda</p> <p>Voy a ser lo más consistente posible</p> <p>- Me estacioné a las 21:00 sobre Paraguay 720</p> <p>- Era una isla de estacionamiento marcada por bolardos (esos conos de cemento) y con un espaci",
+      "source_url": "https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola/\"> <img src=\"https://preview.redd.it/dg8a08630b6h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=3fc4de7696534b45dab6ee8c8fae1c97b86fbe0c\" alt=\"Mongola\" title=\"Mongola\" /> </a> </td><td> &#3",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -182,100 +78,33 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
+        "08_or_document_problem": 40
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
+        "document_08"
       ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769250+00:00"
-    },
-    {
-      "id": "45f4f94e91b3e981",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/iamnotpedro1",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-04T02:29:03+00:00",
-      "fecha_iso": "2026-07-04T02:29:03+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/chile/comments/1umx41t/consulta_para_abogados_con_experiencia_en_juicios",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Tengo un problema en el departamento que compré. Está en el último piso de un edificio, y arriba los arquitectos no tuvieron mejor idea que instalar la sala de calderas que hace un ruido constante sobre 60 decibeles en los departamentos. El edificio ha recibido mult",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769452+00:00"
+      "discovery_timestamp": "2026-07-04T14:26:09.594540+00:00"
     }
   ],
+  "leads_hot": [],
   "leads_warm": [
     {
-      "id": "5e32e91f85fb1d2a",
-      "score": 35,
+      "id": "eba3f40ced72c04c",
+      "score": 55,
       "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/ArmDriBrand",
-      "provincia": "Salta",
-      "ciudad": "Salta",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-04T08:31:52+00:00",
-      "fecha_iso": "2026-07-04T08:31:52+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/stories/comments/1un3pxp/andrés_fierro_turina_1_los_niños_con_poderes",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>T2:E1 \"²⁄₂May: Desafíos de gravedad\"<br/> Sábado 29 de mayo de 2010<br/> Sara llegó al departamento junto con Samuel.<br/> — Andrés estuvo entrenando mucho desde la última vez — dijo Laura.<br/> — Samuel también. Pero creo que ya sé por qué sigue perdiendo — dijo Sa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "recent_0_3_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769063+00:00"
-    },
-    {
-      "id": "389efb337adc6a46",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/MartinchoFacha",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Illustrious-Baker330",
       "provincia": "",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-04T02:07:45+00:00",
-      "fecha_iso": "2026-07-04T02:07:45+00:00",
+      "fecha_visible": "2026-05-20T20:13:05+00:00",
+      "fecha_iso": "2026-05-20T20:13:05+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/futbol/comments/1umwom6/que_puedo_hacer",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/futbol/comments/1umwom6/que_puedo_hacer/\"> <img src=\"https://preview.redd.it/nrjur0ahf4bh1.png?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=fcdac567e071c2bc0c82c9e2d65ebcdb9d585429\" alt=\"Que puedo hacer?\" title=\"Que puedo hacer?\"",
+      "source_url": "https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking/\"> <img src=\"https://preview.redd.it/c1u5o9i2nc2h1.png?width=140&amp;height=73&amp;auto=webp&amp;s=fa6a5f16b1f8a10e20be77f350d48a8aacabf65b\" alt=\"Vuelo en la Cessna 208B de B",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -283,21 +112,48 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "recent_0_3_days": 20,
+        "08_or_document_problem": 40,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "recent_0_3_days",
+        "document_08",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T12:04:24.769531+00:00"
+      "discovery_timestamp": "2026-07-04T14:26:09.594671+00:00"
+    },
+    {
+      "id": "99641fd956f94a81",
+      "score": 40,
+      "label": "commercial_signal",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/MarzipanNew835",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-06-09T18:52:54+00:00",
+      "fecha_iso": "2026-06-09T18:52:54+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola/\"> <img src=\"https://preview.redd.it/dg8a08630b6h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=3fc4de7696534b45dab6ee8c8fae1c97b86fbe0c\" alt=\"Mongola\" title=\"Mongola\" /> </a> </td><td> &#3",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "08_or_document_problem": 40
+      },
+      "detected_signals": [
+        "document_08"
+      ],
+      "discovery_timestamp": "2026-07-04T14:26:09.594540+00:00"
     }
   ],
-  "insights": [
-    "El 100% de los leads calientes provienen de Reddit.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "0% de los leads calientes tienen contacto público visible."
-  ],
+  "insights": [],
   "meta": {
     "version": "1.0",
     "pipeline_steps": [
@@ -322,7 +178,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 50.52,
+    "runtime_seconds": 61.2,
     "queries_executed": 1
   }
 }
