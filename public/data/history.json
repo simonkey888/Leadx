@@ -1062,5 +1062,31 @@
       "by_platform": {},
       "by_province": {}
     }
+  },
+  {
+    "run_id": "f57522756798",
+    "generated_at": "2026-07-04T21:55:12.258048+00:00",
+    "summary": {
+      "total_leads": 2,
+      "hot_leads": 2,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 90.0,
+      "avg_score_hot": 90.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 1,
+        "FINE_DISPUTE": 1
+      },
+      "by_platform": {
+        "Reddit": 2
+      },
+      "by_province": {
+        "CABA": 1
+      }
+    }
   }
 ]

@@ -1,38 +1,12 @@
 {
-  "total_runs": 37,
-  "last_run": "2026-07-04T20:52:04.280823+00:00",
-  "last_run_id": "112d34536eff",
-  "total_leads_all_time": 502,
-  "total_hot_leads_all_time": 413,
-  "avg_hot_per_run": 11.2,
-  "runs_today": 18,
+  "total_runs": 38,
+  "last_run": "2026-07-04T21:55:12.258048+00:00",
+  "last_run_id": "f57522756798",
+  "total_leads_all_time": 504,
+  "total_hot_leads_all_time": 415,
+  "avg_hot_per_run": 10.9,
+  "runs_today": 19,
   "last_7_days": [
-    {
-      "run_id": "0bb3fa0381d2",
-      "generated_at": "2026-07-04T10:52:25.745534+00:00",
-      "summary": {
-        "total_leads": 4,
-        "hot_leads": 3,
-        "warm_leads": 1,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 58.8,
-        "avg_score_hot": 66.7,
-        "conversion_probability": 75.0,
-        "by_category": {
-          "TRANSFER_PROBLEM": 3,
-          "OTHER": 1
-        },
-        "by_platform": {
-          "Reddit": 4
-        },
-        "by_province": {
-          "CABA": 2
-        }
-      }
-    },
     {
       "run_id": "cf6e1482cb71",
       "generated_at": "2026-07-04T12:04:24.776815+00:00",
@@ -176,6 +150,32 @@
         "by_category": {},
         "by_platform": {},
         "by_province": {}
+      }
+    },
+    {
+      "run_id": "f57522756798",
+      "generated_at": "2026-07-04T21:55:12.258048+00:00",
+      "summary": {
+        "total_leads": 2,
+        "hot_leads": 2,
+        "warm_leads": 0,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 90.0,
+        "avg_score_hot": 90.0,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "TRANSFER_PROBLEM": 1,
+          "FINE_DISPUTE": 1
+        },
+        "by_platform": {
+          "Reddit": 2
+        },
+        "by_province": {
+          "CABA": 1
+        }
       }
     }
   ]
