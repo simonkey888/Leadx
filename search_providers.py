@@ -854,6 +854,59 @@ def _ml_normalize_provincia(raw: str) -> str:
     return MAP.get(raw_clean, raw)
 
 
+
+
+def fetch_ml_seller_contact(seller_id: str) -> dict:
+    """Endpoint publico: /users/{seller_id}
+    Vendedores profesionales suelen tener email y telefono visibles.
+    Sin auth.
+    """
+    if not seller_id:
+        return {}
+    url = f"https://api.mercadolibre.com/users/{seller_id}"
+    try:
+        req = urllib.request.Request(url)
+        req.add_header("User-Agent", random.choice(USER_AGENTS))
+        req.add_header("Accept", "application/json")
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = json.loads(r.read().decode("utf-8", errors="replace"))
+    except Exception as e:
+        return {}
+    
+    contact = {}
+    
+    # Email - disponible si el vendedor lo hizo publico
+    email = data.get("email", "")
+    if email and "@" in email and "mercadolibre" not in email.lower():
+        contact["email"] = email.lower().strip()
+        contact["contact_source"] = "ml_seller_profile"
+    
+    # Telefono - cuentas profesionales
+    phone = data.get("phone", {})
+    if isinstance(phone, dict):
+        number = phone.get("number", "")
+        area = phone.get("area_code", "")
+        if number:
+            digits = re.sub(r"\D", "", f"{area}{number}")
+            if len(digits) >= 8:
+                contact["phone"] = f"+{digits}" if not digits.startswith("+") else digits
+                if "contact_source" not in contact:
+                    contact["contact_source"] = "ml_seller_profile"
+    
+    # Tags utiles para scoring
+    tags = data.get("tags", [])
+    contact["seller_tags"] = tags
+    contact["is_professional"] = any(t in tags for t in
+        ["real_estate_agency", "car_dealer", "meli_choice", "large_seller"])
+    
+    # Nickname real si estaba vacio
+    if not contact.get("nickname"):
+        nick = data.get("nickname", "")
+        if nick:
+            contact["seller_nickname"] = nick
+    
+    return contact
+
 def search_mercadolibre_questions(num: int = 15) -> List[Dict[str, Any]]:
     """Busca avisos de autos con preguntas sobre multas/transferencias.
     
@@ -942,7 +995,7 @@ def search_mercadolibre_questions(num: int = 15) -> List[Dict[str, Any]]:
                     location.get("state_name", "") or location.get("state", {}).get("name", "")
                 )
                 
-                leads.append({
+                lead_dict = {
                     "title": f"[ML] {title[:120]}",
                     "url": permalink,
                     "snippet": body[:3000],
@@ -955,7 +1008,27 @@ def search_mercadolibre_questions(num: int = 15) -> List[Dict[str, Any]]:
                     "question_text": q.get("text", ""),
                     "price": price,
                     "provincia_ml": provincia,
-                })
+                }
+                
+                # Enriquecer con contacto del vendedor ML (endpoint publico)
+                seller_id_str = str(seller.get("id", ""))
+                if seller_id_str:
+                    try:
+                        ml_contact = fetch_ml_seller_contact(seller_id_str)
+                        if ml_contact:
+                            if ml_contact.get("email"):
+                                lead_dict["email_publico"] = ml_contact["email"]
+                            if ml_contact.get("phone"):
+                                lead_dict["telefono_publico"] = ml_contact["phone"]
+                                # Si es telefono, tambien es whatsapp potencial
+                                lead_dict["whatsapp_publico"] = ml_contact["phone"]
+                            if ml_contact.get("is_professional"):
+                                lead_dict["is_professional_seller"] = True
+                            lead_dict["contact_source"] = ml_contact.get("contact_source", "")
+                    except Exception:
+                        pass
+                
+                leads.append(lead_dict)
             
             time.sleep(1)  # rate limit amable
         

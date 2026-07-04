@@ -348,16 +348,25 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
+    """Normaliza telefono a formato +54XXXXXXXXXX (Claude version mejorada).
+    Cubre: +54 9 11 1234 5678 / 11-1234-5678 / 011 1234-5678 / etc.
+    """
     digits = re.sub(r"\D", "", phone)
-    if not digits:
+    if not digits or len(digits) < 8:
         return ""
+    # Quitar prefijo pais si existe
     if digits.startswith("54"):
-        return "+" + digits
+        digits = digits[2:]
+    # Quitar 0 inicial (prefix interurbano AR)
     if digits.startswith("0"):
-        digits = "54" + digits[1:]
-    elif len(digits) == 10:
-        digits = "54" + digits
-    return "+" + digits
+        digits = digits[1:]
+    # Quitar 9 inicial (mobile prefix AR)
+    if digits.startswith("9") and len(digits) == 11:
+        digits = digits[1:]
+    # Si tiene 10 digitos y empieza con 11 (CABA mobile), agregar 9
+    if len(digits) == 10 and digits.startswith("11"):
+        digits = "9" + digits
+    return f"+54{digits}" if len(digits) >= 8 else ""
 
 
 # ===========================================================================
