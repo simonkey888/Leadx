@@ -600,5 +600,31 @@
         "CABA": 1
       }
     }
+  },
+  {
+    "run_id": "282aff560262",
+    "generated_at": "2026-07-04T00:44:14.221816+00:00",
+    "summary": {
+      "total_leads": 6,
+      "hot_leads": 5,
+      "warm_leads": 1,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 84.2,
+      "avg_score_hot": 92.0,
+      "conversion_probability": 83.3,
+      "by_category": {
+        "TRANSFER_PROBLEM": 6
+      },
+      "by_platform": {
+        "Reddit": 6
+      },
+      "by_province": {
+        "Buenos Aires": 1,
+        "La Plata": 1
+      }
+    }
   }
 ]
