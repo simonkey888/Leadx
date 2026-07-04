@@ -26,14 +26,12 @@ SEED_SUBREDDITS = [
 ]
 
 DISCOVERY_QUERIES = [
+    # SourceHunter SOLO usa DuckDuckGo (no Reddit, para no gastar rate limit)
     'site:com.ar "transferencia" "auto" "multa"',
     'site:com.ar "fotomulta" "Argentina"',
     'site:com.ar "juez de faltas" auto',
     'site:com.ar "08 firmado" auto',
     'site:com.ar foro multas automotor',
-    'site:reddit.com/r/ArAutos multa transferencia',
-    'site:reddit.com/r/DerechoGenial fotomulta',
-    'site:reddit.com/r/argentina libre deuda auto',
 ]
 
 BLACKLIST_DOMAINS = {

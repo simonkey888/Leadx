@@ -772,14 +772,9 @@ def search(query: str, num: int = 10) -> List[Dict[str, Any]]:
     except Exception:
         pass
 
-    # Provider 2: Reddit (sólo si la query no es muy larga)
-    if len(query) < 200 and "site:reddit.com" not in query.lower():
-        try:
-            reddit = search_reddit(query, num=num)
-            all_results.extend(reddit)
-            time.sleep(RATE_LIMIT_SECONDS)
-        except Exception:
-            pass
+    # Provider 2: Reddit — SOLO para queries que no tengan site: ya especifico
+    # (no llamar a search_reddit para site:com.ar o site:facebook.com, quema rate limit)
+    # El ruteo explicito de site:reddit.com ya esta arriba.
 
     # Provider 3: RSS (sólo si los anteriores no dieron suficiente)
     if len(all_results) < num // 2:
