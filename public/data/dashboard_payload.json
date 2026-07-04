@@ -1,43 +1,148 @@
 {
-  "generated_at": "2026-07-04T14:26:09.594979+00:00",
-  "run_id": "12e37acee616",
+  "generated_at": "2026-07-04T15:58:11.944372+00:00",
+  "run_id": "1d50322a2dfc",
   "summary": {
-    "total_leads": 2,
-    "hot_leads": 0,
-    "warm_leads": 2,
+    "total_leads": 6,
+    "hot_leads": 6,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 47.5,
-    "avg_score_hot": 0,
-    "conversion_probability": 0.0,
+    "avg_score": 85.0,
+    "avg_score_hot": 85.0,
+    "conversion_probability": 100.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 2
+      "TRANSFER_PROBLEM": 4,
+      "FINE_DISPUTE": 2
     },
     "by_platform": {
-      "Reddit": 2
+      "Reddit": 6
     },
-    "by_province": {}
+    "by_province": {
+      "CABA": 1,
+      "Tigre": 1
+    }
   },
   "leads_all": [
     {
-      "id": "eba3f40ced72c04c",
-      "score": 55,
-      "label": "commercial_signal",
+      "id": "24b86c6ed785c59e",
+      "score": 100,
+      "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Illustrious-Baker330",
+      "persona": "u/SufficientNewt8009",
       "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-06-19T00:23:07+00:00",
+      "fecha_iso": "2026-06-19T00:23:07+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1u9n2xi/denuncia_de_venta",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>En las operaciones de compra de usado en donde entregas un auto + plata y la persona pide 08 en blanco para despues poder venderlo, que se hace para resguardar? denuncia de venta? lo perjudico en algo o lo obligo a transferir?</p> <p>Otra duda, suelen tardar en impa",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "08_or_document_problem": 40
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
+        "document_08"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.942898+00:00"
+    },
+    {
+      "id": "540b0386b7e55a24",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/rightmanatwrongplace",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-17T23:26:00+00:00",
+      "fecha_iso": "2026-06-17T23:26:00+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u8q3fl/fiz_a_venda_de_um_carro_e_o_rapaz_sumiu_ou",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Então resumidamente eu tinha um carro que já tava bem perrengado com defeito e etc, acabei por deixá-lo parado e nem me organizei para arrumar pois não estava mais compensando (carro 2006 começou a fumar e defeito depois de entrar água) acabei negociando com um rapa",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.943166+00:00"
+    },
+    {
+      "id": "a34bc8b9c05824c9",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/TheFloatingSoap",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2026-06-16T12:32:44+00:00",
+      "fecha_iso": "2026-06-16T12:32:44+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u7c89k/despachante_quer_transferir_multas_de_um_veículo",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Resumindo vendi uma moto pra um rapaz que provavelmente fez rolo e já passou pra um terceiro sem transferir, agora o abençoado resolveu tirar carteira e descobriu que tá cheio de multa no CPF. </p> <p>O despachante entrou em contato comigo querendo que eu cancele a",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.943425+00:00"
+    },
+    {
+      "id": "97f856a5633eb5df",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/HolidayBuy5519",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-05-20T20:13:05+00:00",
-      "fecha_iso": "2026-05-20T20:13:05+00:00",
+      "fecha_visible": "2026-07-03T01:09:22+00:00",
+      "fecha_iso": "2026-07-03T01:09:22+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking/\"> <img src=\"https://preview.redd.it/c1u5o9i2nc2h1.png?width=140&amp;height=73&amp;auto=webp&amp;s=fa6a5f16b1f8a10e20be77f350d48a8aacabf65b\" alt=\"Vuelo en la Cessna 208B de B",
+      "source_url": "https://www.reddit.com/r/Argaming/comments/1um08ti/stop_killing_games_argentina_mini_actualizacion",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Argaming/comments/1um08ti/stop_killing_games_argentina_mini_actualizacion/\"> <img src=\"https://preview.redd.it/tsbcbvw70xah1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=788cf7a97c018398441d0c6909e4c074a43ef0ca\" alt=\"Stop killing games argentina",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -46,31 +151,33 @@
       "email_publico": "",
       "score_breakdown": {
         "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
         "document_08",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T14:26:09.594671+00:00"
+      "discovery_timestamp": "2026-07-04T15:58:11.942235+00:00"
     },
     {
-      "id": "99641fd956f94a81",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/MarzipanNew835",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
+      "id": "de7ab37d0df81010",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/joseluisoff",
+      "provincia": "Tigre",
+      "ciudad": "Tigre",
+      "pais": "Argentina",
+      "vehiculo": "camioneta",
       "patente": "",
-      "fecha_visible": "2026-06-09T18:52:54+00:00",
-      "fecha_iso": "2026-06-09T18:52:54+00:00",
+      "fecha_visible": "2026-06-22T22:21:38+00:00",
+      "fecha_iso": "2026-06-22T22:21:38+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola/\"> <img src=\"https://preview.redd.it/dg8a08630b6h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=3fc4de7696534b45dab6ee8c8fae1c97b86fbe0c\" alt=\"Mongola\" title=\"Mongola\" /> </a> </td><td> &#3",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ucyzhu/alguien_tapó_su_patente_a_propósito_y_las_multas",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Soy de CABA. Hace unos 6 meses entré a corroborar si tenía infracciones impagas en PBA y me encontré con 5 multas. Me cagué todo, pero al revisar el lugar decía Tigre y Campana, dos lugares por los que no paso nunca. Al revisar las fotos veo que se trata de una cami",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -78,33 +185,166 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.942779+00:00"
+    },
+    {
+      "id": "7ea138671786d191",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Able_Swan_6174",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-17T03:06:04+00:00",
+      "fecha_iso": "2026-06-17T03:06:04+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/chile/comments/1u7ygvu/la_magra_y_triste_lista_de_beneficios_sociales",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><ol> <li><p>Programas habitacionales: Prohibición de acceder a procesos de postulación e ingreso a diversos programas del Ministerio de Vivienda y Urbanismo, como el de Protección del Patrimonio Familiar, Subsidio Habitacional y habitabilidad rural, entre otros.</p></l",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.943343+00:00"
+    }
+  ],
+  "leads_hot": [
+    {
+      "id": "24b86c6ed785c59e",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/SufficientNewt8009",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-06-19T00:23:07+00:00",
+      "fecha_iso": "2026-06-19T00:23:07+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1u9n2xi/denuncia_de_venta",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>En las operaciones de compra de usado en donde entregas un auto + plata y la persona pide 08 en blanco para despues poder venderlo, que se hace para resguardar? denuncia de venta? lo perjudico en algo o lo obligo a transferir?</p> <p>Otra duda, suelen tardar en impa",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
         "08_or_document_problem": 40
       },
       "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
         "document_08"
       ],
-      "discovery_timestamp": "2026-07-04T14:26:09.594540+00:00"
-    }
-  ],
-  "leads_hot": [],
-  "leads_warm": [
+      "discovery_timestamp": "2026-07-04T15:58:11.942898+00:00"
+    },
     {
-      "id": "eba3f40ced72c04c",
-      "score": 55,
-      "label": "commercial_signal",
+      "id": "540b0386b7e55a24",
+      "score": 100,
+      "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Illustrious-Baker330",
+      "persona": "u/rightmanatwrongplace",
       "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-17T23:26:00+00:00",
+      "fecha_iso": "2026-06-17T23:26:00+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u8q3fl/fiz_a_venda_de_um_carro_e_o_rapaz_sumiu_ou",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Então resumidamente eu tinha um carro que já tava bem perrengado com defeito e etc, acabei por deixá-lo parado e nem me organizei para arrumar pois não estava mais compensando (carro 2006 começou a fumar e defeito depois de entrar água) acabei negociando com um rapa",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.943166+00:00"
+    },
+    {
+      "id": "a34bc8b9c05824c9",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/TheFloatingSoap",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2026-06-16T12:32:44+00:00",
+      "fecha_iso": "2026-06-16T12:32:44+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ConselhosLegais/comments/1u7c89k/despachante_quer_transferir_multas_de_um_veículo",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Resumindo vendi uma moto pra um rapaz que provavelmente fez rolo e já passou pra um terceiro sem transferir, agora o abençoado resolveu tirar carteira e descobriu que tá cheio de multa no CPF. </p> <p>O despachante entrou em contato comigo querendo que eu cancele a",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.943425+00:00"
+    },
+    {
+      "id": "97f856a5633eb5df",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/HolidayBuy5519",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-05-20T20:13:05+00:00",
-      "fecha_iso": "2026-05-20T20:13:05+00:00",
+      "fecha_visible": "2026-07-03T01:09:22+00:00",
+      "fecha_iso": "2026-07-03T01:09:22+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking/\"> <img src=\"https://preview.redd.it/c1u5o9i2nc2h1.png?width=140&amp;height=73&amp;auto=webp&amp;s=fa6a5f16b1f8a10e20be77f350d48a8aacabf65b\" alt=\"Vuelo en la Cessna 208B de B",
+      "source_url": "https://www.reddit.com/r/Argaming/comments/1um08ti/stop_killing_games_argentina_mini_actualizacion",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Argaming/comments/1um08ti/stop_killing_games_argentina_mini_actualizacion/\"> <img src=\"https://preview.redd.it/tsbcbvw70xah1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=788cf7a97c018398441d0c6909e4c074a43ef0ca\" alt=\"Stop killing games argentina",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -113,31 +353,33 @@
       "email_publico": "",
       "score_breakdown": {
         "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
         "document_08",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T14:26:09.594671+00:00"
+      "discovery_timestamp": "2026-07-04T15:58:11.942235+00:00"
     },
     {
-      "id": "99641fd956f94a81",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/MarzipanNew835",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
+      "id": "de7ab37d0df81010",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/joseluisoff",
+      "provincia": "Tigre",
+      "ciudad": "Tigre",
+      "pais": "Argentina",
+      "vehiculo": "camioneta",
       "patente": "",
-      "fecha_visible": "2026-06-09T18:52:54+00:00",
-      "fecha_iso": "2026-06-09T18:52:54+00:00",
+      "fecha_visible": "2026-06-22T22:21:38+00:00",
+      "fecha_iso": "2026-06-22T22:21:38+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola/\"> <img src=\"https://preview.redd.it/dg8a08630b6h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=3fc4de7696534b45dab6ee8c8fae1c97b86fbe0c\" alt=\"Mongola\" title=\"Mongola\" /> </a> </td><td> &#3",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ucyzhu/alguien_tapó_su_patente_a_propósito_y_las_multas",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Soy de CABA. Hace unos 6 meses entré a corroborar si tenía infracciones impagas en PBA y me encontré con 5 multas. Me cagué todo, pero al revisar el lugar decía Tigre y Campana, dos lugares por los que no paso nunca. Al revisar las fotos veo que se trata de una cami",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -145,15 +387,54 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15
       },
       "detected_signals": [
-        "document_08"
+        "multa_fotomulta",
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-04T14:26:09.594540+00:00"
+      "discovery_timestamp": "2026-07-04T15:58:11.942779+00:00"
+    },
+    {
+      "id": "7ea138671786d191",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Able_Swan_6174",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-17T03:06:04+00:00",
+      "fecha_iso": "2026-06-17T03:06:04+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/chile/comments/1u7ygvu/la_magra_y_triste_lista_de_beneficios_sociales",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><ol> <li><p>Programas habitacionales: Prohibición de acceder a procesos de postulación e ingreso a diversos programas del Ministerio de Vivienda y Urbanismo, como el de Protección del Patrimonio Familiar, Subsidio Habitacional y habitabilidad rural, entre otros.</p></l",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-04T15:58:11.943343+00:00"
     }
   ],
-  "insights": [],
+  "leads_warm": [],
+  "insights": [
+    "El 100% de los leads calientes provienen de Reddit.",
+    "El 17% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Problema de transferencia.",
+    "0% de los leads calientes tienen contacto público visible."
+  ],
   "meta": {
     "version": "1.0",
     "pipeline_steps": [
@@ -178,7 +459,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 61.2,
-    "queries_executed": 1
+    "runtime_seconds": 49.07,
+    "queries_executed": 2
   }
 }
