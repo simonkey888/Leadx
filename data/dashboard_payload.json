@@ -1,222 +1,45 @@
 {
-  "generated_at": "2026-07-05T21:58:14.495614+00:00",
-  "run_id": "436ea2157068",
+  "generated_at": "2026-07-05T23:02:27.749221+00:00",
+  "run_id": "cd161e1b5627",
   "summary": {
-    "total_leads": 8,
-    "hot_leads": 7,
-    "warm_leads": 1,
+    "total_leads": 2,
+    "hot_leads": 2,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 86.2,
-    "avg_score_hot": 91.4,
-    "conversion_probability": 87.5,
+    "avg_score": 100.0,
+    "avg_score_hot": 100.0,
+    "conversion_probability": 100.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 8
+      "TRANSFER_PROBLEM": 2
     },
     "by_platform": {
-      "Reddit": 8
+      "Reddit": 2
     },
     "by_province": {
-      "CABA": 1,
-      "Buenos Aires": 1,
-      "La Plata": 1
+      "CABA": 2
     }
   },
   "leads_all": [
     {
-      "id": "ec1c754045fcba60",
+      "id": "7b1b683fe1e9b47d",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/marcelzzin18",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-03T18:45:04+00:00",
-      "fecha_iso": "2026-07-03T18:45:04+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/carros/comments/1ummmt1/transferencia_digital",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Boa tarde, povo!<br/> Comprei um carro faz 2 meses, fiz trasnferencia digital la na hora, eu e vendedor assinamos tudo certinho e ja apareceu na minha cnh digital o ATPV-E. No dia seguinte fiz a vistoria, deu tudo certo, e uns dias depois (nao deu os 30 dias) paguei",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484664+00:00"
-    },
-    {
-      "id": "b2315f5168d3202c",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Repulsive-Tap3890",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-29T20:07:45+00:00",
-      "fecha_iso": "2026-06-29T20:07:45+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1uj3ed8/multas_gba",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hace dos años vendi mi auto se hizo la transferencia sin problemas. Pero en el sistema de multas de GBA sigo figurando como titular de las multas que se estan realizando, pese a que en el registro automotor figura el cambio de titularidad correctamente y en otros si",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "recent_4_7_days": 10,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "recent_4_7_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484718+00:00"
-    },
-    {
-      "id": "849be4a1a58bae1c",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Avelios09",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "nissan",
-      "patente": "",
-      "fecha_visible": "2026-06-25T19:28:56+00:00",
-      "fecha_iso": "2026-06-25T19:28:56+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lacamiseta/comments/1ufjzgx/renunciar_a_un_trabajo_donde_no_la_armo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Les doy contexto resumido para que se entienda mejor. </p> <p>Soy Psicologo recien egresado de la carrera, tambien soy foráneo donde vivo (pago mi renta y no tengo nada de familia en la ciudad) hice mis prácticas en Nissan en el área de calidad y logística porque un",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484887+00:00"
-    },
-    {
-      "id": "5a815764175343bf",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Ok_Role1494",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T01:15:43+00:00",
-      "fecha_iso": "2026-06-17T01:15:43+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/golpes/comments/1u7w4js/cursinho_profissionalizante",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Gente, eu to aqui mais pra alertar quem pensa em fazer cursinhos por q nao consegue pagar graduação, eu andando pela rua caçando trabalho fui me envolver com o q sequer conhecia e fui de boa fé pra dar uma chance por conta da bolsa q me deram e tambem do contato com",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.485119+00:00"
-    },
-    {
-      "id": "af159293c313b807",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/lechoixpro",
-      "provincia": "La Plata",
-      "ciudad": "La Plata",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-02T10:24:51+00:00",
-      "fecha_iso": "2026-06-02T10:24:51+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1tumt1d/denuncia_de_venta_de_vehículo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Consulta ya que no encontré una respuesta especifica a mi problema.</p> <p>Hace 2 años vendí un auto, me dieron la plata en la mano y lo entregue con el 08 firmado.</p> <p>La cuestión es que hoy haciendo unos trámites me fijo en mi argentina y todavía esta a mi nomb",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.485202+00:00"
-    },
-    {
-      "id": "05e3a0134e080c0f",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/luisangel1712",
+      "persona": "u/ibuorofeno800",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-03T01:27:40+00:00",
-      "fecha_iso": "2026-07-03T01:27:40+00:00",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de/\"> <img src=\"https://preview.redd.it/hz82xzmf3xah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=ea5c673c633ef0cda7c32901f648f90e47e9a2f4\" alt=\"Es",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -224,34 +47,36 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
         "08_or_document_problem": 40,
-        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
         "document_08",
-        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T21:58:14.483936+00:00"
+      "discovery_timestamp": "2026-07-05T23:02:27.748614+00:00"
     },
     {
-      "id": "aeb58d5e417e1e23",
-      "score": 65,
+      "id": "198f393ebd3c2465",
+      "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/1dayHappy_1daySad",
-      "provincia": "",
+      "persona": "u/Joao_Bakyuu",
+      "provincia": "CABA",
       "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-03T20:33:12+00:00",
-      "fecha_iso": "2026-07-03T20:33:12+00:00",
+      "fecha_visible": "2025-11-05T00:30:41+00:00",
+      "fecha_iso": "2025-11-05T00:30:41+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ESLegal/comments/1umpbzl/coche_comprado_con_reserva_de_dominio",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Me siento sumamente estupido pero esta es la situacion.</p> <ul> <li><p>He comprado un coche a un compraventa pequeño</p></li> <li><p>Me dieron el coche, llaves, factura y la transferencia fue al titular del compraventa (nombre de titular de cuenta coincide con el q",
+      "source_url": "https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank/\"> <img src=\"https://a.thumbs.redditmedia.com/MLtiRicbOHF4J4emp_Cm_v4JZSahgJKEV88YURPmOT0.jpg\" alt=\"Bolinha de neve do Nubank 😍\" title=\"Bolinha de neve do Nubank 😍\" /> </a> </td><td> <!-- SC_O",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -259,242 +84,36 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "transfer_problem": 45,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484588+00:00"
-    },
-    {
-      "id": "4956ed1ed5d9ed4e",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Bib_Vl",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-02T05:43:28+00:00",
-      "fecha_iso": "2026-07-02T05:43:28+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa/\"> <img src=\"https://preview.redd.it/bdvpcmb78rah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=d5ff96c1e1a2afc28dc432896c6015d354017083\" alt=\"Quieres ganar dinero desd",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "08_or_document_problem": 40,
-        "recent_4_7_days": 10
+        "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
         "document_08",
-        "recent_4_7_days"
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484167+00:00"
+      "discovery_timestamp": "2026-07-05T23:02:27.749009+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "ec1c754045fcba60",
+      "id": "7b1b683fe1e9b47d",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/marcelzzin18",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-03T18:45:04+00:00",
-      "fecha_iso": "2026-07-03T18:45:04+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/carros/comments/1ummmt1/transferencia_digital",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Boa tarde, povo!<br/> Comprei um carro faz 2 meses, fiz trasnferencia digital la na hora, eu e vendedor assinamos tudo certinho e ja apareceu na minha cnh digital o ATPV-E. No dia seguinte fiz a vistoria, deu tudo certo, e uns dias depois (nao deu os 30 dias) paguei",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484664+00:00"
-    },
-    {
-      "id": "b2315f5168d3202c",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Repulsive-Tap3890",
-      "provincia": "Buenos Aires",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-29T20:07:45+00:00",
-      "fecha_iso": "2026-06-29T20:07:45+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1uj3ed8/multas_gba",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hace dos años vendi mi auto se hizo la transferencia sin problemas. Pero en el sistema de multas de GBA sigo figurando como titular de las multas que se estan realizando, pese a que en el registro automotor figura el cambio de titularidad correctamente y en otros si",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "recent_4_7_days": 10,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "recent_4_7_days",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484718+00:00"
-    },
-    {
-      "id": "849be4a1a58bae1c",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Avelios09",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "nissan",
-      "patente": "",
-      "fecha_visible": "2026-06-25T19:28:56+00:00",
-      "fecha_iso": "2026-06-25T19:28:56+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lacamiseta/comments/1ufjzgx/renunciar_a_un_trabajo_donde_no_la_armo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Les doy contexto resumido para que se entienda mejor. </p> <p>Soy Psicologo recien egresado de la carrera, tambien soy foráneo donde vivo (pago mi renta y no tengo nada de familia en la ciudad) hice mis prácticas en Nissan en el área de calidad y logística porque un",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484887+00:00"
-    },
-    {
-      "id": "5a815764175343bf",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Ok_Role1494",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-06-17T01:15:43+00:00",
-      "fecha_iso": "2026-06-17T01:15:43+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/golpes/comments/1u7w4js/cursinho_profissionalizante",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Gente, eu to aqui mais pra alertar quem pensa em fazer cursinhos por q nao consegue pagar graduação, eu andando pela rua caçando trabalho fui me envolver com o q sequer conhecia e fui de boa fé pra dar uma chance por conta da bolsa q me deram e tambem do contato com",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.485119+00:00"
-    },
-    {
-      "id": "af159293c313b807",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/lechoixpro",
-      "provincia": "La Plata",
-      "ciudad": "La Plata",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-02T10:24:51+00:00",
-      "fecha_iso": "2026-06-02T10:24:51+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1tumt1d/denuncia_de_venta_de_vehículo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Consulta ya que no encontré una respuesta especifica a mi problema.</p> <p>Hace 2 años vendí un auto, me dieron la plata en la mano y lo entregue con el 08 firmado.</p> <p>La cuestión es que hoy haciendo unos trámites me fijo en mi argentina y todavía esta a mi nomb",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.485202+00:00"
-    },
-    {
-      "id": "05e3a0134e080c0f",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/luisangel1712",
+      "persona": "u/ibuorofeno800",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-03T01:27:40+00:00",
-      "fecha_iso": "2026-07-03T01:27:40+00:00",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/androidafterlife/comments/1um0mk8/estoy_pensando_hacer_para_android_50_aparte_de/\"> <img src=\"https://preview.redd.it/hz82xzmf3xah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=ea5c673c633ef0cda7c32901f648f90e47e9a2f4\" alt=\"Es",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -502,34 +121,36 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
         "08_or_document_problem": 40,
-        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
         "document_08",
-        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T21:58:14.483936+00:00"
+      "discovery_timestamp": "2026-07-05T23:02:27.748614+00:00"
     },
     {
-      "id": "aeb58d5e417e1e23",
-      "score": 65,
+      "id": "198f393ebd3c2465",
+      "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/1dayHappy_1daySad",
-      "provincia": "",
+      "persona": "u/Joao_Bakyuu",
+      "provincia": "CABA",
       "ciudad": "",
-      "pais": "Unknown",
+      "pais": "Argentina",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-03T20:33:12+00:00",
-      "fecha_iso": "2026-07-03T20:33:12+00:00",
+      "fecha_visible": "2025-11-05T00:30:41+00:00",
+      "fecha_iso": "2025-11-05T00:30:41+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ESLegal/comments/1umpbzl/coche_comprado_con_reserva_de_dominio",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Me siento sumamente estupido pero esta es la situacion.</p> <ul> <li><p>He comprado un coche a un compraventa pequeño</p></li> <li><p>Me dieron el coche, llaves, factura y la transferencia fue al titular del compraventa (nombre de titular de cuenta coincide con el q",
+      "source_url": "https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank/\"> <img src=\"https://a.thumbs.redditmedia.com/MLtiRicbOHF4J4emp_Cm_v4JZSahgJKEV88YURPmOT0.jpg\" alt=\"Bolinha de neve do Nubank 😍\" title=\"Bolinha de neve do Nubank 😍\" /> </a> </td><td> <!-- SC_O",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -537,57 +158,24 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "transfer_problem": 45,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "transfer_problem",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484588+00:00"
-    }
-  ],
-  "leads_warm": [
-    {
-      "id": "4956ed1ed5d9ed4e",
-      "score": 50,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Bib_Vl",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-02T05:43:28+00:00",
-      "fecha_iso": "2026-07-02T05:43:28+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_Bib_Vl/comments/1ul9ilc/quieres_ganar_dinero_desde_casa/\"> <img src=\"https://preview.redd.it/bdvpcmb78rah1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=d5ff96c1e1a2afc28dc432896c6015d354017083\" alt=\"Quieres ganar dinero desd",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "08_or_document_problem": 40,
-        "recent_4_7_days": 10
+        "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
         "document_08",
-        "recent_4_7_days"
+        "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T21:58:14.484167+00:00"
+      "discovery_timestamp": "2026-07-05T23:02:27.749009+00:00"
     }
   ],
+  "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 14% de los leads calientes son de CABA.",
+    "El 100% de los leads calientes son de CABA.",
     "El problema más frecuente es: Problema de transferencia.",
-    "0% de los leads calientes tienen contacto público visible.",
-    "1 leads calientes muestran señales de urgencia temporal."
+    "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -614,6 +202,6 @@
       "foreign_country_penalty": -80
     },
     "runtime_seconds": 61.0,
-    "queries_executed": 2
+    "queries_executed": 1
   }
 }
