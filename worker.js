@@ -599,8 +599,20 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     </div>
     <div class="modal-field" id="modal-profile-field" style="display:none">
       <label>Contactar al usuario (DM)</label>
-      <a id="modal-profile-url" href="#" target="_blank"
-        style="font-size:12px;color:var(--orange)">Abrir perfil de Reddit →</a>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <a id="modal-profile-url" href="#" target="_blank"
+          style="font-size:12px;color:var(--orange)">Abrir perfil de Reddit →</a>
+        <button id="modal-copy-dm" class="btn-secondary" onclick="copyDmTemplate()" style="font-size:11px;padding:4px 10px">
+          📋 Copiar guion DM
+        </button>
+      </div>
+      <small style="color:var(--muted);font-size:11px;margin-top:6px;display:block;line-height:1.4">
+        ⚠️ Reddit banea autopromoción. Usar guion genuino: ofrecer info primero, NO vender. Solo derivar a WA si hay interés.
+      </small>
+    </div>
+    <div class="modal-field" id="modal-bio-field" style="display:none">
+      <label>Contacto extraído de bio Reddit</label>
+      <div id="modal-bio-content" style="font-size:13px;color:var(--text);background:#F0FDF4;padding:8px 12px;border-radius:6px;border:1px solid #BBF7D0"></div>
     </div>
 
     <hr class="divider">
@@ -919,9 +931,10 @@ function renderKPIs() {
   const withWa   = leads.filter(l => l._wa_url).length;
   const enProc   = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
   const cerrados = leads.filter(l => l._status === 'Cerrado');
+  const pct = getComisionPct() / 100;
   const comision = cerrados.reduce((sum, l) => {
     const stored = DB.get(l.id);
-    return sum + (stored.monto || 0) * 0.15;
+    return sum + (stored.monto || 0) * pct;
   }, 0);
 
   document.getElementById('kpi-total').textContent    = leads.length;
@@ -1005,6 +1018,9 @@ function openDetail(id) {
     montoField.style.display = 'none';
   }
 
+  // N1: Fetch Reddit bio async (busca contacto en bio del user)
+  loadBioIfReddit(l);
+
   const url = document.getElementById('modal-url');
   url.href = l.url || '#';
   url.textContent = l.url ? 'Abrir enlace →' : 'Sin enlace';
@@ -1055,6 +1071,89 @@ function copyWaTemplate() {
   }).catch(() => alert('No se pudo copiar. Texto:\n\n' + tpl));
 }
 
+function copyDmTemplate() {
+  // N2: Guión DM no-spam para Reddit (Claude)
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  const author = (l.persona || l.author || '').replace(/^u\//, '').replace(/^\/u\//, '');
+  const problema = l.problem_summary || l.title || l._resumen || 'tu consulta vehicular';
+  const tpl = 'Hola u/' + (author || '') + ', vi tu consulta sobre ' + problema +
+    '. Trabajo con un equipo legal que resuelve esto regularmente. ¿Querés que te cuente cómo funciona? Sin compromiso.';
+  navigator.clipboard.writeText(tpl).then(() => {
+    const btn = document.getElementById('modal-copy-dm');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  }).catch(() => alert('No se pudo copiar. Texto:\n\n' + tpl));
+}
+
+// N1: Fetch Reddit bio desde Worker endpoint
+async function fetchRedditBio(username) {
+  if (!username) return null;
+  try {
+    const r = await fetch('/api/reddit-bio?user=' + encodeURIComponent(username));
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Llamar bio fetch cuando se abre el modal con Reddit user
+async function loadBioIfReddit(l) {
+  const bioField = document.getElementById('modal-bio-field');
+  const bioContent = document.getElementById('modal-bio-content');
+  bioField.style.display = 'none';
+  
+  const author = (l.persona || l.author || '').trim();
+  const redditUser = author.startsWith('u/') ? author.slice(2) :
+                     author.startsWith('/u/') ? author.slice(3) : '';
+  
+  if (!redditUser || !(l.url || '').includes('reddit.com')) return;
+  
+  // Mostrar loading
+  bioField.style.display = 'block';
+  bioContent.textContent = 'Buscando contacto en bio...';
+  bioContent.style.background = '#FEF3C7';
+  bioContent.style.borderColor = '#FDE68A';
+  
+  const bio = await fetchRedditBio(redditUser);
+  if (!bio || !bio.ok) {
+    bioField.style.display = 'none';
+    return;
+  }
+  
+  const contacts = [];
+  if (bio.phone) contacts.push('📱 ' + bio.phone);
+  if (bio.email) contacts.push('✉ ' + bio.email);
+  if (bio.whatsapp) contacts.push('🟢 WhatsApp: ' + bio.whatsapp);
+  
+  if (contacts.length === 0) {
+    bioField.style.display = 'none';
+    return;
+  }
+  
+  bioContent.innerHTML = contacts.join('<br>');
+  bioContent.style.background = '#F0FDF4';
+  bioContent.style.borderColor = '#BBF7D0';
+  
+  // Actualizar _phone y _wa_url del lead si encontramos contacto
+  if (bio.whatsapp || bio.phone) {
+    const num = bio.whatsapp || bio.phone;
+    const digits = num.replace(/\D/g, '');
+    const norm = digits.startsWith('54') ? digits : '54' + digits.replace(/^0/, '');
+    l._phone = num;
+    l._wa_url = 'https://wa.me/' + norm;
+    // Actualizar botón WA en el modal
+    const waBtn = document.getElementById('modal-wa-btn');
+    waBtn.href = l._wa_url;
+    waBtn.style.display = 'inline-flex';
+    document.getElementById('modal-phone-label').textContent = num;
+    document.getElementById('modal-contact-box').classList.remove('no-contact');
+  }
+}
+
 function closeModal() {
   document.getElementById('detailModal').classList.remove('open');
   S.currentId = null;
@@ -1083,7 +1182,7 @@ function saveStatusFromModal() {
 
 function updateComision() {
   const monto = parseFloat(document.getElementById('modal-monto').value) || 0;
-  const comision = monto * 0.15;
+  const comision = monto * getComisionPct() / 100;
   document.getElementById('modal-comision').textContent = '$' + comision.toLocaleString('es-AR');
 }
 
@@ -1167,6 +1266,50 @@ function addManualCase() {
   renderSidebar();
   renderKPIs();
 }
+
+<!-- SETTINGS MODAL (N3) -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="width:400px">
+    <button class="modal-close" onclick="closeSettings()">✕</button>
+    <h2>Configuración</h2>
+    <div class="modal-field">
+      <label>% Comisión</label>
+      <input type="number" id="settings-comision" min="0" max="100" step="0.5"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+      <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block">
+        Porcentaje que cobrás por caso cerrado. Afecta el KPI "Comisión total".
+      </small>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeSettings()">Cancelar</button>
+      <button class="btn-primary" onclick="saveSettings()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function getComisionPct() {
+  try { return parseFloat(localStorage.getItem('crm_comision_pct')) || 15; }
+  catch { return 15; }
+}
+function setComisionPct(v) {
+  localStorage.setItem('crm_comision_pct', String(v));
+}
+function openSettings() {
+  document.getElementById('settings-comision').value = getComisionPct();
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+function saveSettings() {
+  const v = parseFloat(document.getElementById('settings-comision').value);
+  if (isNaN(v) || v < 0 || v > 100) { alert('Porcentaje inválido'); return; }
+  setComisionPct(v);
+  closeSettings();
+  renderKPIs();
+}
+</script>
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.getElementById('searchInput')?.addEventListener('input', () => {
@@ -1542,6 +1685,53 @@ export default {
         }, corsHeaders);
       } catch (err) {
         return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/reddit-bio ─── Fetch Reddit user bio (public endpoint)
+    // Busca telefono/email/whatsapp en la bio del usuario
+    if (url.pathname === '/api/reddit-bio' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+      try {
+        const bioUrl = 'https://www.reddit.com/user/' + encodeURIComponent(username) + '/about.json';
+        const r = await fetch(bioUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'application/json'
+          }
+        });
+        if (!r.ok) {
+          return jsonResponse({ ok: false, error: 'reddit_' + r.status, status: r.status }, corsHeaders, 200);
+        }
+        const data = await r.json();
+        const userData = (data && data.data) || {};
+        const subreddit = userData.subreddit || {};
+        const bioText = (subreddit.public_description || '') + ' ' + (subreddit.description || '');
+        
+        // Buscar telefono, whatsapp, email en la bio
+        const phoneMatch = bioText.match(/(?:\+54|0054)?[\s\-]?(?:9[\s\-]?)?(?:11|[2-9]\d{2,3})[\s\-]?\d{4}[\s\-]?\d{4}/);
+        const waMatch = bioText.match(/(?:wa\.me\/|whatsapp[:\s]+|wp[:\s]+)(\+?[\d\s\-]{8,15})/i);
+        const emailMatch = bioText.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+        
+        const result = {
+          ok: true,
+          username: username,
+          bio: bioText.trim().slice(0, 500),
+          phone: phoneMatch ? phoneMatch[0].trim() : '',
+          whatsapp: waMatch ? waMatch[1].trim() : '',
+          email: emailMatch ? emailMatch[0].toLowerCase().trim() : '',
+          has_contact: !!(phoneMatch || waMatch || emailMatch),
+        };
+        return jsonResponse(result, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
       }
     }
 
