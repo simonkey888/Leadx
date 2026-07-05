@@ -1,45 +1,43 @@
 {
-  "generated_at": "2026-07-04T23:58:42.994112+00:00",
-  "run_id": "8ba2830eefcf",
+  "generated_at": "2026-07-05T03:38:52.912637+00:00",
+  "run_id": "aa8dfead5691",
   "summary": {
     "total_leads": 1,
-    "hot_leads": 1,
-    "warm_leads": 0,
+    "hot_leads": 0,
+    "warm_leads": 1,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 75.0,
-    "avg_score_hot": 75.0,
-    "conversion_probability": 100.0,
+    "avg_score": 40.0,
+    "avg_score_hot": 0,
+    "conversion_probability": 0.0,
     "by_category": {
       "TRANSFER_PROBLEM": 1
     },
     "by_platform": {
       "Reddit": 1
     },
-    "by_province": {
-      "CABA": 1
-    }
+    "by_province": {}
   },
   "leads_all": [
     {
-      "id": "28e3318e4e90dd8a",
-      "score": 75,
-      "label": "real_lead",
+      "id": "b8c8c3fee4d4901a",
+      "score": 40,
+      "label": "commercial_signal",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Maximum_Guard5610",
-      "provincia": "CABA",
+      "persona": "u/RakonHenri",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-03T16:07:14+00:00",
-      "fecha_iso": "2026-07-03T16:07:14+00:00",
+      "fecha_visible": "2026-05-13T10:49:48+00:00",
+      "fecha_iso": "2026-05-13T10:49:48+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
+      "source_url": "https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado/\"> <img src=\"https://preview.redd.it/8zyfrv4axv0h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=71483ddb9c1f3ba0e744020850f11cbf4a925519\" alt=\"Revista da",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -47,36 +45,33 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
+        "08_or_document_problem": 40
       },
       "detected_signals": [
-        "document_08",
-        "recent_0_3_days",
-        "argentina"
+        "document_08"
       ],
-      "discovery_timestamp": "2026-07-04T23:58:42.992469+00:00"
+      "discovery_timestamp": "2026-07-05T03:38:52.899753+00:00"
     }
   ],
-  "leads_hot": [
+  "leads_hot": [],
+  "leads_warm": [
     {
-      "id": "28e3318e4e90dd8a",
-      "score": 75,
-      "label": "real_lead",
+      "id": "b8c8c3fee4d4901a",
+      "score": 40,
+      "label": "commercial_signal",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Maximum_Guard5610",
-      "provincia": "CABA",
+      "persona": "u/RakonHenri",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-03T16:07:14+00:00",
-      "fecha_iso": "2026-07-03T16:07:14+00:00",
+      "fecha_visible": "2026-05-13T10:49:48+00:00",
+      "fecha_iso": "2026-05-13T10:49:48+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
+      "source_url": "https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado/\"> <img src=\"https://preview.redd.it/8zyfrv4axv0h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=71483ddb9c1f3ba0e744020850f11cbf4a925519\" alt=\"Revista da",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -84,25 +79,15 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15
+        "08_or_document_problem": 40
       },
       "detected_signals": [
-        "document_08",
-        "recent_0_3_days",
-        "argentina"
+        "document_08"
       ],
-      "discovery_timestamp": "2026-07-04T23:58:42.992469+00:00"
+      "discovery_timestamp": "2026-07-05T03:38:52.899753+00:00"
     }
   ],
-  "leads_warm": [],
-  "insights": [
-    "El 100% de los leads calientes provienen de Reddit.",
-    "El 100% de los leads calientes son de CABA.",
-    "El problema más frecuente es: Problema de transferencia.",
-    "0% de los leads calientes tienen contacto público visible."
-  ],
+  "insights": [],
   "meta": {
     "version": "1.0",
     "pipeline_steps": [
@@ -127,7 +112,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 60.8,
+    "runtime_seconds": 60.4,
     "queries_executed": 1
   }
 }

@@ -1139,5 +1139,28 @@
         "CABA": 1
       }
     }
+  },
+  {
+    "run_id": "aa8dfead5691",
+    "generated_at": "2026-07-05T03:38:52.912637+00:00",
+    "summary": {
+      "total_leads": 1,
+      "hot_leads": 0,
+      "warm_leads": 1,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 40.0,
+      "avg_score_hot": 0,
+      "conversion_probability": 0.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 1
+      },
+      "by_platform": {
+        "Reddit": 1
+      },
+      "by_province": {}
+    }
   }
 ]
