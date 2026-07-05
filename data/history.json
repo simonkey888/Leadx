@@ -1280,5 +1280,31 @@
         "La Plata": 1
       }
     }
+  },
+  {
+    "run_id": "ac357ffcf010",
+    "generated_at": "2026-07-05T17:59:26.283323+00:00",
+    "summary": {
+      "total_leads": 2,
+      "hot_leads": 0,
+      "warm_leads": 2,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 37.5,
+      "avg_score_hot": 0,
+      "conversion_probability": 0.0,
+      "by_category": {
+        "OTHER": 1,
+        "TRANSFER_PROBLEM": 1
+      },
+      "by_platform": {
+        "Reddit": 2
+      },
+      "by_province": {
+        "CABA": 1
+      }
+    }
   }
 ]
