@@ -1,23 +1,22 @@
 {
-  "generated_at": "2026-07-05T17:59:26.283323+00:00",
-  "run_id": "ac357ffcf010",
+  "generated_at": "2026-07-05T19:24:46.755094+00:00",
+  "run_id": "b5fe88584cbf",
   "summary": {
-    "total_leads": 2,
+    "total_leads": 1,
     "hot_leads": 0,
-    "warm_leads": 2,
+    "warm_leads": 1,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 37.5,
+    "avg_score": 55.0,
     "avg_score_hot": 0,
     "conversion_probability": 0.0,
     "by_category": {
-      "OTHER": 1,
       "TRANSFER_PROBLEM": 1
     },
     "by_platform": {
-      "Reddit": 2
+      "Reddit": 1
     },
     "by_province": {
       "CABA": 1
@@ -25,53 +24,22 @@
   },
   "leads_all": [
     {
-      "id": "b8c8c3fee4d4901a",
-      "score": 40,
+      "id": "416b56d85ce7c74b",
+      "score": 55,
       "label": "commercial_signal",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/RakonHenri",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-05-13T10:49:48+00:00",
-      "fecha_iso": "2026-05-13T10:49:48+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado/\"> <img src=\"https://preview.redd.it/8zyfrv4axv0h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=71483ddb9c1f3ba0e744020850f11cbf4a925519\" alt=\"Revista da",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-05T17:59:26.281831+00:00"
-    },
-    {
-      "id": "38bdd5c2abaec1d4",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Deijine",
+      "persona": "u/Weak_Bus8157",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
-      "vehiculo": "auto",
+      "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-05T16:08:13+00:00",
-      "fecha_iso": "2026-07-05T16:08:13+00:00",
+      "fecha_visible": "2025-06-23T12:06:02+00:00",
+      "fecha_iso": "2025-06-23T12:06:02+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Anime_En_General/comments/1uo60zv/cual_es_tu_mejor_recuerdo_del_anime_pirata",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Anime_En_General/comments/1uo60zv/cual_es_tu_mejor_recuerdo_del_anime_pirata/\"> <img src=\"https://preview.redd.it/dr3cf8meqfbh1.jpg?width=140&amp;height=85&amp;auto=webp&amp;s=f527d35e384427a1372c2114e36d2bad7ba37720\" alt=\"Cual es tu mejor recuerdo",
+      "source_url": "https://www.reddit.com/r/fulbo/comments/1lieuht/a_57_años_de_la_mayor_tragedia_del_fútbol",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Puerta 12</p> <p>23/06/68</p> <p>La peor tragedia de la historia del fútbol argentino. Hecho que NO tuvo culpables y su caso fue ARCHIVADO. #ProhibidoOlvidar</p> <p>En esa fría tarde de invierno en el estadio Monumental de Núñez, @RiverPlate y @BocaJrsOficial empata",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -79,66 +47,35 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "recent_0_3_days": 20,
+        "08_or_document_problem": 40,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "recent_0_3_days",
+        "document_08",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T17:59:26.281244+00:00"
+      "discovery_timestamp": "2026-07-05T19:24:46.754209+00:00"
     }
   ],
   "leads_hot": [],
   "leads_warm": [
     {
-      "id": "b8c8c3fee4d4901a",
-      "score": 40,
+      "id": "416b56d85ce7c74b",
+      "score": 55,
       "label": "commercial_signal",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/RakonHenri",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-05-13T10:49:48+00:00",
-      "fecha_iso": "2026-05-13T10:49:48+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ComentariosMelhores/comments/1tbw0g8/revista_da_avon_é_coisa_do_passado/\"> <img src=\"https://preview.redd.it/8zyfrv4axv0h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=71483ddb9c1f3ba0e744020850f11cbf4a925519\" alt=\"Revista da",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-05T17:59:26.281831+00:00"
-    },
-    {
-      "id": "38bdd5c2abaec1d4",
-      "score": 35,
-      "label": "commercial_signal",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Deijine",
+      "persona": "u/Weak_Bus8157",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
-      "vehiculo": "auto",
+      "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-05T16:08:13+00:00",
-      "fecha_iso": "2026-07-05T16:08:13+00:00",
+      "fecha_visible": "2025-06-23T12:06:02+00:00",
+      "fecha_iso": "2025-06-23T12:06:02+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Anime_En_General/comments/1uo60zv/cual_es_tu_mejor_recuerdo_del_anime_pirata",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Anime_En_General/comments/1uo60zv/cual_es_tu_mejor_recuerdo_del_anime_pirata/\"> <img src=\"https://preview.redd.it/dr3cf8meqfbh1.jpg?width=140&amp;height=85&amp;auto=webp&amp;s=f527d35e384427a1372c2114e36d2bad7ba37720\" alt=\"Cual es tu mejor recuerdo",
+      "source_url": "https://www.reddit.com/r/fulbo/comments/1lieuht/a_57_años_de_la_mayor_tragedia_del_fútbol",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Puerta 12</p> <p>23/06/68</p> <p>La peor tragedia de la historia del fútbol argentino. Hecho que NO tuvo culpables y su caso fue ARCHIVADO. #ProhibidoOlvidar</p> <p>En esa fría tarde de invierno en el estadio Monumental de Núñez, @RiverPlate y @BocaJrsOficial empata",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -146,14 +83,14 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "recent_0_3_days": 20,
+        "08_or_document_problem": 40,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "recent_0_3_days",
+        "document_08",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T17:59:26.281244+00:00"
+      "discovery_timestamp": "2026-07-05T19:24:46.754209+00:00"
     }
   ],
   "insights": [],
@@ -181,7 +118,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 61.91,
+    "runtime_seconds": 61.26,
     "queries_executed": 1
   }
 }
