@@ -1,37 +1,12 @@
 {
-  "total_runs": 41,
-  "last_run": "2026-07-05T03:38:52.912637+00:00",
-  "last_run_id": "aa8dfead5691",
-  "total_leads_all_time": 509,
-  "total_hot_leads_all_time": 418,
-  "avg_hot_per_run": 10.2,
-  "runs_today": 1,
+  "total_runs": 42,
+  "last_run": "2026-07-05T07:21:38.168738+00:00",
+  "last_run_id": "831a5cbf13ac",
+  "total_leads_all_time": 514,
+  "total_hot_leads_all_time": 421,
+  "avg_hot_per_run": 10.0,
+  "runs_today": 2,
   "last_7_days": [
-    {
-      "run_id": "aa96ddb86e3a",
-      "generated_at": "2026-07-04T17:07:49.457499+00:00",
-      "summary": {
-        "total_leads": 1,
-        "hot_leads": 1,
-        "warm_leads": 0,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 75.0,
-        "avg_score_hot": 75.0,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "TRANSFER_PROBLEM": 1
-        },
-        "by_platform": {
-          "Reddit": 1
-        },
-        "by_province": {
-          "CABA": 1
-        }
-      }
-    },
     {
       "run_id": "0cb1ad888296",
       "generated_at": "2026-07-04T19:04:07.281221+00:00",
@@ -174,6 +149,32 @@
           "Reddit": 1
         },
         "by_province": {}
+      }
+    },
+    {
+      "run_id": "831a5cbf13ac",
+      "generated_at": "2026-07-05T07:21:38.168738+00:00",
+      "summary": {
+        "total_leads": 5,
+        "hot_leads": 3,
+        "warm_leads": 2,
+        "contactable": 1,
+        "with_whatsapp": 1,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 58.0,
+        "avg_score_hot": 66.7,
+        "conversion_probability": 60.0,
+        "by_category": {
+          "TRANSFER_PROBLEM": 5
+        },
+        "by_platform": {
+          "Reddit": 5
+        },
+        "by_province": {
+          "Santa Fe": 1,
+          "CABA": 1
+        }
       }
     }
   ]

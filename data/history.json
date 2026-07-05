@@ -1162,5 +1162,31 @@
       },
       "by_province": {}
     }
+  },
+  {
+    "run_id": "831a5cbf13ac",
+    "generated_at": "2026-07-05T07:21:38.168738+00:00",
+    "summary": {
+      "total_leads": 5,
+      "hot_leads": 3,
+      "warm_leads": 2,
+      "contactable": 1,
+      "with_whatsapp": 1,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 58.0,
+      "avg_score_hot": 66.7,
+      "conversion_probability": 60.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 5
+      },
+      "by_platform": {
+        "Reddit": 5
+      },
+      "by_province": {
+        "Santa Fe": 1,
+        "CABA": 1
+      }
+    }
   }
 ]
