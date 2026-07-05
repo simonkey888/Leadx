@@ -1255,5 +1255,30 @@
       },
       "by_province": {}
     }
+  },
+  {
+    "run_id": "efad947a574c",
+    "generated_at": "2026-07-05T16:03:51.469116+00:00",
+    "summary": {
+      "total_leads": 2,
+      "hot_leads": 2,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 67.5,
+      "avg_score_hot": 67.5,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "FINE_DISPUTE": 2
+      },
+      "by_platform": {
+        "Reddit": 2
+      },
+      "by_province": {
+        "La Plata": 1
+      }
+    }
   }
 ]

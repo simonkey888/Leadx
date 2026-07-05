@@ -1,43 +1,45 @@
 {
-  "generated_at": "2026-07-05T14:28:54.807296+00:00",
-  "run_id": "3d19042ae530",
+  "generated_at": "2026-07-05T16:03:51.469116+00:00",
+  "run_id": "efad947a574c",
   "summary": {
     "total_leads": 2,
-    "hot_leads": 0,
-    "warm_leads": 2,
+    "hot_leads": 2,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 47.5,
-    "avg_score_hot": 0,
-    "conversion_probability": 0.0,
+    "avg_score": 67.5,
+    "avg_score_hot": 67.5,
+    "conversion_probability": 100.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 2
+      "FINE_DISPUTE": 2
     },
     "by_platform": {
       "Reddit": 2
     },
-    "by_province": {}
+    "by_province": {
+      "La Plata": 1
+    }
   },
   "leads_all": [
     {
-      "id": "eba3f40ced72c04c",
-      "score": 55,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Illustrious-Baker330",
-      "provincia": "",
-      "ciudad": "",
+      "id": "db1d1e8fafb1063b",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/NAiKfoll",
+      "provincia": "La Plata",
+      "ciudad": "La Plata",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-05-20T20:13:05+00:00",
-      "fecha_iso": "2026-05-20T20:13:05+00:00",
+      "fecha_visible": "2026-06-18T18:23:01+00:00",
+      "fecha_iso": "2026-06-18T18:23:01+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking/\"> <img src=\"https://preview.redd.it/c1u5o9i2nc2h1.png?width=140&amp;height=73&amp;auto=webp&amp;s=fa6a5f16b1f8a10e20be77f350d48a8aacabf65b\" alt=\"Vuelo en la Cessna 208B de B",
+      "source_url": "https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni/\"> <img src=\"https://preview.redd.it/ni9r4mq2138h1.png?width=140&amp;height=82&amp;auto=webp&amp;s=5b82fa51fa3523aa0293d3f4fd1beb025db32743\" alt=\"AFP Provida no paga la",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -45,32 +47,32 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40,
+        "multa_or_fotomulta": 60,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "document_08",
+        "multa_fotomulta",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T14:28:54.806912+00:00"
+      "discovery_timestamp": "2026-07-05T16:03:51.468182+00:00"
     },
     {
-      "id": "99641fd956f94a81",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/MarzipanNew835",
+      "id": "30c037cc653595ca",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/NAiKfoll",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
-      "vehiculo": "auto",
+      "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-06-09T18:52:54+00:00",
-      "fecha_iso": "2026-06-09T18:52:54+00:00",
+      "fecha_visible": "2026-06-18T19:41:39+00:00",
+      "fecha_iso": "2026-06-18T19:41:39+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola/\"> <img src=\"https://preview.redd.it/dg8a08630b6h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=3fc4de7696534b45dab6ee8c8fae1c97b86fbe0c\" alt=\"Mongola\" title=\"Mongola\" /> </a> </td><td> &#3",
+      "source_url": "https://www.reddit.com/r/derechoenchile/comments/1u9g8f3/afp_provida_no_paga_la_pensión_de_alimentos_ni",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas tardes a todos:</p> <p>Les vengo a consultar sobre algo que me pasó. Resulta que el juez del tribunal de familia de mi ciudad ordenó retener del dinero de la pensión que recibe mi papá todos los meses, ya que por ley están obligados a hacerlo, pero no lo esta",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -78,33 +80,32 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40
+        "multa_or_fotomulta": 60
       },
       "detected_signals": [
-        "document_08"
+        "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-05T14:28:54.806778+00:00"
+      "discovery_timestamp": "2026-07-05T16:03:51.467953+00:00"
     }
   ],
-  "leads_hot": [],
-  "leads_warm": [
+  "leads_hot": [
     {
-      "id": "eba3f40ced72c04c",
-      "score": 55,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Illustrious-Baker330",
-      "provincia": "",
-      "ciudad": "",
+      "id": "db1d1e8fafb1063b",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/NAiKfoll",
+      "provincia": "La Plata",
+      "ciudad": "La Plata",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-05-20T20:13:05+00:00",
-      "fecha_iso": "2026-05-20T20:13:05+00:00",
+      "fecha_visible": "2026-06-18T18:23:01+00:00",
+      "fecha_iso": "2026-06-18T18:23:01+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/flightsim/comments/1tixh8h/vuelo_en_la_cessna_208b_de_bsq_msfs2020_parking/\"> <img src=\"https://preview.redd.it/c1u5o9i2nc2h1.png?width=140&amp;height=73&amp;auto=webp&amp;s=fa6a5f16b1f8a10e20be77f350d48a8aacabf65b\" alt=\"Vuelo en la Cessna 208B de B",
+      "source_url": "https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/RepublicadeChile/comments/1u9e4ck/afp_provida_no_paga_la_pensión_de_alimentos_ni/\"> <img src=\"https://preview.redd.it/ni9r4mq2138h1.png?width=140&amp;height=82&amp;auto=webp&amp;s=5b82fa51fa3523aa0293d3f4fd1beb025db32743\" alt=\"AFP Provida no paga la",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -112,32 +113,32 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40,
+        "multa_or_fotomulta": 60,
         "argentina_signal": 15
       },
       "detected_signals": [
-        "document_08",
+        "multa_fotomulta",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T14:28:54.806912+00:00"
+      "discovery_timestamp": "2026-07-05T16:03:51.468182+00:00"
     },
     {
-      "id": "99641fd956f94a81",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/MarzipanNew835",
+      "id": "30c037cc653595ca",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/NAiKfoll",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
-      "vehiculo": "auto",
+      "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-06-09T18:52:54+00:00",
-      "fecha_iso": "2026-06-09T18:52:54+00:00",
+      "fecha_visible": "2026-06-18T19:41:39+00:00",
+      "fecha_iso": "2026-06-18T19:41:39+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/lhdapodcast/comments/1u1e5l2/mongola/\"> <img src=\"https://preview.redd.it/dg8a08630b6h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=3fc4de7696534b45dab6ee8c8fae1c97b86fbe0c\" alt=\"Mongola\" title=\"Mongola\" /> </a> </td><td> &#3",
+      "source_url": "https://www.reddit.com/r/derechoenchile/comments/1u9g8f3/afp_provida_no_paga_la_pensión_de_alimentos_ni",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas tardes a todos:</p> <p>Les vengo a consultar sobre algo que me pasó. Resulta que el juez del tribunal de familia de mi ciudad ordenó retener del dinero de la pensión que recibe mi papá todos los meses, ya que por ley están obligados a hacerlo, pero no lo esta",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -145,15 +146,22 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40
+        "multa_or_fotomulta": 60
       },
       "detected_signals": [
-        "document_08"
+        "multa_fotomulta"
       ],
-      "discovery_timestamp": "2026-07-05T14:28:54.806778+00:00"
+      "discovery_timestamp": "2026-07-05T16:03:51.467953+00:00"
     }
   ],
-  "insights": [],
+  "leads_warm": [],
+  "insights": [
+    "El 100% de los leads calientes provienen de Reddit.",
+    "El 50% de los leads calientes son de La Plata.",
+    "El problema más frecuente es: Disputa de multa/fotomulta.",
+    "0% de los leads calientes tienen contacto público visible.",
+    "1 leads calientes muestran señales de urgencia temporal."
+  ],
   "meta": {
     "version": "1.0",
     "pipeline_steps": [
@@ -178,7 +186,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 61.67,
+    "runtime_seconds": 60.39,
     "queries_executed": 1
   }
 }
