@@ -1,26 +1,247 @@
 {
-  "generated_at": "2026-07-05T10:07:38.449858+00:00",
-  "run_id": "6f1f66ba0b1c",
+  "generated_at": "2026-07-05T12:13:13.484440+00:00",
+  "run_id": "e961875fc93a",
   "summary": {
-    "total_leads": 0,
-    "hot_leads": 0,
+    "total_leads": 3,
+    "hot_leads": 3,
     "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 0,
-    "avg_score_hot": 0,
-    "conversion_probability": 0,
-    "by_category": {},
-    "by_platform": {},
-    "by_province": {}
+    "avg_score": 100.0,
+    "avg_score_hot": 100.0,
+    "conversion_probability": 100.0,
+    "by_category": {
+      "TRANSFER_PROBLEM": 3
+    },
+    "by_platform": {
+      "Reddit": 3
+    },
+    "by_province": {
+      "CABA": 1
+    }
   },
-  "leads_all": [],
-  "leads_hot": [],
+  "leads_all": [
+    {
+      "id": "3edc7ab1e0baf509",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/National-Effort-17",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-05-15T04:58:36+00:00",
+      "fecha_iso": "2026-05-15T04:58:36+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así/\"> <img src=\"https://preview.redd.it/46t9ndtpf81h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=f9f02955181b68dbf5a80fa86be2cf0b6d4e2fbc\" alt=\"Les pasó alguna",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-05T12:13:13.469348+00:00"
+    },
+    {
+      "id": "7b1b683fe1e9b47d",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/ibuorofeno800",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "08_or_document_problem": 40,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
+        "document_08",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-05T12:13:13.469504+00:00"
+    },
+    {
+      "id": "37887ef59e148e82",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/TomasRojoM",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2025-02-05T23:55:23+00:00",
+      "fecha_iso": "2025-02-05T23:55:23+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren/\"> <img src=\"https://b.thumbs.redditmedia.com/e2x3sLjaiXt5AKnB2JUQGmqffscX787HINeGvrS9AoQ.jpg\" alt=\"Al hacer una trasferencia de moto, se transfieren también las multas?\" tit",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-05T12:13:13.469980+00:00"
+    }
+  ],
+  "leads_hot": [
+    {
+      "id": "3edc7ab1e0baf509",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/National-Effort-17",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-05-15T04:58:36+00:00",
+      "fecha_iso": "2026-05-15T04:58:36+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así/\"> <img src=\"https://preview.redd.it/46t9ndtpf81h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=f9f02955181b68dbf5a80fa86be2cf0b6d4e2fbc\" alt=\"Les pasó alguna",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-05T12:13:13.469348+00:00"
+    },
+    {
+      "id": "7b1b683fe1e9b47d",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/ibuorofeno800",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "08_or_document_problem": 40,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
+        "document_08",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-05T12:13:13.469504+00:00"
+    },
+    {
+      "id": "37887ef59e148e82",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/TomasRojoM",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2025-02-05T23:55:23+00:00",
+      "fecha_iso": "2025-02-05T23:55:23+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren/\"> <img src=\"https://b.thumbs.redditmedia.com/e2x3sLjaiXt5AKnB2JUQGmqffscX787HINeGvrS9AoQ.jpg\" alt=\"Al hacer una trasferencia de moto, se transfieren también las multas?\" tit",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-05T12:13:13.469980+00:00"
+    }
+  ],
   "leads_warm": [],
   "insights": [
-    "Sin datos suficientes para generar insights."
+    "El 100% de los leads calientes provienen de Reddit.",
+    "El 33% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Problema de transferencia.",
+    "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -46,7 +267,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 60.12,
+    "runtime_seconds": 59.58,
     "queries_executed": 1
   }
 }
