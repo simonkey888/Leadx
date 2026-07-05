@@ -1,22 +1,23 @@
 {
-  "generated_at": "2026-07-05T19:24:46.755094+00:00",
-  "run_id": "b5fe88584cbf",
+  "generated_at": "2026-07-05T20:54:14.690717+00:00",
+  "run_id": "3eb887d38af7",
   "summary": {
-    "total_leads": 1,
-    "hot_leads": 0,
-    "warm_leads": 1,
+    "total_leads": 5,
+    "hot_leads": 5,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 55.0,
-    "avg_score_hot": 0,
-    "conversion_probability": 0.0,
+    "avg_score": 70.0,
+    "avg_score_hot": 70.0,
+    "conversion_probability": 100.0,
     "by_category": {
-      "TRANSFER_PROBLEM": 1
+      "TRANSFER_PROBLEM": 1,
+      "FINE_DISPUTE": 4
     },
     "by_platform": {
-      "Reddit": 1
+      "Reddit": 5
     },
     "by_province": {
       "CABA": 1
@@ -24,22 +25,22 @@
   },
   "leads_all": [
     {
-      "id": "416b56d85ce7c74b",
-      "score": 55,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Weak_Bus8157",
-      "provincia": "CABA",
+      "id": "b744f4dd9d7012be",
+      "score": 95,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Sas9977",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2025-06-23T12:06:02+00:00",
-      "fecha_iso": "2025-06-23T12:06:02+00:00",
+      "fecha_visible": "2026-05-24T01:54:24+00:00",
+      "fecha_iso": "2026-05-24T01:54:24+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/fulbo/comments/1lieuht/a_57_años_de_la_mayor_tragedia_del_fútbol",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Puerta 12</p> <p>23/06/68</p> <p>La peor tragedia de la historia del fútbol argentino. Hecho que NO tuvo culpables y su caso fue ARCHIVADO. #ProhibidoOlvidar</p> <p>En esa fría tarde de invierno en el estadio Monumental de Núñez, @RiverPlate y @BocaJrsOficial empata",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tlypbs/multa_en_auto_usado",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Consulta, quizas pueden ayudar: un usado (por la dueña anterior) tenia una multa, se lo compro a una agencia y la agencia da el libre deuda y los otros papeles firmados y sellados, pero la multa sigue apareciendo como vencida y sin pagar, en la agencia no saben que",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -47,35 +48,32 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
+        "multa_or_fotomulta": 60,
+        "libre_deuda_problem": 35
       },
       "detected_signals": [
-        "document_08",
-        "argentina"
+        "multa_fotomulta",
+        "libre_deuda"
       ],
-      "discovery_timestamp": "2026-07-05T19:24:46.754209+00:00"
-    }
-  ],
-  "leads_hot": [],
-  "leads_warm": [
+      "discovery_timestamp": "2026-07-05T20:54:14.690339+00:00"
+    },
     {
-      "id": "416b56d85ce7c74b",
-      "score": 55,
-      "label": "commercial_signal",
+      "id": "28e3318e4e90dd8a",
+      "score": 75,
+      "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Weak_Bus8157",
+      "persona": "u/Maximum_Guard5610",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
-      "vehiculo": "",
+      "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2025-06-23T12:06:02+00:00",
-      "fecha_iso": "2025-06-23T12:06:02+00:00",
+      "fecha_visible": "2026-07-03T16:07:14+00:00",
+      "fecha_iso": "2026-07-03T16:07:14+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/fulbo/comments/1lieuht/a_57_años_de_la_mayor_tragedia_del_fútbol",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Puerta 12</p> <p>23/06/68</p> <p>La peor tragedia de la historia del fútbol argentino. Hecho que NO tuvo culpables y su caso fue ARCHIVADO. #ProhibidoOlvidar</p> <p>En esa fría tarde de invierno en el estadio Monumental de Núñez, @RiverPlate y @BocaJrsOficial empata",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -84,16 +82,281 @@
       "email_publico": "",
       "score_breakdown": {
         "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
         "argentina_signal": 15
       },
       "detected_signals": [
         "document_08",
+        "recent_0_3_days",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-05T19:24:46.754209+00:00"
+      "discovery_timestamp": "2026-07-05T20:54:14.688699+00:00"
+    },
+    {
+      "id": "5ce105110fcf2d87",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/didis-ptm-97",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-08T22:34:07+00:00",
+      "fecha_iso": "2026-06-08T22:34:07+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/Nicaragua/comments/1u0n313/nicaragua",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Mae, me multaron el sábado (ya andaba una multa vencida, así que fue mi culpa). El oficial no me regresó mi cédula (me di cuenta hasta hoy). Me dijeron que se iban a llevar el carro y, como prefiero morirme antes que dar mordida, les dije que estaba bien, que no ent",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.689881+00:00"
+    },
+    {
+      "id": "a3bcfc2a008140e4",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Monosniper_",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-06-05T02:13:23+00:00",
+      "fecha_iso": "2026-06-05T02:13:23+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tx7swu/al_mecánico_le_pusieron_dos_multas_y_se_lavo_las",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Bueno eso resulta que tengo tenía el auto parado 6 meses y lo mandé al mecánico, ahora resulta que hoy el tipo fue a probar el auto y había un control, el tipo siguió y lo pararon, bueno, le clavaron dos multas una por estar sin el seguro y otra por la vtv vencida e",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.689990+00:00"
+    },
+    {
+      "id": "66baefc372a1d3fd",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/tonecouves",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-01T09:28:11+00:00",
+      "fecha_iso": "2026-06-01T09:28:11+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/tudoCondominio/comments/1ttmyb3/alterações_ao_regulamento_interno_penalidades",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Olá a todos.</p> <p>Um dos pontos na assembleia é a aprovação do novo regulamento interno (proposto pela empresa de administração) que a única alteração que tem face ao atual é a alteração do artigo 28 que a seguir exponho:</p> <p>PENALIDADES ARTIGO 28°<br/> 1 - O p",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.690258+00:00"
     }
   ],
-  "insights": [],
+  "leads_hot": [
+    {
+      "id": "b744f4dd9d7012be",
+      "score": 95,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Sas9977",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-05-24T01:54:24+00:00",
+      "fecha_iso": "2026-05-24T01:54:24+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tlypbs/multa_en_auto_usado",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Consulta, quizas pueden ayudar: un usado (por la dueña anterior) tenia una multa, se lo compro a una agencia y la agencia da el libre deuda y los otros papeles firmados y sellados, pero la multa sigue apareciendo como vencida y sin pagar, en la agencia no saben que",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "libre_deuda_problem": 35
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "libre_deuda"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.690339+00:00"
+    },
+    {
+      "id": "28e3318e4e90dd8a",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Maximum_Guard5610",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-03T16:07:14+00:00",
+      "fecha_iso": "2026-07-03T16:07:14+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1umij82/busco_autos_para_fotos/\"> <img src=\"https://preview.redd.it/bhqvenycg1bh1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=8a59a7228b7644c0a9674eab256f7308d4cc4926\" alt=\"Busco autos para fotos\" title=\"Busc",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "08_or_document_problem": 40,
+        "recent_0_3_days": 20,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "document_08",
+        "recent_0_3_days",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.688699+00:00"
+    },
+    {
+      "id": "5ce105110fcf2d87",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/didis-ptm-97",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-08T22:34:07+00:00",
+      "fecha_iso": "2026-06-08T22:34:07+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/Nicaragua/comments/1u0n313/nicaragua",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Mae, me multaron el sábado (ya andaba una multa vencida, así que fue mi culpa). El oficial no me regresó mi cédula (me di cuenta hasta hoy). Me dijeron que se iban a llevar el carro y, como prefiero morirme antes que dar mordida, les dije que estaba bien, que no ent",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.689881+00:00"
+    },
+    {
+      "id": "a3bcfc2a008140e4",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Monosniper_",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-06-05T02:13:23+00:00",
+      "fecha_iso": "2026-06-05T02:13:23+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1tx7swu/al_mecánico_le_pusieron_dos_multas_y_se_lavo_las",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Bueno eso resulta que tengo tenía el auto parado 6 meses y lo mandé al mecánico, ahora resulta que hoy el tipo fue a probar el auto y había un control, el tipo siguió y lo pararon, bueno, le clavaron dos multas una por estar sin el seguro y otra por la vtv vencida e",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.689990+00:00"
+    },
+    {
+      "id": "66baefc372a1d3fd",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/tonecouves",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-06-01T09:28:11+00:00",
+      "fecha_iso": "2026-06-01T09:28:11+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/tudoCondominio/comments/1ttmyb3/alterações_ao_regulamento_interno_penalidades",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Olá a todos.</p> <p>Um dos pontos na assembleia é a aprovação do novo regulamento interno (proposto pela empresa de administração) que a única alteração que tem face ao atual é a alteração do artigo 28 que a seguir exponho:</p> <p>PENALIDADES ARTIGO 28°<br/> 1 - O p",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-05T20:54:14.690258+00:00"
+    }
+  ],
+  "leads_warm": [],
+  "insights": [
+    "El 100% de los leads calientes provienen de Reddit.",
+    "El 20% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Disputa de multa/fotomulta.",
+    "0% de los leads calientes tienen contacto público visible.",
+    "2 leads calientes muestran señales de urgencia temporal."
+  ],
   "meta": {
     "version": "1.0",
     "pipeline_steps": [
@@ -118,7 +381,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 61.26,
-    "queries_executed": 1
+    "runtime_seconds": 61.54,
+    "queries_executed": 2
   }
 }
