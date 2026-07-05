@@ -287,6 +287,9 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   .badge-gestion  { background: #F0FDF4; color: #166534; }
   .badge-cerrado  { background: #ECFDF5; color: var(--green); }
   .badge-descartado { background: #FEF2F2; color: var(--red); }
+  .kpi-value.purple { color: var(--purple); }
+  .badge-hot { background: #FEF3C7; color: #92400E; margin-left: 4px; }
+  .badge-warm { background: #DBEAFE; color: #1E40AF; margin-left: 4px; }
 
   /* ── SOURCE TAG ── */
   .source-tag {
@@ -570,6 +573,9 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <a id="modal-wa-btn" class="btn-wa" href="#" target="_blank">
         💬 WhatsApp
       </a>
+      <button id="modal-copy-tpl" class="btn-secondary" onclick="copyWaTemplate()" style="margin-left:8px">
+        📋 Copiar mensaje
+      </button>
     </div>
 
     <hr class="divider">
@@ -591,6 +597,11 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <a id="modal-url" href="#" target="_blank"
         style="font-size:12px;color:var(--primary)">Abrir enlace →</a>
     </div>
+    <div class="modal-field" id="modal-profile-field" style="display:none">
+      <label>Contactar al usuario (DM)</label>
+      <a id="modal-profile-url" href="#" target="_blank"
+        style="font-size:12px;color:var(--orange)">Abrir perfil de Reddit →</a>
+    </div>
 
     <hr class="divider">
 
@@ -603,6 +614,15 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
         <option>Cerrado</option>
         <option>Descartado</option>
       </select>
+    </div>
+    <div class="modal-field" id="modal-monto-field" style="display:none">
+      <label>Monto cobrado (ARS)</label>
+      <input type="number" id="modal-monto" placeholder="0"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none"
+        onchange="saveMontoFromModal()">
+      <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block">
+        Comisión estimada (15%): <strong id="modal-comision">—</strong>
+      </small>
     </div>
     <div class="modal-field">
       <label>Notas internas</label>
@@ -696,9 +716,20 @@ async function loadLeads() {
       return true;
     });
 
-    // Para el CRM: solo leads con persona real (no anónimo)
-    // + leads con contacto (whatsapp/email/phone) + leads manuales
+    // M2: Filtrar SEO/artículos (medios y blogs no son leads)
+    const SEO_BLACKLIST = ['tn.com.ar','infobae.com','clarin.com','lanacion.com.ar',
+      'iprofesional.com','perfil.com','cronista.com','ambito.com','pagina12.com.ar',
+      'multabot.com.ar','segurarse.com.ar','iusnoticias.com.ar','parrillacero5.com.ar',
+      'autocosmos.com.ar','wikipedia.org','youtube.com','reclamosonline.com.ar',
+      'carchecking.com.ar','portaldeabogados.com','jus.gov.ar','gob.ar','gov.ar'];
+    const isSeoSpam = (l) => {
+      const src = ((l.platform||'') + ' ' + (l.source_url||'') + ' ' + (l.url||'')).toLowerCase();
+      return SEO_BLACKLIST.some(d => src.includes(d));
+    };
+
+    // CRM: solo leads con persona real (no anónimo) o con contacto
     const apiCRM = S.allLeads.filter(l => {
+      if (isSeoSpam(l)) return false;
       const persona = l.persona || l.author || '';
       const hasPersona = persona && persona.trim() && persona !== '(anónimo)' && persona !== 'anónimo' && persona !== '';
       const hasContact = l.whatsapp_publico || l.email_publico || l.telefono_publico || l.phone || l.whatsapp;
@@ -841,6 +872,8 @@ function renderTable() {
       <td class="td-resumen"><p>\${escH(l._resumen)}</p></td>
       <td>
         <span class="badge badge-\${cssStatus(l._status)}">\${l._status}</span>
+        \${l.score >= 70 ? '<span class="badge badge-hot" title="Hot lead">🔥</span>' : ''}
+        \${l.score >= 50 && l.score < 70 ? '<span class="badge badge-warm" title="Warm lead">⚡</span>' : ''}
       </td>
       <td>
         <div class="actions" onclick="event.stopPropagation()">
@@ -885,12 +918,18 @@ function renderKPIs() {
   const leads    = S.crmLeads;
   const withWa   = leads.filter(l => l._wa_url).length;
   const enProc   = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
-  const cerrados = leads.filter(l => l._status === 'Cerrado').length;
+  const cerrados = leads.filter(l => l._status === 'Cerrado');
+  const comision = cerrados.reduce((sum, l) => {
+    const stored = DB.get(l.id);
+    return sum + (stored.monto || 0) * 0.15;
+  }, 0);
 
   document.getElementById('kpi-total').textContent    = leads.length;
   document.getElementById('kpi-wa').textContent       = withWa;
   document.getElementById('kpi-proceso').textContent  = enProc;
-  document.getElementById('kpi-cerrados').textContent = cerrados;
+  document.getElementById('kpi-cerrados').textContent = cerrados.length;
+  const comEl = document.getElementById('kpi-comision');
+  if (comEl) comEl.textContent = '$' + comision.toLocaleString('es-AR');
 }
 
 // ── SIDEBAR DYNAMIC ───────────────────────────────────────────────────────
@@ -955,9 +994,33 @@ function openDetail(id) {
   document.getElementById('modal-notes').value          = l._notes || '';
   document.getElementById('modal-status-sel').value     = l._status || 'Nuevo';
 
+  // M3: Si está Cerrado, mostrar campo monto
+  const storedForMonto = DB.get(id);
+  const montoField = document.getElementById('modal-monto-field');
+  if (l._status === 'Cerrado') {
+    montoField.style.display = 'block';
+    document.getElementById('modal-monto').value = storedForMonto.monto || '';
+    updateComision();
+  } else {
+    montoField.style.display = 'none';
+  }
+
   const url = document.getElementById('modal-url');
   url.href = l.url || '#';
   url.textContent = l.url ? 'Abrir enlace →' : 'Sin enlace';
+
+  // M8: Link al perfil del autor (Reddit u/xxx → DM directo)
+  const profileField = document.getElementById('modal-profile-field');
+  const profileUrl = document.getElementById('modal-profile-url');
+  const author = (l.persona || l.author || '').trim();
+  const redditUser = author.startsWith('u/') ? author.slice(2) :
+                     author.startsWith('/u/') ? author.slice(3) : '';
+  if (redditUser && (l.url || '').includes('reddit.com')) {
+    profileUrl.href = 'https://www.reddit.com/user/' + redditUser + '/';
+    profileField.style.display = 'block';
+  } else {
+    profileField.style.display = 'none';
+  }
 
   const box = document.getElementById('modal-contact-box');
   const waBtn = document.getElementById('modal-wa-btn');
@@ -978,6 +1041,20 @@ function openDetail(id) {
   document.getElementById('detailModal').classList.add('open');
 }
 
+function copyWaTemplate() {
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  const persona = (l.persona || l.author || '').replace(/^u\//, '').replace(/^\/u\//, '');
+  const problema = l.problem_summary || l.title || l._resumen || 'tu consulta';
+  const tpl = 'Hola ' + (persona || '') + ', te contactamos de SinFotomultas. Vi que tenés una consulta sobre ' + problema + '. ¿Querés que te ayudemos a resolverlo? Consulta sin cargo.';
+  navigator.clipboard.writeText(tpl).then(() => {
+    const btn = document.getElementById('modal-copy-tpl');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  }).catch(() => alert('No se pudo copiar. Texto:\n\n' + tpl));
+}
+
 function closeModal() {
   document.getElementById('detailModal').classList.remove('open');
   S.currentId = null;
@@ -991,8 +1068,34 @@ function saveStatusFromModal() {
   l._status = status;
   const stored = DB.get(S.currentId);
   DB.set(S.currentId, { ...stored, status });
+  // M3: Mostrar campo monto solo si está Cerrado
+  const montoField = document.getElementById('modal-monto-field');
+  if (status === 'Cerrado') {
+    montoField.style.display = 'block';
+    document.getElementById('modal-monto').value = stored.monto || '';
+    updateComision();
+  } else {
+    montoField.style.display = 'none';
+  }
   renderKPIs();
   renderCounts();
+}
+
+function updateComision() {
+  const monto = parseFloat(document.getElementById('modal-monto').value) || 0;
+  const comision = monto * 0.15;
+  document.getElementById('modal-comision').textContent = '$' + comision.toLocaleString('es-AR');
+}
+
+function saveMontoFromModal() {
+  if (!S.currentId) return;
+  const monto = parseFloat(document.getElementById('modal-monto').value) || 0;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (l) l._monto = monto;
+  const stored = DB.get(S.currentId);
+  DB.set(S.currentId, { ...stored, monto });
+  updateComision();
+  renderKPIs();
 }
 
 function saveNotesFromModal() {
