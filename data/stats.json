@@ -1,37 +1,12 @@
 {
-  "total_runs": 57,
-  "last_run": "2026-07-06T10:15:51.716777+00:00",
-  "last_run_id": "eeaa151a77d8",
+  "total_runs": 58,
+  "last_run": "2026-07-06T12:00:36.511625+00:00",
+  "last_run_id": "c6aafb253a09",
   "total_leads_all_time": 546,
   "total_hot_leads_all_time": 445,
-  "avg_hot_per_run": 7.8,
-  "runs_today": 6,
+  "avg_hot_per_run": 7.7,
+  "runs_today": 7,
   "last_7_days": [
-    {
-      "run_id": "cd161e1b5627",
-      "generated_at": "2026-07-05T23:02:27.749221+00:00",
-      "summary": {
-        "total_leads": 2,
-        "hot_leads": 2,
-        "warm_leads": 0,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 100.0,
-        "avg_score_hot": 100.0,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "TRANSFER_PROBLEM": 2
-        },
-        "by_platform": {
-          "Reddit": 2
-        },
-        "by_province": {
-          "CABA": 2
-        }
-      }
-    },
     {
       "run_id": "bb61fb2133ff",
       "generated_at": "2026-07-06T02:42:58.028332+00:00",
@@ -148,6 +123,25 @@
     {
       "run_id": "eeaa151a77d8",
       "generated_at": "2026-07-06T10:15:51.716777+00:00",
+      "summary": {
+        "total_leads": 0,
+        "hot_leads": 0,
+        "warm_leads": 0,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 0,
+        "avg_score_hot": 0,
+        "conversion_probability": 0,
+        "by_category": {},
+        "by_platform": {},
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "c6aafb253a09",
+      "generated_at": "2026-07-06T12:00:36.511625+00:00",
       "summary": {
         "total_leads": 0,
         "hot_leads": 0,
