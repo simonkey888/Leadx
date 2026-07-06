@@ -1,21 +1,23 @@
 {
-  "generated_at": "2026-07-06T20:50:37.407299+00:00",
-  "run_id": "4b6fce945190",
+  "generated_at": "2026-07-06T21:57:25.580914+00:00",
+  "run_id": "10927ee99153",
   "summary": {
-    "total_leads": 1,
-    "hot_leads": 1,
+    "total_leads": 2,
+    "hot_leads": 2,
     "warm_leads": 0,
     "contactable": 1,
     "with_whatsapp": 0,
     "with_phone": 1,
     "with_email": 0,
-    "avg_score": 100.0,
-    "avg_score_hot": 100.0,
+    "avg_score": 92.5,
+    "avg_score_hot": 92.5,
     "conversion_probability": 100.0,
     "by_category": {
+      "TRANSFER_PROBLEM": 1,
       "FINE_DISPUTE": 1
     },
     "by_platform": {
+      "Reddit": 1,
       "Ventafe.Com.Ar": 1
     },
     "by_province": {}
@@ -56,7 +58,40 @@
         "contact_visible",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T20:50:37.406743+00:00"
+      "discovery_timestamp": "2026-07-06T21:57:23.981938+00:00"
+    },
+    {
+      "id": "102637a7b92a4eee",
+      "score": 85,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/honguito_cabezon",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2026-06-21T17:43:32+00:00",
+      "fecha_iso": "2026-06-21T17:43:32+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/MotosArg/comments/1ubw92g/mí_primer_moto_y_consulta_transferencia",
+      "quoted_text": "<table> <tr><td> <a href=\" <img src=\" alt=\"Mí primer moto y consulta transferencia\" title=\"Mí primer moto y consulta transferencia\" /> </a> </td><td> <!-- SC_OFF --><div class=\"md\"><p>Hola gente como va, por acá contento por tener mí primer moto.Hace un mes aprox la compré usada. Aclaro que ya tengo",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "08_or_document_problem": 40
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "document_08"
+      ],
+      "discovery_timestamp": "2026-07-06T21:57:23.981042+00:00"
     }
   ],
   "leads_hot": [
@@ -95,14 +130,48 @@
         "contact_visible",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T20:50:37.406743+00:00"
+      "discovery_timestamp": "2026-07-06T21:57:23.981938+00:00"
+    },
+    {
+      "id": "102637a7b92a4eee",
+      "score": 85,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/honguito_cabezon",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2026-06-21T17:43:32+00:00",
+      "fecha_iso": "2026-06-21T17:43:32+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/MotosArg/comments/1ubw92g/mí_primer_moto_y_consulta_transferencia",
+      "quoted_text": "<table> <tr><td> <a href=\" <img src=\" alt=\"Mí primer moto y consulta transferencia\" title=\"Mí primer moto y consulta transferencia\" /> </a> </td><td> <!-- SC_OFF --><div class=\"md\"><p>Hola gente como va, por acá contento por tener mí primer moto.Hace un mes aprox la compré usada. Aclaro que ya tengo",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "transfer_problem": 45,
+        "08_or_document_problem": 40
+      },
+      "detected_signals": [
+        "transfer_problem",
+        "document_08"
+      ],
+      "discovery_timestamp": "2026-07-06T21:57:23.981042+00:00"
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 100% de los leads calientes provienen de Ventafe.Com.Ar.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "100% de los leads calientes tienen contacto público visible."
+    "El 50% de los leads calientes provienen de Reddit.",
+    "El problema más frecuente es: Problema de transferencia.",
+    "50% de los leads calientes tienen contacto público visible.",
+    "1 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
     "version": "1.0",
@@ -130,7 +199,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 62.56,
-    "queries_executed": 2
+    "runtime_seconds": 69.56,
+    "queries_executed": 3
   }
 }

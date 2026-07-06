@@ -1677,5 +1677,30 @@
       },
       "by_province": {}
     }
+  },
+  {
+    "run_id": "10927ee99153",
+    "generated_at": "2026-07-06T21:57:25.580914+00:00",
+    "summary": {
+      "total_leads": 2,
+      "hot_leads": 2,
+      "warm_leads": 0,
+      "contactable": 1,
+      "with_whatsapp": 0,
+      "with_phone": 1,
+      "with_email": 0,
+      "avg_score": 92.5,
+      "avg_score_hot": 92.5,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 1,
+        "FINE_DISPUTE": 1
+      },
+      "by_platform": {
+        "Reddit": 1,
+        "Ventafe.Com.Ar": 1
+      },
+      "by_province": {}
+    }
   }
 ]
