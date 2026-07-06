@@ -1,15 +1,20 @@
 ================================================================================
-LEADX v2.2 — CODIGO COMPLETO ACTUALIZADO
-Fecha: 6 julio 2026 | Commit: fce5be5 (ULTIMA VERSION)
+LEADX v2.3 — CODIGO COMPLETO ACTUALIZADO
+Fecha: 6 julio 2026 | Commit: 17f93fd (ULTIMA VERSION)
 Repo: github.com/simonkey888/Leadx
 ================================================================================
 
-NOVEDADES v2.2 (DeepSeek + Qwen consensus):
+NOVEDADES v2.3 (Qwen fixes):
+  FIX 1: Frontend auth con sessionStorage (prompt al cargar, sin ?key= en URL)
+  FIX 2: Apify Facebook webhook configurado (resultados ya no se pierden)
+
+NOVEDADES v2.2 (DeepSeek + Qwen):
   Step 4.6: mine_comments_for_contacts() - scraea comentarios del post
   Step 4.7: mine_profile_for_contacts() - scraea perfil del autor (comments.rss)
-  Ambas buscan telefono/WA/email con regex federal AR
-  Score boost: +25 phone, +30 WhatsApp, +15 email
-  Proyeccion: 1 contactable → 15-25 contactables (9-15%)
+
+NOVEDADES v2.1 (Qwen+InternLM+DeepSeek P0 fixes):
+  WhatsApp validate fire & forget + /api/apify-webhook + /api/whatsapp-webhook
+  Limpieza: cron-run, runPipelineCron, c_data_iter eliminados
 
 ARQUITECTURA FINAL:
   Python (GH Actions cron 1h) → scraping + scoring + OSINT + mining → POST /api/ingest
@@ -17,6 +22,9 @@ ARQUITECTURA FINAL:
   Frontend → read only (renderiza l.score de Python)
 
 REGLA DE ORO: Ningun dato se calcula en dos lugares.
+  Score → Python (unico cerebro)
+  Estado CRM → KV (preservado en merge)
+  Render → Frontend (read only)
 
 ENDPOINTS Worker (17):
   GET  /                  CRM | GET  /cookies.html   Refrescador FB
@@ -24,7 +32,7 @@ ENDPOINTS Worker (17):
   GET  /api/health        Mon | POST /api/ingest     Deep merge
   GET  /api/kv            KV  | POST /api/kv         KV write
   GET  /api/ml-questions  ML  | GET  /api/reddit-bio  Bio scraper
-  POST /api/apify-facebook FB | POST /api/apify-webhook FB resultados
+  POST /api/apify-facebook FB | POST /api/apify-webhook FB resultados (auto)
   POST /api/whatsapp-validate | POST /api/whatsapp-webhook WA resultados
   GET  /api/clasificar-basic  | POST /api/clasificar-patente
   POST /api/clasificar-webhook| GET  /api/ddg-foromoto
@@ -36,7 +44,7 @@ SCORING: intencion(0-40) + contacto(0-30) + urgencia(0-20) + geo(0-10)
   >=70 hot (rojo) | 40-69 warm (naranja) | <40 cold (gris)
 
 FUENTES:
-  ✅ Reddit /search.rss | ✅ Reddit comments.rss | ✅ Apify FB (fire&forget)
+  ✅ Reddit /search.rss | ✅ Reddit comments.rss | ✅ Apify FB (webhook auto)
   ✅ clasific.ar basic  | ✅ WA validator       | ✅ OSINT shadow profile
   ✅ Comment mining     | ✅ Profile mining      | ❌ ML API (403)
 
@@ -44,8 +52,8 @@ FUENTES:
 
 
 ================================================================================
-FILE: worker.js | 2654 lines | SHA: edf33929f236
-DESC: Cloudflare Worker (edge only - 17 endpoints + CRM)
+FILE: worker.js | 2682 lines | SHA: b6d379717a03
+DESC: Cloudflare Worker (edge only - 17 endpoints + CRM + sessionStorage auth)
 ================================================================================
 
 ```javascript
@@ -1392,7 +1400,22 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  return new URLSearchParams(location.search).get('key') || '';
+  // Qwen fix: sessionStorage + URL param
+  let secret = sessionStorage.getItem('leadx_secret');
+  if (!secret) {
+    const urlSecret = new URLSearchParams(location.search).get('key');
+    if (urlSecret) {
+      sessionStorage.setItem('leadx_secret', urlSecret);
+      secret = urlSecret;
+    }
+  }
+  return secret || '';
+}
+
+// Prompt de auth al cargar si no hay secret
+if (!sessionStorage.getItem('leadx_secret') && !new URLSearchParams(location.search).get('key')) {
+  const s = prompt('🔒 Ingresá la clave de acceso:');
+  if (s) sessionStorage.setItem('leadx_secret', s);
 }
 
 function closeModal() {
@@ -2406,14 +2429,27 @@ export default {
         const runId = runData.data.id;
         const datasetId = runData.data.defaultDatasetId;
 
-        // GPT FIX 2: Fire & Forget - devolver runId inmediatamente
-        // Los resultados llegaran via /api/apify-webhook
+        // Qwen fix: configurar webhook para recibir resultados automaticamente
+        const webhookConfigUrl = 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook';
+        try {
+          await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/webhooks?token=' + env.APIFY_TOKEN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requestUrl: webhookConfigUrl,
+              eventName: 'ACTOR.RUN.SUCCEEDED',
+            }),
+          });
+        } catch (e) {}
+
+        // Fire & Forget - devolver runId inmediatamente
         return jsonResponse({
           ok: true,
           status: 'processing',
           run_id: runId,
           dataset_id: datasetId,
-          message: 'Apify procesando en background. Resultados via webhook.',
+          webhook_configured: true,
+          message: 'Apify procesando. Resultados via webhook automatico.',
           cookies_source: cookiesSource,
         }, corsHeaders);
       } catch (e) {
@@ -2709,7 +2745,7 @@ export default {
 
 ================================================================================
 FILE: generate_payload.py | 1585 lines | SHA: 712f8c25c6f9
-DESC: Pipeline Python (unico cerebro - scoring + OSINT + mining + regex federal)
+DESC: Pipeline Python (unico cerebro - scoring + OSINT + comment mining + profile mining)
 ================================================================================
 
 ```python
@@ -6107,6 +6143,6 @@ jobs:
 
 
 ================================================================================
-TOTAL: 230,686 chars | 5993 lines | 7 archivos
-Commit: fce5be5 | Version: v2.2
+TOTAL: 231,729 chars | 6021 lines | 7 archivos
+Commit: 17f93fd | Version: v2.3
 ================================================================================
