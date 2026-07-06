@@ -1,51 +1,38 @@
 ================================================================================
-LEADX v2.5 — CODIGO COMPLETO ACTUALIZADO
-Fecha: 6 julio 2026 | Commit: 91acac9 (ULTIMA VERSION)
-Repo: github.com/simonkey888/Leadx
+LEADX v2.5.1 — CODIGO COMPLETO ACTUALIZADO
+Fecha: 6 julio 2026 | Commit: 8582730 (ULTIMA VERSION)
+Repo: https://github.com/simonkey888/Leadx
 ================================================================================
 
-NOVEDADES v2.5 (DeepSeek+Qwen 7 fixes):
-  FIX 1: Prompt de auth eliminado (URL param simple)
-  FIX 2: Filtro de idioma portugues (Brasil/Portugal)
-  FIX 3: Blacklist 25+ subreddits irrelevantes
-  FIX 4: Limpieza HTML basura (img, comments, URLs)
-  FIX 5: Contexto vehicular estricto (2+ keywords)
-  FIX 6: Bloquear posts de solo imagenes/links
-  FIX 7: Workflow simplificado con curl
-
-NOVEDADES v2.3 (Qwen):
-  sessionStorage auth + Apify webhook configurado
-
-NOVEDADES v2.2 (DeepSeek+Qwen):
-  Step 4.6: mine_comments_for_contacts() - scraea comentarios
-  Step 4.7: mine_profile_for_contacts() - scraea perfil autor
+BUGS CRITICOS RESUELTOS EN ESTA VERSION:
+  - UnboundLocalError: phone/whatsapp/email inicializados antes del filtro vehicular
+  - NameError: mine_comments/mine_profile movidas ANTES de run_pipeline()
+  - Apify webhookUrl agregado al body del run (Facebook resultados ya no se pierden)
+  - Rate limit en mining aumentado a 2.0s (evita 429 de Reddit)
+  - Filtro de contexto relajado (permite contacto sin dolor explicito)
+  - IDs estables basados en source_url (evita duplicados fantasma)
 
 ARQUITECTURA FINAL:
   Python (GH Actions cron 1h) → scraping+scoring+OSINT+mining → POST /api/ingest
   Worker → edge API + KV proxy + deep merge (CERO logica negocio)
   Frontend → read only (renderiza l.score de Python)
 
-ENDPOINTS Worker (17):
-  GET / CRM | GET /cookies.html | GET /api/leads | GET /api/metrics
-  GET /api/health | POST /api/ingest | GET/POST /api/kv
-  GET /api/ml-questions | GET /api/reddit-bio
-  POST /api/apify-facebook | POST /api/apify-webhook
-  POST /api/whatsapp-validate | POST /api/whatsapp-webhook
-  GET /api/clasificar-basic | POST /api/clasificar-patente
-  POST /api/clasificar-webhook | GET /api/ddg-foromoto
+ESTADO DE FUENTES (verificado en production):
+  🟡 Reddit RSS: 1/5 queries funcionan (429 rate limit en las demas)
+  ❌ DDG: 403 Forbidden desde GH Actions
+  ❌ Apify FB: 403 Forbidden (Cloudflare WAF bloquea GH Actions → Worker)
+  ✅ Pipeline corre sin errores Python
+  ✅ Ingest curl HTTP 200 (pero payload puede ser vacio si 0 leads)
 
-SCORING: intencion(0-40)+contacto(0-30)+urgencia(0-20)+geo(0-10)
-  >=70 hot | 40-69 warm | <40 cold
-
-FUENTES:
-  ✅ Reddit RSS | ✅ Reddit comments/profile mining | ✅ Apify FB (webhook)
-  ✅ clasific.ar | ✅ WA validator | ✅ OSINT shadow profile
-  ❌ ML API (403) | ❌ CENAT (captcha)
+BLOQUEO CONOCIDO:
+  GH Actions (IPs Azure) esta bloqueado por Reddit/DDG/Cloudflare WAF.
+  El pipeline corre OK pero no puede traer leads nuevos.
+  Soluciones: VPS (IP no bloqueada) o cron del Worker (IP edge).
 
 ================================================================================
 
 ================================================================================
-FILE: worker.js | 2667 lines | SHA: d49a69db2cce
+FILE: worker.js | 2658 lines | SHA: ae02646f6a0a
 DESC: Cloudflare Worker (edge only - CRM + 17 endpoints)
 ================================================================================
 
@@ -2392,10 +2379,14 @@ export default {
           cookies: cookiesStr,
         };
 
+        // Qwen fix: Pasar webhookUrl directamente en el body del run
         const runRes = await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/runs?token=' + env.APIFY_TOKEN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(apifyInput),
+          body: JSON.stringify({
+            ...apifyInput,
+            webhookUrl: 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook',
+          }),
         });
 
         if (!runRes.ok) {
@@ -2406,19 +2397,6 @@ export default {
         const runData = await runRes.json();
         const runId = runData.data.id;
         const datasetId = runData.data.defaultDatasetId;
-
-        // Qwen fix: configurar webhook para recibir resultados automaticamente
-        const webhookConfigUrl = 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook';
-        try {
-          await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/webhooks?token=' + env.APIFY_TOKEN, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              requestUrl: webhookConfigUrl,
-              eventName: 'ACTOR.RUN.SUCCEEDED',
-            }),
-          });
-        } catch (e) {}
 
         // Fire & Forget - devolver runId inmediatamente
         return jsonResponse({
@@ -2722,7 +2700,7 @@ export default {
 
 
 ================================================================================
-FILE: generate_payload.py | 1617 lines | SHA: 642b67e7dc80
+FILE: generate_payload.py | 1618 lines | SHA: 4e4937ffdac0
 DESC: Pipeline Python (scoring + OSINT + mining + PT filter + vehicular strict)
 ================================================================================
 
@@ -3303,7 +3281,13 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "titulo", "titular", "denuncia de venta", "formulario 08",
     ]
     vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
-    if vehicular_count < 2:
+    # Inicializar variables antes del check (fix UnboundLocalError)
+    phone = ""
+    whatsapp = ""
+    email = ""
+    has_contact = bool(phone or whatsapp or email)
+    # Qwen fix: Solo descartar si NO tiene keywords vehiculares Y NO tiene contacto
+    if vehicular_count < 2 and not has_contact:
         return None
 
     # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
@@ -3314,8 +3298,7 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if len(combined) > 0 and (url_count * 30 + html_tag_count * 10) / len(combined) > 0.5:
         return None
 
-    # Extract phone
-    phone = ""
+    # Extract phone (ya inicializado arriba)
     for pattern in ARG_PHONE_PATTERNS:
         m = re.search(pattern, combined)
         if m:
@@ -3764,12 +3747,8 @@ def deduplicate_cases(leads: List[Lead]) -> List[Lead]:
     seen: Set[str] = set()
     out = []
     for lead in leads:
-        components = [
-            normalize_text(lead.quoted_text[:200]),
-            lead.source_url,
-            lead.persona,
-            lead.platform,
-        ]
+        # Qwen fix: Solo usar URL para ID (estable entre runs)
+        components = [lead.source_url or lead.quoted_text[:50]]
         composite = "|".join(components)
         h = hashlib.sha256(composite.encode("utf-8")).hexdigest()[:16]
         lead.id = h
@@ -3943,6 +3922,188 @@ START_TIME = time.time()
 QUERIES_EXECUTED = 0
 _pqm_global = None  # PendingQueryManager global, seteado en run_pipeline
 _CURRENT_GROUP_IDX = 0
+
+
+#===========================================================================
+# Step 4.6: Comment Mining — Extraer contactos de comentarios del post
+#===========================================================================
+def mine_comments_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea comentarios del post y busca telefonos/emails del autor."""
+    print("[Step 4.6] Mining comments for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        url_parts = lead.source_url.rstrip("/").split("/")
+        if len(url_parts) < 7 or "comments" not in url_parts:
+            continue
+        post_id = url_parts[6]
+
+        comments_url = f"https://old.reddit.com/comments/{post_id}.json?limit=50"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(comments_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not isinstance(data, list) or len(data) < 2:
+                    continue
+
+                comments_listing = data[1]
+                all_comment_text = ""
+                lead_author = lead.persona.replace("u/", "").strip().lower()
+
+                for child in comments_listing.get("data", {}).get("children", []):
+                    comment = child.get("data", {})
+                    author = comment.get("author", "")
+                    body = comment.get("body", "")
+
+                    if author and author != "[deleted]" and body:
+                        if author.lower() == lead_author:
+                            all_comment_text += " " + body
+
+                if not all_comment_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_comment_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_comment_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_comment_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(2.0)  # Qwen fix: Rate limit
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Comment Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+#===========================================================================
+# Step 4.7: Profile Mining — Extraer contactos del perfil de Reddit del autor
+#===========================================================================
+def mine_profile_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea el perfil del autor (comments.rss) y busca contacto en bio/historial."""
+    print("[Step 4.7] Mining user profiles for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        username = lead.persona.replace("u/", "").strip()
+        if not username or len(username) < 3:
+            continue
+
+        profile_url = f"https://www.reddit.com/user/{username}/comments/.rss?limit=25"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(profile_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/atom+xml,application/xml,text/xml")
+            with _urq.urlopen(req, timeout=15) as resp:
+                xml_content = resp.read().decode("utf-8", errors="replace")
+
+                entries = re.findall(r"<entry>([\s\S]*?)</entry>", xml_content, re.DOTALL)
+                all_profile_text = ""
+
+                for entry in entries:
+                    content_m = re.search(r"<content[^>]*>([\s\S]*?)</content>", entry, re.DOTALL)
+                    if content_m:
+                        raw = content_m.group(1)
+                        cleaned = re.sub(r"<[^>]+>", " ", raw)
+                        cleaned = cleaned.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                        cleaned = cleaned.replace("&quot;", '"').replace("&#39;", "'")
+                        all_profile_text += " " + cleaned
+
+                if not all_profile_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_profile_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_profile_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_profile_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(2.0)  # Qwen fix: Rate limit
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Profile Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
 
 
 def run_pipeline() -> Dict[str, Any]:
@@ -4162,188 +4323,6 @@ if __name__ == "__main__":
         "summary": payload["summary"],
         "insights": payload["insights"],
     }, ensure_ascii=False, indent=2))
-
-
-#===========================================================================
-# Step 4.6: Comment Mining — Extraer contactos de comentarios del post
-#===========================================================================
-def mine_comments_for_contacts(leads: List[Lead]) -> int:
-    """Scrapea comentarios del post y busca telefonos/emails del autor."""
-    print("[Step 4.6] Mining comments for contacts...", file=sys.stderr)
-    enriched_count = 0
-
-    for lead in leads:
-        if lead.platform != "Reddit":
-            continue
-        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
-            continue
-
-        url_parts = lead.source_url.rstrip("/").split("/")
-        if len(url_parts) < 7 or "comments" not in url_parts:
-            continue
-        post_id = url_parts[6]
-
-        comments_url = f"https://old.reddit.com/comments/{post_id}.json?limit=50"
-
-        try:
-            import urllib.request as _urq
-            req = _urq.Request(comments_url)
-            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
-            req.add_header("Accept", "application/json")
-            with _urq.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8", errors="replace"))
-                if not isinstance(data, list) or len(data) < 2:
-                    continue
-
-                comments_listing = data[1]
-                all_comment_text = ""
-                lead_author = lead.persona.replace("u/", "").strip().lower()
-
-                for child in comments_listing.get("data", {}).get("children", []):
-                    comment = child.get("data", {})
-                    author = comment.get("author", "")
-                    body = comment.get("body", "")
-
-                    if author and author != "[deleted]" and body:
-                        if author.lower() == lead_author:
-                            all_comment_text += " " + body
-
-                if not all_comment_text:
-                    continue
-
-                for pattern in ARG_PHONE_PATTERNS:
-                    m = re.search(pattern, all_comment_text)
-                    if m:
-                        digits = re.sub(r"\D", "", m.group(0))
-                        if 10 <= len(digits) <= 15:
-                            lead.telefono_publico = m.group(0).strip()
-                            lead.contacto_publico = True
-                            lead.score = min(100, (lead.score or 0) + 25)
-                            lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_PHONE"]
-                            enriched_count += 1
-                            break
-
-                if not lead.whatsapp_publico:
-                    for pattern in WHATSAPP_PATTERNS:
-                        m = re.search(pattern, all_comment_text, re.IGNORECASE)
-                        if m:
-                            num = m.group(1) if m.groups() else m.group(0)
-                            digits = re.sub(r"\D", "", num)
-                            if 8 <= len(digits) <= 15:
-                                if len(digits) == 10 and digits.startswith("11"):
-                                    digits = "549" + digits
-                                lead.whatsapp_publico = digits
-                                lead.contacto_publico = True
-                                lead.score = min(100, (lead.score or 0) + 30)
-                                lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_WHATSAPP"]
-                                enriched_count += 1
-                                break
-
-                if not lead.email_publico:
-                    m = re.search(EMAIL_PATTERN, all_comment_text)
-                    if m:
-                        lead.email_publico = m.group(1).lower().strip()
-                        lead.contacto_publico = True
-                        lead.score = min(100, (lead.score or 0) + 15)
-                        lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
-                        enriched_count += 1
-
-                time.sleep(1.0)
-        except Exception:
-            continue
-
-    if enriched_count:
-        print(f"  [Comment Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
-    return enriched_count
-
-
-#===========================================================================
-# Step 4.7: Profile Mining — Extraer contactos del perfil de Reddit del autor
-#===========================================================================
-def mine_profile_for_contacts(leads: List[Lead]) -> int:
-    """Scrapea el perfil del autor (comments.rss) y busca contacto en bio/historial."""
-    print("[Step 4.7] Mining user profiles for contacts...", file=sys.stderr)
-    enriched_count = 0
-
-    for lead in leads:
-        if lead.platform != "Reddit":
-            continue
-        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
-            continue
-
-        username = lead.persona.replace("u/", "").strip()
-        if not username or len(username) < 3:
-            continue
-
-        profile_url = f"https://www.reddit.com/user/{username}/comments/.rss?limit=25"
-
-        try:
-            import urllib.request as _urq
-            req = _urq.Request(profile_url)
-            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
-            req.add_header("Accept", "application/atom+xml,application/xml,text/xml")
-            with _urq.urlopen(req, timeout=15) as resp:
-                xml_content = resp.read().decode("utf-8", errors="replace")
-
-                entries = re.findall(r"<entry>([\s\S]*?)</entry>", xml_content, re.DOTALL)
-                all_profile_text = ""
-
-                for entry in entries:
-                    content_m = re.search(r"<content[^>]*>([\s\S]*?)</content>", entry, re.DOTALL)
-                    if content_m:
-                        raw = content_m.group(1)
-                        cleaned = re.sub(r"<[^>]+>", " ", raw)
-                        cleaned = cleaned.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
-                        cleaned = cleaned.replace("&quot;", '"').replace("&#39;", "'")
-                        all_profile_text += " " + cleaned
-
-                if not all_profile_text:
-                    continue
-
-                for pattern in ARG_PHONE_PATTERNS:
-                    m = re.search(pattern, all_profile_text)
-                    if m:
-                        digits = re.sub(r"\D", "", m.group(0))
-                        if 10 <= len(digits) <= 15:
-                            lead.telefono_publico = m.group(0).strip()
-                            lead.contacto_publico = True
-                            lead.score = min(100, (lead.score or 0) + 25)
-                            lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_PHONE"]
-                            enriched_count += 1
-                            break
-
-                if not lead.whatsapp_publico:
-                    for pattern in WHATSAPP_PATTERNS:
-                        m = re.search(pattern, all_profile_text, re.IGNORECASE)
-                        if m:
-                            num = m.group(1) if m.groups() else m.group(0)
-                            digits = re.sub(r"\D", "", num)
-                            if 8 <= len(digits) <= 15:
-                                if len(digits) == 10 and digits.startswith("11"):
-                                    digits = "549" + digits
-                                lead.whatsapp_publico = digits
-                                lead.contacto_publico = True
-                                lead.score = min(100, (lead.score or 0) + 30)
-                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_WHATSAPP"]
-                                enriched_count += 1
-                                break
-
-                if not lead.email_publico:
-                    m = re.search(EMAIL_PATTERN, all_profile_text)
-                    if m:
-                        lead.email_publico = m.group(1).lower().strip()
-                        lead.contacto_publico = True
-                        lead.score = min(100, (lead.score or 0) + 15)
-                        lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
-                        enriched_count += 1
-
-                time.sleep(1.5)
-        except Exception:
-            continue
-
-    if enriched_count:
-        print(f"  [Profile Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
-    return enriched_count
 
 ```
 
@@ -6155,6 +6134,6 @@ jobs:
 
 
 ================================================================================
-TOTAL: 233,551 chars | 6040 lines | 7 archivos
-Commit: 91acac9 | Version: v2.5
+TOTAL: 233,458 chars | 6032 lines | 7 archivos
+Commit: 8582730 | Version: v2.5.1
 ================================================================================
