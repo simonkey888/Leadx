@@ -112,7 +112,41 @@ SCORE_RULES = {
     "institutional_penalty": -40,
     "generic_penalty": -30,
     "foreign_country_penalty": -80,
+    "dm_hint": 60,  # KIMI+DEEPSEEK: "mandame privado" = oro
+    "urgency_hint": 30,  # "urgente", "ayuda"
 }
+
+# Patrones de "contactame por privado" (DM hints) - KIMI+DEEPSEEK idea
+DM_HINT_PATTERNS = [
+    r"\b(?:mandame|escribime|pasame|enviame|contactame|llamame|hablame)\s+(?:un\s+)?(?:md|dm|mp|privado|mensaje|wa|whatsapp)\b",
+    r"\b(?:mandame|escribime|pasame)\s+(?:tu|el|un)\s+(?:whatsapp|wa|wpp|número|numero|cel|tel)",
+    r"\b(?:md|dm|mp)\s+(?:para|y)\s+(?:te|lo)\s+(?:paso|mandamos|ayudamos)",
+    r"\b(?:whatsapp|wa|wpp)\s+(?:y|para)\s+(?:te|lo)\s+(?:ayudamos|asesoramos|respondemos)",
+    r"\bcontactame\s+por\s+(?:privado|mensaje)\b",
+    r"\b(?:te|me)\s+(?:dejo|dejas|pasas)\s+(?:mi|tu)\s+(?:whatsapp|wa|cel)\b",
+]
+
+URGENCY_HINT_PATTERNS = [
+    r"\burgente\b", r"\bayuda\b", r"\bvencimiento\b",
+    r"\bmañana\s+vence\b", r"\bhoy\s+último\s+día\b",
+]
+
+# Regex AR quirúrgico (CHEVRON+QWEN+PERPLEXITY consensus)
+# Captura: 11-1234-5678, +54 9 11 1234 5678, 0342-456-7890, 15-XXXX-XXXX
+AR_PHONE_REGEX_QUIRURGICO = re.compile(
+    r"(?:(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}"
+    r"|\b15[-\s]?\d{4}[-\s]?\d{4}\b"
+    r"|\b0?(?:11|2\d{2}|3\d{2})[-\s]?\d{3,4}[-\s]?\d{4}\b)"
+)
+
+# WhatsApp patterns específicos (más amplios)
+WHATSAPP_HINT_REGEX = re.compile(
+    r"(?:wa\.me/(\d{8,15})"
+    r"|whatsapp[:\s]+(\+?\d[\d\s\-]{8,15})"
+    r"|(?:wp|wpp|wsp|wapp)[:\s]+(\+?\d[\d\s\-]{8,15})"
+    r"|(?:celular|cel|contacto|telefono|teléfono)[:\s]+(\+?\d[\d\s\-]{8,15}))",
+    re.IGNORECASE
+)
 
 # ===========================================================================
 # Filtros
@@ -647,6 +681,23 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
                 signals.append("ML_AUTO_PREMIUM")
         except (ValueError, TypeError):
             pass
+
+    # DM_HINTS boost (KIMI+DEEPSEEK): posts que piden contacto por privado
+    import re as _re_dm
+    for pattern in DM_HINT_PATTERNS:
+        if _re_dm.search(pattern, text):
+            score += SCORE_RULES["dm_hint"]
+            breakdown["dm_hint"] = SCORE_RULES["dm_hint"]
+            signals.append("DM_HINT")
+            break
+
+    # URGENCY boost
+    for pattern in URGENCY_HINT_PATTERNS:
+        if _re_dm.search(pattern, text):
+            score += SCORE_RULES["urgency_hint"]
+            breakdown["urgency_hint"] = SCORE_RULES["urgency_hint"]
+            signals.append("URGENCY")
+            break
 
     # multa_or_fotomulta: +60
     if "multa" in text or "fotomulta" in text:

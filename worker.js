@@ -1690,8 +1690,9 @@ export default {
       }
     }
 
-    // ─── GET /api/reddit-bio ─── Fetch Reddit user bio (public endpoint)
-    // Busca telefono/email/whatsapp en la bio del usuario
+    // ─── GET /api/reddit-bio ─── Multi-path Reddit user scraper
+    // Intenta: about.json, comments.rss, submitted.rss, old.reddit HTML
+    // Devuelve telefono/whatsapp/email si los encuentra en cualquier fuente
     if (url.pathname === '/api/reddit-bio' && request.method === 'GET') {
       const secret = request.headers.get('X-Webhook-Secret');
       if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
@@ -1701,40 +1702,92 @@ export default {
       if (!username) {
         return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
       }
+
+      // Regex AR quirurgico (CHEVRON+QWEN consensus)
+      const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b|\b0?(?:11|2\d{2}|3\d{2})[-\s]?\d{3,4}[-\s]?\d{4}\b/g;
+      const AR_WA = /(?:wa\.me\/(\d{8,15})|whatsapp[:\s]+(\+?[\d\s\-]{8,15})|(?:wp|wpp|wsp|wapp)[:\s]+(\+?[\d\s\-]{8,15}))/gi;
+      const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+      const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com'];
+
+      const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/html, application/xml, */*',
+        'Accept-Language': 'es-AR,es;q=0.9,en;q=0.8',
+      };
+
+      const allText = []; // acumular texto de todas las fuentes
+      let bio = '';
+      let sourcesTried = [];
+
+      // Path 1: /about.json (probablemente 403 pero intentar)
       try {
-        const bioUrl = 'https://www.reddit.com/user/' + encodeURIComponent(username) + '/about.json';
-        const r = await fetch(bioUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-            'Accept': 'application/json'
-          }
-        });
-        if (!r.ok) {
-          return jsonResponse({ ok: false, error: 'reddit_' + r.status, status: r.status }, corsHeaders, 200);
+        const r1 = await fetch('https://www.reddit.com/user/' + encodeURIComponent(username) + '/about.json', { headers });
+        sourcesTried.push('about.json:' + r1.status);
+        if (r1.ok) {
+          const data = await r1.json();
+          const sub = (data && data.data && data.data.subreddit) || {};
+          bio = (sub.public_description || '') + ' ' + (sub.description || '');
+          allText.push(bio);
         }
-        const data = await r.json();
-        const userData = (data && data.data) || {};
-        const subreddit = userData.subreddit || {};
-        const bioText = (subreddit.public_description || '') + ' ' + (subreddit.description || '');
-        
-        // Buscar telefono, whatsapp, email en la bio
-        const phoneMatch = bioText.match(/(?:\+54|0054)?[\s\-]?(?:9[\s\-]?)?(?:11|[2-9]\d{2,3})[\s\-]?\d{4}[\s\-]?\d{4}/);
-        const waMatch = bioText.match(/(?:wa\.me\/|whatsapp[:\s]+|wp[:\s]+)(\+?[\d\s\-]{8,15})/i);
-        const emailMatch = bioText.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
-        
-        const result = {
-          ok: true,
-          username: username,
-          bio: bioText.trim().slice(0, 500),
-          phone: phoneMatch ? phoneMatch[0].trim() : '',
-          whatsapp: waMatch ? waMatch[1].trim() : '',
-          email: emailMatch ? emailMatch[0].toLowerCase().trim() : '',
-          has_contact: !!(phoneMatch || waMatch || emailMatch),
-        };
-        return jsonResponse(result, corsHeaders);
-      } catch (e) {
-        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      } catch (e) {}
+
+      // Path 2: /comments/.rss (legacy RSS, a veces no bloqueado)
+      if (!bio) {
+        try {
+          const r2 = await fetch('https://www.reddit.com/user/' + encodeURIComponent(username) + '/comments/.rss?limit=25', { headers });
+          sourcesTried.push('comments.rss:' + r2.status);
+          if (r2.ok) {
+            const xml = await r2.text();
+            // Extraer texto de entries del RSS
+            const entries = xml.match(/<entry>([\s\S]*?)<\/entry>/g) || [];
+            entries.forEach(e => {
+              const content = (e.match(/<content[^>]*>([\s\S]*?)<\/content>/) || [])[1] || '';
+              const cleaned = content.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+              allText.push(cleaned);
+            });
+          }
+        } catch (e) {}
       }
+
+      // Path 3: /submitted/.rss (posts del user)
+      if (!bio) {
+        try {
+          const r3 = await fetch('https://www.reddit.com/user/' + encodeURIComponent(username) + '/submitted/.rss?limit=25', { headers });
+          sourcesTried.push('submitted.rss:' + r3.status);
+          if (r3.ok) {
+            const xml = await r3.text();
+            const entries = xml.match(/<entry>([\s\S]*?)<\/entry>/g) || [];
+            entries.forEach(e => {
+              const content = (e.match(/<content[^>]*>([\s\S]*?)<\/content>/) || [])[1] || '';
+              const cleaned = content.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+              allText.push(cleaned);
+            });
+          }
+        } catch (e) {}
+      }
+
+      // Combinar todo el texto y buscar contactos
+      const fullText = allText.join(' \n ');
+      const phones = [...new Set((fullText.match(AR_PHONE) || []).map(p => p.trim()))];
+      const waMatches = [...fullText.matchAll(AR_WA)];
+      const whatsapps = [...new Set(waMatches.map(m => (m[1] || m[2] || m[3] || '').trim()).filter(Boolean))];
+      const emails = [...new Set((fullText.match(EMAIL_RE) || [])
+        .map(e => e.toLowerCase().trim())
+        .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
+
+      return jsonResponse({
+        ok: true,
+        username: username,
+        bio: (bio || fullText.slice(0, 500)).trim(),
+        sources_tried: sourcesTried,
+        phone: phones[0] || '',
+        phones: phones,
+        whatsapp: whatsapps[0] || '',
+        whatsapps: whatsapps,
+        email: emails[0] || '',
+        emails: emails,
+        has_contact: phones.length > 0 || whatsapps.length > 0 || emails.length > 0,
+      }, corsHeaders);
     }
 
     // ─── 404 ───
