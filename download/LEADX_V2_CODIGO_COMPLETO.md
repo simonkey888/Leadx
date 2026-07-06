@@ -1,6 +1,6 @@
 ================================================================================
-LEADX v2.0 — CODIGO COMPLETO ACTUALIZADO
-Fecha: 6 julio 2026 | Commit: 02e1402 (ULTIMA VERSION)
+LEADX v2.1 — CODIGO COMPLETO ACTUALIZADO
+Fecha: 6 julio 2026 | Commit: 155c731 (ULTIMA VERSION)
 Repo: github.com/simonkey888/Leadx
 ================================================================================
 
@@ -14,7 +14,12 @@ REGLA DE ORO: Ningun dato se calcula en dos lugares.
   Estado CRM → KV (preservado en merge)
   Render → Frontend (read only)
 
-CAMBIOS v2 (GPT 4 fixes + Qwen 2 mejoras):
+CAMBIOS v2.1 (Qwen+InternLM+DeepSeek consensus - P0 fixes):
+  FIX P0-1: WhatsApp validate fire & forget (sin polling que causaba CPU timeout)
+  FIX P0-2: Endpoint /api/apify-webhook (recibe resultados Facebook scraper)
+  LIMPIEZA: /api/cron-run eliminado, runPipelineCron eliminado, c_data_iter eliminado
+
+CAMBIOS v2.0 (GPT 4 fixes + Qwen 2 mejoras):
   FIX 1: Cron del Worker eliminado (Python unico pipeline)
   FIX 2: Apify fire & forget (sin polling)
   FIX 3: Deep merge en /api/ingest (KV prioridad estado CRM)
@@ -22,7 +27,7 @@ CAMBIOS v2 (GPT 4 fixes + Qwen 2 mejoras):
   MEJORA 1: Regex federal AR (341/351/261/221/381/299)
   MEJORA 2: OSINT shadow profile (username → ML/FB)
 
-ENDPOINTS Worker (15 endpoints):
+ENDPOINTS Worker (17 endpoints):
   GET  /                  → CRM (Sergio)
   GET  /cookies.html      → Refrescador cookies FB
   GET  /api/leads         → JSON leads desde KV
@@ -34,7 +39,9 @@ ENDPOINTS Worker (15 endpoints):
   GET  /api/ml-questions  → ML Questions via edge (auth)
   GET  /api/reddit-bio    → Reddit user bio scraper (auth)
   POST /api/apify-facebook → FB groups fire & forget (auth)
-  POST /api/whatsapp-validate → WA validator via Apify (auth)
+  POST /api/apify-webhook → recibe resultados FB scraper (NUEVO)
+  POST /api/whatsapp-validate → WA validator fire & forget (auth)
+  POST /api/whatsapp-webhook → recibe resultados WA validator (NUEVO)
   GET  /api/clasificar-basic → vehiculo por patente (auth)
   POST /api/clasificar-patente → busqueda asincrona (auth)
   POST /api/clasificar-webhook → webhook clasific.ar
@@ -60,9 +67,9 @@ VALIDACION TELEFONOS (jerarquia en frontend):
 FUENTES ACTIVAS:
   ✅ Reddit /search.rss (funciona desde edge)
   ✅ Reddit /user/u/comments.rss (funciona desde edge)
-  ✅ Apify FB groups (con cookies, fire & forget)
+  ✅ Apify FB groups (con cookies, fire & forget + webhook)
   ✅ clasific.ar /v1/vehicles/basic (free 200/mes)
-  ✅ Apify WhatsApp validator (funciona)
+  ✅ Apify WhatsApp validator (fire & forget + webhook)
   ✅ OSINT shadow profile (username → ML/FB via DDG)
   ❌ ML API (403 desde edge)
   ❌ DDG site: (0 results desde edge)
@@ -74,7 +81,7 @@ FUENTES ACTIVAS:
 ================================================================================
 FILE: worker.js
 DESC: Cloudflare Worker (edge only - sin cron, sin scoring)
-SIZE: 98,985 chars | 2614 lines | SHA256: 3f3fe47dc2ee
+SIZE: 100,714 chars | 2654 lines | SHA256: edf33929f236
 ================================================================================
 
 ```javascript
@@ -2557,8 +2564,9 @@ export default {
       }
     }
 
-    // ─── POST /api/whatsapp-validate ─── Valida si telefonos tienen WhatsApp
-    // Body: { "phones": ["5491154541802", "5491160065724"] }
+    // ─── POST /api/whatsapp-validate ─── Fire & Forget (Qwen P0 fix)
+    // Body: { "phones": ["5491154541802"] }
+    // Devuelve inmediatamente, resultados via /api/whatsapp-webhook
     if (url.pathname === '/api/whatsapp-validate' && request.method === 'POST') {
       const secret = request.headers.get('X-Webhook-Secret');
       if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
@@ -2574,62 +2582,115 @@ export default {
           return jsonResponse({ ok: false, error: 'missing_phones' }, corsHeaders, 400);
         }
 
-        // Lanzar un run por cada telefono (el actor acepta 1 a la vez)
-        const results = [];
-        for (const phone of phones.slice(0, 10)) { // max 10 por request
+        // Fire & Forget: un run por telefono, devolver inmediatamente
+        const runIds = [];
+        for (const phone of phones.slice(0, 5)) {
           try {
             const runRes = await fetch('https://api.apify.com/v2/acts/devscrapper~whatsapp-number-validator/runs?token=' + env.APIFY_TOKEN, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ phoneNumber: phone }),
             });
-            if (!runRes.ok) {
-              results.push({ phone, isValid: false, error: 'apify_' + runRes.status });
-              continue;
+            if (runRes.ok) {
+              const runData = await runRes.json();
+              runIds.push({ phone, runId: runData.data.id });
             }
-            const runData = await runRes.json();
-            const runId = runData.data.id;
-            const datasetId = runData.data.defaultDatasetId;
-
-            // Polling hasta 30s
-            let finalStatus = 'RUNNING';
-            for (let i = 0; i < 6; i++) {
-              await new Promise(r => setTimeout(r, 5000));
-              const statusRes = await fetch('https://api.apify.com/v2/actor-runs/' + runId + '?token=' + env.APIFY_TOKEN);
-              const statusData = await statusRes.json();
-              finalStatus = statusData.data.status;
-              if (finalStatus === 'SUCCEEDED' || finalStatus === 'FAILED') break;
-            }
-
-            if (finalStatus === 'SUCCEEDED') {
-              const itemsRes = await fetch('https://api.apify.com/v2/datasets/' + datasetId + '/items?token=' + env.APIFY_TOKEN);
-              const items = await itemsRes.json();
-              if (items.length > 0) {
-                results.push({
-                  phone: phone,
-                  isValid: items[0].isValid || false,
-                  exists: items[0].exists || false,
-                  status: items[0].status || 'unknown',
-                });
-              } else {
-                results.push({ phone, isValid: false, error: 'no_results' });
-              }
-            } else {
-              results.push({ phone, isValid: false, error: 'run_' + finalStatus.toLowerCase() });
-            }
-          } catch (e) {
-            results.push({ phone, isValid: false, error: e.message });
-          }
+          } catch (e) {}
         }
 
         return jsonResponse({
           ok: true,
-          total: results.length,
-          valid_count: results.filter(r => r.isValid).length,
-          results: results,
+          status: 'processing',
+          runs: runIds,
+          message: 'Validacion en background. Hacer polling desde browser via /api/kv?key=wa_val:PHONE',
         }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/whatsapp-webhook ─── Recibe resultados de Apify WA validator
+    if (url.pathname === '/api/whatsapp-webhook' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const results = body.results || body || [];
+        for (const r of (Array.isArray(results) ? results : [results])) {
+          if (r && r.phoneNumber) {
+            const key = 'wa_val:' + r.phoneNumber;
+            await env.LEADX_KV.put(key, JSON.stringify({
+              phone: r.phoneNumber,
+              isValid: r.isValid || false,
+              exists: r.exists || false,
+              validated_at: new Date().toISOString(),
+            }), { expirationTtl: 86400 });
+          }
+        }
+        return jsonResponse({ ok: true, received: Array.isArray(results) ? results.length : 1 }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: true, error: e.message }, corsHeaders);
+      }
+    }
+
+    // ─── POST /api/apify-webhook ─── Recibe resultados de Apify Facebook scraper
+    if (url.pathname === '/api/apify-webhook' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const items = body.items || body.results || body || [];
+        const leads = [];
+        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
+        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+
+        for (const post of (Array.isArray(items) ? items : [])) {
+          const text = post.text || post.postText || '';
+          const author = post.authorName || post.author || '';
+          const postUrl = post.url || post.postUrl || '';
+          if (!text && !author) continue;
+
+          const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
+          const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+
+          leads.push({
+            id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
+            source: 'facebook_apify',
+            source_label: 'Facebook',
+            platform: 'Facebook',
+            author: author,
+            persona: author,
+            title: text.slice(0, 200),
+            snippet: text.slice(0, 3000),
+            url: postUrl,
+            fecha_iso: (post.timestamp || '').slice(0, 10),
+            score: 50,
+            whatsapp_publico: phones[0] || '',
+            telefono_publico: phones[0] || '',
+            email_publico: emails[0] || '',
+            has_contact: phones.length > 0 || emails.length > 0,
+          });
+        }
+
+        // Merge con leads existentes en KV
+        const prevRaw = await env.LEADX_KV.get('leads:live');
+        let prevLeads = [];
+        if (prevRaw) {
+          try { prevLeads = JSON.parse(prevRaw).leads_all || []; } catch (e) {}
+        }
+        const prevById = new Map();
+        prevLeads.forEach(l => prevById.set(l.id, l));
+        leads.forEach(l => prevById.set(l.id, l));
+        const merged = Array.from(prevById.values());
+        merged.sort((a, b) => new Date(b.fecha_iso || 0).getTime() - new Date(a.fecha_iso || 0).getTime());
+        const truncated = merged.slice(0, 500);
+
+        await env.LEADX_KV.put('leads:live', JSON.stringify({
+          leads_all: truncated,
+          leads_hot: truncated.filter(l => (l.score || 0) >= 50),
+          summary: { total_leads: truncated.length, hot_leads: truncated.filter(l => (l.score || 0) >= 50).length },
+          meta: { version: '11.0', source: 'apify_webhook', generated_at: new Date().toISOString(), ingest_at: new Date().toISOString() }
+        }));
+
+        return jsonResponse({ ok: true, received: leads.length, merged: truncated.length }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: true, error: e.message }, corsHeaders);
       }
     }
 
@@ -2665,20 +2726,6 @@ export default {
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message, stale: true }, corsHeaders, 500);
       }
-    }
-
-    // ─── POST /api/cron-run ─── DESACTIVADO (Python es el pipeline)
-    if (url.pathname === '/api/cron-run' && (request.method === 'POST' || request.method === 'GET')) {
-      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
-      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
-        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
-      }
-      return jsonResponse({
-        ok: false,
-        error: 'cron_disabled',
-        message: 'Pipeline corre en Python (GH Actions). Worker solo sirve API.',
-        hint: 'Para forzar run: workflow_dispatch en GitHub Actions'
-      }, corsHeaders);
     }
 
     // ─── 404 ───
@@ -4107,7 +4154,7 @@ if __name__ == "__main__":
 ================================================================================
 FILE: search_providers.py
 DESC: Providers (Reddit RSS + DDG + FB + ML + Foros)
-SIZE: 43,386 chars | 1124 lines | SHA256: 3c5bf65f0f03
+SIZE: 43,112 chars | 1116 lines | SHA256: 7b36d28bca7e
 ================================================================================
 
 ```python
@@ -4399,14 +4446,6 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         _rss_cache[cache_key] = (_tm.time(), results)
     return results[:num]
 
-
-def c_data_iter(comment_listing):
-    """Itera sobre los bodies de comments de un listing de Reddit."""
-    try:
-        for c in comment_listing.get("data",{}).get("children",[])[:10]:
-            yield c.get("data",{}).get("body","")
-    except Exception:
-        return
 
     print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
@@ -5922,6 +5961,6 @@ jobs:
 
 
 ================================================================================
-TOTAL: 220,381 chars | 5773 lines | 7 archivos
-Commit: 02e1402 | Deployed: Worker eab9274a
+TOTAL: 221,836 chars | 5805 lines | 7 archivos
+Commit: 155c731 | Deployed: Worker 3c081dae
 ================================================================================
