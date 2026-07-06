@@ -1937,6 +1937,161 @@ export default {
       }
     }
 
+    // ─── POST /api/clasificar-webhook ─── Recibe eventos de clasific.ar
+    // Eventos: report.completed, report.failed
+    if (url.pathname === '/api/clasificar-webhook' && request.method === 'POST') {
+      // Verificar secreto del webhook
+      const sig = request.headers.get('x-clasificar-webhook-secret');
+      if (!env.CLASIFICAR_WEBHOOK_SECRET || sig !== env.CLASIFICAR_WEBHOOK_SECRET) {
+        return jsonResponse({ ok: false, error: 'invalid_secret' }, corsHeaders, 401);
+      }
+      try {
+        const event = await request.json();
+        const eventType = event.type || event.eventType || '';
+        const reportData = event.data || event.report || {};
+        const plate = reportData.plate || event.plate || '';
+
+        console.log('Webhook clasific.ar:', eventType, 'plate:', plate);
+
+        if (eventType === 'report.completed' && plate) {
+          // Guardar reporte completo en KV para consulta posterior
+          const reportKey = 'clasificar_report:' + plate.toUpperCase();
+          await env.LEADX_KV.put(reportKey, JSON.stringify({
+            plate: plate.toUpperCase(),
+            status: 'completed',
+            data: reportData,
+            completed_at: new Date().toISOString(),
+          }), { expirationTtl: 86400 * 7 }); // 7 dias TTL
+
+          return jsonResponse({ ok: true, received: 'completed', plate }, corsHeaders);
+        } else if (eventType === 'report.failed') {
+          const reportKey = 'clasificar_report:' + plate.toUpperCase();
+          await env.LEADX_KV.put(reportKey, JSON.stringify({
+            plate: plate.toUpperCase(),
+            status: 'failed',
+            error: reportData.error || 'unknown',
+            failed_at: new Date().toISOString(),
+          }), { expirationTtl: 3600 });
+
+          return jsonResponse({ ok: true, received: 'failed', plate }, corsHeaders);
+        }
+
+        // Evento desconocido — igual responder OK para que no reintente
+        return jsonResponse({ ok: true, received: eventType, note: 'unhandled_event' }, corsHeaders);
+      } catch (e) {
+        console.error('Webhook error:', e.message);
+        return jsonResponse({ ok: true, error: e.message }, corsHeaders); // OK para evitar retry
+      }
+    }
+
+    // ─── GET /api/clasificar-webhook ─── Health check
+    if (url.pathname === '/api/clasificar-webhook' && request.method === 'GET') {
+      return jsonResponse({ ok: true, endpoint: 'clasificar-webhook', status: 'active' }, corsHeaders);
+    }
+
+    // ─── POST /api/clasificar-patente ─── Inicia busqueda asincrona en clasific.ar
+    // Body: { "plate": "AB123CD" }
+    // Responde inmediatamente con { ok: true, status: 'pending' }
+    // El resultado llega via webhook y se guarda en KV
+    // Despues consultar GET /api/clasificar-patente?plate=AB123CD para ver resultado
+    if (url.pathname === '/api/clasificar-patente' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      if (!env.CLASIFICAR_API_KEY) {
+        return jsonResponse({ ok: false, error: 'no_clasificar_key' }, corsHeaders, 500);
+      }
+      try {
+        const body = await request.json();
+        const plate = (body.plate || '').toUpperCase().trim();
+        if (!plate || plate.length < 6) {
+          return jsonResponse({ ok: false, error: 'invalid_plate' }, corsHeaders, 400);
+        }
+
+        // Marcar como pending en KV
+        const pendingKey = 'clasificar_report:' + plate;
+        await env.LEADX_KV.put(pendingKey, JSON.stringify({
+          plate: plate,
+          status: 'pending',
+          requested_at: new Date().toISOString(),
+        }), { expirationTtl: 3600 });
+
+        // Disparar busqueda asincrona en clasific.ar
+        const apiUrl = 'https://api.clasific.ar/v1/reports/';
+        const apiRes = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'x-api-key': env.CLASIFICAR_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ plate: plate, type: 'intelligent' }),
+        });
+
+        const apiData = await apiRes.json().catch(() => ({}));
+
+        return jsonResponse({
+          ok: true,
+          plate: plate,
+          status: 'pending',
+          api_status: apiRes.status,
+          api_response: apiData,
+          note: 'El resultado llegara via webhook. Consulta GET /api/clasificar-patente?plate=' + plate + ' en 30-60s',
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/clasificar-patente?plate=XXX ─── Lee resultado desde KV
+    if (url.pathname === '/api/clasificar-patente' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const plate = (url.searchParams.get('plate') || '').toUpperCase().trim();
+      if (!plate) {
+        return jsonResponse({ ok: false, error: 'missing_plate' }, corsHeaders, 400);
+      }
+      try {
+        const reportKey = 'clasificar_report:' + plate;
+        const raw = await env.LEADX_KV.get(reportKey);
+        if (!raw) {
+          return jsonResponse({ ok: false, error: 'no_report_yet', plate, status: 'never_requested' }, corsHeaders, 404);
+        }
+        const report = JSON.parse(raw);
+        return jsonResponse({ ok: true, plate, ...report }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/clasificar-basic?plate=XXX ─── Datos basicos del vehiculo (sync, sin webhook)
+    // Plan free: 200 consultas/mes
+    if (url.pathname === '/api/clasificar-basic' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      if (!env.CLASIFICAR_API_KEY) {
+        return jsonResponse({ ok: false, error: 'no_clasificar_key' }, corsHeaders, 500);
+      }
+      const plate = (url.searchParams.get('plate') || '').toUpperCase().trim();
+      if (!plate) {
+        return jsonResponse({ ok: false, error: 'missing_plate' }, corsHeaders, 400);
+      }
+      try {
+        const apiUrl = 'https://api.clasific.ar/v1/vehicles/basic?plate=' + encodeURIComponent(plate);
+        const apiRes = await fetch(apiUrl, {
+          headers: { 'x-api-key': env.CLASIFICAR_API_KEY, 'Accept': 'application/json' },
+        });
+        const apiData = await apiRes.json();
+        return jsonResponse({ ok: apiRes.ok, plate, api_status: apiRes.status, data: apiData }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   }
