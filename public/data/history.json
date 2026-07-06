@@ -1503,5 +1503,24 @@
         "CABA": 1
       }
     }
+  },
+  {
+    "run_id": "4fd65b830188",
+    "generated_at": "2026-07-06T09:01:57.186766+00:00",
+    "summary": {
+      "total_leads": 0,
+      "hot_leads": 0,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 0,
+      "avg_score_hot": 0,
+      "conversion_probability": 0,
+      "by_category": {},
+      "by_platform": {},
+      "by_province": {}
+    }
   }
 ]
