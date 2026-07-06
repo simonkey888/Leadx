@@ -1818,6 +1818,9 @@ export default {
       const allLeads = [];
 
       try {
+        let debugHtmlSize = 0;
+        let debugFirstSnippet = '';
+        let debugResultCount = 0;
         for (const query of QUERIES) {
           try {
             const ddgUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query);
@@ -1830,6 +1833,14 @@ export default {
             });
             if (!r.ok) continue;
             const html = await r.text();
+            debugHtmlSize = Math.max(debugHtmlSize, html.length);
+            const resultBlocks = html.split(/<div class="result[^"]*"/).slice(1);
+            debugResultCount = Math.max(debugResultCount, resultBlocks.length);
+            if (!debugFirstSnippet) {
+              const firstBlock = resultBlocks[0] || '';
+              const snipM = firstBlock.match(/<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
+              if (snipM) debugFirstSnippet = snipM[1].replace(/<[^>]+>/g, ' ').trim().slice(0, 200);
+            }
 
             // Extraer resultados de DDG (cada resultado es un <a class="result__a"> y <a class="result__snippet">)
             const resultBlocks = html.split(/<div class="result[^"]*"/).slice(1);
@@ -1907,7 +1918,10 @@ export default {
           sources_queried: QUERIES.length,
           debug: {
             queries: QUERIES,
-            note: 'Si total=0, probablemente DDG no devolvio snippets con dolor+contacto',
+            max_html_size: debugHtmlSize,
+            max_results_per_query: debugResultCount,
+            first_snippet_found: debugFirstSnippet,
+            note: 'Si total=0 y max_results_per_query=0, DDG bloquea desde edge',
           },
         }, corsHeaders);
       } catch (err) {
