@@ -815,10 +815,25 @@ function enrichLead(l) {
     _status: stored.status || 'Nuevo',
     _notes:  stored.notes  || '',
     _phone:  phone || extractPhone(body) || '',
-    _wa_url: buildWaUrl(phone || extractPhone(body) || ''),
+    _wa_url: '',
+    _wa_state: 'invalid_format',
+    _wa_e164: '',
+    _wa_display: '',
     _display_name: (persona && persona !== '(anónimo)') ? persona : 'Sin nombre',
     _resumen: cleanText(title || body),
   };
+  // Normalizar telefono y setear estado de validacion
+  const norm = normalizePhoneAR(l._phone);
+  l._wa_state = norm.state;
+  l._wa_e164 = norm.e164;
+  l._wa_display = norm.display;
+  l._wa_url = norm.state === 'invalid_format' ? '' : norm.waUrl;
+  // Cache de validacion WA en localStorage
+  const waValidation = DB.getWaValidation(l._wa_e164);
+  if (waValidation) {
+    l._wa_state = waValidation === true ? 'validated_whatsapp' : 'not_whatsapp';
+  }
+  return l;
 }
 
 function extractPhone(text) {
@@ -826,12 +841,38 @@ function extractPhone(text) {
   return m ? m[0].trim() : '';
 }
 
+function normalizePhoneAR(raw) {
+  if (!raw) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  let digits = String(raw).replace(/\\D/g, '');
+  if (!digits) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  if (digits.startsWith('54')) digits = digits.slice(2);
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
+  if (digits.length !== 10) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  if (!/^(11|2\\d|3\\d)/.test(digits)) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  let mobile = digits;
+  if (digits.startsWith('11')) mobile = '9' + digits;
+  return {
+    state: 'normalized_contact',
+    e164: '+549' + mobile,
+    display: '+' + mobile.slice(0, 2) + ' ' + mobile.slice(2, 6) + ' ' + mobile.slice(6),
+    waUrl: 'https://wa.me/' + mobile,
+  };
+}
+
 function buildWaUrl(phone) {
-  if (!phone) return '';
-  const digits = phone.replace(/\\D/g, '');
-  if (!digits) return '';
-  const norm = digits.startsWith('54') ? digits : '54' + digits.replace(/^0/, '');
-  return \`https://wa.me/\${norm}\`;
+  const n = normalizePhoneAR(phone);
+  return n.state === 'invalid_format' ? '' : n.waUrl;
+}
+
+// Cache de validacion WhatsApp por E.164 (localStorage)
+function getWaValidation(e164) {
+  if (!e164) return null;
+  try { return JSON.parse(localStorage.getItem('wa_val_' + e164)); } catch (e) { return null; }
+}
+function setWaValidation(e164, isValid) {
+  if (!e164) return;
+  localStorage.setItem('wa_val_' + e164, JSON.stringify(isValid));
 }
 
 function cleanText(t) {
@@ -908,9 +949,13 @@ function renderTable() {
       </td>
       <td>
         <div class="actions" onclick="event.stopPropagation()">
-          \${l._wa_url
-            ? \`<a class="btn-wa" href="\${l._wa_url}" target="_blank">💬</a>\`
-            : \`<span style="font-size:11px;color:var(--muted)">Sin WA</span>\`
+          \${l._wa_state === 'validated_whatsapp'
+            ? \`<a class="btn-wa" href="\${l._wa_url}" target="_blank" title="WhatsApp verificado">💬✓</a>\`
+            : l._wa_state === 'normalized_contact'
+              ? \`<button class="btn-icon" onclick="validateWaFromTable('\${l.id}')" title="Validar WhatsApp">⏳</button>\`
+              : l._wa_state === 'not_whatsapp'
+                ? \`<span style="font-size:11px;color:var(--red)" title="No tiene WhatsApp">✗</span>\`
+                : \`<span style="font-size:11px;color:var(--muted)" title="Sin teléfono">—</span>\`
           }
           <button class="btn-icon" onclick="openDetail('\${l.id}')">📝</button>
         </div>
@@ -1060,16 +1105,29 @@ function openDetail(id) {
   const waBtn = document.getElementById('modal-wa-btn');
   const phoneLabel = document.getElementById('modal-phone-label');
 
-  if (l._wa_url) {
+  if (l._wa_state === 'validated_whatsapp') {
     box.classList.remove('no-contact');
     waBtn.href = l._wa_url;
     waBtn.style.display = 'inline-flex';
-    phoneLabel.textContent = l._phone || 'WhatsApp disponible';
+    waBtn.textContent = '💬 WhatsApp ✓';
+    phoneLabel.textContent = l._wa_display + ' (verificado)';
+  } else if (l._wa_state === 'normalized_contact') {
+    box.classList.remove('no-contact');
+    waBtn.style.display = 'inline-flex';
+    waBtn.href = '#';
+    waBtn.textContent = '⏳ Validar WhatsApp';
+    waBtn.onclick = (e) => { e.preventDefault(); validateWaFromModal(); };
+    phoneLabel.textContent = l._wa_display + ' (pendiente validación)';
+  } else if (l._wa_state === 'not_whatsapp') {
+    box.classList.remove('no-contact');
+    waBtn.style.display = 'none';
+    phoneLabel.textContent = l._wa_display + ' (no tiene WhatsApp)';
   } else {
+    // invalid_format o sin telefono
     box.classList.add('no-contact');
     waBtn.style.display = 'none';
-    phoneLabel.textContent = 'Sin contacto directo — buscar por perfil';
-    document.getElementById('modal-author').textContent = l._display_name + ' (sin contacto)';
+    phoneLabel.textContent = l._phone ? 'Teléfono inválido: ' + l._phone : 'Sin contacto directo — buscar por perfil';
+    if (!l._phone) document.getElementById('modal-author').textContent = l._display_name + ' (sin contacto)';
   }
 
   document.getElementById('detailModal').classList.add('open');
@@ -1175,6 +1233,58 @@ async function loadBioIfReddit(l) {
     document.getElementById('modal-phone-label').textContent = num;
     document.getElementById('modal-contact-box').classList.remove('no-contact');
   }
+}
+
+// Validar WhatsApp via Worker (Apify WA validator)
+async function validateWaFromModal() {
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l || l._wa_state !== 'normalized_contact') return;
+  if (!l._wa_e164) { alert('Sin teléfono para validar'); return; }
+  const phone = l._wa_e164.replace(/^\+/, '');
+  const waBtn = document.getElementById('modal-wa-btn');
+  const orig = waBtn.textContent;
+  waBtn.textContent = '⏳ Validando...';
+  waBtn.onclick = null;
+  try {
+    const r = await fetch('/api/whatsapp-validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': getUrlSecret() },
+      body: JSON.stringify({ phones: [phone] })
+    });
+    const d = await r.json();
+    if (d.ok && d.results && d.results.length > 0) {
+      const isValid = d.results[0].isValid;
+      setWaValidation(l._wa_e164, isValid);
+      l._wa_state = isValid ? 'validated_whatsapp' : 'not_whatsapp';
+      if (isValid) {
+        waBtn.textContent = '💬 WhatsApp ✓';
+        waBtn.href = l._wa_url;
+        document.getElementById('modal-phone-label').textContent = l._wa_display + ' (verificado)';
+      } else {
+        waBtn.style.display = 'none';
+        document.getElementById('modal-phone-label').textContent = l._wa_display + ' (no tiene WhatsApp)';
+      }
+      renderTable();
+      renderKPIs();
+    } else {
+      alert('Error validando: ' + (d.error || '?'));
+      waBtn.textContent = orig;
+    }
+  } catch (e) {
+    alert('Error: ' + e.message);
+    waBtn.textContent = orig;
+  }
+}
+
+async function validateWaFromTable(id) {
+  const l = S.crmLeads.find(x => x.id === id);
+  if (!l) return;
+  S.currentId = id;
+  await validateWaFromModal();
+}
+
+function getUrlSecret() {
+  return new URLSearchParams(location.search).get('key') || '';
 }
 
 function closeModal() {
