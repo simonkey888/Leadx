@@ -23,6 +23,10 @@ SEED_SUBREDDITS = [
     "ArAutos", "argentina", "Cordoba", "BuenosAires",
     "DerechoGenial", "AskArgentina", "PreguntasReddit",
     "Mendoza", "Rosario", "Salta",
+    # Nuevos (Sakana+H.AI consensus): alta intención de multas
+    "MotosArg",       # dueños moto = multas moto
+    "empleosAR",      # problemas registro/licencia
+    "uruguay",        # multas AR a uruguayos (caso real)
 ]
 
 DISCOVERY_QUERIES = [

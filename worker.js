@@ -1790,6 +1790,127 @@ export default {
       }, corsHeaders);
     }
 
+    // ─── GET /api/ddg-foromoto ─── ForoMoto + clasificados AR via DDG
+    // Busca en foros AR con snippets que contengan dolor + contacto
+    if (url.pathname === '/api/ddg-foromoto' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+
+      // Queries para foros AR con intención + contacto
+      const QUERIES = [
+        'site:foromoto.com.ar multa OR fotomulta whatsapp OR celular OR "11-"',
+        'site:foromoto.com.ar infraccion OR patente telefono OR contacto',
+        'site:clasificados.lavoz.com.ar automovil OR auto telefono whatsapp',
+        'site:demotores.com.ar particular vende whatsapp OR celular',
+      ];
+
+      // Regex AR con códigos de área (Qwen consensus)
+      const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+      const AR_WA = /wa\.me\/(\d{8,15})|(?:whatsapp|wp|wpp|wsp|wapp)[:\s]+(\+?[\d\s\-]{8,15})/gi;
+      const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+      const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com'];
+
+      // Keywords de dolor (GPT insight: filtro contextual)
+      const PAIN_KEYWORDS = /multa|fotomulta|infracci[oó]n|libre.deuda|transferencia|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|telepeaje|deuda/i;
+
+      const allLeads = [];
+
+      try {
+        for (const query of QUERIES) {
+          try {
+            const ddgUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query);
+            const r = await fetch(ddgUrl, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html',
+                'Accept-Language': 'es-AR,es;q=0.9',
+              }
+            });
+            if (!r.ok) continue;
+            const html = await r.text();
+
+            // Extraer resultados de DDG (cada resultado es un <a class="result__a"> y <a class="result__snippet">)
+            const resultBlocks = html.split(/<div class="result[^"]*"/).slice(1);
+
+            for (const block of resultBlocks.slice(0, 15)) {
+              // Extraer title + url
+              const titleMatch = block.match(/<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/);
+              const snippetMatch = block.match(/<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
+
+              if (!titleMatch) continue;
+
+              let postUrl = titleMatch[1];
+              // DDG wrap URLs en uddg= redirects, extraer URL real
+              const uddgMatch = postUrl.match(/uddg=([^&]+)/);
+              if (uddgMatch) {
+                try { postUrl = decodeURIComponent(uddgMatch[1]); } catch (e) {}
+              }
+              const title = titleMatch[2].replace(/<[^>]+>/g, '').trim();
+              const snippetHtml = snippetMatch ? snippetMatch[1] : '';
+              const snippet = snippetHtml.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+
+              if (!snippet || snippet.length < 30) continue;
+
+              // FILTRO CONTEXTUAL (GPT+H.AI): dolor + contacto en mismo snippet
+              const hasPain = PAIN_KEYWORDS.test(snippet + ' ' + title);
+              if (!hasPain) continue;
+
+              const phones = [...new Set((snippet.match(AR_PHONE) || []).map(p => p.trim()))];
+              const waMatches = [...snippet.matchAll(AR_WA)];
+              const was = [...new Set(waMatches.map(m => (m[1] || m[2] || '').trim()).filter(Boolean))];
+              const emails = [...new Set((snippet.match(EMAIL_RE) || [])
+                .map(e => e.toLowerCase().trim())
+                .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
+
+              // Solo incluir si HAY contacto (no es lead sin contacto)
+              if (phones.length === 0 && was.length === 0 && emails.length === 0) continue;
+
+              // Determinar platform
+              let platform = 'web';
+              if (postUrl.includes('foromoto')) platform = 'ForoMoto';
+              else if (postUrl.includes('lavoz')) platform = 'ClasificadosLaVoz';
+              else if (postUrl.includes('demotores')) platform = 'Demotores';
+              else if (postUrl.includes('olx')) platform = 'OLX';
+
+              allLeads.push({
+                id: 'foro_' + Math.abs(postUrl.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)),
+                source: 'ddg_foros_ar',
+                source_label: platform,
+                platform: platform,
+                title: title.slice(0, 200),
+                snippet: snippet.slice(0, 2000),
+                url: postUrl,
+                fecha_iso: '',
+                score: 0,
+                phone: phones[0] || '',
+                whatsapp: was[0] || '',
+                email: emails[0] || '',
+                whatsapp_publico: was[0] || '',
+                telefono_publico: phones[0] || '',
+                email_publico: emails[0] || '',
+                has_contact: true,
+                contact_source: 'ddg_snippet',
+              });
+            }
+          } catch (e) {
+            // Continuar con siguiente query si una falla
+            continue;
+          }
+        }
+
+        return jsonResponse({
+          ok: true,
+          leads: allLeads,
+          total: allLeads.length,
+          sources_queried: QUERIES.length,
+        }, corsHeaders);
+      } catch (err) {
+        return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   }

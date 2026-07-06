@@ -57,35 +57,41 @@ MAX_RESULTS_PER_QUERY = 10
 # Cada run usa solo 1 grupo (3 queries). Rota cada 3h.
 # Misma query no se repite hasta 18h -> evita 429.
 REDDIT_QUERY_GROUPS = [
+    # Grupo 0: intencion "acabo de recibir" - momento optimo de venta
+    [
+        "site:reddit.com me llego multa no es mi auto",
+        "site:reddit.com me cobraron fotomulta argentina",
+        "site:reddit.com/r/DerechoGenial consulta multa",
+    ],
+    # Grupo 1: intencion "no puedo resolver" - bloqueo administrativo
     [
         "site:reddit.com no puedo transferir auto multa argentina",
-        "site:reddit.com me llego multa no es mi auto",
-        "site:foroargentina multa transferencia auto",
-    ],
-    [
-        "site:reddit.com fotomulta reclamo argentina",
         "site:reddit.com vendedor no entrego 08",
-        "site:reddit.com multas impagas transferir",
+        "site:reddit.com/r/MotosArg multa patente",
     ],
+    # Grupo 2: intencion "ayuda/consulta" - abierto a soluciones
+    [
+        "site:reddit.com consulta ayuda multa fotomulta argentina",
+        "site:reddit.com/r/AskArgentina libre deuda transferencia",
+        "site:reddit.com patente bloqueada registro automotor",
+    ],
+    # Grupo 3: intencion "compre con problema" - descubrimiento post-compra
     [
         "site:reddit.com compre auto multas anteriores dueño",
-        "site:reddit.com patente bloqueada registro automotor",
-        "site:facebook.com/groups multa transito argentina",
-    ],
-    [
-        "site:reddit.com 08 firmado problema vendedor",
-        "site:facebook.com/groups fotomulta argentina",
+        "site:reddit.com/r/DerechoGenial fotomulta reclamo",
         "site:reddit.com juez de faltas multa reclamo",
     ],
+    # Grupo 4: intencion "vendo con problema" - urgencia vendedor
     [
         "site:reddit.com cedula verde perdida transferir",
-        "site:facebook.com/groups libre deuda transferencia",
-        "site:reddit.com multa vencida prescripcion",
+        "site:reddit.com vendo auto multas pendientes",
+        "site:reddit.com multa vencida prescripcion argentina",
     ],
+    # Grupo 5: intencion "gestor/abogado" - ya busca profesional (competencia directa)
     [
-        "site:reddit.com fotomulta ruta peaje argentina",
-        "site:mercadolibre multa transferir auto",
-        "site:reddit.com gestoria transferencia multa",
+        "site:reddit.com abogado gestor multa fotomulta argentina",
+        "site:reddit.com/r/Cordoba multa transito",
+        "site:reddit.com/r/BuenosAires infraccion peaje",
     ],
 ]
 
@@ -460,6 +466,31 @@ def collect_public_sources() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"  ML Questions Radar ERROR: {e}", file=sys.stderr)
 
+    # Foros AR via DDG (ForoMoto + ClasificadosLaVoz + Demotores)
+    # Llama al endpoint /api/ddg-foromoto del Worker (Cloudflare edge IP)
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        secret = os.environ.get("INGEST_SECRET", "")
+        if secret:
+            import urllib.request as _urq
+            foro_url = f"{worker_url}/api/ddg-foromoto"
+            req = _urq.Request(foro_url)
+            req.add_header("X-Webhook-Secret", secret)
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=45) as resp:
+                foro_data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            if foro_data.get("ok"):
+                foro_leads = foro_data.get("leads", [])
+                if foro_leads:
+                    for fl in foro_leads:
+                        fl["_query"] = "ddg_foros_ar"
+                    all_results.extend(foro_leads)
+                    print(f"  Foros AR (DDG): +{len(foro_leads)} leads con contacto", file=sys.stderr)
+                else:
+                    print(f"  Foros AR (DDG): 0 leads", file=sys.stderr)
+    except Exception as e:
+        print(f"  Foros AR ERROR: {e}", file=sys.stderr)
+
     return all_results
 
 
@@ -513,6 +544,23 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     m = re.search(EMAIL_PATTERN, combined)
     if m:
         email = m.group(1).lower().strip()
+
+    # REGEX CONTEXTUAL (GPT+H.AI consensus):
+    # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor
+    # Esto evita el spam de wa.me random sin contexto
+    PAIN_KEYWORDS_RE = re.compile(
+        r"\b(?:multa|multas|fotomulta|fotomultas|infracci[oó]n|infracciones|"
+        r"libre\s+deuda|transferencia|transferir|patente|08\s+firmado|"
+        r"c[eé]dula|veraz|registro\s+automotor|juez\s+de\s+faltas|"
+        r"peaje|telepeaje|deuda|vencimiento|prescripci[oó]n)\b",
+        re.IGNORECASE
+    )
+    has_pain_context = bool(PAIN_KEYWORDS_RE.search(combined))
+    if not has_pain_context:
+        # Sin contexto de dolor, descartar contacto (no es lead, es spam)
+        phone = ""
+        whatsapp = ""
+        email = ""
 
     # Extract patent
     patent = ""
