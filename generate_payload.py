@@ -753,8 +753,11 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     whatsapp = ""
     email = ""
     has_contact = bool(phone or whatsapp or email)
-    # Qwen fix: Solo descartar si NO tiene keywords vehiculares Y NO tiene contacto
-    if vehicular_count < 2 and not has_contact:
+    # VentaFe: si tiene telefono, aceptar aunque no tenga keywords vehiculares
+    is_ventafe = 'ventafe' in (result.get('source', '') or '').lower()
+    if is_ventafe and has_contact:
+        pass  # Aceptar
+    elif vehicular_count < 2 and not has_contact:
         return None
 
     # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
