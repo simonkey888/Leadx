@@ -2340,10 +2340,14 @@ export default {
           cookies: cookiesStr,
         };
 
+        // Qwen fix: Pasar webhookUrl directamente en el body del run
         const runRes = await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/runs?token=' + env.APIFY_TOKEN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(apifyInput),
+          body: JSON.stringify({
+            ...apifyInput,
+            webhookUrl: 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook',
+          }),
         });
 
         if (!runRes.ok) {
@@ -2354,19 +2358,6 @@ export default {
         const runData = await runRes.json();
         const runId = runData.data.id;
         const datasetId = runData.data.defaultDatasetId;
-
-        // Qwen fix: configurar webhook para recibir resultados automaticamente
-        const webhookConfigUrl = 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook';
-        try {
-          await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/webhooks?token=' + env.APIFY_TOKEN, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              requestUrl: webhookConfigUrl,
-              eventName: 'ACTOR.RUN.SUCCEEDED',
-            }),
-          });
-        } catch (e) {}
 
         // Fire & Forget - devolver runId inmediatamente
         return jsonResponse({

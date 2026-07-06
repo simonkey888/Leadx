@@ -574,7 +574,9 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "titulo", "titular", "denuncia de venta", "formulario 08",
     ]
     vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
-    if vehicular_count < 2:
+    has_contact = bool(phone or whatsapp or email)
+    # Qwen fix: Solo descartar si NO tiene keywords vehiculares Y NO tiene contacto
+    if vehicular_count < 2 and not has_contact:
         return None
 
     # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
@@ -1035,12 +1037,8 @@ def deduplicate_cases(leads: List[Lead]) -> List[Lead]:
     seen: Set[str] = set()
     out = []
     for lead in leads:
-        components = [
-            normalize_text(lead.quoted_text[:200]),
-            lead.source_url,
-            lead.persona,
-            lead.platform,
-        ]
+        # Qwen fix: Solo usar URL para ID (estable entre runs)
+        components = [lead.source_url or lead.quoted_text[:50]]
         composite = "|".join(components)
         h = hashlib.sha256(composite.encode("utf-8")).hexdigest()[:16]
         lead.id = h
@@ -1519,7 +1517,7 @@ def mine_comments_for_contacts(leads: List[Lead]) -> int:
                         lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
                         enriched_count += 1
 
-                time.sleep(1.0)
+                time.sleep(2.0)  # Qwen fix: Rate limit
         except Exception:
             continue
 
@@ -1608,7 +1606,7 @@ def mine_profile_for_contacts(leads: List[Lead]) -> int:
                         lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
                         enriched_count += 1
 
-                time.sleep(1.5)
+                time.sleep(2.0)  # Qwen fix: Rate limit
         except Exception:
             continue
 
