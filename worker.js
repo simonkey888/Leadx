@@ -3061,7 +3061,7 @@ async function runPipelineCron(env) {
       });
       if (!vfRes.ok) continue;
       const vfHtml = await vfRes.text();
-      const blocks = vfHtml.split(/#\d{6,8}/).slice(1);
+      const blocks = vfHtml.split('class="row item tipo-').slice(1);
       
       for (const block of blocks) {
         let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
