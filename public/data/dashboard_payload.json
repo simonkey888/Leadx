@@ -1,26 +1,168 @@
 {
-  "generated_at": "2026-07-06T12:00:36.511625+00:00",
-  "run_id": "c6aafb253a09",
+  "generated_at": "2026-07-06T12:38:45.583107+00:00",
+  "run_id": "997a0249c6bb",
   "summary": {
-    "total_leads": 0,
-    "hot_leads": 0,
+    "total_leads": 2,
+    "hot_leads": 2,
     "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 0,
-    "avg_score_hot": 0,
-    "conversion_probability": 0,
-    "by_category": {},
-    "by_platform": {},
+    "avg_score": 72.5,
+    "avg_score_hot": 72.5,
+    "conversion_probability": 100.0,
+    "by_category": {
+      "FINE_DISPUTE": 1,
+      "TRANSFER_PROBLEM": 1
+    },
+    "by_platform": {
+      "Reddit": 1,
+      "Ventafe.Com.Ar": 1
+    },
     "by_province": {}
   },
-  "leads_all": [],
-  "leads_hot": [],
+  "leads_all": [
+    {
+      "id": "41cd3beab4896ee5",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Simple_Coconut_7000",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-06T00:57:29+00:00",
+      "fecha_iso": "2026-07-06T00:57:29+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1uoiw91/que_pasa_si_busco_un_auto_robado_hace_años",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola tengo una duda que puede ser muy tonta pero me da mucha curiosidad.</p> <p>A mi abuelo en los años 2000, le robaron su Chevrolet luv 0 km a punta de rifle en el campo.</p> <p>Él falleció en 2013, pero ahora estoy buscando varios de los autos que tuvo simplement",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "recent_0_3_days": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "recent_0_3_days"
+      ],
+      "discovery_timestamp": "2026-07-06T12:38:35.838221+00:00"
+    },
+    {
+      "id": "f9a43651bcd25fae",
+      "score": 65,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-07-06",
+      "fecha_iso": "2026-07-06T00:00:00",
+      "platform": "Ventafe.Com.Ar",
+      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "quoted_text": "$ 12.000.000 (0342) 15.... CITROËN C4 LOUNGE. 85.000km reales CITROËN C4 LOUNGE FEEL 1.6 THP 165CV – 2018 • Caja manual 6ta • 85.000 km reales (comprobables) • Único dueño • Service oficial Equipamiento: Control de estabilidad y tracción, frenos a disco en las 4 ruedas, airbags, control de velocidad",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-06T12:38:35.838893+00:00"
+    }
+  ],
+  "leads_hot": [
+    {
+      "id": "41cd3beab4896ee5",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Simple_Coconut_7000",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-06T00:57:29+00:00",
+      "fecha_iso": "2026-07-06T00:57:29+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1uoiw91/que_pasa_si_busco_un_auto_robado_hace_años",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola tengo una duda que puede ser muy tonta pero me da mucha curiosidad.</p> <p>A mi abuelo en los años 2000, le robaron su Chevrolet luv 0 km a punta de rifle en el campo.</p> <p>Él falleció en 2013, pero ahora estoy buscando varios de los autos que tuvo simplement",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "recent_0_3_days": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "recent_0_3_days"
+      ],
+      "discovery_timestamp": "2026-07-06T12:38:35.838221+00:00"
+    },
+    {
+      "id": "f9a43651bcd25fae",
+      "score": 65,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-07-06",
+      "fecha_iso": "2026-07-06T00:00:00",
+      "platform": "Ventafe.Com.Ar",
+      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "quoted_text": "$ 12.000.000 (0342) 15.... CITROËN C4 LOUNGE. 85.000km reales CITROËN C4 LOUNGE FEEL 1.6 THP 165CV – 2018 • Caja manual 6ta • 85.000 km reales (comprobables) • Único dueño • Service oficial Equipamiento: Control de estabilidad y tracción, frenos a disco en las 4 ruedas, airbags, control de velocidad",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-06T12:38:35.838893+00:00"
+    }
+  ],
   "leads_warm": [],
   "insights": [
-    "Sin datos suficientes para generar insights."
+    "El 50% de los leads calientes provienen de Reddit.",
+    "El problema más frecuente es: Disputa de multa/fotomulta.",
+    "0% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -48,7 +190,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 62.32,
-    "queries_executed": 1
+    "runtime_seconds": 76.89,
+    "queries_executed": 3
   }
 }

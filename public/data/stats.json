@@ -1,31 +1,12 @@
 {
-  "total_runs": 58,
-  "last_run": "2026-07-06T12:00:36.511625+00:00",
-  "last_run_id": "c6aafb253a09",
-  "total_leads_all_time": 546,
-  "total_hot_leads_all_time": 445,
-  "avg_hot_per_run": 7.7,
-  "runs_today": 7,
+  "total_runs": 59,
+  "last_run": "2026-07-06T12:38:45.583107+00:00",
+  "last_run_id": "997a0249c6bb",
+  "total_leads_all_time": 548,
+  "total_hot_leads_all_time": 447,
+  "avg_hot_per_run": 7.6,
+  "runs_today": 8,
   "last_7_days": [
-    {
-      "run_id": "bb61fb2133ff",
-      "generated_at": "2026-07-06T02:42:58.028332+00:00",
-      "summary": {
-        "total_leads": 0,
-        "hot_leads": 0,
-        "warm_leads": 0,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 0,
-        "avg_score_hot": 0,
-        "conversion_probability": 0,
-        "by_category": {},
-        "by_platform": {},
-        "by_province": {}
-      }
-    },
     {
       "run_id": "5f0d0116fa8d",
       "generated_at": "2026-07-06T05:43:50.271766+00:00",
@@ -155,6 +136,31 @@
         "conversion_probability": 0,
         "by_category": {},
         "by_platform": {},
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "997a0249c6bb",
+      "generated_at": "2026-07-06T12:38:45.583107+00:00",
+      "summary": {
+        "total_leads": 2,
+        "hot_leads": 2,
+        "warm_leads": 0,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 72.5,
+        "avg_score_hot": 72.5,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "FINE_DISPUTE": 1,
+          "TRANSFER_PROBLEM": 1
+        },
+        "by_platform": {
+          "Reddit": 1,
+          "Ventafe.Com.Ar": 1
+        },
         "by_province": {}
       }
     }
