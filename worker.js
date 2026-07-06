@@ -3044,6 +3044,62 @@ async function runPipelineCron(env) {
     }
   }
 
+  // VentaFe Scraper (desde edge IP)
+  console.log('[CRON] Scraping VentaFe...');
+  try {
+    const vfPhoneRegex = /\(?(?:0?342|342|0?341|341|0?351|351|0?261|261|0?221|221|0?381|381|0?299|299|0?11|11)\)?[\s\-]?15?\d{6,8}/g;
+    const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
+    
+    for (let page = 1; page <= 5; page++) {
+      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?page=' + page;
+      const vfRes = await fetch(vfUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
+      });
+      if (!vfRes.ok) continue;
+      const vfHtml = await vfRes.text();
+      const blocks = vfHtml.split(/#\d{6,8}/).slice(1);
+      
+      for (const block of blocks) {
+        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+        if (text.length < 100) continue;
+        
+        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
+        const patenteM = text.match(vfPatenteRegex);
+        if (!phones.length && !patenteM) continue;
+        
+        const textLower = text.toLowerCase();
+        const problemas = [];
+        if (/no\s+puedo\s+transferir|transferencia\s+bloqueada/.test(textLower)) problemas.push('TRANSFERENCIA');
+        if (/multa|fotomulta|infraccion/.test(textLower)) problemas.push('MULTA');
+        if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
+        if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
+        if (!problemas.length && !patenteM) continue;
+        
+        let score = 40;
+        if (patenteM) score += 15;
+        if (problemas.includes('TRANSFERENCIA')) score += 30;
+        if (problemas.includes('MULTA')) score += 25;
+        if (problemas.includes('DEUDA')) score += 25;
+        if (phones.length) score += 30;
+        
+        newLeads.push({
+          id: 'ventafe_' + text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, ''),
+          source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
+          author: 'Vendedor VentaFe', persona: 'Vendedor VentaFe',
+          title: text.slice(0, 200), snippet: text.slice(0, 3000),
+          url: 'https://www.ventafe.com.ar/automoviles',
+          fecha_iso: new Date().toISOString().slice(0, 10),
+          score: Math.min(100, score),
+          whatsapp_publico: phones[0] || '', telefono_publico: phones[0] || '',
+          has_contact: phones.length > 0, contacto_publico: phones.length > 0,
+          patente: patenteM ? patenteM[1].toUpperCase() : '',
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+    console.log('[CRON] VentaFe done');
+  } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
+
   const raw = await env.LEADX_KV.get('leads:live');
   let existing = { leads_all: [], leads_hot: [], meta: {} };
   if (raw) {
