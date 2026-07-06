@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-06T14:22:05.479107+00:00",
-  "run_id": "0b0c9de2a60b",
+  "generated_at": "2026-07-06T15:50:57.608626+00:00",
+  "run_id": "f9dd6d61001f",
   "summary": {
     "total_leads": 1,
     "hot_leads": 1,
@@ -56,7 +56,7 @@
         "contact_visible",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T14:22:05.478747+00:00"
+      "discovery_timestamp": "2026-07-06T15:50:57.608118+00:00"
     }
   ],
   "leads_hot": [
@@ -95,7 +95,7 @@
         "contact_visible",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T14:22:05.478747+00:00"
+      "discovery_timestamp": "2026-07-06T15:50:57.608118+00:00"
     }
   ],
   "leads_warm": [],
@@ -130,7 +130,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 47.99,
-    "queries_executed": 1
+    "runtime_seconds": 51.43,
+    "queries_executed": 2
   }
 }
