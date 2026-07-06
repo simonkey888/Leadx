@@ -3075,7 +3075,7 @@ async function runPipelineCron(env) {
   // VentaFe Scraper (desde edge IP)
   console.log('[CRON] Scraping VentaFe...');
   try {
-    const vfPhoneRegex = /\(?(?:0?342|342|0?341|341|0?351|351|0?261|261|0?221|221|0?381|381|0?299|299|0?11|11)\)?[\s\-]?15?\d{6,8}/g;
+    const vfPhoneRegex = /\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}/g;
     const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
     
     for (let page = 1; page <= 2; page++) {  // Qwen fix: 2 paginas para evitar timeout
