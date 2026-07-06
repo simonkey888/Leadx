@@ -1,39 +1,12 @@
 {
-  "total_runs": 56,
-  "last_run": "2026-07-06T09:01:57.186766+00:00",
-  "last_run_id": "4fd65b830188",
+  "total_runs": 57,
+  "last_run": "2026-07-06T10:15:51.716777+00:00",
+  "last_run_id": "eeaa151a77d8",
   "total_leads_all_time": 546,
   "total_hot_leads_all_time": 445,
-  "avg_hot_per_run": 7.9,
-  "runs_today": 5,
+  "avg_hot_per_run": 7.8,
+  "runs_today": 6,
   "last_7_days": [
-    {
-      "run_id": "436ea2157068",
-      "generated_at": "2026-07-05T21:58:14.495614+00:00",
-      "summary": {
-        "total_leads": 8,
-        "hot_leads": 7,
-        "warm_leads": 1,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 86.2,
-        "avg_score_hot": 91.4,
-        "conversion_probability": 87.5,
-        "by_category": {
-          "TRANSFER_PROBLEM": 8
-        },
-        "by_platform": {
-          "Reddit": 8
-        },
-        "by_province": {
-          "CABA": 1,
-          "Buenos Aires": 1,
-          "La Plata": 1
-        }
-      }
-    },
     {
       "run_id": "cd161e1b5627",
       "generated_at": "2026-07-05T23:02:27.749221+00:00",
@@ -156,6 +129,25 @@
     {
       "run_id": "4fd65b830188",
       "generated_at": "2026-07-06T09:01:57.186766+00:00",
+      "summary": {
+        "total_leads": 0,
+        "hot_leads": 0,
+        "warm_leads": 0,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 0,
+        "avg_score_hot": 0,
+        "conversion_probability": 0,
+        "by_category": {},
+        "by_platform": {},
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "eeaa151a77d8",
+      "generated_at": "2026-07-06T10:15:51.716777+00:00",
       "summary": {
         "total_leads": 0,
         "hot_leads": 0,
