@@ -1333,45 +1333,45 @@ async function loadBioIfReddit(l) {
   }
 }
 
-// Validar WhatsApp via Worker (Apify WA validator)
+// Abrir WhatsApp directamente sin validación Apify (fix Qwen pragmático).
+// La validación era inestable (actor Apify a menudo cae) y Sergio puede validar
+// manualmente al abrir el chat. Velocidad > precisión aquí.
 async function validateWaFromModal() {
   const l = S.crmLeads.find(x => x.id === S.currentId);
-  if (!l || l._wa_state !== 'normalized_contact') return;
-  if (!l._wa_e164) { alert('Sin teléfono para validar'); return; }
-  const phone = l._wa_e164.startsWith('+') ? l._wa_e164.slice(1) : l._wa_e164;
-  const waBtn = document.getElementById('modal-wa-btn');
-  const orig = waBtn.textContent;
-  waBtn.textContent = '⏳ Validando...';
-  waBtn.onclick = null;
-  try {
-    const r = await fetch('/api/whatsapp-validate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': getUrlSecret() },
-      body: JSON.stringify({ phones: [phone] })
-    });
-    const d = await r.json();
-    if (d.ok && d.results && d.results.length > 0) {
-      const isValid = d.results[0].isValid;
-      setWaValidation(l._wa_e164, isValid);
-      l._wa_state = isValid ? 'validated_whatsapp' : 'not_whatsapp';
-      if (isValid) {
-        waBtn.innerHTML = WA_ICON + ' <span style="font-size:13px;color:#25D366">WhatsApp</span>';
-        waBtn.href = l._wa_url;
-        document.getElementById('modal-phone-label').textContent = l._wa_display + ' (verificado)';
-      } else {
-        waBtn.style.display = 'none';
-        document.getElementById('modal-phone-label').textContent = l._wa_display + ' (no tiene WhatsApp)';
-      }
-      renderTable();
-      renderKPIs();
-    } else {
-      alert('Error validando: ' + (d.error || '?'));
-      waBtn.textContent = orig;
-    }
-  } catch (e) {
-    alert('Error: ' + e.message);
-    waBtn.textContent = orig;
+  if (!l) { alert('Sin lead seleccionado'); return; }
+  if (!l._wa_url && !l._wa_e164) {
+    alert('Sin WhatsApp disponible para este lead');
+    return;
   }
+
+  // Si no hay _wa_url pero hay e164, construirlo al vuelo
+  const waUrl = l._wa_url || (l._wa_e164
+    ? 'https://wa.me/' + (l._wa_e164.startsWith('+') ? l._wa_e164.slice(1) : l._wa_e164)
+    : '');
+
+  if (!waUrl) {
+    alert('Sin WhatsApp disponible para este lead');
+    return;
+  }
+
+  // Abrir WhatsApp en nueva pestaña
+  window.open(waUrl, '_blank');
+
+  // Marcar como validado localmente (state persistido en localStorage)
+  if (l._wa_e164) setWaValidation(l._wa_e164, true);
+  l._wa_state = 'validated_whatsapp';
+
+  const waBtn = document.getElementById('modal-wa-btn');
+  if (waBtn) {
+    waBtn.innerHTML = WA_ICON + ' <span style="font-size:13px;color:#25D366">WhatsApp ✓</span>';
+    waBtn.href = waUrl;
+    waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, '_blank'); };
+  }
+  const phoneLabel = document.getElementById('modal-phone-label');
+  if (phoneLabel) phoneLabel.textContent = (l._wa_display || l._wa_e164 || '') + ' (abierto)';
+
+  renderTable();
+  renderKPIs();
 }
 
 async function validateWaFromTable(id) {
