@@ -933,8 +933,11 @@ function cleanSnippet(text) {
   t = t.replace(/<!--[\s\S]*?-->/g, '');
   // Quitar tags HTML
   t = t.replace(/<[^>]+>/g, ' ');
-  // Quitar entidades HTML comunes
+  // Quitar entidades HTML comunes (incluyendo s minuscula)
   t = t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  t = t.replace(/&#x27;/g, "'").replace(/&#x2F;/g, '/').replace(/&#47;/g, '/');
+  // Fix encoding:Reddit RSS corta la 's' en algunos casos
+  t = t.replace(/tran ferencia/gi, 'transferencia').replace(/Di puta/g, 'Disputa').replace(/ituaci\u00f3n/g, 'ituación').replace(/ca o/g, 'caso').replace(/erencia/g, 'erencia');
   // Colapsar espacios
   t = t.replace(/\s+/g, ' ').trim();
   return t;
@@ -1022,7 +1025,9 @@ function renderTable() {
               ? \`<button class="btn-wa-pending" onclick="validateWaFromTable('\${l.id}')" title="Validar WhatsApp">⚪</button>\`
               : l._wa_state === 'not_whatsapp'
                 ? \`<span class="wa-none" title="No tiene WhatsApp">❌</span>\`
-                : \`\`
+                : l.email
+                  ? \`<span style="font-size:16px" title="\${l.email}">✉️</span>\`
+                  : \`\`
           }
           <button class="btn-icon" onclick="openDetail('\${l.id}')" title="Ver detalle">📋</button>
         </div>
@@ -2967,7 +2972,10 @@ async function runPipelineCron(env) {
           body = contentM[1].replace(/<[^>]+>/g, ' ')
             .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
             .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+            .replace(/&#x27;/g, "'").replace(/&#47;/g, '/')
             .replace(/\s+/g, ' ').trim();
+          // Fix encoding: Reddit RSS a veces corta la 's'
+          body = body.replace(/tran fer/gi, 'transfer').replace(/Di puta/g, 'Disputa');
         }
 
         const fecha = updatedM ? updatedM[1].slice(0, 10) : '';
