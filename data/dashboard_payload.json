@@ -1,24 +1,25 @@
 {
-  "generated_at": "2026-07-06T22:04:33.139072+00:00",
-  "run_id": "00b1ad3e7154",
+  "generated_at": "2026-07-06T22:10:32.857269+00:00",
+  "run_id": "8e183694dd7b",
   "summary": {
-    "total_leads": 13,
-    "hot_leads": 13,
+    "total_leads": 14,
+    "hot_leads": 14,
     "warm_leads": 0,
     "contactable": 13,
     "with_whatsapp": 5,
     "with_phone": 13,
     "with_email": 0,
-    "avg_score": 84.6,
-    "avg_score_hot": 84.6,
+    "avg_score": 84.3,
+    "avg_score_hot": 84.3,
     "conversion_probability": 100.0,
     "by_category": {
+      "FINE_DISPUTE": 2,
       "OTHER": 6,
       "TRANSFER_PROBLEM": 4,
-      "OWNERSHIP_ISSUE": 2,
-      "FINE_DISPUTE": 1
+      "OWNERSHIP_ISSUE": 2
     },
     "by_platform": {
+      "Reddit": 1,
       "Ventafe.Com.Ar": 13
     },
     "by_province": {
@@ -65,7 +66,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.133961+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.100940+00:00"
     },
     {
       "id": "0aaf6e3241b4b50d",
@@ -103,7 +104,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134379+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101351+00:00"
     },
     {
       "id": "f5401a229a4cf565",
@@ -141,7 +142,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134933+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101907+00:00"
     },
     {
       "id": "0157510164c7c278",
@@ -179,7 +180,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135658+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102621+00:00"
     },
     {
       "id": "1eccd155f831ebcd",
@@ -219,7 +220,40 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135904+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102862+00:00"
+    },
+    {
+      "id": "41cd3beab4896ee5",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Simple_Coconut_7000",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-06T00:57:29+00:00",
+      "fecha_iso": "2026-07-06T00:57:29+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1uoiw91/que_pasa_si_busco_un_auto_robado_hace_años",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola tengo una duda que puede ser muy tonta pero me da mucha curiosidad.</p> <p>A mi abuelo en los años 2000, le robaron su Chevrolet luv 0 km a punta de rifle en el campo.</p> <p>Él falleció en 2013, pero ahora estoy buscando varios de los autos que tuvo simplement",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "recent_0_3_days": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "recent_0_3_days"
+      ],
+      "discovery_timestamp": "2026-07-06T22:10:31.099876+00:00"
     },
     {
       "id": "a839327b9d69d692",
@@ -255,7 +289,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.133544+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.100538+00:00"
     },
     {
       "id": "69afe31d6dbef13b",
@@ -291,7 +325,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.133738+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.100722+00:00"
     },
     {
       "id": "86e460ce91d5f3aa",
@@ -327,7 +361,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134157+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101132+00:00"
     },
     {
       "id": "77c5c078fa9d9080",
@@ -363,7 +397,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134562+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101530+00:00"
     },
     {
       "id": "cb626be555644618",
@@ -399,7 +433,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134724+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101694+00:00"
     },
     {
       "id": "43374daa255d026e",
@@ -435,7 +469,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135170+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102142+00:00"
     },
     {
       "id": "7389680b3b0ecdec",
@@ -471,7 +505,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135395+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102361+00:00"
     },
     {
       "id": "6fcc48363e145c37",
@@ -507,7 +541,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.136145+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.103102+00:00"
     }
   ],
   "leads_hot": [
@@ -549,7 +583,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.133961+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.100940+00:00"
     },
     {
       "id": "0aaf6e3241b4b50d",
@@ -587,7 +621,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134379+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101351+00:00"
     },
     {
       "id": "f5401a229a4cf565",
@@ -625,7 +659,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134933+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101907+00:00"
     },
     {
       "id": "0157510164c7c278",
@@ -663,7 +697,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135658+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102621+00:00"
     },
     {
       "id": "1eccd155f831ebcd",
@@ -703,7 +737,40 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135904+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102862+00:00"
+    },
+    {
+      "id": "41cd3beab4896ee5",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Simple_Coconut_7000",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-06T00:57:29+00:00",
+      "fecha_iso": "2026-07-06T00:57:29+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1uoiw91/que_pasa_si_busco_un_auto_robado_hace_años",
+      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola tengo una duda que puede ser muy tonta pero me da mucha curiosidad.</p> <p>A mi abuelo en los años 2000, le robaron su Chevrolet luv 0 km a punta de rifle en el campo.</p> <p>Él falleció en 2013, pero ahora estoy buscando varios de los autos que tuvo simplement",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "recent_0_3_days": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "recent_0_3_days"
+      ],
+      "discovery_timestamp": "2026-07-06T22:10:31.099876+00:00"
     },
     {
       "id": "a839327b9d69d692",
@@ -739,7 +806,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.133544+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.100538+00:00"
     },
     {
       "id": "69afe31d6dbef13b",
@@ -775,7 +842,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.133738+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.100722+00:00"
     },
     {
       "id": "86e460ce91d5f3aa",
@@ -811,7 +878,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134157+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101132+00:00"
     },
     {
       "id": "77c5c078fa9d9080",
@@ -847,7 +914,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134562+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101530+00:00"
     },
     {
       "id": "cb626be555644618",
@@ -883,7 +950,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.134724+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.101694+00:00"
     },
     {
       "id": "43374daa255d026e",
@@ -919,7 +986,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135170+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102142+00:00"
     },
     {
       "id": "7389680b3b0ecdec",
@@ -955,7 +1022,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.135395+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.102361+00:00"
     },
     {
       "id": "6fcc48363e145c37",
@@ -991,15 +1058,15 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:04:33.136145+00:00"
+      "discovery_timestamp": "2026-07-06T22:10:31.103102+00:00"
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 100% de los leads calientes provienen de Ventafe.Com.Ar.",
-    "El 8% de los leads calientes son de CABA.",
+    "El 93% de los leads calientes provienen de Ventafe.Com.Ar.",
+    "El 7% de los leads calientes son de CABA.",
     "El problema más frecuente es: Lead vehicular.",
-    "100% de los leads calientes tienen contacto público visible."
+    "93% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -1027,7 +1094,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 48.15,
-    "queries_executed": 1
+    "runtime_seconds": 57.7,
+    "queries_executed": 2
   }
 }
