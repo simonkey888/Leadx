@@ -1048,8 +1048,7 @@ function openDetail(id) {
   const profileField = document.getElementById('modal-profile-field');
   const profileUrl = document.getElementById('modal-profile-url');
   const author = (l.persona || l.author || '').trim();
-  const redditUser = author.startsWith('u/') ? author.slice(2) :
-                     author.startsWith('/u/') ? author.slice(3) : '';
+  const redditUser = stripUprefix(author);
   if (redditUser && (l.url || '').includes('reddit.com')) {
     profileUrl.href = 'https://www.reddit.com/user/' + redditUser + '/';
     profileField.style.display = 'block';
@@ -1076,10 +1075,16 @@ function openDetail(id) {
   document.getElementById('detailModal').classList.add('open');
 }
 
+function stripUprefix(s) {
+  if (!s) return '';
+  if (s.startsWith('/u/')) return s.slice(3);
+  if (s.startsWith('u/')) return s.slice(2);
+  return s;
+}
 function copyWaTemplate() {
   const l = S.crmLeads.find(x => x.id === S.currentId);
   if (!l) return;
-  const persona = (l.persona || l.author || '').replace(/^u\//, '').replace(/^\/u\//, '');
+  const persona = stripUprefix(l.persona || l.author || '');
   const problema = l.problem_summary || l.title || l._resumen || 'tu consulta';
   const tpl = 'Hola ' + (persona || '') + ', te contactamos de SinFotomultas. Vi que tenés una consulta sobre ' + problema + '. ¿Querés que te ayudemos a resolverlo? Consulta sin cargo.';
   navigator.clipboard.writeText(tpl).then(() => {
@@ -1094,7 +1099,7 @@ function copyDmTemplate() {
   // N2: Guión DM no-spam para Reddit (Claude)
   const l = S.crmLeads.find(x => x.id === S.currentId);
   if (!l) return;
-  const author = (l.persona || l.author || '').replace(/^u\//, '').replace(/^\/u\//, '');
+  const author = stripUprefix(l.persona || l.author || '');
   const problema = l.problem_summary || l.title || l._resumen || 'tu consulta vehicular';
   const tpl = 'Hola u/' + (author || '') + ', vi tu consulta sobre ' + problema +
     '. Trabajo con un equipo legal que resuelve esto regularmente. ¿Querés que te cuente cómo funciona? Sin compromiso.';
@@ -1126,8 +1131,7 @@ async function loadBioIfReddit(l) {
   bioField.style.display = 'none';
   
   const author = (l.persona || l.author || '').trim();
-  const redditUser = author.startsWith('u/') ? author.slice(2) :
-                     author.startsWith('/u/') ? author.slice(3) : '';
+  const redditUser = stripUprefix(author);
   
   if (!redditUser || !(l.url || '').includes('reddit.com')) return;
   
