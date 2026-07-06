@@ -940,8 +940,8 @@ function cleanSnippet(text) {
   if (!text) return '';
   let t = String(text);
   // Quitar scripts de VentaFe (googletag, etc)
-  t = t.replace(/googletag\.[^;]+;/gi, '');
-  t = t.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  t = t.replace(/googletag[^;]+;/gi, '');
+  t = t.replace(/<script[\s\S]*?<\/script>/gi, '');
   // Quitar comentarios HTML
   t = t.replace(/<!--[\s\S]*?-->/g, '');
   // Quitar tags HTML
