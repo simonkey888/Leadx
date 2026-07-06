@@ -939,15 +939,19 @@ function setWaValidation(e164, isValid) {
 function cleanSnippet(text) {
   if (!text) return '';
   let t = String(text);
+  // Quitar scripts de VentaFe (googletag, etc)
+  t = t.replace(/googletag\.[^;]+;/gi, '');
+  t = t.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
   // Quitar comentarios HTML
   t = t.replace(/<!--[\s\S]*?-->/g, '');
   // Quitar tags HTML
   t = t.replace(/<[^>]+>/g, ' ');
-  // Quitar entidades HTML comunes (incluyendo s minuscula)
+  // Decodificar TODAS las entidades HTML
   t = t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   t = t.replace(/&#x27;/g, "'").replace(/&#x2F;/g, '/').replace(/&#47;/g, '/');
-  // Fix encoding:Reddit RSS corta la 's' en algunos casos
-  t = t.replace(/tran ferencia/gi, 'transferencia').replace(/Di puta/g, 'Disputa').replace(/ituaci\u00f3n/g, 'ituación').replace(/ca o/g, 'caso').replace(/erencia/g, 'erencia');
+  t = t.replace(/&#8217;/g, "'").replace(/&#8230;/g, '...').replace(/&#8220;/g, '"').replace(/&#8221;/g, '"');
+  t = t.replace(/&#8211;/g, '-').replace(/&#8212;/g, '--').replace(/&#8216;/g, "'");
+  t = t.replace(/&#8242;/g, "'").replace(/&#8243;/g, '"').replace(/&nbsp;/g, ' ');
   // Colapsar espacios
   t = t.replace(/\s+/g, ' ').trim();
   return t;
@@ -3003,8 +3007,16 @@ async function runPipelineCron(env) {
 
         const painKw = ['multa','multas','fotomulta','fotomultas','infraccion','infracciones',
           'infraccion','libre deuda','libredeuda','transferencia','transferir','patente',
-          '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento'];
+          '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento',
+          'auto','moto','vehiculo','vendo','compro','permuta'];
         if (!painKw.some(k => fullText.includes(k))) continue;
+        
+        // Anti-junk
+        const junkKw = ['renunciar','empleo','galaxy','tablet','licitacion','falsa competencia',
+          'guardia roja','gracia inmerecida','euphoria','depre','ajuste de equilibrio','probabilit'];
+        if (junkKw.some(k => fullText.includes(k))) continue;
+        const ptKw = ['nao','voce','comprei','vendi','carro','detran','cnh','obrigado','galera','deix','crever','belezura'];
+        if (ptKw.filter(k => fullText.includes(k)).length >= 2) continue;
 
         let score = 40;
         const urgencyKw = ['urgente','hoy','ahora','recien','me llego','consulta','ayuda','necesito','no puedo'];
