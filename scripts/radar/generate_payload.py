@@ -532,16 +532,24 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         
         # Titulo: primeras palabras del texto
         title = text[:80].strip()
-        
-        # FIX BOMBA #2 (parte 4): URL unica por lead para evitar dedup masivo.
-        # Todos los leads VentaFe compartian la misma URL base, lo que hacia que
-        # la dedup por source_url colapsara los 17 leads en 1 solo.
-        phone_slug = valid_phones[0].replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
-        unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
-        
+
+        # FIX QWEN: URL unica REAL del aviso (no generica) para evitar dedup masivo.
+        # VentaFe expone URLs tipo /automoviles/5011376-honda-hr-v-lx-cvt-2017
+        # Si no encontramos el href, caemos a anchor por telefono.
+        href_match = _re.search(r'href="(/automoviles/(\d+)-[^"]+)"', block)
+        if href_match:
+            unique_url = "https://www.ventafe.com.ar" + href_match.group(1)
+            aviso_id = href_match.group(2)
+        else:
+            # Fallback: anchor por telefono
+            phone_slug = _re.sub(r'\D', '', valid_phones[0])
+            unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
+            aviso_id = phone_slug
+
         lead = {
             "name": f"[VentaFe] {title}",
             "url": unique_url,
+            "source_url": unique_url,  # Para dedup estable entre runs
             "snippet": text[:500],
             "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
             "host_name": "ventafe.com.ar",
@@ -553,6 +561,7 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
             "patentes": _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text),
             "problemas": pain_points,
             "zona": "Santa Fe",
+            "aviso_id": aviso_id,
         }
         leads.append(lead)
     
