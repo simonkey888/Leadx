@@ -3111,11 +3111,12 @@ async function runPipelineCron(env) {
     try { existing = JSON.parse(raw); } catch (e) {}
   }
 
-  const byUrl = new Map();
-  for (const l of (existing.leads_all || [])) byUrl.set(l.url || l.id, l);
-  for (const l of newLeads) byUrl.set(l.url || l.id, l);
+  // Qwen fix: mergear por ID (no por URL) para que VentaFe no se pise
+  const byId = new Map();
+  for (const l of (existing.leads_all || [])) byId.set(l.id, l);
+  for (const l of newLeads) byId.set(l.id, l);
 
-  const merged = Array.from(byUrl.values());
+  const merged = Array.from(byId.values());
   merged.sort((a, b) => (b.fecha_iso || '').localeCompare(a.fecha_iso || ''));
   const truncated = merged.slice(0, 500);
 
