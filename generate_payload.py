@@ -1042,6 +1042,29 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
             breakdown['ventafe_deuda'] = 25
             signals.append('VENTAFE_DEUDA')
 
+    # DETECTOR DE CONTRADICCIONES (Qwen: VentaFe vs Clasific.ar)
+    promesas_ok = ["papeles al dia", "papeles al día", "listo para transferir",
+                   "sin deuda", "sin multas", "libre de deuda", "patente paga",
+                   "todo al dia", "todo al día", "transferencia inmediata"]
+    vendedor_promete_ok = any(p in text for p in promesas_ok)
+    
+    tiene_deuda_real = False
+    if record.get("clasificar_deuda") or record.get("clasificar_multas"):
+        tiene_deuda_real = True
+    if any(p in text for p in ["debo patente", "tiene multas", "deuda de patente", "infracciones"]):
+        tiene_deuda_real = True
+    
+    if vendedor_promete_ok and tiene_deuda_real:
+        score += 40
+        breakdown["contradiccion_detectada"] = 40
+        signals.append("CONTRADICCION_VENDEDOR")
+    
+    admite_problema = any(p in text for p in ["debo patentes", "tiene multas", "falta el 08", "no puedo transferir"])
+    if admite_problema:
+        score += 30
+        breakdown["admite_deuda"] = 30
+        signals.append("VENDEDOR_ADMITE_PROBLEMA")
+
     # multa_or_fotomulta: +60
     if "multa" in text or "fotomulta" in text:
         score += SCORE_RULES["multa_or_fotomulta"]
