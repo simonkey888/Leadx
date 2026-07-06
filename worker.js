@@ -1558,7 +1558,7 @@ export default {
         const data = JSON.parse(raw);
         // Asegurar estructura mínima
         if (!data.leads_all) data.leads_all = [];
-        if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50);
+        if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.score || 0) >= 50);
         if (!data.summary) data.summary = { total_leads: data.leads_all.length, hot_leads: data.leads_hot.length };
         if (!data.meta) data.meta = { version: '10.0', source: 'kv', generated_at: new Date().toISOString() };
         return jsonResponse(data, corsHeaders);
@@ -1584,8 +1584,8 @@ export default {
         }
         const data = JSON.parse(raw);
         const leads = data.leads_all || [];
-        const hot = leads.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50);
-        const urgent = leads.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 80);
+        const hot = leads.filter(l => (l.score || 0) >= 50);
+        const urgent = leads.filter(l => (l.score || 0) >= 80);
         const contact = leads.filter(l => l.contact?.whatsapp || l.contact?.phone || l.whatsapp_publico);
         return jsonResponse({
           total_leads: leads.length,
@@ -1616,7 +1616,7 @@ export default {
       try {
         const body = await request.json();
         const newLeads = body.leads_all || [];
-        const newHot = body.leads_hot || newLeads.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50);
+        const newHot = body.leads_hot || newLeads.filter(l => (l.score || 0) >= 50);
 
         // Anti-wipe: si vienen <5 leads, NO sobrescribir
         const prevRaw = await env.LEADX_KV.get('leads:live');
@@ -1675,10 +1675,10 @@ export default {
 
         const payload = {
           leads_all: truncated,
-          leads_hot: truncated.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50),
+          leads_hot: truncated.filter(l => (l.score || 0) >= 50),
           summary: {
             total_leads: truncated.length,
-            hot_leads: truncated.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50).length,
+            hot_leads: truncated.filter(l => (l.score || 0) >= 50).length,
           },
           meta: {
             version: '10.0',
@@ -2605,252 +2605,10 @@ export default {
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },
 
-  // scheduled() desactivado (GPT FIX 1: Python es unico pipeline)
-  // Python corre en GH Actions y hace POST /api/ingest
+  // GPT v2: Worker no tiene cron. Python es el unico pipeline.
   async scheduled(event, env, ctx) {
-    console.log('[scheduled] Handler desactivado. Pipeline corre en Python.');
     return;
   }
 };
 
 // ─── Funcion standalone del pipeline (compartida por cron y /api/cron-run) ───
-async function runPipelineCron(env) {
-  const redditQueries = [
-    'no puedo transferir multa argentina',
-    'me llego multa fotomulta argentina',
-    'libre deuda transferencia auto',
-    'fotomulta reclamo argentina',
-    'compre auto multas anteriores',
-  ];
-
-  const newLeads = [];
-  const seenUrls = new Set();
-
-  for (const query of redditQueries) {
-    try {
-      const rssUrl = 'https://www.reddit.com/search.rss?q=' + encodeURIComponent(query) + '&sort=new&limit=10&t=month';
-      const rssRes = await fetch(rssUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'application/atom+xml, application/xml, text/xml, */*',
-          'Accept-Language': 'es-AR,es;q=0.9',
-        },
-      });
-
-      if (!rssRes.ok) continue;
-      const xml = await rssRes.text();
-      const entries = xml.split('<entry>').slice(1);
-
-      for (const entry of entries) {
-        const titleM = entry.match(/<title[^>]*>([^<]+)<\/title>/);
-        const linkM = entry.match(/<link[^>]*href="([^"]+)"/);
-        const authorM = entry.match(/<name[^>]*>([^<]+)<\/name>/);
-        const contentM = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
-        const updatedM = entry.match(/<updated[^>]*>([^<]+)<\/updated>/);
-
-        if (!titleM || !linkM) continue;
-        const url = linkM[1];
-        if (seenUrls.has(url) || !url.includes('/comments/')) continue;
-        seenUrls.add(url);
-
-        const title = titleM[1].trim();
-        const authorRaw = authorM ? authorM[1].trim() : '';
-        let author = '';
-        const uMatch = authorRaw.match(/u\/([A-Za-z0-9_\-:]{3,20})/);
-        if (uMatch) author = uMatch[1];
-
-        let body = '';
-        if (contentM) {
-          body = contentM[1].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
-        }
-        const fecha = updatedM ? updatedM[1].slice(0, 10) : '';
-        const fullText = (title + ' ' + body).toLowerCase();
-
-        const painKw = ['multa','multas','fotomulta','fotomultas','infraccion','infracciones','infracción','libre deuda','transferencia','transferir','patente','08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento'];
-        if (!painKw.some(k => fullText.includes(k))) continue;
-
-        let score = 40;
-        const urgencyKw = ['urgente','hoy','ahora','recien','me llego','me llegue','consulta','ayuda','necesito','no puedo','me retuvieron'];
-        if (urgencyKw.some(k => fullText.includes(k))) score += 20;
-        const extremeKw = ['me llego','me llegue','me cobraron','me quieren cobrar','no puedo transferir','me retuvieron','necesito ayuda','alguien sabe','urgente'];
-        if (extremeKw.some(k => fullText.includes(k))) score += 20;
-
-        const arPhoneRegex = /(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
-        const waLinkRegex = /wa\.me\/(\d{8,15})/gi;
-        const emailRegex = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
-        const spamDomains = ['mailinator','tempmail','guerrillamail','10minutemail','noreply','example.com','facebook.com'];
-
-        const phones = [...new Set((body.match(arPhoneRegex) || []).map(p => p.trim()))];
-        const waLinks = [...new Set([...body.matchAll(waLinkRegex)].map(m => m[1]))];
-        const emails = [...new Set((body.match(emailRegex) || []).map(e => e.toLowerCase().trim()).filter(e => !spamDomains.some(d => e.includes(d))))];
-        const hasContact = phones.length > 0 || waLinks.length > 0 || emails.length > 0;
-        if (hasContact) score += 30;
-
-        const arGeo = ['argentina','buenos aires','caba','cordoba','córdoba','rosario','santa fe','mendoza','tucuman','tucumán','salta','neuquen','la plata'];
-        if (arGeo.some(g => fullText.includes(g))) score += 15;
-
-        const patenteMatch = body.match(/\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i);
-        if (patenteMatch) score += 15;
-
-        score = Math.max(0, Math.min(100, score));
-        if (score < 40) continue;
-
-        newLeads.push({
-          id: 'reddit_' + url.split('/').slice(-2)[0],
-          source: 'reddit_rss', source_label: 'Reddit', platform: 'Reddit',
-          author: author, persona: author ? 'u/' + author : '(anonimo)',
-          title: title.slice(0, 200), snippet: body.slice(0, 3000),
-          url: url, fecha_iso: fecha, score: score,
-          whatsapp_publico: phones[0] || waLinks[0] || '',
-          telefono_publico: phones[0] || '',
-          email_publico: emails[0] || '',
-          has_contact: hasContact,
-          patente: patenteMatch ? patenteMatch[1].toUpperCase() : '',
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (e) {}
-  }
-
-  const raw = await env.LEADX_KV.get('leads:live');
-  let existing = { leads_all: [], leads_hot: [], meta: {} };
-  if (raw) { try { existing = JSON.parse(raw); } catch (e) {} }
-
-  const byUrl = new Map();
-  for (const l of (existing.leads_all || [])) byUrl.set(l.url || l.id, l);
-  for (const l of newLeads) byUrl.set(l.url || l.id, l);
-  const merged = Array.from(byUrl.values());
-  merged.sort((a, b) => (b.fecha_iso || '').localeCompare(a.fecha_iso || ''));
-  const truncated = merged.slice(0, 500);
-
-  const payload = {
-    leads_all: truncated,
-    leads_hot: truncated.filter(l => (l.score || 0) >= 60),
-    leads_warm: truncated.filter(l => (l.score || 0) >= 40 && (l.score || 0) < 60),
-    summary: {
-      total_leads: truncated.length,
-      hot_leads: truncated.filter(l => (l.score || 0) >= 60).length,
-      with_whatsapp: truncated.filter(l => l.whatsapp_publico).length,
-      with_email: truncated.filter(l => l.email_publico).length,
-    },
-    meta: {
-      version: '11.0', source: 'cron_trigger',
-      generated_at: new Date().toISOString(),
-      ingest_at: new Date().toISOString(),
-      new_in_batch: newLeads.length,
-    },
-  };
-
-  if (truncated.length === 0 && (existing.leads_all || []).length > 0) {
-    return { ok: true, skipped: 'anti_wipe', existing: (existing.leads_all || []).length };
-  }
-
-  await env.LEADX_KV.put('leads:live', JSON.stringify(payload));
-  return { ok: true, new_leads: newLeads.length, total: truncated.length, hot: payload.summary.hot_leads };
-}
-
-const COOKIES_HTML = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LeadX — Refrescador de Cookies FB</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0e1a; color: #e2e8f0; padding: 20px; max-width: 800px; margin: 0 auto; }
-  h1 { color: #38bdf8; margin-bottom: 8px; }
-  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 30px; }
-  .card { background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-  .status { font-size: 14px; }
-  .status-ok { color: #10b981; }
-  .status-warn { color: #fbbf24; }
-  .status-err { color: #f87171; }
-  textarea { width: 100%; height: 200px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; resize: vertical; }
-  button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 8px; }
-  button:hover { background: #0284c7; }
-  button.test { background: #6554C0; }
-  button.test:hover { background: #4c3a9e; }
-  .info { font-size: 12px; color: #94a3b8; margin-top: 8px; line-height: 1.6; }
-  .info code { background: #0f172a; padding: 2px 6px; border-radius: 3px; color: #fbbf24; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
-  .stat { background: #0f172a; padding: 12px; border-radius: 6px; }
-  .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
-  .stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
-  #result { margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; }
-  .result-ok { background: #064e3b; color: #6ee7b7; }
-  .result-err { background: #7f1d1d; color: #fca5a5; }
-  a { color: #38bdf8; }
-</style>
-</head>
-<body>
-  <h1>🍪 Refrescador de Cookies FB</h1>
-  <div class="subtitle">LeadX — mantener sesión Facebook activa para Apify scraper</div>
-
-  <div class="card">
-    <div class="status" id="status">Cargando estado...</div>
-    <div class="stats" id="stats"></div>
-  </div>
-
-  <div class="card">
-    <h3 style="margin-bottom:12px">Pegar cookies nuevas</h3>
-    <textarea id="cookiesInput" placeholder='Pegá acá el JSON exportado de Cookie-Editor (Chrome). Ejemplo:&#10;[&#10;  {"domain":".facebook.com","name":"xs","value":"35%3A..."},&#10;  {"domain":".facebook.com","name":"c_user","value":"USER_ID_EXAMPLE"},&#10;  ...&#10;]'></textarea>
-    <div style="margin-top:12px">
-      <button onclick="saveCookies()">💾 Guardar cookies</button>
-      <button class="test" onclick="testCookies()">🧪 Probar cookies</button>
-      <button onclick="loadStatus()" style="background:#475569">↻ Refrescar estado</button>
-    </div>
-    <div id="result"></div>
-  </div>
-
-  <div class="card">
-    <div class="info">
-      <strong>¿Cómo conseguir las cookies?</strong><br>
-      1. Instalá la extensión <a href="https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm" target="_blank">Cookie-Editor</a> en Chrome<br>
-      2. Iniciá sesión en <a href="https://www.facebook.com" target="_blank">facebook.com</a> con tu cuenta<br>
-      3. Abrí Cookie-Editor (ícono de cookie arriba a la derecha)<br>
-      4. Click en "Export" → "Export as JSON"<br>
-      5. Pegá el JSON acá arriba → "Guardar cookies"
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="info">
-      <strong>¿Cada cuánto refrescar?</strong><br>
-      • Cada <strong>7-14 días</strong> (preventivo)<br>
-      • Si Apify devuelve 0 resultados (cookies vencidas)<br>
-      • Si Facebook te desloguea de tu browser<br>
-      • La cookie <code>xs</code> (sesión crítica) caduca en ~6 meses<br>
-      • Facebook puede invalidarla antes si detecta scraping
-    </div>
-  </div>
-
-<script>
-const SECRET = new URLSearchParams(location.search).get('key') || '';
-
-async function loadStatus() {
-  document.getElementById('status').innerHTML = 'Cargando...';
-  try {
-    const r = await fetch('/api/cookies?key=' + SECRET);
-    const d = await r.json();
-    if (!d.ok) {
-      document.getElementById('status').innerHTML = '<span class="status-err">Error: ' + (d.error || '?') + '</span>';
-      return;
-    }
-    let statusClass = 'status-ok';
-    let statusText = '✓ Cookies válidas';
-    if (d.status === 'never_set') { statusClass = 'status-err'; statusText = '✗ Sin cookies guardadas'; }
-    else if (d.status === 'expired') { statusClass = 'status-err'; statusText = '✗ Cookies VENCIDAS - refrescar ahora'; }
-    else if (d.status === 'no_xs') { statusClass = 'status-warn'; statusText = '⚠ Falta cookie xs (sesión)'; }
-    else if (d.days_until_expiry < 7) { statusClass = 'status-warn'; statusText = '⚠ Por vencer en ' + d.days_until_expiry + ' días'; }
-
-    document.getElementById('status').innerHTML = '<span class="' + statusClass + '">' + statusText + '</span>';
-    document.getElementById('stats').innerHTML = \`
-      <div class="stat"><div class="stat-label">Cookies guardadas</div><div class="stat-value">\${d.cookie_count || 0}</div></div>
-      <div class="stat"><div class="stat-label">Última actualización</div><div class="stat-value" style="font-size:13px">\${d.updated_at ? new Date(d.updated_at).toLocaleString('es-AR') : '—'}</div></div>
-      <div class="stat"><div class="stat-label">Cookie xs vence</div><div class="stat-value" style="font-size:13px">\${d.xs_expires_at ? new Date(d.xs_expires_at).toLocaleDateString('es-AR') : '—'}</div></div>
-      <div class="stat"><div class="stat-label">Días restantes</div><div class="stat-value">\${d.days_until_expiry !== null ? d.days_until_expiry : '—'}</div></div>
-    \`;
-}
-loadStatus();
-</script>
-</body>
-</html>`;
