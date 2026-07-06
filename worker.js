@@ -686,6 +686,25 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   </div>
 </div>
 
+<!-- SETTINGS MODAL (N3) -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="width:400px">
+    <button class="modal-close" onclick="closeSettings()">✕</button>
+    <h2>Configuración</h2>
+    <div class="modal-field">
+      <label>% Comisión</label>
+      <input type="number" id="settings-comision" min="0" max="100" step="0.5"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+      <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block">
+        Porcentaje que cobrás por caso cerrado. Afecta el KPI "Comisión total".
+      </small>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeSettings()">Cancelar</button>
+      <button class="btn-primary" onclick="saveSettings()">Guardar</button>
+    </div>
+  </div>
+
 <script>
 // ── STATE ──────────────────────────────────────────────────────────────────
 const S = {
@@ -700,9 +719,9 @@ const S = {
 
 // Persistencia local (status + notes por lead ID)
 const DB = {
-  get: (id)     => { try { return JSON.parse(localStorage.getItem('crm_' + id)) || {}; } catch { return {}; } },
+  get: (id)     => { try { return JSON.parse(localStorage.getItem('crm_' + id)) || {}; } catch(e) { return {}; } },
   set: (id, d)  => localStorage.setItem('crm_' + id, JSON.stringify(d)),
-  getManual: () => { try { return JSON.parse(localStorage.getItem('crm_manual')) || []; } catch { return []; } },
+  getManual: () => { try { return JSON.parse(localStorage.getItem('crm_manual')) || []; } catch(e) { return []; } },
   setManual: (a) => localStorage.setItem('crm_manual', JSON.stringify(a)),
 };
 
@@ -1267,30 +1286,10 @@ function addManualCase() {
   renderKPIs();
 }
 
-<!-- SETTINGS MODAL (N3) -->
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal" style="width:400px">
-    <button class="modal-close" onclick="closeSettings()">✕</button>
-    <h2>Configuración</h2>
-    <div class="modal-field">
-      <label>% Comisión</label>
-      <input type="number" id="settings-comision" min="0" max="100" step="0.5"
-        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
-      <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block">
-        Porcentaje que cobrás por caso cerrado. Afecta el KPI "Comisión total".
-      </small>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeSettings()">Cancelar</button>
-      <button class="btn-primary" onclick="saveSettings()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<script>
+// ── N3: Settings helpers (comision configurable) ───────────────────────────
 function getComisionPct() {
   try { return parseFloat(localStorage.getItem('crm_comision_pct')) || 15; }
-  catch { return 15; }
+  catch(e) { return 15; }
 }
 function setComisionPct(v) {
   localStorage.setItem('crm_comision_pct', String(v));
@@ -1309,7 +1308,6 @@ function saveSettings() {
   closeSettings();
   renderKPIs();
 }
-</script>
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.getElementById('searchInput')?.addEventListener('input', () => {
