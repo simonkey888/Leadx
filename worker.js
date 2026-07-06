@@ -556,7 +556,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="kpi">
         <div class="kpi-label">Total casos</div>
         <div class="kpi-value blue" id="kpi-total">—</div>
-        <div class="kpi-sub">leads con contacto identificado</div>
+        <div class="kpi-sub">casos con contacto identificado</div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Con WhatsApp</div>
@@ -630,21 +630,21 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="val" id="modal-source">—</div>
     </div>
     <div class="modal-field">
-      <label>Problema detectado</label>
+      <label>Descripción del caso</label>
       <div class="val" id="modal-body" style="font-size:13px;color:var(--muted);line-height:1.6"></div>
     </div>
     <div class="modal-field">
-      <label>Ver post original</label>
+      <label>Publicación original</label>
       <a id="modal-url" href="#" target="_blank"
         style="font-size:12px;color:var(--primary)">Abrir enlace →</a>
     </div>
     <div class="modal-field" id="modal-profile-field" style="display:none">
-      <label>Contactar al usuario (DM)</label>
+      <label>Perfil del usuario</label>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <a id="modal-profile-url" href="#" target="_blank"
-          style="font-size:12px;color:var(--orange)">Abrir perfil de Reddit →</a>
-        <button id="modal-copy-dm" class="btn-secondary" onclick="copyDmTemplate()" style="font-size:11px;padding:4px 10px">
-          📋 Copiar guion DM
+          style="font-size:12px;color:var(--orange)">Ver publicación original →</a>
+        <button id="modal-copy-dm" class="btn-secondary" onclick="copyContactTemplate()" style="font-size:11px;padding:4px 10px">
+          📋 Copiar mensaje
         </button>
       </div>
       <small style="color:var(--muted);font-size:11px;margin-top:6px;display:block;line-height:1.4">
@@ -652,7 +652,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       </small>
     </div>
     <div class="modal-field" id="modal-bio-field" style="display:none">
-      <label>Contacto extraído de bio Reddit</label>
+      <label>Contacto detectado en publicaciones</label>
       <div id="modal-bio-content" style="font-size:13px;color:var(--text);background:#F0FDF4;padding:8px 12px;border-radius:6px;border:1px solid #BBF7D0"></div>
     </div>
 
@@ -701,7 +701,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
         style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
     </div>
     <div class="modal-field">
-      <label>WhatsApp / Teléfono</label>
+      <label>Contacto</label>
       <input type="text" id="add-phone" placeholder="+54 9 11 1234-5678"
         style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
     </div>
@@ -858,7 +858,7 @@ function enrichLead(l) {
     _notes:  stored.notes  || '',
     _phone:  phone || extractPhone(body) || '',
     _display_name: (persona && persona !== '(anónimo)') ? persona : 'Sin nombre',
-    _resumen: cleanText(title || body),
+    _resumen: cleanSnippet(title || body),
   };
 
   // Normalizar telefono
@@ -951,6 +951,20 @@ function getWaValidation(e164) {
 function setWaValidation(e164, isValid) {
   if (!e164) return;
   localStorage.setItem('wa_val_' + e164, JSON.stringify(isValid));
+}
+
+function cleanSnippet(text) {
+  if (!text) return '';
+  let t = String(text);
+  // Quitar comentarios HTML
+  t = t.replace(/<!--[\s\S]*?-->/g, '');
+  // Quitar tags HTML
+  t = t.replace(/<[^>]+>/g, ' ');
+  // Quitar entidades HTML comunes
+  t = t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  // Colapsar espacios
+  t = t.replace(/\s+/g, ' ').trim();
+  return t;
 }
 
 function cleanText(t) {
@@ -1140,7 +1154,7 @@ function openDetail(id) {
   document.getElementById('modal-author').textContent   = l._display_name;
   document.getElementById('modal-provincia').textContent = l.provincia || '—';
   document.getElementById('modal-source').textContent   = l.source_label || l.source || '—';
-  document.getElementById('modal-body').textContent     = l.body || l.title || '—';
+  document.getElementById('modal-body').textContent     = cleanSnippet(l.body || l.title || '') || '—';
   document.getElementById('modal-notes').value          = l._notes || '';
   document.getElementById('modal-status-sel').value     = l._status || 'Nuevo';
 
@@ -1226,14 +1240,13 @@ function copyWaTemplate() {
   }).catch(() => alert('No se pudo copiar. Texto: ' + tpl));
 }
 
-function copyDmTemplate() {
+function copyContactTemplate() {
   // N2: Guión DM no-spam para Reddit (Claude)
   const l = S.crmLeads.find(x => x.id === S.currentId);
   if (!l) return;
   const author = stripUprefix(l.persona || l.author || '');
   const problema = l.problem_summary || l.title || l._resumen || 'tu consulta vehicular';
-  const tpl = 'Hola u/' + (author || '') + ', vi tu consulta sobre ' + problema +
-    '. Trabajo con un equipo legal que resuelve esto regularmente. ¿Querés que te cuente cómo funciona? Sin compromiso.';
+  const tpl = 'Hola, vi tu publicación sobre ' + problema + '. Trabajo con un equipo que resuelve este tipo de consultas. ¿Querés que te cuente cómo funciona? Sin compromiso.';
   navigator.clipboard.writeText(tpl).then(() => {
     const btn = document.getElementById('modal-copy-dm');
     const orig = btn.textContent;
