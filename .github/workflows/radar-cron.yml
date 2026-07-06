@@ -2,17 +2,16 @@ name: Radar Leads — Cron Pipeline
 
 on:
   schedule:
-    # Cada 3 horas UTC (0 */3 * * *)
-    - cron: '0 */3 * * *'
-  workflow_dispatch: # Permite ejecutar manualmente
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 permissions:
-  contents: write # Para commitear los JSONs actualizados
+  contents: write
 
 jobs:
   run-radar:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repo
@@ -23,48 +22,63 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install z-ai CLI
-        run: |
-          npm install -g z-ai-web-dev-sdk
-          echo "z-ai installed: $(which z-ai)"
-
-      - name: Configure z-ai credentials
-        env:
-          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
-        run: |
-          # El SDK lee la API key de env var o config file
-          mkdir -p ~/.config/z-ai
-          echo "{\"apiKey\":\"$ZAI_API_KEY\"}" > ~/.config/z-ai/config.json
-
       - name: Run pipeline
+        env:
+          WORKER_URL: https://leadx.simondalmasso44.workers.dev
+          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
         run: |
           python generate_payload.py
 
-      - name: Commit and push artifacts
+      - name: Copy to public/data
+        run: |
+          mkdir -p public/data
+          cp data/dashboard_payload.json public/data/dashboard_payload.json 2>/dev/null || true
+          cp data/stats.json public/data/stats.json 2>/dev/null || true
+          cp data/history.json public/data/history.json 2>/dev/null || true
+
+      - name: Commit and push
         run: |
           git config user.name "Radar Bot"
           git config user.email "radar-bot@users.noreply.github.com"
-          
-          # Stage los 3 JSONs
-          git add data/dashboard_payload.json data/stats.json data/history.json
-          
-          # Commit si hay cambios
-          git diff --staged --quiet || git commit -m "radar: update payloads $(date -u '+%Y-%m-%d %H:%M UTC')"
-          
-          # Push
+          git add data/ public/data/
+          git diff --staged --quiet || git commit -m "radar: auto-update $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
+
+      - name: Push leads to Worker KV via /api/ingest
+        env:
+          WORKER_URL: https://leadx.simondalmasso44.workers.dev
+          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+        run: |
+          if [ ! -f data/dashboard_payload.json ]; then
+            echo "No payload file found, skipping ingest"
+            exit 0
+          fi
+          LEADS_COUNT=$(python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(len(d.get('leads_all',[])))")
+          echo "Uploading $LEADS_COUNT leads to Worker..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WORKER_URL/api/ingest" \
+            -H "X-Webhook-Secret: $INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            --data-binary @data/dashboard_payload.json)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "ERROR: Ingest failed"
+            exit 1
+          fi
+
+      - name: Deploy Worker to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler deploy
 
       - name: Summary
         if: always()
         run: |
-          echo "### Radar Pipeline Run" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Radar Pipeline" >> $GITHUB_STEP_SUMMARY
           if [ -f data/dashboard_payload.json ]; then
-            echo "✅ Payload generated" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo '```json' >> $GITHUB_STEP_SUMMARY
-            python -c "import json; d=json.load(open('data/dashboard_payload.json')); print(json.dumps(d['summary'], indent=2))" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Payload not generated" >> $GITHUB_STEP_SUMMARY
+            python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
           fi

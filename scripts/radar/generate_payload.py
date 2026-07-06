@@ -6,7 +6,7 @@ Arquitectura: static_dashboard + dynamic_json.
 El HTML del dashboard NUNCA se regenera. Sólo se actualizan los JSONs.
 
 7 pasos:
-  1. collect_public_sources (z-ai web_search)
+  1. collect_public_sources (search_providers web_search)
   2. extract_entities
   3. normalize_records
   4. classify_and_score
@@ -37,7 +37,7 @@ from urllib.parse import urlparse
 # Config
 # ===========================================================================
 
-DATA_DIR = Path("/home/z/my-project/download/data")
+DATA_DIR = Path("./data")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 PAYLOAD_PATH = DATA_DIR / "dashboard_payload.json"
@@ -45,41 +45,62 @@ STATS_PATH = DATA_DIR / "stats.json"
 HISTORY_PATH = DATA_DIR / "history.json"
 
 # Performance
-MAX_RUNTIME_SECONDS = 25
-RATE_LIMIT_MS = 2000
+MAX_RUNTIME_SECONDS = 200
+RATE_LIMIT_MS = 8000  # 8s entre queries (rotacion evita repetir, menos 429)
 MAX_RESULTS_PER_QUERY = 10
 
 # ===========================================================================
 # Queries (foco: dolor explícito + evento anterior)
 # ===========================================================================
 
-QUERIES = [
-    # Reddit
-    "site:reddit.com no puedo transferir auto argentina",
-    "site:reddit.com me llegó multa argentina",
-    "site:reddit.com libre deuda problema argentina",
-    "site:reddit.com fotomulta reclamo argentina",
-    "site:reddit.com multa no es mi auto",
-    "site:reddit.com 08 firmado problema",
-    # Facebook
-    "site:facebook.com no puedo transferir auto multa",
-    "site:facebook.com me llegó fotomulta",
-    "site:facebook.com libre deuda falso",
-    "site:facebook.com vendedor no entregó 08",
-    "site:facebook.com tengo multas impagas",
-    # X
-    "site:x.com multa transferencia problema argentina",
-    "site:x.com fotomulta reclamo",
-    # Sin site: — frases humanas
-    "no puedo transferir auto por multas argentina",
-    "me llegó una multa y no es mi auto",
-    "me dieron un libre deuda falso",
-    "multas vencidas sin notificar argentina",
-    "el vendedor no me entregó el 08",
-    "quiero transferir auto radicado otra provincia",
-    "patente bloqueada no puedo transferir",
-    "tengo fotomultas de ruta argentina",
+# Rotacion de grupos de queries Reddit (Claude v2 idea):
+# Cada run usa solo 1 grupo (3 queries). Rota cada 3h.
+# Misma query no se repite hasta 18h -> evita 429.
+REDDIT_QUERY_GROUPS = [
+    # Grupo 0: intencion "acabo de recibir" - momento optimo de venta
+    [
+        "site:reddit.com me llego multa no es mi auto",
+        "site:reddit.com me cobraron fotomulta argentina",
+        "site:reddit.com/r/DerechoGenial consulta multa",
+    ],
+    # Grupo 1: intencion "no puedo resolver" - bloqueo administrativo
+    [
+        "site:reddit.com no puedo transferir auto multa argentina",
+        "site:reddit.com vendedor no entrego 08",
+        "site:reddit.com/r/MotosArg multa patente",
+    ],
+    # Grupo 2: intencion "ayuda/consulta" - abierto a soluciones
+    [
+        "site:reddit.com consulta ayuda multa fotomulta argentina",
+        "site:reddit.com/r/AskArgentina libre deuda transferencia",
+        "site:reddit.com patente bloqueada registro automotor",
+    ],
+    # Grupo 3: intencion "compre con problema" - descubrimiento post-compra
+    [
+        "site:reddit.com compre auto multas anteriores dueño",
+        "site:reddit.com/r/DerechoGenial fotomulta reclamo",
+        "site:reddit.com juez de faltas multa reclamo",
+    ],
+    # Grupo 4: intencion "vendo con problema" - urgencia vendedor
+    [
+        "site:reddit.com cedula verde perdida transferir",
+        "site:reddit.com vendo auto multas pendientes",
+        "site:reddit.com multa vencida prescripcion argentina",
+    ],
+    # Grupo 5: intencion "gestor/abogado" - ya busca profesional (competencia directa)
+    [
+        "site:reddit.com abogado gestor multa fotomulta argentina",
+        "site:reddit.com/r/Cordoba multa transito",
+        "site:reddit.com/r/BuenosAires infraccion peaje",
+    ],
 ]
+
+# El grupo activo se elige por timestamp (rota cada run)
+import time as _time_mod
+_CURRENT_GROUP_IDX = int((_time_mod.time() / 10800) % len(REDDIT_QUERY_GROUPS))  # 10800s = 3h
+
+QUERIES = REDDIT_QUERY_GROUPS[_CURRENT_GROUP_IDX]
+print(f"[pipeline] Usando query group {_CURRENT_GROUP_IDX}/{len(REDDIT_QUERY_GROUPS)-1}: {QUERIES}", file=sys.stderr)
 
 # ===========================================================================
 # Step 4: Scoring (exacto del spec)
@@ -97,7 +118,41 @@ SCORE_RULES = {
     "institutional_penalty": -40,
     "generic_penalty": -30,
     "foreign_country_penalty": -80,
+    "dm_hint": 60,  # KIMI+DEEPSEEK: "mandame privado" = oro
+    "urgency_hint": 30,  # "urgente", "ayuda"
 }
+
+# Patrones de "contactame por privado" (DM hints) - KIMI+DEEPSEEK idea
+DM_HINT_PATTERNS = [
+    r"\b(?:mandame|escribime|pasame|enviame|contactame|llamame|hablame)\s+(?:un\s+)?(?:md|dm|mp|privado|mensaje|wa|whatsapp)\b",
+    r"\b(?:mandame|escribime|pasame)\s+(?:tu|el|un)\s+(?:whatsapp|wa|wpp|número|numero|cel|tel)",
+    r"\b(?:md|dm|mp)\s+(?:para|y)\s+(?:te|lo)\s+(?:paso|mandamos|ayudamos)",
+    r"\b(?:whatsapp|wa|wpp)\s+(?:y|para)\s+(?:te|lo)\s+(?:ayudamos|asesoramos|respondemos)",
+    r"\bcontactame\s+por\s+(?:privado|mensaje)\b",
+    r"\b(?:te|me)\s+(?:dejo|dejas|pasas)\s+(?:mi|tu)\s+(?:whatsapp|wa|cel)\b",
+]
+
+URGENCY_HINT_PATTERNS = [
+    r"\burgente\b", r"\bayuda\b", r"\bvencimiento\b",
+    r"\bmañana\s+vence\b", r"\bhoy\s+último\s+día\b",
+]
+
+# Regex AR quirúrgico (CHEVRON+QWEN+PERPLEXITY consensus)
+# Captura: 11-1234-5678, +54 9 11 1234 5678, 0342-456-7890, 15-XXXX-XXXX
+AR_PHONE_REGEX_QUIRURGICO = re.compile(
+    r"(?:(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}"
+    r"|\b15[-\s]?\d{4}[-\s]?\d{4}\b"
+    r"|\b0?(?:11|2\d{2}|3\d{2})[-\s]?\d{3,4}[-\s]?\d{4}\b)"
+)
+
+# WhatsApp patterns específicos (más amplios)
+WHATSAPP_HINT_REGEX = re.compile(
+    r"(?:wa\.me/(\d{8,15})"
+    r"|whatsapp[:\s]+(\+?\d[\d\s\-]{8,15})"
+    r"|(?:wp|wpp|wsp|wapp)[:\s]+(\+?\d[\d\s\-]{8,15})"
+    r"|(?:celular|cel|contacto|telefono|teléfono)[:\s]+(\+?\d[\d\s\-]{8,15}))",
+    re.IGNORECASE
+)
 
 # ===========================================================================
 # Filtros
@@ -115,6 +170,34 @@ REJECT_IF_CONTAINS = [
     "transferencia internacional", "transferir dinero",
     "enviar dinero", "criptomoneda",
 ]
+
+# FILTROS ADICIONALES DE CALIDAD (DeepSeek+Qwen v2.7)
+NEGATIVE_KEYWORDS = [
+    'accidente', 'choque', 'siniestro', 'colisión',
+    'trabajo', 'empleo', 'renunciar', 'laboral',
+    'tablet', 'celular', 'notebook', 'electrónica',
+    'licitación', 'concurso', 'fraude', 'estafa',
+    'alquiler', 'departamento', 'propiedad',
+    'médico', 'hospital', 'salud',
+]
+
+DISCARD_DOMAINS = {
+    'iprofesional.com', 'ciudano.news', 'ciudadano.news', 'iusnoticias.com.ar',
+    'parrillacero5.com.ar', 'multas.ar', 'juridicamente.org',
+    'hlbpharma.com.ar', 'autodataar.com', 'tiempofinanciero.com.ar',
+    'tn.com.ar', 'infobae.com', 'clarin.com', 'lanacion.com.ar',
+    'perfil.com', 'cronista.com', 'ambito.com',
+    'segurarse.com.ar', 'carchecking.com.ar',
+    'multabot.com.ar', 'reclamosonline.com.ar',
+    'portaldeabogados.com', 'jus.gov.ar', 'gob.ar', 'gov.ar',
+    'wikipedia.org', 'youtube.com',
+}
+
+REJECT_COUNTRIES = {
+    'brasil', 'chile', 'uruguay', 'paraguay', 'bolivia',
+    'perú', 'colombia', 'ecuador', 'venezuela', 'méxico',
+    'españa', 'estados unidos', 'italia',
+}
 
 INSTITUTIONAL_DOMAINS = {
     "dnrpa.gov.ar", "argentina.gob.ar", "buenosaires.gob.ar",
@@ -153,19 +236,38 @@ ARGENTINA_SIGNALS = [
 ]
 
 # Phone patterns
+# Qwen+Kimi v2: Regex FEDERAL v2 - captura formatos reales argentinos
 ARG_PHONE_PATTERNS = [
-    r"\+54\s?9?\s?11\s?\d{4}\s?\d{4}",
-    r"\b11\s?\d{4}\s?\d{4}\b",
-    r"\b15\s?\d{4}\s?\d{4}\b",
-    r"\b0(2[0-9]|3[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
-    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+    # Formato explicito: "whatsapp: 11 1234-5678", "llamame al 341-555-1234"
+    r"(?i)(?:whatsapp|wsp|wapp|wp|wasap|celular|cel|tel[eé]fono|tel|llamame|contactame|escribime|mandame)\s*:?\s*([+]?\d[\d\s\-]{8,15})",
+    # Formato federal: 11 1234-5678, 341-555-1234, 0351 1234567, +54 9 11 1234 5678
+    r"(?<!\d)(?:[+]?\d{0,2}\s?)?(?:0?\s?)?(?:11|15|341|342|343|351|358|381|385|387|388|221|261|264|291|294|297|299|336|362|370|376|379|380|383)\s?[\s\-]?\d{4}[\s\-]?\d{4}(?!\d)",
+    # Formato wa.me directo
+    r"wa\.me/(\d{8,15})",
+    # Formato generico: 11-1234-5678
+    r"\b(\d{2}[\s\-]?\d{4}[\s\-]?\d{4})\b",
+    # Formato con parentesis: (11) 1234-5678, (341) 555-1234 (Qwen v3 fix)
+    r"\((11|15|341|342|343|351|358|381|385|387|388|221|261|264|291|294|297|299|336|362|370|376|379|380|383)\)\s?\d{4}[\s\-]?\d{4}",
 ]
 
 WHATSAPP_PATTERNS = [
     r"wa\.me/(\d{8,15})",
     r"whatsapp\s*:?\s*(\+?\d[\d\s\-]{8,15})",
     r"\bwp\s*:?\s*(\+?\d[\d\s\-]{8,15})",
+    # Formatos argentinos comunes
+    r"\b(\+54\s?9?\s?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4})",
+    r"\b(11\s?\d{4}[\s\-]?\d{4})",  # CABA mobile
+    r"\b(15\s?\d{4}[\s\-]?\d{4})",  # old mobile format
+    r"(?:contacto|celular|tel|fono|telefono)\s*:?\s*(\+?\d[\d\s\-]{8,15})",
+    # Pattern generico para "11-1234-5678"
+    r"\b(\d{2}[\s\-]?\d{4}[\s\-]?\d{4})\b",
 ]
+
+# Email pattern
+EMAIL_PATTERN = r"\b([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})\b"
+
+# Reddit username pattern (u/username)
+REDDIT_USERNAME_PATTERN = r"\bu/([A-Za-z0-9_\-]{3,20})\b"
 
 PATENT_PATTERNS = [
     r"\b[A-Z]{2}\s?\d{3}\s?[A-Z]{2}\b",
@@ -238,6 +340,7 @@ class Lead:
     whatsapp_link: str = ""
     telefono_publico: str = ""
     telefono_e164: str = ""
+    email_publico: str = ""
     score_breakdown: Dict[str, int] = field(default_factory=dict)
     detected_signals: List[str] = field(default_factory=list)
     discovery_timestamp: str = ""
@@ -247,34 +350,35 @@ class Lead:
 
 
 # ===========================================================================
-# z-ai web_search
+# search_providers web_search
 # ===========================================================================
+# Import search providers (DuckDuckGo + Reddit + RSS, sin search_providers)
+from search_providers import search as provider_search
+from source_registry import run_discovery_and_update, get_approved_sources
+from pending_queries_kv import PendingQueryManager
+from search_providers import search_reddit_with_status, search_foroargentina
+from search_providers import enrich_reddit_post
+
+
 def web_search(query: str, num: int = 10) -> List[Dict[str, Any]]:
-    args = json.dumps({"query": query, "num": num}, ensure_ascii=False)
-    tmp_file = f"/tmp/gen_payload_{hash(query) & 0xFFFFFFFF:x}.json"
-    for attempt in range(3):
-        try:
-            result = subprocess.run(
-                ["z-ai", "function", "-n", "web_search", "-a", args, "-o", tmp_file],
-                capture_output=True, text=True, timeout=20,
-            )
-            if result.returncode != 0:
-                stderr = result.stderr.lower()
-                if "429" in stderr or "too many requests" in stderr:
-                    wait = 5 * (attempt + 1)
-                    print(f"  [rate-limit] {wait}s", file=sys.stderr)
-                    time.sleep(wait)
-                    continue
-                return []
-            with open(tmp_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            return data if isinstance(data, list) else []
-        except Exception:
-            return []
-        finally:
-            if os.path.exists(tmp_file):
-                os.remove(tmp_file)
-    return []
+    """Wrapper que usa search_providers en vez de search_providers CLI."""
+    try:
+        results = provider_search(query, num=num)
+        adapted = []
+        for r in results:
+            adapted.append({
+                "name": r.get("title", ""),
+                "url": r.get("url", ""),
+                "snippet": r.get("snippet", ""),
+                "date": r.get("date", ""),
+                "host_name": r.get("url", ""),
+                "username": r.get("username", "") or r.get("author", ""),
+                "author": r.get("author", "") or r.get("username", ""),
+            })
+        return adapted
+    except Exception as e:
+        print(f"  [search error] {e}", file=sys.stderr)
+        return []
 
 
 # ===========================================================================
@@ -318,37 +422,274 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
+    """Qwen+Kimi v2: Normaliza cualquier formato AR a E.164: +549112345678"""
     digits = re.sub(r"\D", "", phone)
     if not digits:
         return ""
+    # Quitar prefijo pais si existe
     if digits.startswith("54"):
-        return "+" + digits
+        digits = digits[2:]
+    # Quitar 0 inicial (interurbano)
     if digits.startswith("0"):
-        digits = "54" + digits[1:]
-    elif len(digits) == 10:
-        digits = "54" + digits
-    return "+" + digits
+        digits = digits[1:]
+    # Quitar 9 inicial (mobile prefix viejo)
+    if digits.startswith("9") and len(digits) == 11:
+        digits = digits[1:]
+    # Si tiene 10 digitos y empieza con 11 (CABA), agregar 9
+    if len(digits) == 10 and digits.startswith("11"):
+        digits = "9" + digits
+    # Si tiene 10 digitos y NO empieza con 5, agregar 549
+    elif len(digits) == 10 and not digits.startswith("5"):
+        digits = "9" + digits
+    return f"+54{digits}" if len(digits) >= 10 else ""
+
+def normalize_phone_ar(raw: str) -> str:
+    """Alias de phone_to_e164 para compatibilidad."""
+    return phone_to_e164(raw)
 
 
 # ===========================================================================
+def normalize_ar_phone_ventafe(raw: str) -> str:
+    """Normaliza telefonos AR complejos desde VentaFe (maneja 15, 0, 54)."""
+    digits = re.sub(r'\D', '', raw)
+    if not digits or len(digits) < 8:
+        return ""
+    if digits.startswith('54') and len(digits) > 11:
+        digits = digits[2:]
+    if digits.startswith('0'):
+        digits = digits[1:]
+    if digits.startswith('15') and len(digits) > 10:
+        digits = digits[2:]
+    # Manejar 15 en el medio (ej: 342 15 6128372 -> 342156128372)
+    if len(digits) == 12 and digits[3:5] == '15':
+        digits = digits[:3] + digits[5:]
+    elif len(digits) == 11 and digits[2:4] == '15':
+        digits = digits[:2] + digits[4:]
+    if len(digits) == 10:
+        return f"+549{digits}"
+    return ""
+
+
+def scrape_ventafe_leads() -> List[Dict[str, Any]]:
+    """Scrapea VentaFe.com.ar/automoviles y extrae telefonos visibles."""
+    import urllib.request as _urq
+    import re as _re
+    
+    print("[VentaFe] Scrapeando ventafe.com.ar/automoviles...", file=sys.stderr)
+    
+    url = "https://www.ventafe.com.ar/automoviles"
+    req = _urq.Request(url, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'es-AR,es;q=0.9',
+    })
+    try:
+        with _urq.urlopen(req, timeout=20) as resp:
+            html = resp.read().decode('utf-8', errors='replace')
+    except Exception as e:
+        print(f"  [VentaFe] Error fetching: {e}", file=sys.stderr)
+        return []
+    
+    print(f"  [VentaFe] HTML size: {len(html)}", file=sys.stderr)
+    
+    # Split por class="row item tipo-N" (estructura de avisos)
+    blocks = _re.split(r'class="row item tipo-\d+"', html)[1:]
+    print(f"  [VentaFe] Blocks encontrados: {len(blocks)}", file=sys.stderr)
+    
+    leads = []
+    seen_phones = set()
+    
+    for block in blocks:
+        # Limpiar HTML
+        text = _re.sub(r'<[^>]+>', ' ', block)
+        text = _re.sub(r'&[a-z]+;', ' ', text)
+        text = _re.sub(r'googletag[^;]+;', '', text)
+        text = _re.sub(r'\s+', ' ', text).strip()
+        
+        if len(text) < 50:
+            continue
+        
+        # Extraer telefonos con regex federal
+        raw_phones = _re.findall(r'\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}', text)
+        valid_phones = []
+        for p in raw_phones:
+            norm = normalize_ar_phone_ventafe(p)
+            if norm and norm not in seen_phones:
+                valid_phones.append(norm)
+                seen_phones.add(norm)
+        
+        if not valid_phones:
+            continue
+        
+        # Detectar keywords de dolor o "papeles al dia"
+        pain_points = []
+        if _re.search(r'multa|deuda|infraccion|patente', text, _re.IGNORECASE):
+            pain_points.append('MULTA/DEUDA')
+        if _re.search(r'listo para transferir|papeles al dia|papeles al d\u00eda|libre de deuda', text, _re.IGNORECASE):
+            pain_points.append('PAPELES_OK')
+        
+        has_wa_keyword = bool(_re.search(r'whatsapp|wsp|wsp|cel', text, _re.IGNORECASE))
+        
+        # Titulo: primeras palabras del texto
+        title = text[:80].strip()
+        
+        lead = {
+            "name": f"[VentaFe] {title}",
+            "url": "https://www.ventafe.com.ar/automoviles",
+            "snippet": text[:500],
+            "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+            "host_name": "ventafe.com.ar",
+            "username": "Vendedor VentaFe",
+            "author": "Vendedor VentaFe",
+            "source": "ventafe",
+            "_query": "ventafe_automoviles",
+            "telefonos": valid_phones,
+            "patentes": _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text),
+            "problemas": pain_points,
+            "zona": "Santa Fe",
+        }
+        leads.append(lead)
+    
+    print(f"  [VentaFe] Extraidos {len(leads)} leads con telefonos validos", file=sys.stderr)
+    return leads
+
 # Step 1: Collect
 # ===========================================================================
+
 def collect_public_sources() -> List[Dict[str, Any]]:
-    """Recolecta resultados de búsquedas públicas via z-ai web_search."""
+    """Recolecta resultados de búsquedas públicas via search_providers web_search.
+    
+    Si una query Reddit devuelve 429, la agrega a PendingQueryManager global.
+    """
     print("[Step 1] Collecting public sources...", file=sys.stderr)
     all_results = []
+    # PQM global accesible desde collect_public_sources
+    global _pqm_global
     for i, query in enumerate(QUERIES):
         elapsed = time.time() - START_TIME
         if elapsed > MAX_RUNTIME_SECONDS:
             print(f"  [timeout] {elapsed:.1f}s", file=sys.stderr)
             break
         print(f"  [{i+1}/{len(QUERIES)}] {query[:60]}", file=sys.stderr)
-        results = web_search(query, num=MAX_RESULTS_PER_QUERY)
+        
+        # Si es query Reddit, usar wrapper con status para detectar 429
+        if "site:reddit.com" in query.lower():
+            results, got_429 = search_reddit_with_status(
+                query.lower().replace("site:reddit.com", "").strip(),
+                num=MAX_RESULTS_PER_QUERY
+            )
+            if got_429 and _pqm_global:
+                rss_url = f"https://www.reddit.com/search.rss?q={query}"
+                _pqm_global.add(rss_url, query, _CURRENT_GROUP_IDX)
+                print(f"  [PQM] 429 en '{query[:40]}' → agregado a pending", file=sys.stderr)
+        else:
+            results = web_search(query, num=MAX_RESULTS_PER_QUERY)
+        
         for r in results:
             r["_query"] = query
         all_results.extend(results)
         time.sleep(RATE_LIMIT_MS / 1000)
     print(f"  Collected {len(all_results)} raw results", file=sys.stderr)
+
+    # Nota: el enrich separado fue reemplazado por la logica inline en search_reddit
+    # que trae selftext completo + top 10 comments por post en una sola pasada.
+    reddit_count = sum(1 for r in all_results if "reddit.com" in r.get("url", ""))
+    print(f"  Reddit posts in results: {reddit_count}", file=sys.stderr)
+
+    # ML Questions Radar — siempre corre (no depende del grupo rotativo)
+    try:
+        from search_providers import search_mercadolibre_questions
+        ml_leads = search_mercadolibre_questions(num=15)
+        if ml_leads:
+            for ml in ml_leads:
+                ml["_query"] = "mercadolibre_questions_radar"
+            all_results.extend(ml_leads)
+            print(f"  ML Questions Radar: +{len(ml_leads)} leads", file=sys.stderr)
+        else:
+            print(f"  ML Questions Radar: 0 leads (posible 403 o sin resultados)", file=sys.stderr)
+    except Exception as e:
+        print(f"  ML Questions Radar ERROR: {e}", file=sys.stderr)
+
+    # Foros AR via DDG (ForoMoto + ClasificadosLaVoz + Demotores)
+    # Llama al endpoint /api/ddg-foromoto del Worker (Cloudflare edge IP)
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        secret = os.environ.get("INGEST_SECRET", "")
+        if secret:
+            import urllib.request as _urq
+            foro_url = f"{worker_url}/api/ddg-foromoto"
+            req = _urq.Request(foro_url)
+            req.add_header("X-Webhook-Secret", secret)
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=45) as resp:
+                foro_data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            if foro_data.get("ok"):
+                foro_leads = foro_data.get("leads", [])
+                if foro_leads:
+                    for fl in foro_leads:
+                        fl["_query"] = "ddg_foros_ar"
+                    all_results.extend(foro_leads)
+                    print(f"  Foros AR (DDG): +{len(foro_leads)} leads con contacto", file=sys.stderr)
+                else:
+                    print(f"  Foros AR (DDG): 0 leads", file=sys.stderr)
+    except Exception as e:
+        print(f"  Foros AR ERROR: {e}", file=sys.stderr)
+
+    # Facebook Groups via Apify (con cookies FB reales)
+    # Llama al endpoint /api/apify-facebook del Worker
+    # Scrapea grupos publicos de multas AR con sesion autenticada
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        secret = os.environ.get("INGEST_SECRET", "")
+        if secret:
+            import urllib.request as _urq2
+            apify_url = f"{worker_url}/api/apify-facebook"
+            apify_input = json.dumps({
+                "groupUrls": [
+                    "https://www.facebook.com/groups/276074287942602",  # Defensas contra Multas AR
+                ],
+                "maxPosts": 20,
+                "fetchComments": True,
+                "maxCommentsPerPost": 5,
+            }).encode("utf-8")
+            req2 = _urq2.Request(apify_url, data=apify_input, method="POST")
+            req2.add_header("X-Webhook-Secret", secret)
+            req2.add_header("Content-Type", "application/json")
+            with _urq2.urlopen(req2, timeout=120) as resp2:
+                fb_data = json.loads(resp2.read().decode("utf-8", errors="replace"))
+            if fb_data.get("ok"):
+                fb_leads = fb_data.get("leads", [])
+                if fb_leads:
+                    for fl in fb_leads:
+                        fl["_query"] = "facebook_apify"
+                    all_results.extend(fb_leads)
+                    with_contact = sum(1 for fl in fb_leads if fl.get("has_contact"))
+                    print(f"  Facebook (Apify): +{len(fb_leads)} leads ({with_contact} con contacto)", file=sys.stderr)
+                else:
+                    print(f"  Facebook (Apify): 0 leads", file=sys.stderr)
+            else:
+                print(f"  Facebook (Apify) ERROR: {fb_data.get('error','?')}", file=sys.stderr)
+    except Exception as e:
+        print(f"  Facebook (Apify) ERROR: {e}", file=sys.stderr)
+
+    # VentaFe Scraper (portal de clasificados del interior - SANTA FE ORO)
+    try:
+        ventafe_results = scrape_ventafe_leads()
+        if ventafe_results:
+            all_results.extend(ventafe_results)
+            print(f"  VentaFe: +{len(ventafe_results)} leads agregados", file=sys.stderr)
+    except Exception as e:
+        print(f"  VentaFe ERROR: {e}", file=sys.stderr)
+
+    # VentaFe Scraper (desde GH Actions)
+    try:
+        ventafe_results = scrape_ventafe_leads()
+        if ventafe_results:
+            all_results.extend(ventafe_results)
+            print(f"  [VentaFe] +{len(ventafe_results)} leads inyectados", file=sys.stderr)
+    except Exception as e:
+        print(f"  [VentaFe] ERROR: {e}", file=sys.stderr)
+
     return all_results
 
 
@@ -371,8 +712,84 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if reject in combined_lower:
             return None
 
-    # Extract phone
+    # FILTRO DE DOMINIOS DE MEDIOS (DeepSeek v2.7)
+    host = result.get("host", "") or get_host(url)
+    if any(d in host for d in DISCARD_DOMAINS):
+        return None
+
+    # FILTRO DE PAIS EXTRANJERO (DeepSeek v2.7)
+    for country in REJECT_COUNTRIES:
+        if country in combined_lower:
+            return None
+
+    # FILTRO DE PALABRAS CLAVE NEGATIVAS (DeepSeek v2.7)
+    neg_matches = sum(1 for kw in NEGATIVE_KEYWORDS if kw in combined_lower)
+    if neg_matches >= 2:
+        return None
+
+    # FIX 2 (DeepSeek): Filtro de idioma portugués
+    PORTUGUESE_INDICATORS = [
+        r"\b(?:eu|voc[êe]|voc[êe]s|n[óo]s|eles|elas|meu|sua|suas|nosso|nossa)\b",
+        r"\b(?:comprei|vendi|fiz|est[áa]|s[ãa]o|tem|fazer|pagar|transferir|consegui)\b",
+        r"\b(?:n[ãa]o|tamb[ée]m|j[áa]|ainda|ent[ãa]o|porque|mas|por[ée]m|s[óo]|depois|antes)\b",
+        r"\b(?:boa tarde|bom dia|boa noite|povo|galera|pessoal|abra[çc]o|obrigado|obrigada)\b",
+        r"\b(?:carro|moto|ve[íi]culo|multa|transfer[êe]ncia|documento|detran|cnh|emplacamento)\b",
+    ]
+    pt_matches = sum(1 for pattern in PORTUGUESE_INDICATORS if re.search(pattern, combined, re.IGNORECASE))
+    if pt_matches >= 3:
+        return None
+
+    # FIX 5 (DeepSeek): Filtro de contexto vehicular mas estricto
+    VEHICULAR_KEYWORDS_STRICT = [
+        "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones",
+        "infracción", "transferencia", "transferir", "08", "08 firmado", "cedula verde",
+        "libre deuda", "libredeuda", "patente", "registro automotor",
+        "veraz", "juez de faltas", "deuda patente", "inhibicion",
+        "titulo", "titular", "denuncia de venta", "formulario 08",
+    ]
+    vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
+    # Inicializar variables antes del check (fix UnboundLocalError)
     phone = ""
+    whatsapp = ""
+    email = ""
+    has_contact = bool(phone or whatsapp or email)
+    # VentaFe: si tiene telefono, aceptar aunque no tenga keywords vehiculares
+    is_ventafe = 'ventafe' in (result.get('source', '') or '').lower()
+    if is_ventafe and has_contact:
+        pass  # Aceptar
+    elif vehicular_count < 2 and not has_contact:
+        return None
+
+    # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
+    if len(combined.strip()) < 50:
+        return None
+    url_count = len(re.findall(r"https?://", combined))
+    html_tag_count = len(re.findall(r"<[^>]+>", combined))
+    if len(combined) > 0 and (url_count * 30 + html_tag_count * 10) / len(combined) > 0.5:
+        return None
+
+    # VentaFe: campos personalizados
+    telefonos_ventafe = result.get('telefonos', [])
+    patentes_ventafe = result.get('patentes', [])
+    problemas_ventafe = result.get('problemas', [])
+    zona_ventafe = result.get('zona', '')
+    
+    if telefonos_ventafe:
+        phone = telefonos_ventafe[0]
+        whatsapp = telefonos_ventafe[0]
+        contacto_publico = True
+    
+    if patentes_ventafe:
+        patent = patentes_ventafe[0]
+    
+    if problemas_ventafe:
+        combined += ' ' + ' '.join(problemas_ventafe)
+        combined_lower = combined.lower()
+    
+    if zona_ventafe:
+        provincia = zona_ventafe
+
+    # Extract phone (si no vino de VentaFe)
     for pattern in ARG_PHONE_PATTERNS:
         m = re.search(pattern, combined)
         if m:
@@ -389,8 +806,36 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             num = m.group(1) if m.groups() else m.group(0)
             digits = re.sub(r"\D", "", num)
             if 8 <= len(digits) <= 15:
+                # Si empieza con 54 o 549, dejarlo; si tiene 10 digitos y arranca con 11, agregar 549
+                if len(digits) == 10 and digits.startswith("11"):
+                    digits = "549" + digits
+                elif len(digits) == 10 and not digits.startswith("5"):
+                    digits = "54" + digits
                 whatsapp = digits
                 break
+
+    # Extract email
+    email = ""
+    m = re.search(EMAIL_PATTERN, combined)
+    if m:
+        email = m.group(1).lower().strip()
+
+    # REGEX CONTEXTUAL (GPT+H.AI consensus):
+    # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor
+    # Esto evita el spam de wa.me random sin contexto
+    PAIN_KEYWORDS_RE = re.compile(
+        r"\b(?:multa|multas|fotomulta|fotomultas|infracci[oó]n|infracciones|"
+        r"libre\s+deuda|transferencia|transferir|patente|08\s+firmado|"
+        r"c[eé]dula|veraz|registro\s+automotor|juez\s+de\s+faltas|"
+        r"peaje|telepeaje|deuda|vencimiento|prescripci[oó]n)\b",
+        re.IGNORECASE
+    )
+    has_pain_context = bool(PAIN_KEYWORDS_RE.search(combined))
+    if not has_pain_context:
+        # Sin contexto de dolor, descartar contacto (no es lead, es spam)
+        phone = ""
+        whatsapp = ""
+        email = ""
 
     # Extract patent
     patent = ""
@@ -410,16 +855,30 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     # Extract persona (username o nombre)
     persona = ""
     username = ""
-    m = re.search(r"@(\w{3,20})", combined)
-    if m:
-        username = m.group(1)
-        persona = m.group(0)
-    else:
+    # 1. Provider ya trae username (Reddit author)
+    provider_username = result.get("username", "") or result.get("author", "")
+    if provider_username:
+        username = provider_username
+        persona = f"u/{username}"
+    # 2. Buscar @username en el texto
+    if not username:
+        m = re.search(r"@(\w{3,20})", combined)
+        if m:
+            username = m.group(1)
+            persona = m.group(0)
+    # 3. Buscar u/username en el texto (Reddit-style)
+    if not username:
+        m = re.search(REDDIT_USERNAME_PATTERN, combined)
+        if m:
+            username = m.group(1)
+            persona = f"u/{username}"
+    # 4. "soy X"
+    if not persona:
         m = re.search(r"(?:hola\s+)?soy\s+([A-ZÁÉÍÓÚa-záéíóúñ]{3,20})", combined, re.IGNORECASE)
         if m:
             persona = m.group(1).title()
 
-    # Reddit username from URL
+    # Reddit username from URL (rare path /user/X)
     host = get_host(url)
     if not username and "reddit.com" in host:
         m = re.search(r"/user/(\w+)", url)
@@ -453,14 +912,22 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "vehiculo": vehicle,
         "patente": patent,
         "fecha_visible": date,
-        "contacto_publico": bool(phone or whatsapp),
+        "contacto_publico": bool(phone or whatsapp or email),
         "whatsapp_publico": whatsapp,
         "telefono_publico": phone,
+        "email_publico": email,
         "source_url": url,
         "platform": platform,
         "quoted_text": snippet[:300] if snippet else "",
         "host": host,
         "combined_text": combined,
+        # Campos extra de ML Questions (passthrough)
+        "source": result.get("source", ""),
+        "question_text": result.get("question_text", ""),
+        "has_answer": result.get("has_answer", True),
+        "price": result.get("price", 0),
+        "seller_id": result.get("seller_id", ""),
+        "provincia_ml": result.get("provincia_ml", ""),
     }
 
 
@@ -513,6 +980,96 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     signals = []
 
     # --- Scoring ---
+
+    # Boost ML Questions Radar (alta calidad - Sakana+Claude)
+    platform_str = (record.get("platform", "") or "").lower()
+    source_str = (record.get("source", "") or "").lower()
+    if "mercadolibre" in platform_str or "mercadolibre" in source_str:
+        score += 25
+        breakdown["ml_questions"] = 25
+        signals.append("ML_QUESTION_RADAR")
+        q_text = (record.get("question_text", "") or "").lower()
+        if "puede transferir" in q_text or "libre deuda" in q_text:
+            score += 15
+            breakdown["ml_urgencia"] = 15
+            signals.append("ML_URGENCIA_TRANSFERENCIA")
+        if not record.get("has_answer", True):
+            score += 5
+            breakdown["ml_no_answer"] = 5
+        try:
+            price = float(record.get("price", 0) or 0)
+            if price > 15000:
+                score += 10
+                breakdown["ml_premium"] = 10
+                signals.append("ML_AUTO_PREMIUM")
+        except (ValueError, TypeError):
+            pass
+
+    # DM_HINTS boost (KIMI+DEEPSEEK): posts que piden contacto por privado
+    import re as _re_dm
+    for pattern in DM_HINT_PATTERNS:
+        if _re_dm.search(pattern, text):
+            score += SCORE_RULES["dm_hint"]
+            breakdown["dm_hint"] = SCORE_RULES["dm_hint"]
+            signals.append("DM_HINT")
+            break
+
+    # URGENCY boost
+    for pattern in URGENCY_HINT_PATTERNS:
+        if _re_dm.search(pattern, text):
+            score += SCORE_RULES["urgency_hint"]
+            breakdown["urgency_hint"] = SCORE_RULES["urgency_hint"]
+            signals.append("URGENCY")
+            break
+
+    # VentaFe: scoring especifico para clasificados
+    source_str = (record.get("source", "") or "").lower()
+    if 'ventafe' in source_str:
+        score += 20
+        breakdown['ventafe_base'] = 20
+        signals.append('VENTAFE_LISTING')
+        
+        if record.get('patentes'):
+            score += 15
+            breakdown['ventafe_patente'] = 15
+            signals.append('VENTAFE_PATENTE')
+        
+        problemas = record.get('problemas', [])
+        if 'TRANSFERENCIA_BLOQUEADA' in problemas:
+            score += 30
+            breakdown['ventafe_transferencia'] = 30
+            signals.append('VENTAFE_TRANSFERENCIA')
+        if 'MULTA' in problemas:
+            score += 25
+            breakdown['ventafe_multa'] = 25
+            signals.append('VENTAFE_MULTA')
+        if 'DEUDA' in problemas:
+            score += 25
+            breakdown['ventafe_deuda'] = 25
+            signals.append('VENTAFE_DEUDA')
+
+    # DETECTOR DE CONTRADICCIONES (Qwen: VentaFe vs Clasific.ar)
+    promesas_ok = ["papeles al dia", "papeles al día", "listo para transferir",
+                   "sin deuda", "sin multas", "libre de deuda", "patente paga",
+                   "todo al dia", "todo al día", "transferencia inmediata"]
+    vendedor_promete_ok = any(p in text for p in promesas_ok)
+    
+    tiene_deuda_real = False
+    if record.get("clasificar_deuda") or record.get("clasificar_multas"):
+        tiene_deuda_real = True
+    if any(p in text for p in ["debo patente", "tiene multas", "deuda de patente", "infracciones"]):
+        tiene_deuda_real = True
+    
+    if vendedor_promete_ok and tiene_deuda_real:
+        score += 40
+        breakdown["contradiccion_detectada"] = 40
+        signals.append("CONTRADICCION_VENDEDOR")
+    
+    admite_problema = any(p in text for p in ["debo patentes", "tiene multas", "falta el 08", "no puedo transferir"])
+    if admite_problema:
+        score += 30
+        breakdown["admite_deuda"] = 30
+        signals.append("VENDEDOR_ADMITE_PROBLEMA")
 
     # multa_or_fotomulta: +60
     if "multa" in text or "fotomulta" in text:
@@ -598,13 +1155,68 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["generic_penalty"]
         breakdown["generic_penalty"] = SCORE_RULES["generic_penalty"]
 
+    # --- PATENTE DETECTION (H.AI insight + GPT filter) ---
+    # Detectar patente AR en texto y boost +15
+    patente_match = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", record.get("combined_text", ""), re.IGNORECASE)
+    if patente_match:
+        score += 15
+        breakdown["patente_detected"] = 15
+        signals.append("PATENTE_DETECTED")
+        # Marcar para enriquecimiento automatico con clasific.ar
+        # (se hace en run_pipeline despues de classify_and_score)
+
+    # --- INTENCION EXTREMA BOOST (GPT insight: filtrar ruido) ---
+    # Solo leads con dolor MUY explicito merecen boost
+    extreme_intent = any(phrase in text for phrase in [
+        "me llego", "me llegue", "me cobraron", "me quieren cobrar",
+        "no puedo transferir", "no me dejan transferir",
+        "me retuvieron", "me secuestraron",
+        "necesito ayuda", "necesito asesoramiento",
+        "alguien sabe", "alguien me puede",
+        "ayuda por favor", "urgente",
+    ])
+    if extreme_intent:
+        score += 20
+        breakdown["extreme_intent"] = 20
+        signals.append("EXTREME_INTENT")
+
+    # --- PENALTY: sin dolor explicito = ruido (GPT insight) ---
+    # Si el texto NO tiene ninguna keyword de dolor, penalizar fuerte
+    has_explicit_pain = any(kw in text for kw in [
+        "multa", "multas", "fotomulta", "fotomultas",
+        "infraccion", "infracciones", "infracción", "infracciones",
+        "libre deuda", "transferencia", "transferir",
+        "patente", "08 firmado", "cedula", "cedula verde",
+        "veraz", "registro automotor", "juez de faltas",
+        "peaje", "telepeaje", "deuda",
+    ])
+    if not has_explicit_pain:
+        score -= 50
+        breakdown["no_pain_penalty"] = -50
+        signals.append("NO_PAIN")
+
+    # --- CONTACTO BOOST (GPT: lo que importa es el contacto) ---
+    has_contact = bool(
+        record.get("whatsapp_publico") or
+        record.get("telefono_publico") or
+        record.get("email_publico") or
+        record.get("phone") or
+        record.get("whatsapp") or
+        record.get("email")
+    )
+    if has_contact:
+        score += 30
+        breakdown["has_contact"] = 30
+        signals.append("HAS_CONTACT")
+
     # Clamp
     score = max(0, min(100, score))
 
-    # --- Classify ---
-    if score >= 60 and not is_foreign:
+    # --- CLASSIFY (GPT: umbral mas alto para CRM) ---
+    # Antes: 60 = real_lead. Ahora: 50 = real_lead (con filtro de dolor)
+    if score >= 50 and not is_foreign and has_explicit_pain:
         label = "real_lead"
-    elif score >= 30 and not is_foreign:
+    elif score >= 30 and not is_foreign and has_explicit_pain:
         label = "commercial_signal"
     else:
         label = "reject"
@@ -629,14 +1241,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         problem_cat = "OTHER"
         problem_sum = "Lead vehicular"
 
-    # WhatsApp link
+    # WhatsApp link (Qwen fix: normalizar a E.164)
     wa_link = ""
     wa_num = record.get("whatsapp_publico", "") or record.get("telefono_publico", "")
     if wa_num:
-        digits = re.sub(r"\D", "", wa_num)
-        if not digits.startswith("54"):
-            digits = "54" + digits.lstrip("0")
-        wa_link = f"https://wa.me/{digits}"
+        normalized = phone_to_e164(wa_num)
+        if normalized and normalized.startswith("+54"):
+            wa_link = f"https://wa.me/{normalized[1:]}"
+        else:
+            digits = re.sub(r"\D", "", wa_num)
+            if len(digits) >= 8:
+                wa_link = f"https://wa.me/{digits}"
 
     return Lead(
         score=score,
@@ -657,6 +1272,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         contacto_publico=record.get("contacto_publico", False),
         whatsapp_publico=record.get("whatsapp_publico", ""),
         whatsapp_link=wa_link,
+        email_publico=record.get("email_publico", ""),
         telefono_publico=record.get("telefono_publico", ""),
         telefono_e164=record.get("telefono_e164", ""),
         score_breakdown=breakdown,
@@ -674,12 +1290,8 @@ def deduplicate_cases(leads: List[Lead]) -> List[Lead]:
     seen: Set[str] = set()
     out = []
     for lead in leads:
-        components = [
-            normalize_text(lead.quoted_text[:200]),
-            lead.source_url,
-            lead.persona,
-            lead.platform,
-        ]
+        # Qwen fix: Solo usar URL para ID (estable entre runs)
+        components = [lead.source_url or lead.quoted_text[:50]]
         composite = "|".join(components)
         h = hashlib.sha256(composite.encode("utf-8")).hexdigest()[:16]
         lead.id = h
@@ -764,6 +1376,7 @@ def build_dashboard_payload(leads: List[Lead]) -> Dict[str, Any]:
         "contactable": sum(1 for l in leads if l.contacto_publico),
         "with_whatsapp": sum(1 for l in leads if l.whatsapp_publico),
         "with_phone": sum(1 for l in leads if l.telefono_publico),
+        "with_email": sum(1 for l in leads if l.email_publico),
         "avg_score": round(sum(l.score for l in leads) / len(leads), 1) if leads else 0,
         "avg_score_hot": round(sum(l.score for l in hot) / len(hot), 1) if hot else 0,
         "conversion_probability": round(len(hot) / len(leads) * 100, 1) if leads else 0,
@@ -779,10 +1392,12 @@ def build_dashboard_payload(leads: List[Lead]) -> Dict[str, Any]:
 
     insights = generate_insights(leads)
 
+    all_leads_sorted = sorted(leads, key=lambda l: l.score if hasattr(l, "score") else 0, reverse=True)
     payload = {
         "generated_at": generated_at,
         "run_id": run_id,
         "summary": summary,
+        "leads_all": [l.to_dict() for l in all_leads_sorted],
         "leads_hot": [l.to_dict() for l in hot],
         "leads_warm": [l.to_dict() for l in warm],
         "insights": insights,
@@ -848,17 +1463,329 @@ def publish_artifacts(payload: Dict[str, Any], leads: List[Lead]) -> None:
 
 START_TIME = time.time()
 QUERIES_EXECUTED = 0
+_pqm_global = None  # PendingQueryManager global, seteado en run_pipeline
+_CURRENT_GROUP_IDX = 0
+
+
+#===========================================================================
+# Step 4.6: Comment Mining — Extraer contactos de comentarios del post
+#===========================================================================
+def mine_comments_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea comentarios del post y busca telefonos/emails del autor."""
+    print("[Step 4.6] Mining comments for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        url_parts = lead.source_url.rstrip("/").split("/")
+        if len(url_parts) < 7 or "comments" not in url_parts:
+            continue
+        post_id = url_parts[6]
+
+        comments_url = f"https://old.reddit.com/comments/{post_id}.json?limit=50"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(comments_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not isinstance(data, list) or len(data) < 2:
+                    continue
+
+                comments_listing = data[1]
+                all_comment_text = ""
+                lead_author = lead.persona.replace("u/", "").strip().lower()
+
+                for child in comments_listing.get("data", {}).get("children", []):
+                    comment = child.get("data", {})
+                    author = comment.get("author", "")
+                    body = comment.get("body", "")
+
+                    if author and author != "[deleted]" and body:
+                        if author.lower() == lead_author:
+                            all_comment_text += " " + body
+
+                if not all_comment_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_comment_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_comment_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_comment_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(2.0)  # Qwen fix: Rate limit
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Comment Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+#===========================================================================
+# Step 4.7: Profile Mining — Extraer contactos del perfil de Reddit del autor
+#===========================================================================
+def mine_profile_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea el perfil del autor (comments.rss) y busca contacto en bio/historial."""
+    print("[Step 4.7] Mining user profiles for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        username = lead.persona.replace("u/", "").strip()
+        if not username or len(username) < 3:
+            continue
+
+        profile_url = f"https://www.reddit.com/user/{username}/comments/.rss?limit=25"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(profile_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/atom+xml,application/xml,text/xml")
+            with _urq.urlopen(req, timeout=15) as resp:
+                xml_content = resp.read().decode("utf-8", errors="replace")
+
+                entries = re.findall(r"<entry>([\s\S]*?)</entry>", xml_content, re.DOTALL)
+                all_profile_text = ""
+
+                for entry in entries:
+                    content_m = re.search(r"<content[^>]*>([\s\S]*?)</content>", entry, re.DOTALL)
+                    if content_m:
+                        raw = content_m.group(1)
+                        cleaned = re.sub(r"<[^>]+>", " ", raw)
+                        cleaned = cleaned.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                        cleaned = cleaned.replace("&quot;", '"').replace("&#39;", "'")
+                        all_profile_text += " " + cleaned
+
+                if not all_profile_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_profile_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_profile_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_profile_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(2.0)  # Qwen fix: Rate limit
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Profile Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+def enrich_contacts_via_reddit_profile(leads: List[Lead]) -> int:
+    """Busca links a otras plataformas en el perfil de Reddit y rastrea contactos."""
+    import urllib.request as _urq
+    enriched = 0
+    worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    ingest_secret = os.environ.get("INGEST_SECRET", "")
+    if not ingest_secret:
+        return 0
+
+    for lead in leads:
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+        if lead.platform != "Reddit":
+            continue
+        username = lead.persona.replace("u/", "").strip()
+        if len(username) < 3:
+            continue
+
+        try:
+            profile_url = f"{worker_url}/api/reddit-profile-links?user={username}"
+            req = _urq.Request(profile_url)
+            req.add_header("X-Webhook-Secret", ingest_secret)
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not data.get("ok") or not data.get("links"):
+                    continue
+
+                for link in data["links"][:5]:
+                    snippet = ""
+                    try:
+                        search_results = provider_search(f"site:{link}", num=2)
+                        for sr in search_results:
+                            snippet += sr.get("snippet", "") + " "
+                    except Exception:
+                        continue
+
+                    for pat in ARG_PHONE_PATTERNS:
+                        m = re.search(pat, snippet)
+                        if m:
+                            digits = re.sub(r"\D", "", m.group(0))
+                            if 10 <= len(digits) <= 15:
+                                lead.telefono_publico = m.group(0).strip()
+                                lead.contacto_publico = True
+                                lead.score = min(100, lead.score + 30)
+                                if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                    lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                                enriched += 1
+                                break
+                    if not lead.telefono_publico:
+                        m = re.search(EMAIL_PATTERN, snippet)
+                        if m:
+                            lead.email_publico = m.group(1).lower().strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, lead.score + 15)
+                            if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                            enriched += 1
+                time.sleep(0.5)
+        except Exception:
+            continue
+    if enriched:
+        print(f"  [ProfileLinkMining] {enriched} leads enriquecidos", file=sys.stderr)
+    return enriched
 
 
 def run_pipeline() -> Dict[str, Any]:
-    global QUERIES_EXECUTED
+    global QUERIES_EXECUTED, _pqm_global
+    _pqm_global = None  # se setea en Step 0.5
 
     print("=" * 60, file=sys.stderr)
+    print("  LeadX Pipeline v2 (Python = unico cerebro)", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+    # GPT FIX: Descargar KV existente para merge correcto
+    # (Worker hace deep merge, pero Python necesita saber que ya existe)
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        ingest_secret = os.environ.get("INGEST_SECRET", "")
+        if ingest_secret:
+            import urllib.request as _urq_kv
+            kv_url = f"{worker_url}/api/kv?key=leads:live"
+            req_kv = _urq_kv.Request(kv_url)
+            req_kv.add_header("X-Webhook-Secret", ingest_secret)
+            with _urq_kv.urlopen(req_kv, timeout=15) as resp_kv:
+                kv_data = json.loads(resp_kv.read().decode("utf-8", errors="replace"))
+            existing_count = len(kv_data.get("value", {}).get("leads_all", []))
+            print(f"  [KV] Leads existentes en KV: {existing_count}", file=sys.stderr)
+    except Exception as e:
+        print(f"  [KV] WARNING: {e}", file=sys.stderr)
     print("  RADAR LEADS — Payload Generator v1.0", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
 
+    # Step 0: Source discovery (SourceHunterAR v10.2)
+    try:
+        run_discovery_and_update()
+    except Exception as e:
+        print(f"  [SourceHunter] WARNING: {e}", file=sys.stderr)
+
+    # Step 0.5: PendingQueryManager — reintenta queries que fallaron con 429
+    worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    ingest_secret = os.environ.get("INGEST_SECRET", "")
+    pqm = None
+    recovered_leads = []
+    if ingest_secret:
+        try:
+            pqm = PendingQueryManager(worker_url, ingest_secret)
+            _pqm_global = pqm  # accesible desde collect_public_sources
+            pqm.load()
+            # Reintentar pending primero (máx 2, antes del grupo rotativo)
+            recovered_raw = pqm.retry_pending(search_reddit_with_status)
+            print(f"  [PQM] Recuperadas {len(recovered_raw)} queries pendientes → {len(recovered_raw)} posts",
+                  file=sys.stderr)
+            # Agregar a raw_results para que pasen por extract_entities
+            for r in recovered_raw:
+                r["_query"] = f"pending_retry:{r.get('query','')}"
+                raw_results_pending = [r]  # placeholder
+            recovered_leads = recovered_raw
+        except Exception as e:
+            print(f"  [PQM] WARNING: {e}", file=sys.stderr)
+            pqm = None
+    else:
+        print("  [PQM] SKIP: INGEST_SECRET no configurado", file=sys.stderr)
+
     # Step 1: Collect
     raw_results = collect_public_sources()
+
+    # Agregar recovered_leads al inicio de raw_results
+    if recovered_leads:
+        for r in recovered_leads:
+            r["_query"] = r.get("_query", "pending_retry")
+        raw_results = recovered_leads + raw_results
+        print(f"  [PQM] Agregados {len(recovered_leads)} posts recuperados al pipeline",
+              file=sys.stderr)
+
+    # Step 1.5: Guardar PQM al final del run (en try/finally para que siempre guarde)
+    # Lo movemos al final del pipeline
     QUERIES_EXECUTED = len(set(r.get("_query", "") for r in raw_results))
 
     # Step 2: Extract
@@ -884,6 +1811,97 @@ def run_pipeline() -> Dict[str, Any]:
             leads.append(lead)
     print(f"  Scored {len(leads)} leads (rejected rest)", file=sys.stderr)
 
+    # Step 4.5: Enriquecer leads con patente detectada via clasific.ar
+    # H.AI insight + GPT filter: solo enriquecer si hay patente + dolor
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        ingest_secret = os.environ.get("INGEST_SECRET", "")
+        if ingest_secret:
+            enriched_count = 0
+            import urllib.request as _urq3
+            for lead in leads:
+                if "PATENTE_DETECTED" in (lead.detected_signals or []):
+                    # Buscar patente en el texto
+                    patente_m = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", lead.quoted_text or "", re.IGNORECASE)
+                    if patente_m:
+                        patente = patente_m.group(1).upper()
+                        try:
+                            basic_url = f"{worker_url}/api/clasificar-basic?plate={patente}"
+                            req3 = _urq3.Request(basic_url)
+                            req3.add_header("X-Webhook-Secret", ingest_secret)
+                            req3.add_header("Accept", "application/json")
+                            with _urq3.urlopen(req3, timeout=10) as resp3:
+                                veh_data = json.loads(resp3.read().decode("utf-8", errors="replace"))
+                            if veh_data.get("ok") and veh_data.get("data", {}).get("data"):
+                                v = veh_data["data"]["data"]
+                                lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
+                                lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
+                                enriched_count += 1
+                        except Exception:
+                            pass
+                        time.sleep(0.5)  # rate limit clasific.ar
+            if enriched_count:
+                print(f"  [clasific.ar] {enriched_count} leads enriquecidos con datos vehiculares", file=sys.stderr)
+    except Exception as e:
+        print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
+
+    # Step 4.6: Comment Mining (DeepSeek+Qwen insight)
+    mine_comments_for_contacts(leads)
+
+    # Step 4.7: Profile Mining (DeepSeek+Qwen insight)
+    mine_profile_for_contacts(leads)
+
+    # MEJORA 2 (Qwen): OSINT Shadow Profile - triangulacion de identidad
+    # Si un lead de Reddit no tiene contacto, buscar username en ML/FB via DDG
+    try:
+        from search_providers import search as _osint_search
+        osint_count = 0
+        for lead in leads:
+            if lead.whatsapp_publico or lead.email_publico or lead.telefono_publico:
+                continue  # Ya tiene contacto, saltar
+            if not lead.persona or not lead.persona.startswith("u/"):
+                continue  # No es Reddit user
+            username = lead.persona.replace("u/", "").strip()
+            if len(username) < 3:
+                continue
+            # Buscar username en MercadoLibre y Facebook
+            for q in [f'site:mercadolibre.com.ar "{username}"',
+                      f'site:facebook.com "{username}"']:
+                try:
+                    results = _osint_search(q, num=3)
+                    for r in results:
+                        snippet = r.get("snippet", "") + " " + r.get("title", "")
+                        # Reusar regex federal para extraer telefono
+                        for pattern in ARG_PHONE_PATTERNS:
+                            m = re.search(pattern, snippet)
+                            if m:
+                                digits = re.sub(r"\D", "", m.group(0))
+                                if 10 <= len(digits) <= 15:
+                                    lead.telefono_publico = m.group(0).strip()
+                                    lead.contacto_publico = True
+                                    lead.score = min(100, (lead.score or 0) + 20)
+                                    if "OSINT_SHADOW" not in (lead.detected_signals or []):
+                                        lead.detected_signals = (lead.detected_signals or []) + ["OSINT_SHADOW_PROFILE"]
+                                    osint_count += 1
+                                    break
+                        if lead.telefono_publico:
+                            break
+                    if lead.telefono_publico:
+                        break
+                except Exception:
+                    continue
+            time.sleep(1)  # rate limit DDG
+        if osint_count:
+            print(f"  [OSINT] {osint_count} leads enriquecidos via shadow profile", file=sys.stderr)
+    except Exception as e:
+        print(f"  [OSINT] ERROR: {e}", file=sys.stderr)
+
+    # Step 4.8: Enriquecer contactos via links del perfil de Reddit (DeepSeek v2.7)
+    try:
+        enrich_contacts_via_reddit_profile(leads)
+    except Exception as e:
+        print(f"  [ProfileLinkMining] ERROR: {e}", file=sys.stderr)
+
     # Step 5: Dedup
     leads = deduplicate_cases(leads)
 
@@ -900,6 +1918,14 @@ def run_pipeline() -> Dict[str, Any]:
     print(f"  Payload: {PAYLOAD_PATH}", file=sys.stderr)
     print(f"{'='*60}", file=sys.stderr)
 
+    # Step 7.5: Guardar PQM al final
+    if pqm:
+        try:
+            pqm.save()
+            print(f"  [PQM] Estado final: {pqm.status()}", file=sys.stderr)
+        except Exception as e:
+            print(f"  [PQM] ERROR guardando: {e}", file=sys.stderr)
+
     return payload
 
 
@@ -912,3 +1938,8 @@ if __name__ == "__main__":
         "summary": payload["summary"],
         "insights": payload["insights"],
     }, ensure_ascii=False, indent=2))
+
+
+#===========================================================================
+# VentaFe Scraper — Portal de clasificados de Santa Fe (ORO)
+#===========================================================================
