@@ -1,181 +1,26 @@
 {
-  "generated_at": "2026-07-05T23:02:27.749221+00:00",
-  "run_id": "cd161e1b5627",
+  "generated_at": "2026-07-06T02:42:58.028332+00:00",
+  "run_id": "bb61fb2133ff",
   "summary": {
-    "total_leads": 2,
-    "hot_leads": 2,
+    "total_leads": 0,
+    "hot_leads": 0,
     "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 100.0,
-    "avg_score_hot": 100.0,
-    "conversion_probability": 100.0,
-    "by_category": {
-      "TRANSFER_PROBLEM": 2
-    },
-    "by_platform": {
-      "Reddit": 2
-    },
-    "by_province": {
-      "CABA": 2
-    }
+    "avg_score": 0,
+    "avg_score_hot": 0,
+    "conversion_probability": 0,
+    "by_category": {},
+    "by_platform": {},
+    "by_province": {}
   },
-  "leads_all": [
-    {
-      "id": "7b1b683fe1e9b47d",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/ibuorofeno800",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-03-18T15:40:41+00:00",
-      "fecha_iso": "2026-03-18T15:40:41+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T23:02:27.748614+00:00"
-    },
-    {
-      "id": "198f393ebd3c2465",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Joao_Bakyuu",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2025-11-05T00:30:41+00:00",
-      "fecha_iso": "2025-11-05T00:30:41+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank/\"> <img src=\"https://a.thumbs.redditmedia.com/MLtiRicbOHF4J4emp_Cm_v4JZSahgJKEV88YURPmOT0.jpg\" alt=\"Bolinha de neve do Nubank 😍\" title=\"Bolinha de neve do Nubank 😍\" /> </a> </td><td> <!-- SC_O",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T23:02:27.749009+00:00"
-    }
-  ],
-  "leads_hot": [
-    {
-      "id": "7b1b683fe1e9b47d",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/ibuorofeno800",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-03-18T15:40:41+00:00",
-      "fecha_iso": "2026-03-18T15:40:41+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "transfer_problem": 45,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "transfer_problem",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T23:02:27.748614+00:00"
-    },
-    {
-      "id": "198f393ebd3c2465",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Joao_Bakyuu",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2025-11-05T00:30:41+00:00",
-      "fecha_iso": "2025-11-05T00:30:41+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/farialimabets/comments/1ooof4c/bolinha_de_neve_do_nubank/\"> <img src=\"https://a.thumbs.redditmedia.com/MLtiRicbOHF4J4emp_Cm_v4JZSahgJKEV88YURPmOT0.jpg\" alt=\"Bolinha de neve do Nubank 😍\" title=\"Bolinha de neve do Nubank 😍\" /> </a> </td><td> <!-- SC_O",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "08_or_document_problem": 40,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "document_08",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-05T23:02:27.749009+00:00"
-    }
-  ],
+  "leads_all": [],
+  "leads_hot": [],
   "leads_warm": [],
   "insights": [
-    "El 100% de los leads calientes provienen de Reddit.",
-    "El 100% de los leads calientes son de CABA.",
-    "El problema más frecuente es: Problema de transferencia.",
-    "0% de los leads calientes tienen contacto público visible."
+    "Sin datos suficientes para generar insights."
   ],
   "meta": {
     "version": "1.0",
@@ -201,7 +46,7 @@
       "generic_penalty": -30,
       "foreign_country_penalty": -80
     },
-    "runtime_seconds": 61.0,
+    "runtime_seconds": 60.8,
     "queries_executed": 1
   }
 }
