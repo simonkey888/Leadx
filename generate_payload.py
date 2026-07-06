@@ -820,19 +820,27 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if m:
         email = m.group(1).lower().strip()
 
-    # REGEX CONTEXTUAL (GPT+H.AI consensus):
-    # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor
-    # Esto evita el spam de wa.me random sin contexto
+    # REGEX CONTEXTUAL (GPT+H.AI consensus v2 — fix BOMBA #2):
+    # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor O es de VentaFe.
+    # VentaFe publica avisos preventivos ("papeles al día", "listo para transferir")
+    # que son leads comerciales válidos aunque no expresen "dolor" explícito.
     PAIN_KEYWORDS_RE = re.compile(
         r"\b(?:multa|multas|fotomulta|fotomultas|infracci[oó]n|infracciones|"
         r"libre\s+deuda|transferencia|transferir|patente|08\s+firmado|"
         r"c[eé]dula|veraz|registro\s+automotor|juez\s+de\s+faltas|"
-        r"peaje|telepeaje|deuda|vencimiento|prescripci[oó]n)\b",
+        r"peaje|telepeaje|deuda|vencimiento|prescripci[oó]n|"
+        r"papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|sin\s+deuda|"
+        r"titular|libre\s+de\s+multas|patente\s+al\s+d[ií]a|sin\s+multas)\b",
         re.IGNORECASE
     )
     has_pain_context = bool(PAIN_KEYWORDS_RE.search(combined))
-    if not has_pain_context:
-        # Sin contexto de dolor, descartar contacto (no es lead, es spam)
+
+    # FIX BOMBA #2: VentaFe = lead comercial preventivo, no descartar aunque no haya "dolor"
+    is_ventafe = (result.get("source") == "ventafe"
+                  or result.get("host_name") == "ventafe.com.ar"
+                  or "ventafe.com.ar" in url)
+    if not has_pain_context and not is_ventafe:
+        # Sin contexto de dolor Y no es VentaFe → descartar contacto (no es lead, es spam)
         phone = ""
         whatsapp = ""
         email = ""
