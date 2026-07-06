@@ -533,9 +533,15 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         # Titulo: primeras palabras del texto
         title = text[:80].strip()
         
+        # FIX BOMBA #2 (parte 4): URL unica por lead para evitar dedup masivo.
+        # Todos los leads VentaFe compartian la misma URL base, lo que hacia que
+        # la dedup por source_url colapsara los 17 leads en 1 solo.
+        phone_slug = valid_phones[0].replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
+        
         lead = {
             "name": f"[VentaFe] {title}",
-            "url": "https://www.ventafe.com.ar/automoviles",
+            "url": unique_url,
             "snippet": text[:500],
             "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
             "host_name": "ventafe.com.ar",
@@ -748,17 +754,23 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "titulo", "titular", "denuncia de venta", "formulario 08",
     ]
     vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
-    # Inicializar variables antes del check (fix UnboundLocalError)
+
+    # FIX BOMBA #2 (parte 2): VentaFe SIEMPRE pasa el filtro vehicular.
+    # Sus avisos son comerciales (vendedor con auto en venta) y aunque no tengan
+    # keywords de "dolor" (multa/transferencia), son leads válidos porque el
+    # vehículo está en venta y el teléfono es público.
+    is_ventafe = ('ventafe' in (result.get('source', '') or '').lower()
+                  or 'ventafe.com.ar' in url
+                  or result.get('host_name') == 'ventafe.com.ar')
+
+    # Si NO es VentaFe y no hay contexto vehicular, descartar
+    if not is_ventafe and vehicular_count < 2:
+        return None
+
+    # Inicializar variables de contacto
     phone = ""
     whatsapp = ""
     email = ""
-    has_contact = bool(phone or whatsapp or email)
-    # VentaFe: si tiene telefono, aceptar aunque no tenga keywords vehiculares
-    is_ventafe = 'ventafe' in (result.get('source', '') or '').lower()
-    if is_ventafe and has_contact:
-        pass  # Aceptar
-    elif vehicular_count < 2 and not has_contact:
-        return None
 
     # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
     if len(combined.strip()) < 50:
@@ -820,19 +832,27 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if m:
         email = m.group(1).lower().strip()
 
-    # REGEX CONTEXTUAL (GPT+H.AI consensus):
-    # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor
-    # Esto evita el spam de wa.me random sin contexto
+    # REGEX CONTEXTUAL (GPT+H.AI consensus v2 — fix BOMBA #2):
+    # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor O es de VentaFe.
+    # VentaFe publica avisos preventivos ("papeles al día", "listo para transferir")
+    # que son leads comerciales válidos aunque no expresen "dolor" explícito.
     PAIN_KEYWORDS_RE = re.compile(
         r"\b(?:multa|multas|fotomulta|fotomultas|infracci[oó]n|infracciones|"
         r"libre\s+deuda|transferencia|transferir|patente|08\s+firmado|"
         r"c[eé]dula|veraz|registro\s+automotor|juez\s+de\s+faltas|"
-        r"peaje|telepeaje|deuda|vencimiento|prescripci[oó]n)\b",
+        r"peaje|telepeaje|deuda|vencimiento|prescripci[oó]n|"
+        r"papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|sin\s+deuda|"
+        r"titular|libre\s+de\s+multas|patente\s+al\s+d[ií]a|sin\s+multas)\b",
         re.IGNORECASE
     )
     has_pain_context = bool(PAIN_KEYWORDS_RE.search(combined))
-    if not has_pain_context:
-        # Sin contexto de dolor, descartar contacto (no es lead, es spam)
+
+    # FIX BOMBA #2: VentaFe = lead comercial preventivo, no descartar aunque no haya "dolor"
+    is_ventafe = (result.get("source") == "ventafe"
+                  or result.get("host_name") == "ventafe.com.ar"
+                  or "ventafe.com.ar" in url)
+    if not has_pain_context and not is_ventafe:
+        # Sin contexto de dolor Y no es VentaFe → descartar contacto (no es lead, es spam)
         phone = ""
         whatsapp = ""
         email = ""
@@ -1182,6 +1202,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- PENALTY: sin dolor explicito = ruido (GPT insight) ---
     # Si el texto NO tiene ninguna keyword de dolor, penalizar fuerte
+    # FIX BOMBA #2 (parte 3): ampliar con keywords preventivas de VentaFe
     has_explicit_pain = any(kw in text for kw in [
         "multa", "multas", "fotomulta", "fotomultas",
         "infraccion", "infracciones", "infracción", "infracciones",
@@ -1189,11 +1210,24 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         "patente", "08 firmado", "cedula", "cedula verde",
         "veraz", "registro automotor", "juez de faltas",
         "peaje", "telepeaje", "deuda",
+        # Keywords preventivas (vendedores con papeles al día = lead comercial)
+        "papeles al dia", "papeles al día",
+        "listo para transferir", "sin deuda", "sin multas",
+        "libre de multas", "patente al dia", "patente al día",
+        "titular", "unica mano", "única mano",
     ])
-    if not has_explicit_pain:
+    # VentaFe: no penalizar aunque no haya dolor (avisos comerciales válidos)
+    is_ventafe_rec = (record.get("source", "") == "ventafe"
+                      or record.get("platform", "") == "VentaFe"
+                      or "ventafe.com.ar" in record.get("source_url", ""))
+    if not has_explicit_pain and not is_ventafe_rec:
         score -= 50
         breakdown["no_pain_penalty"] = -50
         signals.append("NO_PAIN")
+    elif is_ventafe_rec:
+        # VentaFe siempre es lead comercial si tiene contacto
+        has_explicit_pain = True
+        signals.append("VENTAFE_LEAD")
 
     # --- CONTACTO BOOST (GPT: lo que importa es el contacto) ---
     has_contact = bool(
@@ -1291,7 +1325,11 @@ def deduplicate_cases(leads: List[Lead]) -> List[Lead]:
     out = []
     for lead in leads:
         # Qwen fix: Solo usar URL para ID (estable entre runs)
+        # FIX BOMBA #2 (parte 4): Para VentaFe, incluir telefono en el composite
+        # para que cada vendedor tenga su propio ID (todos comparten URL base).
         components = [lead.source_url or lead.quoted_text[:50]]
+        if lead.telefono_publico or lead.whatsapp_publico:
+            components.append(lead.telefono_publico or lead.whatsapp_publico)
         composite = "|".join(components)
         h = hashlib.sha256(composite.encode("utf-8")).hexdigest()[:16]
         lead.id = h
