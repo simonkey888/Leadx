@@ -574,6 +574,10 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "titulo", "titular", "denuncia de venta", "formulario 08",
     ]
     vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
+    # Inicializar variables antes del check (fix UnboundLocalError)
+    phone = ""
+    whatsapp = ""
+    email = ""
     has_contact = bool(phone or whatsapp or email)
     # Qwen fix: Solo descartar si NO tiene keywords vehiculares Y NO tiene contacto
     if vehicular_count < 2 and not has_contact:
@@ -587,8 +591,7 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if len(combined) > 0 and (url_count * 30 + html_tag_count * 10) / len(combined) > 0.5:
         return None
 
-    # Extract phone
-    phone = ""
+    # Extract phone (ya inicializado arriba)
     for pattern in ARG_PHONE_PATTERNS:
         m = re.search(pattern, combined)
         if m:
