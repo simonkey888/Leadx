@@ -1,87 +1,51 @@
 ================================================================================
-LEADX v2.1 — CODIGO COMPLETO ACTUALIZADO
-Fecha: 6 julio 2026 | Commit: 155c731 (ULTIMA VERSION)
+LEADX v2.2 — CODIGO COMPLETO ACTUALIZADO
+Fecha: 6 julio 2026 | Commit: fce5be5 (ULTIMA VERSION)
 Repo: github.com/simonkey888/Leadx
 ================================================================================
 
-ARQUITECTURA FINAL (GPT spec - arquitectura limpia):
-  Python (GH Actions cron 1h) → scraping + scoring + OSINT → POST /api/ingest
+NOVEDADES v2.2 (DeepSeek + Qwen consensus):
+  Step 4.6: mine_comments_for_contacts() - scraea comentarios del post
+  Step 4.7: mine_profile_for_contacts() - scraea perfil del autor (comments.rss)
+  Ambas buscan telefono/WA/email con regex federal AR
+  Score boost: +25 phone, +30 WhatsApp, +15 email
+  Proyeccion: 1 contactable → 15-25 contactables (9-15%)
+
+ARQUITECTURA FINAL:
+  Python (GH Actions cron 1h) → scraping + scoring + OSINT + mining → POST /api/ingest
   Worker → edge API + KV proxy + deep merge (CERO logica de negocio)
   Frontend → read only (renderiza l.score de Python)
 
 REGLA DE ORO: Ningun dato se calcula en dos lugares.
-  Score → Python (unico cerebro)
-  Estado CRM → KV (preservado en merge)
-  Render → Frontend (read only)
 
-CAMBIOS v2.1 (Qwen+InternLM+DeepSeek consensus - P0 fixes):
-  FIX P0-1: WhatsApp validate fire & forget (sin polling que causaba CPU timeout)
-  FIX P0-2: Endpoint /api/apify-webhook (recibe resultados Facebook scraper)
-  LIMPIEZA: /api/cron-run eliminado, runPipelineCron eliminado, c_data_iter eliminado
+ENDPOINTS Worker (17):
+  GET  /                  CRM | GET  /cookies.html   Refrescador FB
+  GET  /api/leads         KV  | GET  /api/metrics    KPIs
+  GET  /api/health        Mon | POST /api/ingest     Deep merge
+  GET  /api/kv            KV  | POST /api/kv         KV write
+  GET  /api/ml-questions  ML  | GET  /api/reddit-bio  Bio scraper
+  POST /api/apify-facebook FB | POST /api/apify-webhook FB resultados
+  POST /api/whatsapp-validate | POST /api/whatsapp-webhook WA resultados
+  GET  /api/clasificar-basic  | POST /api/clasificar-patente
+  POST /api/clasificar-webhook| GET  /api/ddg-foromoto
 
-CAMBIOS v2.0 (GPT 4 fixes + Qwen 2 mejoras):
-  FIX 1: Cron del Worker eliminado (Python unico pipeline)
-  FIX 2: Apify fire & forget (sin polling)
-  FIX 3: Deep merge en /api/ingest (KV prioridad estado CRM)
-  FIX 4: Frontend usa solo l.score de Python
-  MEJORA 1: Regex federal AR (341/351/261/221/381/299)
-  MEJORA 2: OSINT shadow profile (username → ML/FB)
+SECRETS Cloudflare: INGEST_SECRET, CLASIFICAR_API_KEY,
+  CLASIFICAR_WEBHOOK_SECRET, APIFY_TOKEN, FB_COOKIES
 
-ENDPOINTS Worker (17 endpoints):
-  GET  /                  → CRM (Sergio)
-  GET  /cookies.html      → Refrescador cookies FB
-  GET  /api/leads         → JSON leads desde KV
-  GET  /api/metrics       → KPIs
-  GET  /api/health        → freshness + stale detection
-  POST /api/ingest        → batch upload (deep merge seguro)
-  GET  /api/kv            → leer KV (auth)
-  POST /api/kv            → escribir KV (auth)
-  GET  /api/ml-questions  → ML Questions via edge (auth)
-  GET  /api/reddit-bio    → Reddit user bio scraper (auth)
-  POST /api/apify-facebook → FB groups fire & forget (auth)
-  POST /api/apify-webhook → recibe resultados FB scraper (NUEVO)
-  POST /api/whatsapp-validate → WA validator fire & forget (auth)
-  POST /api/whatsapp-webhook → recibe resultados WA validator (NUEVO)
-  GET  /api/clasificar-basic → vehiculo por patente (auth)
-  POST /api/clasificar-patente → busqueda asincrona (auth)
-  POST /api/clasificar-webhook → webhook clasific.ar
-  GET  /api/ddg-foromoto  → foros AR via DDG (auth)
-
-SECRETS Cloudflare (wrangler secret put):
-  INGEST_SECRET, CLASIFICAR_API_KEY, CLASIFICAR_WEBHOOK_SECRET,
-  APIFY_TOKEN, FB_COOKIES
-
-SECRETS GitHub Actions:
-  INGEST_SECRET, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
-
-SCORING (heat_score en Python):
-  intencion(0-40) + contacto(0-30) + urgencia(0-20) + geo(0-10) + recencia
+SCORING: intencion(0-40) + contacto(0-30) + urgencia(0-20) + geo(0-10)
   >=70 hot (rojo) | 40-69 warm (naranja) | <40 cold (gris)
 
-VALIDACION TELEFONOS (jerarquia en frontend):
-  invalid_format → no se muestra boton
-  normalized_contact → ⚪ pendiente (clic para validar)
-  validated_whatsapp → 🟢 verificado (clic directo)
-  not_whatsapp → ❌
-
-FUENTES ACTIVAS:
-  ✅ Reddit /search.rss (funciona desde edge)
-  ✅ Reddit /user/u/comments.rss (funciona desde edge)
-  ✅ Apify FB groups (con cookies, fire & forget + webhook)
-  ✅ clasific.ar /v1/vehicles/basic (free 200/mes)
-  ✅ Apify WhatsApp validator (fire & forget + webhook)
-  ✅ OSINT shadow profile (username → ML/FB via DDG)
-  ❌ ML API (403 desde edge)
-  ❌ DDG site: (0 results desde edge)
-  ❌ CENAT (reCAPTCHA)
+FUENTES:
+  ✅ Reddit /search.rss | ✅ Reddit comments.rss | ✅ Apify FB (fire&forget)
+  ✅ clasific.ar basic  | ✅ WA validator       | ✅ OSINT shadow profile
+  ✅ Comment mining     | ✅ Profile mining      | ❌ ML API (403)
 
 ================================================================================
 
 
 ================================================================================
-FILE: worker.js
-DESC: Cloudflare Worker (edge only - sin cron, sin scoring)
-SIZE: 100,714 chars | 2654 lines | SHA256: edf33929f236
+FILE: worker.js | 2654 lines | SHA: edf33929f236
+DESC: Cloudflare Worker (edge only - 17 endpoints + CRM)
 ================================================================================
 
 ```javascript
@@ -2744,9 +2708,8 @@ export default {
 
 
 ================================================================================
-FILE: generate_payload.py
-DESC: Pipeline Python (unico cerebro - scoring + OSINT + regex federal)
-SIZE: 55,772 chars | 1397 lines | SHA256: 07ba737ad821
+FILE: generate_payload.py | 1585 lines | SHA: 712f8c25c6f9
+DESC: Pipeline Python (unico cerebro - scoring + OSINT + mining + regex federal)
 ================================================================================
 
 ```python
@@ -4066,6 +4029,12 @@ def run_pipeline() -> Dict[str, Any]:
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
+    # Step 4.6: Comment Mining (DeepSeek+Qwen insight)
+    mine_comments_for_contacts(leads)
+
+    # Step 4.7: Profile Mining (DeepSeek+Qwen insight)
+    mine_profile_for_contacts(leads)
+
     # MEJORA 2 (Qwen): OSINT Shadow Profile - triangulacion de identidad
     # Si un lead de Reddit no tiene contacto, buscar username en ML/FB via DDG
     try:
@@ -4148,13 +4117,194 @@ if __name__ == "__main__":
         "insights": payload["insights"],
     }, ensure_ascii=False, indent=2))
 
+
+#===========================================================================
+# Step 4.6: Comment Mining — Extraer contactos de comentarios del post
+#===========================================================================
+def mine_comments_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea comentarios del post y busca telefonos/emails del autor."""
+    print("[Step 4.6] Mining comments for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        url_parts = lead.source_url.rstrip("/").split("/")
+        if len(url_parts) < 7 or "comments" not in url_parts:
+            continue
+        post_id = url_parts[6]
+
+        comments_url = f"https://old.reddit.com/comments/{post_id}.json?limit=50"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(comments_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not isinstance(data, list) or len(data) < 2:
+                    continue
+
+                comments_listing = data[1]
+                all_comment_text = ""
+                lead_author = lead.persona.replace("u/", "").strip().lower()
+
+                for child in comments_listing.get("data", {}).get("children", []):
+                    comment = child.get("data", {})
+                    author = comment.get("author", "")
+                    body = comment.get("body", "")
+
+                    if author and author != "[deleted]" and body:
+                        if author.lower() == lead_author:
+                            all_comment_text += " " + body
+
+                if not all_comment_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_comment_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_comment_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_comment_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(1.0)
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Comment Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+#===========================================================================
+# Step 4.7: Profile Mining — Extraer contactos del perfil de Reddit del autor
+#===========================================================================
+def mine_profile_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea el perfil del autor (comments.rss) y busca contacto en bio/historial."""
+    print("[Step 4.7] Mining user profiles for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        username = lead.persona.replace("u/", "").strip()
+        if not username or len(username) < 3:
+            continue
+
+        profile_url = f"https://www.reddit.com/user/{username}/comments/.rss?limit=25"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(profile_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/atom+xml,application/xml,text/xml")
+            with _urq.urlopen(req, timeout=15) as resp:
+                xml_content = resp.read().decode("utf-8", errors="replace")
+
+                entries = re.findall(r"<entry>([\s\S]*?)</entry>", xml_content, re.DOTALL)
+                all_profile_text = ""
+
+                for entry in entries:
+                    content_m = re.search(r"<content[^>]*>([\s\S]*?)</content>", entry, re.DOTALL)
+                    if content_m:
+                        raw = content_m.group(1)
+                        cleaned = re.sub(r"<[^>]+>", " ", raw)
+                        cleaned = cleaned.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                        cleaned = cleaned.replace("&quot;", '"').replace("&#39;", "'")
+                        all_profile_text += " " + cleaned
+
+                if not all_profile_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_profile_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_profile_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_profile_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(1.5)
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Profile Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
 ```
 
 
 ================================================================================
-FILE: search_providers.py
+FILE: search_providers.py | 1116 lines | SHA: 7b36d28bca7e
 DESC: Providers (Reddit RSS + DDG + FB + ML + Foros)
-SIZE: 43,112 chars | 1116 lines | SHA256: 7b36d28bca7e
 ================================================================================
 
 ```python
@@ -5279,9 +5429,8 @@ def search_reddit_with_status(query: str, num: int = 10):
 
 
 ================================================================================
-FILE: source_registry.py
+FILE: source_registry.py | 316 lines | SHA: 92c16a2f968e
 DESC: Source Registry (discovery + scoring)
-SIZE: 10,766 chars | 316 lines | SHA256: 92c16a2f968e
 ================================================================================
 
 ```python
@@ -5606,9 +5755,8 @@ if __name__ == "__main__":
 
 
 ================================================================================
-FILE: pending_queries_kv.py
+FILE: pending_queries_kv.py | 207 lines | SHA: eed8590c119f
 DESC: PendingQueryManager (cola 429)
-SIZE: 7,896 chars | 207 lines | SHA256: eed8590c119f
 ================================================================================
 
 ```python
@@ -5824,9 +5972,8 @@ class PendingQueryManager:
 
 
 ================================================================================
-FILE: wrangler.toml
+FILE: wrangler.toml | 17 lines | SHA: e722ad1706b7
 DESC: Cloudflare config (KV, sin cron)
-SIZE: 405 chars | 17 lines | SHA256: e722ad1706b7
 ================================================================================
 
 ```toml
@@ -5852,9 +5999,8 @@ enabled = true
 
 
 ================================================================================
-FILE: .github/workflows/radar-cron.yml
-DESC: GH Actions workflow (cron 1h - unico pipeline)
-SIZE: 3,171 chars | 98 lines | SHA256: 5e50f77f166a
+FILE: .github/workflows/radar-cron.yml | 98 lines | SHA: 5e50f77f166a
+DESC: GH Actions workflow (cron 1h)
 ================================================================================
 
 ```yaml
@@ -5961,6 +6107,6 @@ jobs:
 
 
 ================================================================================
-TOTAL: 221,836 chars | 5805 lines | 7 archivos
-Commit: 155c731 | Deployed: Worker 3c081dae
+TOTAL: 230,686 chars | 5993 lines | 7 archivos
+Commit: fce5be5 | Version: v2.2
 ================================================================================
