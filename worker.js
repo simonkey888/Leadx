@@ -2746,7 +2746,8 @@ export default {
           // 3. Si todavia no hay contacto, probar shadow-osint (Linktree/solo.to)
           if (!lead.has_contact) {
             try {
-              const shadowRes = await fetch('https://linktr.ee/' + encodeURIComponent(persona), {
+              const cleanUser = persona.replace(/^u\//, '').replace(/^@/, '').trim();
+              const shadowRes = await fetch('https://linktr.ee/' + encodeURIComponent(cleanUser), {
                 headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
               });
               if (shadowRes.ok) {
