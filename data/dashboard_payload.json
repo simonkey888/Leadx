@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-06T22:10:32.857269+00:00",
-  "run_id": "8e183694dd7b",
+  "generated_at": "2026-07-06T22:14:04.803197+00:00",
+  "run_id": "f38ac02aff06",
   "summary": {
     "total_leads": 14,
     "hot_leads": 14,
@@ -29,7 +29,7 @@
   },
   "leads_all": [
     {
-      "id": "b678f180d89fdc49",
+      "id": "0b8f73ff610ca352",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -43,7 +43,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4859456-toyota-corolla-2-0-xei-cvt-2025-0klm",
       "quoted_text": "> TOYOTA COROLLA 2.0 XEI CVT 2025 0KLM PIRAYU AUTOMOTORES Junin 2246, Santa Fe Capital Horarios: Lunes a Viernes de 9.30 a 13.30 y de 15.30 a 18 Telefonos: 3424084416-3425805386 Instagram Pirayu_Automotores TOYOTA COROLLA 2.0 XEI CVT 2025 0 KLM PIRAYU AUTOMOTORES Junin 2246, Santa Fe Capital Horario",
       "contacto_publico": true,
       "whatsapp_publico": "543424084416",
@@ -66,10 +66,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.100940+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269088+00:00"
     },
     {
-      "id": "0aaf6e3241b4b50d",
+      "id": "0a7e2fd69f060334",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -83,7 +83,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011101-vendo-fiat-punto",
       "quoted_text": "> Vendo Fiat PUNTO Vendo Fiat PUNTO ELX 1.4 Año 2008 145300 Kilómetros reales. Titular Dirección. Levanta Vidrios Delanteros. Volante Regulable en Altura. Faros Rompeniebla. BUEN ESTADO GENERAL (Interior/Exterior) NO FUNCIONA EL AIRE ACONDICIONADO Solo CONTADO. NO CANJE WHATSAPP 3424627751 Vendo Fia",
       "contacto_publico": true,
       "whatsapp_publico": "543424627751",
@@ -104,10 +104,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101351+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269562+00:00"
     },
     {
-      "id": "f5401a229a4cf565",
+      "id": "e0d26b4daac177cf",
       "score": 100,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
@@ -121,7 +121,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4945502-mercedes-benz-a200-blueefficiency-46-000-km-unico",
       "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -142,10 +142,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101907+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270109+00:00"
     },
     {
-      "id": "0157510164c7c278",
+      "id": "ce660c61ca3c5ff7",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -159,7 +159,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010301-vw-gol-trend-1-6-pack-i-5p-modelo-2011",
       "quoted_text": "> VW. GOL TREND 1.6 PACK I 5p. MODELO 2011 VW. GOL TREND 1.6 PACK I 5p. MODELO 2011. MOTOR 1.6 – AIRE ACONDICIONADO – DIRECCIÓN – ALARMA – STEREO CON CD-MP3-BLUETOOTH-USB -AGREGADO CIERRE CENTRALIZADO CON COMANDO A DISTANCIA. VW. GOL TREND 1.6 PACK I 5p. MODELO 2011. MOTOR 1.6 – AIRE ACONDICIONADO –",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -180,10 +180,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102621+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270839+00:00"
     },
     {
-      "id": "1eccd155f831ebcd",
+      "id": "7449b19ea61c6cda",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -197,7 +197,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010012-ka-s-1-5l-5p-2018-64-099km",
       "quoted_text": "> KA S 1.5L 5P 2018 64.099KM KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná",
       "contacto_publico": true,
       "whatsapp_publico": "543424172512",
@@ -220,7 +220,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102862+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.271078+00:00"
     },
     {
       "id": "41cd3beab4896ee5",
@@ -253,10 +253,10 @@
         "multa_fotomulta",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.099876+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.267948+00:00"
     },
     {
-      "id": "a839327b9d69d692",
+      "id": "1dd4f6dae8092acc",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -270,7 +270,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011376-honda-hr-v-lx-cvt-2017",
       "quoted_text": "> Honda HR-V LX CVT 2017 PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores #5011376 $ 24000000 $ 24000000 AGREGAR A FAVORITO",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -289,10 +289,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.100538+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.268676+00:00"
     },
     {
-      "id": "69afe31d6dbef13b",
+      "id": "6406d133ba10818b",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -306,7 +306,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011309-vendo-toyota-etios-2016-xls-automatico-excelente",
       "quoted_text": "> Vendo toyota etios 2016 xls automatico EXCELENTE! Vendo toyota etios 2016 xls automatico. Excelente estado! 90.000 km tel- 3424065219 Vendo toyota etios 2016 xls automatico. Excelente estado! 90.000 km tel- 3424065219 #5011309 $ Consultar $ Consultar AGREGAR A FAVORITOS #5011309 #5011309 $ Consult",
       "contacto_publico": true,
       "whatsapp_publico": "543424065219",
@@ -325,10 +325,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.100722+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.268863+00:00"
     },
     {
-      "id": "86e460ce91d5f3aa",
+      "id": "a9ba836cb738939e",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -342,7 +342,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4994232-ford-ka-se-4-ptas",
       "quoted_text": "> FORD KA SE 4 PTAS FORD KA S 4 PTAS *SERVICIOS AL DIA *RTO VIGENTE *83.000KM *MUY BUEN ESTADO *FINANCIAMIENTO TASA PROMOCIONAL FORD KA S 4 PTAS *SERVICIOS AL DIA *RTO VIGENTE *83.000KM *MUY BUEN ESTADO *FINANCIAMIENTO TASA PROMOCIONAL #4994232 $ consultar $ consultar AGREGAR A FAVORITOS COINAUTO SA",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -361,10 +361,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101132+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269286+00:00"
     },
     {
-      "id": "77c5c078fa9d9080",
+      "id": "3cec4b873fc26893",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -378,7 +378,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010992-jeep-compass-sport-a-t6-92000-kms",
       "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -397,10 +397,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101530+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269736+00:00"
     },
     {
-      "id": "cb626be555644618",
+      "id": "d5983a9803cd9748",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
@@ -414,7 +414,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4886932-suzuki-swif",
       "quoted_text": "> Suzuki Swif Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento #4886932 $ 13500000 $ 13500000 AGREGAR A FAVORITOS (0342) 155015888 #4886932 #4886932 $ 13500000 (0342) 155015888 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -433,10 +433,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101694+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269897+00:00"
     },
     {
-      "id": "43374daa255d026e",
+      "id": "eaa4e8db585f3aee",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -450,7 +450,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010568-jeep-renegade-ano-2023-solo-21-000km",
       "quoted_text": "> Jeep Renegade año 2023 Solo 21.000km!! Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, cámara de retroceso, pantalla táctil, velocidad crucero, control de pendiente, climatizador automático, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -469,10 +469,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102142+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270340+00:00"
     },
     {
-      "id": "7389680b3b0ecdec",
+      "id": "a51686cad36f17ab",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -486,7 +486,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010492-toro-freedom-2023-c-22-000-km",
       "quoted_text": "> Toro Freedom 2023 c/22.000 km Fiat Toro Freedom S Dessing Motor 1.8 IMPECABLE Año 2023 con 22.000 km Todo el confort seguridad y tecnología Posibilidad de canje Cel 342 4220347 Fiat Toro Freedom S Dessing Motor 1.8 IMPECABLE Año 2023 con 22.000 km Todo el confort seguridad y tecnología Posibilidad",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -505,10 +505,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102361+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270593+00:00"
     },
     {
-      "id": "6fcc48363e145c37",
+      "id": "3cf2a229d7e884be",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
@@ -522,7 +522,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5009812-vendo-chevrolet-d20-mod-96",
       "quoted_text": "> Vendo Chevrolet D20 mod. 96 D20 mod 96. Motor maxion 4.0 turbo Diesel. Muy buen estado en general, hermosa para trabajar. La camioneta anda muy bien, se le realizó el cambio del turbo,(nuevo, no reparacion), arranque, se reparo tapa de cilindro completa, radiador, batería NUEVA,, cubiertas a 50%.",
       "contacto_publico": true,
       "whatsapp_publico": "543424274167",
@@ -541,12 +541,12 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.103102+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.271317+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "b678f180d89fdc49",
+      "id": "0b8f73ff610ca352",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -560,7 +560,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4859456-toyota-corolla-2-0-xei-cvt-2025-0klm",
       "quoted_text": "> TOYOTA COROLLA 2.0 XEI CVT 2025 0KLM PIRAYU AUTOMOTORES Junin 2246, Santa Fe Capital Horarios: Lunes a Viernes de 9.30 a 13.30 y de 15.30 a 18 Telefonos: 3424084416-3425805386 Instagram Pirayu_Automotores TOYOTA COROLLA 2.0 XEI CVT 2025 0 KLM PIRAYU AUTOMOTORES Junin 2246, Santa Fe Capital Horario",
       "contacto_publico": true,
       "whatsapp_publico": "543424084416",
@@ -583,10 +583,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.100940+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269088+00:00"
     },
     {
-      "id": "0aaf6e3241b4b50d",
+      "id": "0a7e2fd69f060334",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -600,7 +600,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011101-vendo-fiat-punto",
       "quoted_text": "> Vendo Fiat PUNTO Vendo Fiat PUNTO ELX 1.4 Año 2008 145300 Kilómetros reales. Titular Dirección. Levanta Vidrios Delanteros. Volante Regulable en Altura. Faros Rompeniebla. BUEN ESTADO GENERAL (Interior/Exterior) NO FUNCIONA EL AIRE ACONDICIONADO Solo CONTADO. NO CANJE WHATSAPP 3424627751 Vendo Fia",
       "contacto_publico": true,
       "whatsapp_publico": "543424627751",
@@ -621,10 +621,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101351+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269562+00:00"
     },
     {
-      "id": "f5401a229a4cf565",
+      "id": "e0d26b4daac177cf",
       "score": 100,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
@@ -638,7 +638,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4945502-mercedes-benz-a200-blueefficiency-46-000-km-unico",
       "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -659,10 +659,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101907+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270109+00:00"
     },
     {
-      "id": "0157510164c7c278",
+      "id": "ce660c61ca3c5ff7",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -676,7 +676,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010301-vw-gol-trend-1-6-pack-i-5p-modelo-2011",
       "quoted_text": "> VW. GOL TREND 1.6 PACK I 5p. MODELO 2011 VW. GOL TREND 1.6 PACK I 5p. MODELO 2011. MOTOR 1.6 – AIRE ACONDICIONADO – DIRECCIÓN – ALARMA – STEREO CON CD-MP3-BLUETOOTH-USB -AGREGADO CIERRE CENTRALIZADO CON COMANDO A DISTANCIA. VW. GOL TREND 1.6 PACK I 5p. MODELO 2011. MOTOR 1.6 – AIRE ACONDICIONADO –",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -697,10 +697,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102621+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270839+00:00"
     },
     {
-      "id": "1eccd155f831ebcd",
+      "id": "7449b19ea61c6cda",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
@@ -714,7 +714,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010012-ka-s-1-5l-5p-2018-64-099km",
       "quoted_text": "> KA S 1.5L 5P 2018 64.099KM KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná",
       "contacto_publico": true,
       "whatsapp_publico": "543424172512",
@@ -737,7 +737,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102862+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.271078+00:00"
     },
     {
       "id": "41cd3beab4896ee5",
@@ -770,10 +770,10 @@
         "multa_fotomulta",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.099876+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.267948+00:00"
     },
     {
-      "id": "a839327b9d69d692",
+      "id": "1dd4f6dae8092acc",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -787,7 +787,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011376-honda-hr-v-lx-cvt-2017",
       "quoted_text": "> Honda HR-V LX CVT 2017 PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores #5011376 $ 24000000 $ 24000000 AGREGAR A FAVORITO",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -806,10 +806,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.100538+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.268676+00:00"
     },
     {
-      "id": "69afe31d6dbef13b",
+      "id": "6406d133ba10818b",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -823,7 +823,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011309-vendo-toyota-etios-2016-xls-automatico-excelente",
       "quoted_text": "> Vendo toyota etios 2016 xls automatico EXCELENTE! Vendo toyota etios 2016 xls automatico. Excelente estado! 90.000 km tel- 3424065219 Vendo toyota etios 2016 xls automatico. Excelente estado! 90.000 km tel- 3424065219 #5011309 $ Consultar $ Consultar AGREGAR A FAVORITOS #5011309 #5011309 $ Consult",
       "contacto_publico": true,
       "whatsapp_publico": "543424065219",
@@ -842,10 +842,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.100722+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.268863+00:00"
     },
     {
-      "id": "86e460ce91d5f3aa",
+      "id": "a9ba836cb738939e",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -859,7 +859,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4994232-ford-ka-se-4-ptas",
       "quoted_text": "> FORD KA SE 4 PTAS FORD KA S 4 PTAS *SERVICIOS AL DIA *RTO VIGENTE *83.000KM *MUY BUEN ESTADO *FINANCIAMIENTO TASA PROMOCIONAL FORD KA S 4 PTAS *SERVICIOS AL DIA *RTO VIGENTE *83.000KM *MUY BUEN ESTADO *FINANCIAMIENTO TASA PROMOCIONAL #4994232 $ consultar $ consultar AGREGAR A FAVORITOS COINAUTO SA",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -878,10 +878,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101132+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269286+00:00"
     },
     {
-      "id": "77c5c078fa9d9080",
+      "id": "3cec4b873fc26893",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -895,7 +895,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010992-jeep-compass-sport-a-t6-92000-kms",
       "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -914,10 +914,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101530+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269736+00:00"
     },
     {
-      "id": "cb626be555644618",
+      "id": "d5983a9803cd9748",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
@@ -931,7 +931,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4886932-suzuki-swif",
       "quoted_text": "> Suzuki Swif Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento #4886932 $ 13500000 $ 13500000 AGREGAR A FAVORITOS (0342) 155015888 #4886932 #4886932 $ 13500000 (0342) 155015888 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -950,10 +950,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.101694+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.269897+00:00"
     },
     {
-      "id": "43374daa255d026e",
+      "id": "eaa4e8db585f3aee",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -967,7 +967,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010568-jeep-renegade-ano-2023-solo-21-000km",
       "quoted_text": "> Jeep Renegade año 2023 Solo 21.000km!! Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, cámara de retroceso, pantalla táctil, velocidad crucero, control de pendiente, climatizador automático, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -986,10 +986,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102142+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270340+00:00"
     },
     {
-      "id": "7389680b3b0ecdec",
+      "id": "a51686cad36f17ab",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OTHER",
@@ -1003,7 +1003,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010492-toro-freedom-2023-c-22-000-km",
       "quoted_text": "> Toro Freedom 2023 c/22.000 km Fiat Toro Freedom S Dessing Motor 1.8 IMPECABLE Año 2023 con 22.000 km Todo el confort seguridad y tecnología Posibilidad de canje Cel 342 4220347 Fiat Toro Freedom S Dessing Motor 1.8 IMPECABLE Año 2023 con 22.000 km Todo el confort seguridad y tecnología Posibilidad",
       "contacto_publico": true,
       "whatsapp_publico": "",
@@ -1022,10 +1022,10 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.102361+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.270593+00:00"
     },
     {
-      "id": "6fcc48363e145c37",
+      "id": "3cf2a229d7e884be",
       "score": 75,
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
@@ -1039,7 +1039,7 @@
       "fecha_visible": "2026-07-06",
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5009812-vendo-chevrolet-d20-mod-96",
       "quoted_text": "> Vendo Chevrolet D20 mod. 96 D20 mod 96. Motor maxion 4.0 turbo Diesel. Muy buen estado en general, hermosa para trabajar. La camioneta anda muy bien, se le realizó el cambio del turbo,(nuevo, no reparacion), arranque, se reparo tapa de cilindro completa, radiador, batería NUEVA,, cubiertas a 50%.",
       "contacto_publico": true,
       "whatsapp_publico": "543424274167",
@@ -1058,7 +1058,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:10:31.103102+00:00"
+      "discovery_timestamp": "2026-07-06T22:14:01.271317+00:00"
     }
   ],
   "leads_warm": [],
@@ -1094,7 +1094,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 57.7,
+    "runtime_seconds": 52.54,
     "queries_executed": 2
   }
 }
