@@ -1338,6 +1338,19 @@ loadLeads();
 // ─────────────────────────────────────────────────────────────
 // WORKER PRINCIPAL
 // ─────────────────────────────────────────────────────────────
+
+
+
+function jsonResponse(data, corsHeaders, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status: status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...corsHeaders,
+    }
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -2348,12 +2361,88 @@ export default {
       }
     }
 
+    // ─── POST /api/whatsapp-validate ─── Valida si telefonos tienen WhatsApp
+    // Body: { "phones": ["5491154541802", "5491160065724"] }
+    if (url.pathname === '/api/whatsapp-validate' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      if (!env.APIFY_TOKEN) {
+        return jsonResponse({ ok: false, error: 'no_apify_token' }, corsHeaders, 500);
+      }
+      try {
+        const body = await request.json();
+        const phones = body.phones || [];
+        if (!Array.isArray(phones) || phones.length === 0) {
+          return jsonResponse({ ok: false, error: 'missing_phones' }, corsHeaders, 400);
+        }
+
+        // Lanzar un run por cada telefono (el actor acepta 1 a la vez)
+        const results = [];
+        for (const phone of phones.slice(0, 10)) { // max 10 por request
+          try {
+            const runRes = await fetch('https://api.apify.com/v2/acts/devscrapper~whatsapp-number-validator/runs?token=' + env.APIFY_TOKEN, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phoneNumber: phone }),
+            });
+            if (!runRes.ok) {
+              results.push({ phone, isValid: false, error: 'apify_' + runRes.status });
+              continue;
+            }
+            const runData = await runRes.json();
+            const runId = runData.data.id;
+            const datasetId = runData.data.defaultDatasetId;
+
+            // Polling hasta 30s
+            let finalStatus = 'RUNNING';
+            for (let i = 0; i < 6; i++) {
+              await new Promise(r => setTimeout(r, 5000));
+              const statusRes = await fetch('https://api.apify.com/v2/actor-runs/' + runId + '?token=' + env.APIFY_TOKEN);
+              const statusData = await statusRes.json();
+              finalStatus = statusData.data.status;
+              if (finalStatus === 'SUCCEEDED' || finalStatus === 'FAILED') break;
+            }
+
+            if (finalStatus === 'SUCCEEDED') {
+              const itemsRes = await fetch('https://api.apify.com/v2/datasets/' + datasetId + '/items?token=' + env.APIFY_TOKEN);
+              const items = await itemsRes.json();
+              if (items.length > 0) {
+                results.push({
+                  phone: phone,
+                  isValid: items[0].isValid || false,
+                  exists: items[0].exists || false,
+                  status: items[0].status || 'unknown',
+                });
+              } else {
+                results.push({ phone, isValid: false, error: 'no_results' });
+              }
+            } else {
+              results.push({ phone, isValid: false, error: 'run_' + finalStatus.toLowerCase() });
+            }
+          } catch (e) {
+            results.push({ phone, isValid: false, error: e.message });
+          }
+        }
+
+        return jsonResponse({
+          ok: true,
+          total: results.length,
+          valid_count: results.filter(r => r.isValid).length,
+          results: results,
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   }
+};
 
-// HTML de /cookies.html
-const COOKIES_HTML = \`<!DOCTYPE html>
+const COOKIES_HTML = `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2453,70 +2542,8 @@ async function loadStatus() {
       <div class="stat"><div class="stat-label">Cookie xs vence</div><div class="stat-value" style="font-size:13px">\${d.xs_expires_at ? new Date(d.xs_expires_at).toLocaleDateString('es-AR') : '—'}</div></div>
       <div class="stat"><div class="stat-label">Días restantes</div><div class="stat-value">\${d.days_until_expiry !== null ? d.days_until_expiry : '—'}</div></div>
     \`;
-  } catch (e) {
-    document.getElementById('status').innerHTML = '<span class="status-err">Error: ' + e.message + '</span>';
-  }
 }
-
-async function saveCookies() {
-  const text = document.getElementById('cookiesInput').value.trim();
-  if (!text) { showResult('Pegá las cookies primero', false); return; }
-  try {
-    const r = await fetch('/api/cookies?key=' + SECRET, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cookies: text, source: 'cookies_ui' })
-    });
-    const d = await r.json();
-    if (d.ok) {
-      showResult('✓ ' + d.saved + ' cookies guardadas. Cookie xs vence en ' + d.days_until_expiry + ' días. Refrescar en ' + Math.min(d.days_until_expiry || 14, 14) + ' días.', true);
-      loadStatus();
-    } else {
-      showResult('✗ Error: ' + (d.error || '?'), false);
-    }
-  } catch (e) {
-    showResult('✗ Error: ' + e.message, false);
-  }
-}
-
-async function testCookies() {
-  showResult('🧪 Probando cookies con Apify (puede tardar 60-90s)...', true);
-  try {
-    const r = await fetch('/api/apify-facebook?key=' + SECRET, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ groupUrls: ['https://www.facebook.com/groups/276074287942602'], maxPosts: 3, fetchComments: false })
-    });
-    const d = await r.json();
-    if (d.ok) {
-      showResult('✓ Cookies funcionando! ' + d.total + ' leads obtenidos de ' + d.raw_results_count + ' posts crudos.', true);
-    } else {
-      showResult('✗ Test falló: ' + (d.error || '?') + '. Probablemente cookies vencidas.', false);
-    }
-  } catch (e) {
-    showResult('✗ Error: ' + e.message, false);
-  }
-}
-
-function showResult(msg, ok) {
-  const el = document.getElementById('result');
-  el.textContent = msg;
-  el.className = ok ? 'result-ok' : 'result-err';
-  el.style.display = 'block';
-}
-
 loadStatus();
 </script>
 </body>
-</html>\`;
-};
-
-function jsonResponse(data, corsHeaders, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status: status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      ...corsHeaders,
-    }
-  });
-}
+</html>`;

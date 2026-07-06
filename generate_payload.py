@@ -868,13 +868,68 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["generic_penalty"]
         breakdown["generic_penalty"] = SCORE_RULES["generic_penalty"]
 
+    # --- PATENTE DETECTION (H.AI insight + GPT filter) ---
+    # Detectar patente AR en texto y boost +15
+    patente_match = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", record.get("combined_text", ""), re.IGNORECASE)
+    if patente_match:
+        score += 15
+        breakdown["patente_detected"] = 15
+        signals.append("PATENTE_DETECTED")
+        # Marcar para enriquecimiento automatico con clasific.ar
+        # (se hace en run_pipeline despues de classify_and_score)
+
+    # --- INTENCION EXTREMA BOOST (GPT insight: filtrar ruido) ---
+    # Solo leads con dolor MUY explicito merecen boost
+    extreme_intent = any(phrase in text for phrase in [
+        "me llego", "me llegue", "me cobraron", "me quieren cobrar",
+        "no puedo transferir", "no me dejan transferir",
+        "me retuvieron", "me secuestraron",
+        "necesito ayuda", "necesito asesoramiento",
+        "alguien sabe", "alguien me puede",
+        "ayuda por favor", "urgente",
+    ])
+    if extreme_intent:
+        score += 20
+        breakdown["extreme_intent"] = 20
+        signals.append("EXTREME_INTENT")
+
+    # --- PENALTY: sin dolor explicito = ruido (GPT insight) ---
+    # Si el texto NO tiene ninguna keyword de dolor, penalizar fuerte
+    has_explicit_pain = any(kw in text for kw in [
+        "multa", "multas", "fotomulta", "fotomultas",
+        "infraccion", "infracciones", "infracción", "infracciones",
+        "libre deuda", "transferencia", "transferir",
+        "patente", "08 firmado", "cedula", "cedula verde",
+        "veraz", "registro automotor", "juez de faltas",
+        "peaje", "telepeaje", "deuda",
+    ])
+    if not has_explicit_pain:
+        score -= 50
+        breakdown["no_pain_penalty"] = -50
+        signals.append("NO_PAIN")
+
+    # --- CONTACTO BOOST (GPT: lo que importa es el contacto) ---
+    has_contact = bool(
+        record.get("whatsapp_publico") or
+        record.get("telefono_publico") or
+        record.get("email_publico") or
+        record.get("phone") or
+        record.get("whatsapp") or
+        record.get("email")
+    )
+    if has_contact:
+        score += 30
+        breakdown["has_contact"] = 30
+        signals.append("HAS_CONTACT")
+
     # Clamp
     score = max(0, min(100, score))
 
-    # --- Classify ---
-    if score >= 60 and not is_foreign:
+    # --- CLASSIFY (GPT: umbral mas alto para CRM) ---
+    # Antes: 60 = real_lead. Ahora: 50 = real_lead (con filtro de dolor)
+    if score >= 50 and not is_foreign and has_explicit_pain:
         label = "real_lead"
-    elif score >= 30 and not is_foreign:
+    elif score >= 30 and not is_foreign and has_explicit_pain:
         label = "commercial_signal"
     else:
         label = "reject"
@@ -1202,6 +1257,40 @@ def run_pipeline() -> Dict[str, Any]:
         if lead:
             leads.append(lead)
     print(f"  Scored {len(leads)} leads (rejected rest)", file=sys.stderr)
+
+    # Step 4.5: Enriquecer leads con patente detectada via clasific.ar
+    # H.AI insight + GPT filter: solo enriquecer si hay patente + dolor
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        ingest_secret = os.environ.get("INGEST_SECRET", "")
+        if ingest_secret:
+            enriched_count = 0
+            import urllib.request as _urq3
+            for lead in leads:
+                if "PATENTE_DETECTED" in (lead.detected_signals or []):
+                    # Buscar patente en el texto
+                    patente_m = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", lead.quoted_text or "", re.IGNORECASE)
+                    if patente_m:
+                        patente = patente_m.group(1).upper()
+                        try:
+                            basic_url = f"{worker_url}/api/clasificar-basic?plate={patente}"
+                            req3 = _urq3.Request(basic_url)
+                            req3.add_header("X-Webhook-Secret", ingest_secret)
+                            req3.add_header("Accept", "application/json")
+                            with _urq3.urlopen(req3, timeout=10) as resp3:
+                                veh_data = json.loads(resp3.read().decode("utf-8", errors="replace"))
+                            if veh_data.get("ok") and veh_data.get("data", {}).get("data"):
+                                v = veh_data["data"]["data"]
+                                lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
+                                lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
+                                enriched_count += 1
+                        except Exception:
+                            pass
+                        time.sleep(0.5)  # rate limit clasific.ar
+            if enriched_count:
+                print(f"  [clasific.ar] {enriched_count} leads enriquecidos con datos vehiculares", file=sys.stderr)
+    except Exception as e:
+        print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
     # Step 5: Dedup
     leads = deduplicate_cases(leads)
