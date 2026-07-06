@@ -1654,5 +1654,28 @@
       },
       "by_province": {}
     }
+  },
+  {
+    "run_id": "4b6fce945190",
+    "generated_at": "2026-07-06T20:50:37.407299+00:00",
+    "summary": {
+      "total_leads": 1,
+      "hot_leads": 1,
+      "warm_leads": 0,
+      "contactable": 1,
+      "with_whatsapp": 0,
+      "with_phone": 1,
+      "with_email": 0,
+      "avg_score": 100.0,
+      "avg_score_hot": 100.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "FINE_DISPUTE": 1
+      },
+      "by_platform": {
+        "Ventafe.Com.Ar": 1
+      },
+      "by_province": {}
+    }
   }
 ]
