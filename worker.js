@@ -2914,6 +2914,42 @@ export default {
       }, corsHeaders);
     }
 
+    // ─── GET /api/ventafe-debug ─── Debug VentaFe HTML
+    if (url.pathname === '/api/ventafe-debug' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const vfRes = await fetch('https://www.ventafe.com.ar/automoviles', {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+        });
+        const html = await vfRes.text();
+        const blocks = html.split('class="row item tipo-').slice(1);
+        const vfPhoneRegex = /\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}/g;
+        
+        const results = [];
+        for (const block of blocks.slice(0, 10)) {
+          const text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+          const phones = text.match(vfPhoneRegex) || [];
+          results.push({
+            text_preview: text.substring(0, 100),
+            phones: phones,
+            has_phone: phones.length > 0
+          });
+        }
+        
+        return jsonResponse({
+          ok: true,
+          html_size: html.length,
+          blocks: blocks.length,
+          results: results
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },
