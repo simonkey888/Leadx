@@ -1428,5 +1428,30 @@
       "by_platform": {},
       "by_province": {}
     }
+  },
+  {
+    "run_id": "5f0d0116fa8d",
+    "generated_at": "2026-07-06T05:43:50.271766+00:00",
+    "summary": {
+      "total_leads": 3,
+      "hot_leads": 1,
+      "warm_leads": 2,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 46.7,
+      "avg_score_hot": 60.0,
+      "conversion_probability": 33.3,
+      "by_category": {
+        "TRANSFER_PROBLEM": 3
+      },
+      "by_platform": {
+        "Reddit": 3
+      },
+      "by_province": {
+        "Santa Fe": 1
+      }
+    }
   }
 ]
