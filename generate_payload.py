@@ -1314,6 +1314,12 @@ def run_pipeline() -> Dict[str, Any]:
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
+    # Step 4.6: Comment Mining (DeepSeek+Qwen insight)
+    mine_comments_for_contacts(leads)
+
+    # Step 4.7: Profile Mining (DeepSeek+Qwen insight)
+    mine_profile_for_contacts(leads)
+
     # MEJORA 2 (Qwen): OSINT Shadow Profile - triangulacion de identidad
     # Si un lead de Reddit no tiene contacto, buscar username en ML/FB via DDG
     try:
@@ -1395,3 +1401,185 @@ if __name__ == "__main__":
         "summary": payload["summary"],
         "insights": payload["insights"],
     }, ensure_ascii=False, indent=2))
+
+
+#===========================================================================
+# Step 4.6: Comment Mining — Extraer contactos de comentarios del post
+#===========================================================================
+def mine_comments_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea comentarios del post y busca telefonos/emails del autor."""
+    print("[Step 4.6] Mining comments for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        url_parts = lead.source_url.rstrip("/").split("/")
+        if len(url_parts) < 7 or "comments" not in url_parts:
+            continue
+        post_id = url_parts[6]
+
+        comments_url = f"https://old.reddit.com/comments/{post_id}.json?limit=50"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(comments_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not isinstance(data, list) or len(data) < 2:
+                    continue
+
+                comments_listing = data[1]
+                all_comment_text = ""
+                lead_author = lead.persona.replace("u/", "").strip().lower()
+
+                for child in comments_listing.get("data", {}).get("children", []):
+                    comment = child.get("data", {})
+                    author = comment.get("author", "")
+                    body = comment.get("body", "")
+
+                    if author and author != "[deleted]" and body:
+                        if author.lower() == lead_author:
+                            all_comment_text += " " + body
+
+                if not all_comment_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_comment_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_comment_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_comment_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(1.0)
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Comment Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+#===========================================================================
+# Step 4.7: Profile Mining — Extraer contactos del perfil de Reddit del autor
+#===========================================================================
+def mine_profile_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea el perfil del autor (comments.rss) y busca contacto en bio/historial."""
+    print("[Step 4.7] Mining user profiles for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        username = lead.persona.replace("u/", "").strip()
+        if not username or len(username) < 3:
+            continue
+
+        profile_url = f"https://www.reddit.com/user/{username}/comments/.rss?limit=25"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(profile_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/atom+xml,application/xml,text/xml")
+            with _urq.urlopen(req, timeout=15) as resp:
+                xml_content = resp.read().decode("utf-8", errors="replace")
+
+                entries = re.findall(r"<entry>([\s\S]*?)</entry>", xml_content, re.DOTALL)
+                all_profile_text = ""
+
+                for entry in entries:
+                    content_m = re.search(r"<content[^>]*>([\s\S]*?)</content>", entry, re.DOTALL)
+                    if content_m:
+                        raw = content_m.group(1)
+                        cleaned = re.sub(r"<[^>]+>", " ", raw)
+                        cleaned = cleaned.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                        cleaned = cleaned.replace("&quot;", '"').replace("&#39;", "'")
+                        all_profile_text += " " + cleaned
+
+                if not all_profile_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_profile_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_profile_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_profile_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(1.5)
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Profile Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
