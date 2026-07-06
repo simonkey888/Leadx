@@ -3084,7 +3084,15 @@ async function runPipelineCron(env) {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
       });
       if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
-      console.log('[CRON] VentaFe page ' + page + ' OK, blocks: ' + vfHtml.split('class="row item tipo-').slice(1).length);
+      const vfBlocks = vfHtml.split('class="row item tipo-').slice(1);
+      let vfPhoneCount = 0;
+      for (const block of vfBlocks) {
+        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+        if (text.length < 100) continue;
+        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
+        if (phones.length > 0) vfPhoneCount++;
+      }
+      console.log('[CRON] VentaFe page ' + page + ': ' + vfBlocks.length + ' blocks, ' + vfPhoneCount + ' with phones');
       const vfHtml = await vfRes.text();
       const blocks = vfHtml.split('class="row item tipo-').slice(1);
       
