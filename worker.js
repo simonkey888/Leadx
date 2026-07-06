@@ -1313,7 +1313,7 @@ async function validateWaFromModal() {
   const l = S.crmLeads.find(x => x.id === S.currentId);
   if (!l || l._wa_state !== 'normalized_contact') return;
   if (!l._wa_e164) { alert('Sin teléfono para validar'); return; }
-  const phone = l._wa_e164.replace(/^\+/, '');
+  const phone = l._wa_e164.startsWith('+') ? l._wa_e164.slice(1) : l._wa_e164;
   const waBtn = document.getElementById('modal-wa-btn');
   const orig = waBtn.textContent;
   waBtn.textContent = '⏳ Validando...';
