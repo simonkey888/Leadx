@@ -291,6 +291,47 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   .badge-hot { background: #FEF3C7; color: #92400E; margin-left: 4px; }
   .badge-warm { background: #DBEAFE; color: #1E40AF; margin-left: 4px; }
 
+  /* Heat score row colors (GPT: 3 estados visuales) */
+  tr.heat-hot { background: #FEF2F2 !important; }
+  tr.heat-hot:hover { background: #FEE2E2 !important; }
+  tr.heat-warm { background: #FFFBEB !important; }
+  tr.heat-warm:hover { background: #FEF3C7 !important; }
+  tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
+
+  /* Boton WhatsApp grande verde (GPT: para tu viejo) */
+  .btn-wa-big {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .btn-wa-big:hover { background: #1DAE53; transform: scale(1.1); }
+  .btn-wa-pending {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #E5E7EB;
+    color: #6B7280;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-wa-pending:hover { background: #D1D5DB; }
+  .wa-none { font-size: 14px; color: var(--red); }
+
   /* ── SOURCE TAG ── */
   .source-tag {
     display: inline-flex;
@@ -542,8 +583,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
           id="searchInput" oninput="renderTable()">
       </div>
       <select id="sortSel" onchange="renderTable()">
+        <option value="heat">🔥 Más caliente</option>
         <option value="fecha">↓ Más reciente</option>
-        <option value="score">↓ Mayor urgencia</option>
         <option value="provincia">↑ Provincia</option>
       </select>
       <button class="btn-primary" onclick="openAddModal()">+ Agregar caso</button>
@@ -792,7 +833,6 @@ async function loadLeads() {
 
 function enrichLead(l) {
   const stored = DB.get(l.id);
-  // Adaptar field names de mi pipeline (snake_case) a lo que el CRM espera
   const persona = l.persona || l.author || '';
   const wa = l.whatsapp_publico || l.whatsapp || '';
   const phone = l.telefono_publico || l.phone || wa;
@@ -801,7 +841,9 @@ function enrichLead(l) {
   const body = l.quoted_text || l.snippet || l.body || title;
   const url = l.source_url || l.url || '#';
   const platform = l.platform || l.source_label || l.source || '';
-  return {
+  const leadScore = l.score || 0;
+
+  const enriched = {
     ...l,
     author: persona,
     phone: phone,
@@ -815,25 +857,61 @@ function enrichLead(l) {
     _status: stored.status || 'Nuevo',
     _notes:  stored.notes  || '',
     _phone:  phone || extractPhone(body) || '',
-    _wa_url: '',
-    _wa_state: 'invalid_format',
-    _wa_e164: '',
-    _wa_display: '',
     _display_name: (persona && persona !== '(anónimo)') ? persona : 'Sin nombre',
     _resumen: cleanText(title || body),
   };
-  // Normalizar telefono y setear estado de validacion
-  const norm = normalizePhoneAR(l._phone);
-  l._wa_state = norm.state;
-  l._wa_e164 = norm.e164;
-  l._wa_display = norm.display;
-  l._wa_url = norm.state === 'invalid_format' ? '' : norm.waUrl;
-  // Cache de validacion WA en localStorage
-  const waValidation = DB.getWaValidation(l._wa_e164);
-  if (waValidation) {
-    l._wa_state = waValidation === true ? 'validated_whatsapp' : 'not_whatsapp';
+
+  // Normalizar telefono
+  const norm = normalizePhoneAR(enriched._phone);
+  enriched._wa_state = norm.state;
+  enriched._wa_e164 = norm.e164;
+  enriched._wa_display = norm.display;
+  enriched._wa_url = norm.state === 'invalid_format' ? '' : norm.waUrl;
+
+  // Cache validacion WA
+  const waValidation = getWaValidation(enriched._wa_e164);
+  if (waValidation !== null) {
+    enriched._wa_state = waValidation === true ? 'validated_whatsapp' : 'not_whatsapp';
   }
-  return l;
+
+  // HEAT SCORE UNICO (GPT spec): intención + contacto + urgencia + geo + recencia
+  const text = (title + ' ' + body).toLowerCase();
+  let heat = 0;
+
+  // INTENCION (0-40)
+  if (/multa|fotomulta|infracci[oó]n/.test(text)) heat += 25;
+  if (/transferencia|transferir|libre deuda|08 firmado/.test(text)) heat += 20;
+  if (/necesito ayuda|urgente|no puedo|bloqueado/.test(text)) heat += 15;
+
+  // CONTACTO (0-30)
+  if (enriched._wa_state === 'validated_whatsapp') heat += 30;
+  else if (enriched._wa_state === 'normalized_contact') heat += 15;
+  if (email) heat += 10;
+
+  // URGENCIA (0-20)
+  if (/hoy|urgente|no puedo|bloqueado|vencimient/.test(text)) heat += 20;
+  else if (/consulta|duda|pregunta/.test(text)) heat += 10;
+
+  // GEOGRAFIA (0-10)
+  const prov = (l.provincia || '').toLowerCase();
+  if (prov && prov !== 'unknown' && prov !== 'desconocida') heat += 10;
+  else if (/argentina|buenos aires|caba|cordoba|córdoba|rosario|santa fe|mendoza/.test(text)) heat += 5;
+
+  // RECENCIA (bonus)
+  if (l.fecha_iso) {
+    const days = Math.floor((Date.now() - new Date(l.fecha_iso).getTime()) / 86400000);
+    if (days <= 3) heat += 5;
+    else if (days <= 7) heat += 2;
+  }
+
+  enriched._heat_score = Math.min(100, heat);
+
+  // CLASIFICACION VISUAL (GPT: 3 estados)
+  if (enriched._heat_score >= 70) enriched._heat_label = 'hot';      // 🔥 ROJO
+  else if (enriched._heat_score >= 40) enriched._heat_label = 'warm'; // ⚡ NARANJA
+  else enriched._heat_label = 'cold';                                 // ⚪ GRIS
+
+  return enriched;
 }
 
 function extractPhone(text) {
@@ -905,9 +983,9 @@ function applyFilters() {
     return true;
   });
 
-  const sort = document.getElementById('sortSel')?.value || 'fecha';
+  const sort = document.getElementById('sortSel')?.value || 'heat';
   S.filtered.sort((a, b) => {
-    if (sort === 'score')    return (b.score || 0) - (a.score || 0);
+    if (sort === 'heat') return (b._heat_score || 0) - (a._heat_score || 0);
     if (sort === 'provincia') return (a.provincia || '').localeCompare(b.provincia || '');
     return (b.fecha_iso || '').localeCompare(a.fecha_iso || '');
   });
@@ -932,32 +1010,28 @@ function renderTable() {
   }
 
   const rows = leads.map(l => \`
-    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer">
+    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label}">
       <td class="td-nombre">
+        \${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
         \${escH(l._display_name)}
-        <small>\${escH(l.fecha_iso || '—')}</small>
-      </td>
-      <td>
-        <span class="source-tag">\${escH(l.source_label || l.source || '—')}</span>
+        <small>\${escH(l.fecha_iso || '—')} · \${escH(l.source_label || '?')}</small>
       </td>
       <td>\${escH(l.provincia || '—')}</td>
       <td class="td-resumen"><p>\${escH(l._resumen)}</p></td>
       <td>
         <span class="badge badge-\${cssStatus(l._status)}">\${l._status}</span>
-        \${l.score >= 70 ? '<span class="badge badge-hot" title="Hot lead">🔥</span>' : ''}
-        \${l.score >= 50 && l.score < 70 ? '<span class="badge badge-warm" title="Warm lead">⚡</span>' : ''}
       </td>
       <td>
         <div class="actions" onclick="event.stopPropagation()">
           \${l._wa_state === 'validated_whatsapp'
-            ? \`<a class="btn-wa" href="\${l._wa_url}" target="_blank" title="WhatsApp verificado">💬✓</a>\`
+            ? \`<a class="btn-wa-big" href="\${l._wa_url}" target="_blank" title="WhatsApp verificado">🟢</a>\`
             : l._wa_state === 'normalized_contact'
-              ? \`<button class="btn-icon" onclick="validateWaFromTable('\${l.id}')" title="Validar WhatsApp">⏳</button>\`
+              ? \`<button class="btn-wa-pending" onclick="validateWaFromTable('\${l.id}')" title="Validar WhatsApp">⚪</button>\`
               : l._wa_state === 'not_whatsapp'
-                ? \`<span style="font-size:11px;color:var(--red)" title="No tiene WhatsApp">✗</span>\`
-                : \`<span style="font-size:11px;color:var(--muted)" title="Sin teléfono">—</span>\`
+                ? \`<span class="wa-none" title="No tiene WhatsApp">❌</span>\`
+                : \`\`
           }
-          <button class="btn-icon" onclick="openDetail('\${l.id}')">📝</button>
+          <button class="btn-icon" onclick="openDetail('\${l.id}')" title="Ver detalle">📋</button>
         </div>
       </td>
     </tr>
@@ -968,7 +1042,6 @@ function renderTable() {
       <thead>
         <tr>
           <th>Nombre / Usuario</th>
-          <th>Fuente</th>
           <th>Provincia</th>
           <th>Problema</th>
           <th>Estado</th>
