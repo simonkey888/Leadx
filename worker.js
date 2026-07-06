@@ -2092,6 +2092,141 @@ export default {
       }
     }
 
+    // ─── POST /api/apify-facebook ─── Scrapea grupos de Facebook via Apify
+    // Body: { "groupUrls": ["https://www.facebook.com/groups/XXX"], "maxPosts": 20 }
+    // Usa cookies de FB almacenadas como secret para autenticar
+    if (url.pathname === '/api/apify-facebook' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      if (!env.APIFY_TOKEN) {
+        return jsonResponse({ ok: false, error: 'no_apify_token' }, corsHeaders, 500);
+      }
+      if (!env.FB_COOKIES) {
+        return jsonResponse({ ok: false, error: 'no_fb_cookies' }, corsHeaders, 500);
+      }
+      try {
+        const body = await request.json();
+        const groupUrls = body.groupUrls || [
+          'https://www.facebook.com/groups/276074287942602', // Defensas contra Multas AR
+        ];
+        const maxPosts = body.maxPosts || 20;
+        const fetchComments = body.fetchComments !== false;
+        const maxComments = body.maxCommentsPerPost || 5;
+
+        // Lanzar run en Apify
+        const apifyInput = {
+          startUrls: groupUrls,
+          resultsLimit: maxPosts,
+          maxPostsPerGroup: maxPosts,
+          fetchComments: fetchComments,
+          maxCommentsPerPost: maxComments,
+          cookies: env.FB_COOKIES,
+        };
+
+        const runRes = await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/runs?token=' + env.APIFY_TOKEN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(apifyInput),
+        });
+
+        if (!runRes.ok) {
+          const errText = await runRes.text();
+          return jsonResponse({ ok: false, error: 'apify_failed', status: runRes.status, detail: errText.slice(0, 500) }, corsHeaders, 500);
+        }
+
+        const runData = await runRes.json();
+        const runId = runData.data.id;
+        const datasetId = runData.data.defaultDatasetId;
+
+        // Polling: esperar hasta 90s a que el run termine
+        let finalStatus = 'RUNNING';
+        for (let i = 0; i < 18; i++) {
+          await new Promise(r => setTimeout(r, 5000));
+          const statusRes = await fetch('https://api.apify.com/v2/actor-runs/' + runId + '?token=' + env.APIFY_TOKEN);
+          const statusData = await statusRes.json();
+          finalStatus = statusData.data.status;
+          if (finalStatus === 'SUCCEEDED' || finalStatus === 'FAILED' || finalStatus === 'ABORTED') break;
+        }
+
+        if (finalStatus !== 'SUCCEEDED') {
+          return jsonResponse({ ok: false, error: 'apify_run_' + finalStatus.toLowerCase(), runId }, corsHeaders, 500);
+        }
+
+        // Obtener resultados del dataset
+        const resultsRes = await fetch('https://api.apify.com/v2/datasets/' + datasetId + '/items?token=' + env.APIFY_TOKEN);
+        const results = await resultsRes.json();
+
+        // Filtrar y normalizar leads
+        const PAIN_KEYWORDS = /multa|fotomulta|infracci[oó]n|libre.deuda|transferencia|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|radicad|consulta|ayuda|reclam/i;
+        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+        const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com', 'facebook.com'];
+
+        const leads = [];
+        for (const post of results) {
+          const text = post.text || post.postText || '';
+          const author = post.authorName || post.author || '';
+          const postUrl = post.url || post.postUrl || '';
+          if (!text && !author) continue;
+
+          const hasPain = PAIN_KEYWORDS.test(text);
+          if (!hasPain) continue;
+
+          // Buscar contacto en el texto del post
+          const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
+          const emails = [...new Set((text.match(EMAIL_RE) || [])
+            .map(e => e.toLowerCase().trim())
+            .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
+
+          // Buscar en comments también
+          let commentsText = '';
+          if (post.comments && Array.isArray(post.comments)) {
+            commentsText = post.comments.map(c => (c.text || c.commentText || '') + ' ' + (c.commenterName || c.author || '')).join(' ');
+          }
+          const commentsPhones = [...new Set((commentsText.match(AR_PHONE) || []).map(p => p.trim()))];
+          const commentsEmails = [...new Set((commentsText.match(EMAIL_RE) || [])
+            .map(e => e.toLowerCase().trim())
+            .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
+
+          const allPhones = [...new Set([...phones, ...commentsPhones])];
+          const allEmails = [...new Set([...emails, ...commentsEmails])];
+
+          leads.push({
+            id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
+            source: 'facebook_apify',
+            source_label: 'Facebook',
+            platform: 'Facebook',
+            author: author,
+            persona: author,
+            title: text.slice(0, 200),
+            snippet: (text + (commentsText ? ' | Comments: ' + commentsText : '')).slice(0, 3000),
+            url: postUrl,
+            fecha_iso: (post.timestamp || post.creationDate || '').slice(0, 10),
+            score: 50,
+            whatsapp_publico: allPhones[0] || '',
+            telefono_publico: allPhones[0] || '',
+            email_publico: allEmails[0] || '',
+            has_contact: allPhones.length > 0 || allEmails.length > 0,
+            contact_source: allPhones.length > 0 ? 'fb_post_or_comment' : '',
+            comments_count: (post.comments || []).length,
+          });
+        }
+
+        return jsonResponse({
+          ok: true,
+          total: leads.length,
+          leads: leads,
+          raw_results_count: results.length,
+          run_id: runId,
+          dataset_id: datasetId,
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   }
