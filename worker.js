@@ -900,15 +900,27 @@ function normalizePhoneAR(raw) {
   if (!raw) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
   let digits = String(raw).replace(/[^0-9]/g, '');
   if (!digits) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  
-  // Quitar prefijo pais si existe
   if (digits.startsWith('54')) digits = digits.slice(2);
-  // Quitar 0 inicial (interurbano)
   if (digits.startsWith('0')) digits = digits.slice(1);
-  // Quitar 15 del medio (formato viejo: 0342 15 6128372)
   if (digits.length === 12 && /^\d{3,4}15\d{6,7}$/.test(digits)) {
     digits = digits.replace(/15/, '');
   }
+  if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
+  if (digits.length !== 10) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  const validAC = ['11','221','223','249','261','264','291','294','297','299','341','342','343','351','353','358','362','364','370','376','379','380','381','383','385','387','388'];
+  const ac3 = digits.slice(0, 3);
+  const ac2 = digits.slice(0, 2);
+  if (!validAC.includes(ac3) && !validAC.includes(ac2)) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  let mobile = digits;
+  if (digits.startsWith('11')) mobile = '9' + digits;
+  return {
+    state: 'normalized_contact',
+    e164: '+54' + mobile,
+    display: '+54 ' + mobile.slice(0, 2) + ' ' + mobile.slice(2, 6) + '-' + mobile.slice(6),
+    waUrl: 'https://wa.me/' + mobile,
+  };
+}
+
 function buildWaUrl(phone) {
   const n = normalizePhoneAR(phone);
   return n.state === 'invalid_format' ? '' : n.waUrl;
