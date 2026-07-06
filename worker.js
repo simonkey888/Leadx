@@ -3088,7 +3088,7 @@ async function runPipelineCron(env) {
         if (phones.length) score += 30;
         
         newLeads.push({
-          id: 'ventafe_' + text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, ''),
+          id: 'ventafe_' + (phones[0] || '').replace(/[^0-9]/g, '') + '_' + text.substring(0, 10).replace(/[^a-zA-Z0-9]/g, ''),
           source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
           author: 'Vendedor VentaFe', persona: 'Vendedor VentaFe',
           title: text.slice(0, 200), snippet: text.slice(0, 3000),
