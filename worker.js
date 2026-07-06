@@ -2103,10 +2103,24 @@ export default {
       if (!env.APIFY_TOKEN) {
         return jsonResponse({ ok: false, error: 'no_apify_token' }, corsHeaders, 500);
       }
-      if (!env.FB_COOKIES) {
-        return jsonResponse({ ok: false, error: 'no_fb_cookies' }, corsHeaders, 500);
-      }
       try {
+        // Leer cookies de KV (refrescables via /cookies.html) con fallback a secret
+        let cookiesStr = env.FB_COOKIES || '';
+        let cookiesSource = 'secret';
+        try {
+          const raw = await env.LEADX_KV.get('fb_cookies');
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (data.cookies && Array.isArray(data.cookies) && data.cookies.length > 0) {
+              cookiesStr = data.cookies.map(c => c.name + '=' + c.value).join('; ');
+              cookiesSource = 'kv_' + (data.updated_at || '').slice(0, 10);
+            }
+          }
+        } catch (e) {}
+        if (!cookiesStr) {
+          return jsonResponse({ ok: false, error: 'no_fb_cookies', hint: 'Ir a /cookies.html?key=SECRET para configurar' }, corsHeaders, 500);
+        }
+        try {
         const body = await request.json();
         const groupUrls = body.groupUrls || [
           'https://www.facebook.com/groups/276074287942602', // Defensas contra Multas AR
@@ -2122,7 +2136,7 @@ export default {
           maxPostsPerGroup: maxPosts,
           fetchComments: fetchComments,
           maxCommentsPerPost: maxComments,
-          cookies: env.FB_COOKIES,
+          cookies: cookiesStr,
         };
 
         const runRes = await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/runs?token=' + env.APIFY_TOKEN, {
@@ -2221,6 +2235,114 @@ export default {
           raw_results_count: results.length,
           run_id: runId,
           dataset_id: datasetId,
+          cookies_source: cookiesSource,
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /cookies.html ─── UI para refrescar cookies FB
+    if (url.pathname === '/cookies.html' || url.pathname === '/cookies') {
+      const secret = url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return new Response('Unauthorized. Usa /cookies.html?key=TU_SECRET', { status: 401 });
+      }
+      return new Response(COOKIES_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
+
+    // ─── GET /api/cookies ─── Estado de cookies FB
+    if (url.pathname === '/api/cookies' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const raw = await env.LEADX_KV.get('fb_cookies');
+        let status = 'never_set';
+        let updatedAt = null;
+        let cookieCount = 0;
+        let expiresAt = null;
+        let daysUntilExpiry = null;
+        if (raw) {
+          const data = JSON.parse(raw);
+          updatedAt = data.updated_at;
+          cookieCount = (data.cookies || []).length;
+          // Buscar cookie xs (sesion critica)
+          const xsCookie = (data.cookies || []).find(c => c.name === 'xs');
+          if (xsCookie && xsCookie.expirationDate) {
+            expiresAt = new Date(xsCookie.expirationDate * 1000).toISOString();
+            daysUntilExpiry = Math.floor((xsCookie.expirationDate - Date.now() / 1000) / 86400);
+          }
+          status = daysUntilExpiry !== null ? (daysUntilExpiry > 0 ? 'valid' : 'expired') : 'no_xs';
+        }
+        return jsonResponse({
+          ok: true,
+          status: status,
+          cookie_count: cookieCount,
+          updated_at: updatedAt,
+          xs_expires_at: expiresAt,
+          days_until_expiry: daysUntilExpiry,
+          recommendation: daysUntilExpiry !== null && daysUntilExpiry < 7
+            ? 'REFRESCAR AHORA - cookies por vencer'
+            : 'OK - refrescar en ' + (daysUntilExpiry || 14) + ' dias',
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/cookies ─── Guardar cookies FB nuevas
+    if (url.pathname === '/api/cookies' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const body = await request.json();
+        let cookies = body.cookies || body;
+
+        // Si viene como string, intentar parsear
+        if (typeof cookies === 'string') {
+          try { cookies = JSON.parse(cookies); } catch (e) {
+            return jsonResponse({ ok: false, error: 'invalid_json_string' }, corsHeaders, 400);
+          }
+        }
+
+        if (!Array.isArray(cookies)) {
+          return jsonResponse({ ok: false, error: 'cookies_must_be_array' }, corsHeaders, 400);
+        }
+
+        // Filtrar solo cookies de facebook.com
+        const fbCookies = cookies.filter(c => (c.domain || '').includes('facebook.com'));
+        if (fbCookies.length === 0) {
+          return jsonResponse({ ok: false, error: 'no_facebook_cookies_found' }, corsHeaders, 400);
+        }
+
+        // Guardar en KV (sin TTL - persisten hasta que se refresquen)
+        const payload = {
+          cookies: fbCookies,
+          updated_at: new Date().toISOString(),
+          source: body.source || 'manual',
+        };
+        await env.LEADX_KV.put('fb_cookies', JSON.stringify(payload));
+
+        // Calcular info util para la respuesta
+        const xsCookie = fbCookies.find(c => c.name === 'xs');
+        let expiresAt = null;
+        let daysUntilExpiry = null;
+        if (xsCookie && xsCookie.expirationDate) {
+          expiresAt = new Date(xsCookie.expirationDate * 1000).toISOString();
+          daysUntilExpiry = Math.floor((xsCookie.expirationDate - Date.now() / 1000) / 86400);
+        }
+
+        return jsonResponse({
+          ok: true,
+          saved: fbCookies.length,
+          xs_expires_at: expiresAt,
+          days_until_expiry: daysUntilExpiry,
+          updated_at: payload.updated_at,
+          recommendation: 'Refrescar en ' + Math.min(daysUntilExpiry || 14, 14) + ' dias',
         }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
@@ -2230,6 +2352,164 @@ export default {
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   }
+
+// HTML de /cookies.html
+const COOKIES_HTML = \`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadX — Refrescador de Cookies FB</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0e1a; color: #e2e8f0; padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { color: #38bdf8; margin-bottom: 8px; }
+  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 30px; }
+  .card { background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+  .status { font-size: 14px; }
+  .status-ok { color: #10b981; }
+  .status-warn { color: #fbbf24; }
+  .status-err { color: #f87171; }
+  textarea { width: 100%; height: 200px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; resize: vertical; }
+  button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 8px; }
+  button:hover { background: #0284c7; }
+  button.test { background: #6554C0; }
+  button.test:hover { background: #4c3a9e; }
+  .info { font-size: 12px; color: #94a3b8; margin-top: 8px; line-height: 1.6; }
+  .info code { background: #0f172a; padding: 2px 6px; border-radius: 3px; color: #fbbf24; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
+  .stat { background: #0f172a; padding: 12px; border-radius: 6px; }
+  .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
+  .stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+  #result { margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; }
+  .result-ok { background: #064e3b; color: #6ee7b7; }
+  .result-err { background: #7f1d1d; color: #fca5a5; }
+  a { color: #38bdf8; }
+</style>
+</head>
+<body>
+  <h1>🍪 Refrescador de Cookies FB</h1>
+  <div class="subtitle">LeadX — mantener sesión Facebook activa para Apify scraper</div>
+
+  <div class="card">
+    <div class="status" id="status">Cargando estado...</div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:12px">Pegar cookies nuevas</h3>
+    <textarea id="cookiesInput" placeholder='Pegá acá el JSON exportado de Cookie-Editor (Chrome). Ejemplo:&#10;[&#10;  {"domain":".facebook.com","name":"xs","value":"35%3A..."},&#10;  {"domain":".facebook.com","name":"c_user","value":"USER_ID_EXAMPLE"},&#10;  ...&#10;]'></textarea>
+    <div style="margin-top:12px">
+      <button onclick="saveCookies()">💾 Guardar cookies</button>
+      <button class="test" onclick="testCookies()">🧪 Probar cookies</button>
+      <button onclick="loadStatus()" style="background:#475569">↻ Refrescar estado</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <div class="card">
+    <div class="info">
+      <strong>¿Cómo conseguir las cookies?</strong><br>
+      1. Instalá la extensión <a href="https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm" target="_blank">Cookie-Editor</a> en Chrome<br>
+      2. Iniciá sesión en <a href="https://www.facebook.com" target="_blank">facebook.com</a> con tu cuenta<br>
+      3. Abrí Cookie-Editor (ícono de cookie arriba a la derecha)<br>
+      4. Click en "Export" → "Export as JSON"<br>
+      5. Pegá el JSON acá arriba → "Guardar cookies"
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="info">
+      <strong>¿Cada cuánto refrescar?</strong><br>
+      • Cada <strong>7-14 días</strong> (preventivo)<br>
+      • Si Apify devuelve 0 resultados (cookies vencidas)<br>
+      • Si Facebook te desloguea de tu browser<br>
+      • La cookie <code>xs</code> (sesión crítica) caduca en ~6 meses<br>
+      • Facebook puede invalidarla antes si detecta scraping
+    </div>
+  </div>
+
+<script>
+const SECRET = new URLSearchParams(location.search).get('key') || '';
+
+async function loadStatus() {
+  document.getElementById('status').innerHTML = 'Cargando...';
+  try {
+    const r = await fetch('/api/cookies?key=' + SECRET);
+    const d = await r.json();
+    if (!d.ok) {
+      document.getElementById('status').innerHTML = '<span class="status-err">Error: ' + (d.error || '?') + '</span>';
+      return;
+    }
+    let statusClass = 'status-ok';
+    let statusText = '✓ Cookies válidas';
+    if (d.status === 'never_set') { statusClass = 'status-err'; statusText = '✗ Sin cookies guardadas'; }
+    else if (d.status === 'expired') { statusClass = 'status-err'; statusText = '✗ Cookies VENCIDAS - refrescar ahora'; }
+    else if (d.status === 'no_xs') { statusClass = 'status-warn'; statusText = '⚠ Falta cookie xs (sesión)'; }
+    else if (d.days_until_expiry < 7) { statusClass = 'status-warn'; statusText = '⚠ Por vencer en ' + d.days_until_expiry + ' días'; }
+
+    document.getElementById('status').innerHTML = '<span class="' + statusClass + '">' + statusText + '</span>';
+    document.getElementById('stats').innerHTML = \`
+      <div class="stat"><div class="stat-label">Cookies guardadas</div><div class="stat-value">\${d.cookie_count || 0}</div></div>
+      <div class="stat"><div class="stat-label">Última actualización</div><div class="stat-value" style="font-size:13px">\${d.updated_at ? new Date(d.updated_at).toLocaleString('es-AR') : '—'}</div></div>
+      <div class="stat"><div class="stat-label">Cookie xs vence</div><div class="stat-value" style="font-size:13px">\${d.xs_expires_at ? new Date(d.xs_expires_at).toLocaleDateString('es-AR') : '—'}</div></div>
+      <div class="stat"><div class="stat-label">Días restantes</div><div class="stat-value">\${d.days_until_expiry !== null ? d.days_until_expiry : '—'}</div></div>
+    \`;
+  } catch (e) {
+    document.getElementById('status').innerHTML = '<span class="status-err">Error: ' + e.message + '</span>';
+  }
+}
+
+async function saveCookies() {
+  const text = document.getElementById('cookiesInput').value.trim();
+  if (!text) { showResult('Pegá las cookies primero', false); return; }
+  try {
+    const r = await fetch('/api/cookies?key=' + SECRET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookies: text, source: 'cookies_ui' })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      showResult('✓ ' + d.saved + ' cookies guardadas. Cookie xs vence en ' + d.days_until_expiry + ' días. Refrescar en ' + Math.min(d.days_until_expiry || 14, 14) + ' días.', true);
+      loadStatus();
+    } else {
+      showResult('✗ Error: ' + (d.error || '?'), false);
+    }
+  } catch (e) {
+    showResult('✗ Error: ' + e.message, false);
+  }
+}
+
+async function testCookies() {
+  showResult('🧪 Probando cookies con Apify (puede tardar 60-90s)...', true);
+  try {
+    const r = await fetch('/api/apify-facebook?key=' + SECRET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupUrls: ['https://www.facebook.com/groups/276074287942602'], maxPosts: 3, fetchComments: false })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      showResult('✓ Cookies funcionando! ' + d.total + ' leads obtenidos de ' + d.raw_results_count + ' posts crudos.', true);
+    } else {
+      showResult('✗ Test falló: ' + (d.error || '?') + '. Probablemente cookies vencidas.', false);
+    }
+  } catch (e) {
+    showResult('✗ Error: ' + e.message, false);
+  }
+}
+
+function showResult(msg, ok) {
+  const el = document.getElementById('result');
+  el.textContent = msg;
+  el.className = ok ? 'result-ok' : 'result-err';
+  el.style.display = 'block';
+}
+
+loadStatus();
+</script>
+</body>
+</html>\`;
 };
 
 function jsonResponse(data, corsHeaders, status = 200) {
