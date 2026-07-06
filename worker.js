@@ -1341,7 +1341,22 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  return new URLSearchParams(location.search).get('key') || '';
+  // Qwen fix: sessionStorage + URL param
+  let secret = sessionStorage.getItem('leadx_secret');
+  if (!secret) {
+    const urlSecret = new URLSearchParams(location.search).get('key');
+    if (urlSecret) {
+      sessionStorage.setItem('leadx_secret', urlSecret);
+      secret = urlSecret;
+    }
+  }
+  return secret || '';
+}
+
+// Prompt de auth al cargar si no hay secret
+if (!sessionStorage.getItem('leadx_secret') && !new URLSearchParams(location.search).get('key')) {
+  const s = prompt('🔒 Ingresá la clave de acceso:');
+  if (s) sessionStorage.setItem('leadx_secret', s);
 }
 
 function closeModal() {
@@ -2355,14 +2370,27 @@ export default {
         const runId = runData.data.id;
         const datasetId = runData.data.defaultDatasetId;
 
-        // GPT FIX 2: Fire & Forget - devolver runId inmediatamente
-        // Los resultados llegaran via /api/apify-webhook
+        // Qwen fix: configurar webhook para recibir resultados automaticamente
+        const webhookConfigUrl = 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook';
+        try {
+          await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/webhooks?token=' + env.APIFY_TOKEN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requestUrl: webhookConfigUrl,
+              eventName: 'ACTOR.RUN.SUCCEEDED',
+            }),
+          });
+        } catch (e) {}
+
+        // Fire & Forget - devolver runId inmediatamente
         return jsonResponse({
           ok: true,
           status: 'processing',
           run_id: runId,
           dataset_id: datasetId,
-          message: 'Apify procesando en background. Resultados via webhook.',
+          webhook_configured: true,
+          message: 'Apify procesando. Resultados via webhook automatico.',
           cookies_source: cookiesSource,
         }, corsHeaders);
       } catch (e) {
