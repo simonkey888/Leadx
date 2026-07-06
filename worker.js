@@ -2437,8 +2437,245 @@ export default {
       }
     }
 
+    // ─── GET /api/health ─── Estado del pipeline (GPT insight: observabilidad)
+    if (url.pathname === '/api/health' && request.method === 'GET') {
+      try {
+        const raw = await env.LEADX_KV.get('leads:live');
+        let leadCount = 0;
+        let lastIngest = null;
+        let freshnessMinutes = null;
+        let stale = false;
+        if (raw) {
+          const data = JSON.parse(raw);
+          leadCount = (data.leads_all || []).length;
+          lastIngest = data.meta && (data.meta.ingest_at || data.meta.generated_at);
+          if (lastIngest) {
+            const lastDt = new Date(lastIngest);
+            freshnessMinutes = Math.floor((Date.now() - lastDt.getTime()) / 60000);
+            stale = freshnessMinutes > 120;
+          }
+        }
+        return jsonResponse({
+          pipeline_status: stale ? 'stale' : 'ok',
+          last_successful_run_utc: lastIngest,
+          last_ingest_utc: lastIngest,
+          lead_count: leadCount,
+          freshness_minutes: freshnessMinutes,
+          stale: stale,
+          cron_active: true,
+          cron_schedule: '0 * * * *',
+          checked_at: new Date().toISOString(),
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message, stale: true }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
+  },
+
+  // ─── CRON TRIGGER cada 1h (GPT: scheduling en Worker, no GH Actions) ───
+  async scheduled(event, env, ctx) {
+    console.log('[CRON] Pipeline iniciado:', new Date().toISOString());
+
+    try {
+      // 1. Fetch Reddit RSS desde IP Cloudflare edge (no GH Actions)
+      const redditQueries = [
+        'no puedo transferir multa argentina',
+        'me llego multa fotomulta argentina',
+        'libre deuda transferencia auto',
+        'fotomulta reclamo argentina',
+        'compre auto multas anteriores',
+      ];
+
+      const newLeads = [];
+      const seenUrls = new Set();
+
+      for (const query of redditQueries) {
+        try {
+          const rssUrl = 'https://www.reddit.com/search.rss?q=' + encodeURIComponent(query) + '&sort=new&limit=10&t=month';
+          const rssRes = await fetch(rssUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              'Accept': 'application/atom+xml, application/xml, text/xml, */*',
+              'Accept-Language': 'es-AR,es;q=0.9',
+            },
+          });
+
+          if (!rssRes.ok) {
+            console.log('[CRON] Reddit RSS fail:', rssRes.status, query);
+            continue;
+          }
+
+          const xml = await rssRes.text();
+
+          // Parse Atom feed: extraer entries
+          const entries = xml.split('<entry>').slice(1);
+          for (const entry of entries) {
+            const titleM = entry.match(/<title[^>]*>([^<]+)<\/title>/);
+            const linkM = entry.match(/<link[^>]*href="([^"]+)"/);
+            const authorM = entry.match(/<name[^>]*>([^<]+)<\/name>/);
+            const contentM = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+            const updatedM = entry.match(/<updated[^>]*>([^<]+)<\/updated>/);
+
+            if (!titleM || !linkM) continue;
+            const url = linkM[1];
+            if (seenUrls.has(url)) continue;
+            if (!url.includes('/comments/')) continue; // solo posts, no subreddits
+            seenUrls.add(url);
+
+            const title = titleM[1].trim();
+            const authorRaw = authorM ? authorM[1].trim() : '';
+            // Formato Reddit: /u/username
+            let author = '';
+            const uMatch = authorRaw.match(/u\/([A-Za-z0-9_\-:]{3,20})/);
+            if (uMatch) author = uMatch[1];
+
+            let body = '';
+            if (contentM) {
+              body = contentM[1]
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/\s+/g, ' ')
+                .trim();
+            }
+            const fecha = updatedM ? updatedM[1].slice(0, 10) : '';
+            const fullText = (title + ' ' + body).toLowerCase();
+
+            // 2. SCORING DE INTENCION (GPT: score >= 60 CRM, < 40 descartar)
+            const painKw = ['multa', 'multas', 'fotomulta', 'fotomultas', 'infraccion', 'infracciones',
+                            'infracción', 'libre deuda', 'transferencia', 'transferir', 'patente',
+                            '08 firmado', 'cedula', 'veraz', 'registro automotor', 'juez de faltas',
+                            'peaje', 'deuda', 'vencimiento'];
+            const urgencyKw = ['urgente', 'hoy', 'ahora', 'recien', 'me llego', 'me llegue',
+                               'consulta', 'ayuda', 'necesito', 'no puedo', 'me retuvieron'];
+            const extremeIntentKw = ['me llego', 'me llegue', 'me cobraron', 'me quieren cobrar',
+                                     'no puedo transferir', 'me retuvieron', 'necesito ayuda',
+                                     'alguien sabe', 'urgente'];
+
+            const hasPain = painKw.some(k => fullText.includes(k));
+            if (!hasPain) continue; // GPT: descartar sin dolor explicito
+
+            let score = 0;
+            if (hasPain) score += 40;
+            if (urgencyKw.some(k => fullText.includes(k))) score += 20;
+            if (extremeIntentKw.some(k => fullText.includes(k))) score += 20;
+
+            // 3. REGEX FEDERAL AR (Sakana+Qwen consensus)
+            const arPhoneRegex = /(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299|342|343|221|261)\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+            const waLinkRegex = /wa\.me\/(\d{8,15})/gi;
+            const emailRegex = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+            const spamDomains = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com', 'facebook.com'];
+
+            const phones = [...new Set((body.match(arPhoneRegex) || []).map(p => p.trim()))];
+            const waLinks = [...new Set([...body.matchAll(waLinkRegex)].map(m => m[1]))];
+            const emails = [...new Set((body.match(emailRegex) || [])
+              .map(e => e.toLowerCase().trim())
+              .filter(e => !spamDomains.some(d => e.includes(d))))];
+
+            const hasContact = phones.length > 0 || waLinks.length > 0 || emails.length > 0;
+            if (hasContact) score += 30;
+
+            // Geografia AR
+            const arGeo = ['argentina', 'buenos aires', 'caba', 'cordoba', 'córdoba', 'rosario',
+                           'santa fe', 'mendoza', 'tucuman', 'tucumán', 'salta', 'neuquen',
+                           'la plata', 'bahia blanca'];
+            if (arGeo.some(g => fullText.includes(g))) score += 15;
+
+            // Patente detection
+            const patenteMatch = body.match(/\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i);
+            if (patenteMatch) score += 15;
+
+            score = Math.max(0, Math.min(100, score));
+
+            // GPT: score >= 60 CRM, 40-59 cuarentena, < 40 descartar
+            if (score < 40) continue;
+
+            newLeads.push({
+              id: 'reddit_' + url.split('/').slice(-2)[0],
+              source: 'reddit_rss',
+              source_label: 'Reddit',
+              platform: 'Reddit',
+              author: author,
+              persona: author ? 'u/' + author : '(anonimo)',
+              title: title.slice(0, 200),
+              snippet: body.slice(0, 3000),
+              url: url,
+              fecha_iso: fecha,
+              score: score,
+              whatsapp_publico: phones[0] || waLinks[0] || '',
+              telefono_publico: phones[0] || '',
+              email_publico: emails[0] || '',
+              has_contact: hasContact,
+              patente: patenteMatch ? patenteMatch[1].toUpperCase() : '',
+              timestamp: new Date().toISOString(),
+            });
+          }
+        } catch (e) {
+          console.log('[CRON] Reddit query fail:', query, e.message);
+        }
+      }
+
+      console.log('[CRON] New leads from Reddit:', newLeads.length);
+
+      // 4. Cargar leads existentes de KV
+      const raw = await env.LEADX_KV.get('leads:live');
+      let existing = { leads_all: [], leads_hot: [], meta: {} };
+      if (raw) {
+        try { existing = JSON.parse(raw); } catch (e) {}
+      }
+
+      // 5. DEDUP por URL + merge upsert
+      const byUrl = new Map();
+      for (const l of (existing.leads_all || [])) {
+        byUrl.set(l.url || l.id, l);
+      }
+      for (const l of newLeads) {
+        byUrl.set(l.url || l.id, l); // overwrite si existe
+      }
+      const merged = Array.from(byUrl.values());
+
+      // Truncate a 500 mas recientes
+      merged.sort((a, b) => (b.fecha_iso || '').localeCompare(a.fecha_iso || ''));
+      const truncated = merged.slice(0, 500);
+
+      // 6. WRITE a KV directo (sin GH Actions, sin 403)
+      const payload = {
+        leads_all: truncated,
+        leads_hot: truncated.filter(l => (l.score || 0) >= 60),
+        leads_warm: truncated.filter(l => (l.score || 0) >= 40 && (l.score || 0) < 60),
+        summary: {
+          total_leads: truncated.length,
+          hot_leads: truncated.filter(l => (l.score || 0) >= 60).length,
+          with_whatsapp: truncated.filter(l => l.whatsapp_publico).length,
+          with_email: truncated.filter(l => l.email_publico).length,
+        },
+        meta: {
+          version: '11.0',
+          source: 'cron_trigger',
+          generated_at: new Date().toISOString(),
+          ingest_at: new Date().toISOString(),
+          new_in_batch: newLeads.length,
+        },
+      };
+
+      await env.LEADX_KV.put('leads:live', JSON.stringify(payload));
+      console.log('[CRON] KV actualizado. Total:', truncated.length, '| Hot:', payload.summary.hot_leads);
+
+      // Anti-wipe: si llegamos a 0 leads, mantener los anteriores
+      if (truncated.length === 0 && (existing.leads_all || []).length > 0) {
+        console.log('[CRON] Anti-wipe: manteniendo leads anteriores');
+        await env.LEADX_KV.put('leads:live', raw);
+      }
+
+    } catch (e) {
+      console.error('[CRON] ERROR:', e.message);
+    }
   }
 };
 
