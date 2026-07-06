@@ -1092,7 +1092,7 @@ function copyWaTemplate() {
     const orig = btn.textContent;
     btn.textContent = '✓ Copiado!';
     setTimeout(() => { btn.textContent = orig; }, 1500);
-  }).catch(() => alert('No se pudo copiar. Texto:\n\n' + tpl));
+  }).catch(() => alert('No se pudo copiar. Texto: ' + tpl));
 }
 
 function copyDmTemplate() {
@@ -1108,7 +1108,7 @@ function copyDmTemplate() {
     const orig = btn.textContent;
     btn.textContent = '✓ Copiado!';
     setTimeout(() => { btn.textContent = orig; }, 1500);
-  }).catch(() => alert('No se pudo copiar. Texto:\n\n' + tpl));
+  }).catch(() => alert('No se pudo copiar. Texto: ' + tpl));
 }
 
 // N1: Fetch Reddit bio desde Worker endpoint
