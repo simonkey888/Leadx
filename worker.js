@@ -874,37 +874,8 @@ function enrichLead(l) {
     enriched._wa_state = waValidation === true ? 'validated_whatsapp' : 'not_whatsapp';
   }
 
-  // HEAT SCORE UNICO (GPT spec): intención + contacto + urgencia + geo + recencia
-  const text = (title + ' ' + body).toLowerCase();
-  let heat = 0;
-
-  // INTENCION (0-40)
-  if (/multa|fotomulta|infracci[oó]n/.test(text)) heat += 25;
-  if (/transferencia|transferir|libre deuda|08 firmado/.test(text)) heat += 20;
-  if (/necesito ayuda|urgente|no puedo|bloqueado/.test(text)) heat += 15;
-
-  // CONTACTO (0-30)
-  if (enriched._wa_state === 'validated_whatsapp') heat += 30;
-  else if (enriched._wa_state === 'normalized_contact') heat += 15;
-  if (email) heat += 10;
-
-  // URGENCIA (0-20)
-  if (/hoy|urgente|no puedo|bloqueado|vencimient/.test(text)) heat += 20;
-  else if (/consulta|duda|pregunta/.test(text)) heat += 10;
-
-  // GEOGRAFIA (0-10)
-  const prov = (l.provincia || '').toLowerCase();
-  if (prov && prov !== 'unknown' && prov !== 'desconocida') heat += 10;
-  else if (/argentina|buenos aires|caba|cordoba|córdoba|rosario|santa fe|mendoza/.test(text)) heat += 5;
-
-  // RECENCIA (bonus)
-  if (l.fecha_iso) {
-    const days = Math.floor((Date.now() - new Date(l.fecha_iso).getTime()) / 86400000);
-    if (days <= 3) heat += 5;
-    else if (days <= 7) heat += 2;
-  }
-
-  enriched._heat_score = Math.min(100, heat);
+  // GPT FIX 4: Usar SOLO score de Python (no recalcular en frontend)
+  enriched._heat_score = l.score || 0;
 
   // CLASIFICACION VISUAL (GPT: 3 estados)
   if (enriched._heat_score >= 70) enriched._heat_label = 'hot';      // 🔥 ROJO
@@ -1666,10 +1637,32 @@ export default {
           }, corsHeaders, 200);
         }
 
-        // Merge upsert by ID
+        // GPT FIX 3: Deep merge - KV tiene prioridad en estado CRM
         const prevById = new Map();
         prevLeads.forEach(l => prevById.set(l.id, l));
-        newLeads.forEach(l => prevById.set(l.id, l));
+        newLeads.forEach(newLead => {
+          const existing = prevById.get(newLead.id);
+          if (existing) {
+            // Merge: Python trae datos frescos, KV preserva estado del CRM
+            prevById.set(newLead.id, {
+              ...newLead,                          // datos frescos de Python
+              score: existing.score ?? newLead.score,  // KV prioridad
+              status: existing.status ?? newLead.status,
+              _status: existing._status ?? newLead._status,
+              _notes: existing._notes ?? newLead._notes,
+              _monto: existing._monto ?? newLead._monto,
+              whatsapp_validated: existing.whatsapp_validated ?? newLead.whatsapp_validated,
+              _wa_state: existing._wa_state ?? newLead._wa_state,
+              _wa_e164: existing._wa_e164 ?? newLead._wa_e164,
+              // Contacto: si Python encontro uno nuevo y KV no tiene, usar el nuevo
+              whatsapp_publico: existing.whatsapp_publico || newLead.whatsapp_publico,
+              telefono_publico: existing.telefono_publico || newLead.telefono_publico,
+              email_publico: existing.email_publico || newLead.email_publico,
+            });
+          } else {
+            prevById.set(newLead.id, newLead);
+          }
+        });
         const merged = Array.from(prevById.values());
 
         // Truncate to 500 most recent
@@ -2362,87 +2355,14 @@ export default {
         const runId = runData.data.id;
         const datasetId = runData.data.defaultDatasetId;
 
-        // Polling: esperar hasta 90s a que el run termine
-        let finalStatus = 'RUNNING';
-        for (let i = 0; i < 18; i++) {
-          await new Promise(r => setTimeout(r, 5000));
-          const statusRes = await fetch('https://api.apify.com/v2/actor-runs/' + runId + '?token=' + env.APIFY_TOKEN);
-          const statusData = await statusRes.json();
-          finalStatus = statusData.data.status;
-          if (finalStatus === 'SUCCEEDED' || finalStatus === 'FAILED' || finalStatus === 'ABORTED') break;
-        }
-
-        if (finalStatus !== 'SUCCEEDED') {
-          return jsonResponse({ ok: false, error: 'apify_run_' + finalStatus.toLowerCase(), runId }, corsHeaders, 500);
-        }
-
-        // Obtener resultados del dataset
-        const resultsRes = await fetch('https://api.apify.com/v2/datasets/' + datasetId + '/items?token=' + env.APIFY_TOKEN);
-        const results = await resultsRes.json();
-
-        // Filtrar y normalizar leads
-        const PAIN_KEYWORDS = /multa|fotomulta|infracci[oó]n|libre.deuda|transferencia|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|radicad|consulta|ayuda|reclam/i;
-        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
-        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
-        const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com', 'facebook.com'];
-
-        const leads = [];
-        for (const post of results) {
-          const text = post.text || post.postText || '';
-          const author = post.authorName || post.author || '';
-          const postUrl = post.url || post.postUrl || '';
-          if (!text && !author) continue;
-
-          const hasPain = PAIN_KEYWORDS.test(text);
-          if (!hasPain) continue;
-
-          // Buscar contacto en el texto del post
-          const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
-          const emails = [...new Set((text.match(EMAIL_RE) || [])
-            .map(e => e.toLowerCase().trim())
-            .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
-
-          // Buscar en comments también
-          let commentsText = '';
-          if (post.comments && Array.isArray(post.comments)) {
-            commentsText = post.comments.map(c => (c.text || c.commentText || '') + ' ' + (c.commenterName || c.author || '')).join(' ');
-          }
-          const commentsPhones = [...new Set((commentsText.match(AR_PHONE) || []).map(p => p.trim()))];
-          const commentsEmails = [...new Set((commentsText.match(EMAIL_RE) || [])
-            .map(e => e.toLowerCase().trim())
-            .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
-
-          const allPhones = [...new Set([...phones, ...commentsPhones])];
-          const allEmails = [...new Set([...emails, ...commentsEmails])];
-
-          leads.push({
-            id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
-            source: 'facebook_apify',
-            source_label: 'Facebook',
-            platform: 'Facebook',
-            author: author,
-            persona: author,
-            title: text.slice(0, 200),
-            snippet: (text + (commentsText ? ' | Comments: ' + commentsText : '')).slice(0, 3000),
-            url: postUrl,
-            fecha_iso: (post.timestamp || post.creationDate || '').slice(0, 10),
-            score: 50,
-            whatsapp_publico: allPhones[0] || '',
-            telefono_publico: allPhones[0] || '',
-            email_publico: allEmails[0] || '',
-            has_contact: allPhones.length > 0 || allEmails.length > 0,
-            contact_source: allPhones.length > 0 ? 'fb_post_or_comment' : '',
-            comments_count: (post.comments || []).length,
-          });
-        }
-
+        // GPT FIX 2: Fire & Forget - devolver runId inmediatamente
+        // Los resultados llegaran via /api/apify-webhook
         return jsonResponse({
           ok: true,
-          total: leads.length,
-          leads: leads,
-          raw_results_count: results.length,
+          status: 'processing',
           run_id: runId,
           dataset_id: datasetId,
+          message: 'Apify procesando en background. Resultados via webhook.',
           cookies_source: cookiesSource,
         }, corsHeaders);
       } catch (e) {
@@ -2667,33 +2587,29 @@ export default {
       }
     }
 
-    // ─── POST /api/cron-run ─── Forzar ejecucion del cron manualmente
+    // ─── POST /api/cron-run ─── DESACTIVADO (Python es el pipeline)
     if (url.pathname === '/api/cron-run' && (request.method === 'POST' || request.method === 'GET')) {
       const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
       if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
         return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
       }
-      // Ejecutar pipeline inline (misma logica que scheduled handler)
-      try {
-        const result = await runPipelineCron(env);
-        return jsonResponse({ ok: true, ...result }, corsHeaders);
-      } catch (e) {
-        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
-      }
+      return jsonResponse({
+        ok: false,
+        error: 'cron_disabled',
+        message: 'Pipeline corre en Python (GH Actions). Worker solo sirve API.',
+        hint: 'Para forzar run: workflow_dispatch en GitHub Actions'
+      }, corsHeaders);
     }
 
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },
 
-  // ─── CRON TRIGGER cada 1h (GPT: scheduling en Worker, no GH Actions) ───
+  // scheduled() desactivado (GPT FIX 1: Python es unico pipeline)
+  // Python corre en GH Actions y hace POST /api/ingest
   async scheduled(event, env, ctx) {
-    console.log('[CRON] Pipeline iniciado:', new Date().toISOString());
-    try {
-      await runPipelineCron(env);
-    } catch (e) {
-      console.error('[CRON] ERROR:', e.message);
-    }
+    console.log('[scheduled] Handler desactivado. Pipeline corre en Python.');
+    return;
   }
 };
 

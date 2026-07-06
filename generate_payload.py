@@ -208,12 +208,15 @@ ARGENTINA_SIGNALS = [
 ]
 
 # Phone patterns
+# MEJORA 1 (Qwen): Regex FEDERAL - cubre TODO el pais
+# CABA (11), Rosario (341), Cordoba (351), Mendoza (261),
+# La Plata (221), Tucuman (381), Neuquen (299), Santa Fe (342/343)
 ARG_PHONE_PATTERNS = [
-    r"\+54\s?9?\s?11\s?\d{4}\s?\d{4}",
-    r"\b11\s?\d{4}\s?\d{4}\b",
+    r"\+54\s?9?\s?(?:11|341|342|343|351|261|221|381|299)\s?\d{4}[\s\-]?\d{4}",
+    r"\b(?:11|341|342|343|351|261|221|381|299)\s?[\s\-]?\d{4}[\s\-]?\d{4}\b",
     r"\b15\s?\d{4}\s?\d{4}\b",
-    r"\b0(2[0-9]|3[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
-    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+    r"\b0?(?:11|341|342|343|351|261|221|381|299)[\s\-]?\d{3,4}[\s\-]?\d{4}\b",
+    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9]|22[0-9]|29[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
 ]
 
 WHATSAPP_PATTERNS = [
@@ -1186,6 +1189,25 @@ def run_pipeline() -> Dict[str, Any]:
     _pqm_global = None  # se setea en Step 0.5
 
     print("=" * 60, file=sys.stderr)
+    print("  LeadX Pipeline v2 (Python = unico cerebro)", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+    # GPT FIX: Descargar KV existente para merge correcto
+    # (Worker hace deep merge, pero Python necesita saber que ya existe)
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        ingest_secret = os.environ.get("INGEST_SECRET", "")
+        if ingest_secret:
+            import urllib.request as _urq_kv
+            kv_url = f"{worker_url}/api/kv?key=leads:live"
+            req_kv = _urq_kv.Request(kv_url)
+            req_kv.add_header("X-Webhook-Secret", ingest_secret)
+            with _urq_kv.urlopen(req_kv, timeout=15) as resp_kv:
+                kv_data = json.loads(resp_kv.read().decode("utf-8", errors="replace"))
+            existing_count = len(kv_data.get("value", {}).get("leads_all", []))
+            print(f"  [KV] Leads existentes en KV: {existing_count}", file=sys.stderr)
+    except Exception as e:
+        print(f"  [KV] WARNING: {e}", file=sys.stderr)
     print("  RADAR LEADS — Payload Generator v1.0", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
 
@@ -1291,6 +1313,51 @@ def run_pipeline() -> Dict[str, Any]:
                 print(f"  [clasific.ar] {enriched_count} leads enriquecidos con datos vehiculares", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
+
+    # MEJORA 2 (Qwen): OSINT Shadow Profile - triangulacion de identidad
+    # Si un lead de Reddit no tiene contacto, buscar username en ML/FB via DDG
+    try:
+        from search_providers import search as _osint_search
+        osint_count = 0
+        for lead in leads:
+            if lead.whatsapp_publico or lead.email_publico or lead.telefono_publico:
+                continue  # Ya tiene contacto, saltar
+            if not lead.persona or not lead.persona.startswith("u/"):
+                continue  # No es Reddit user
+            username = lead.persona.replace("u/", "").strip()
+            if len(username) < 3:
+                continue
+            # Buscar username en MercadoLibre y Facebook
+            for q in [f'site:mercadolibre.com.ar "{username}"',
+                      f'site:facebook.com "{username}"']:
+                try:
+                    results = _osint_search(q, num=3)
+                    for r in results:
+                        snippet = r.get("snippet", "") + " " + r.get("title", "")
+                        # Reusar regex federal para extraer telefono
+                        for pattern in ARG_PHONE_PATTERNS:
+                            m = re.search(pattern, snippet)
+                            if m:
+                                digits = re.sub(r"\D", "", m.group(0))
+                                if 10 <= len(digits) <= 15:
+                                    lead.telefono_publico = m.group(0).strip()
+                                    lead.contacto_publico = True
+                                    lead.score = min(100, (lead.score or 0) + 20)
+                                    if "OSINT_SHADOW" not in (lead.detected_signals or []):
+                                        lead.detected_signals = (lead.detected_signals or []) + ["OSINT_SHADOW_PROFILE"]
+                                    osint_count += 1
+                                    break
+                        if lead.telefono_publico:
+                            break
+                    if lead.telefono_publico:
+                        break
+                except Exception:
+                    continue
+            time.sleep(1)  # rate limit DDG
+        if osint_count:
+            print(f"  [OSINT] {osint_count} leads enriquecidos via shadow profile", file=sys.stderr)
+    except Exception as e:
+        print(f"  [OSINT] ERROR: {e}", file=sys.stderr)
 
     # Step 5: Dedup
     leads = deduplicate_cases(leads)

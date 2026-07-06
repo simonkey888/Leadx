@@ -12,10 +12,6 @@ id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
 [observability]
 enabled = true
 
-# Cron Trigger cada 1h - el Worker corre solo, sin GH Actions
-[triggers]
-crons = ["0 * * * *"]
-
 # INGEST_SECRET debe definirse como secret (no como var):
 #   wrangler secret put INGEST_SECRET
 # NO lo pongas en este archivo como var.
