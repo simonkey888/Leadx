@@ -1842,9 +1842,7 @@ export default {
               if (snipM) debugFirstSnippet = snipM[1].replace(/<[^>]+>/g, ' ').trim().slice(0, 200);
             }
 
-            // Extraer resultados de DDG (cada resultado es un <a class="result__a"> y <a class="result__snippet">)
-            const resultBlocks = html.split('<div class="result ').slice(1);
-
+            // Extraer resultados de DDG (resultBlocks ya declarado arriba en debug)
             for (const block of resultBlocks.slice(0, 15)) {
               // Extraer title + url
               const titleMatch = block.match(/<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/);
