@@ -491,6 +491,43 @@ def collect_public_sources() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"  Foros AR ERROR: {e}", file=sys.stderr)
 
+    # Facebook Groups via Apify (con cookies FB reales)
+    # Llama al endpoint /api/apify-facebook del Worker
+    # Scrapea grupos publicos de multas AR con sesion autenticada
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        secret = os.environ.get("INGEST_SECRET", "")
+        if secret:
+            import urllib.request as _urq2
+            apify_url = f"{worker_url}/api/apify-facebook"
+            apify_input = json.dumps({
+                "groupUrls": [
+                    "https://www.facebook.com/groups/276074287942602",  # Defensas contra Multas AR
+                ],
+                "maxPosts": 20,
+                "fetchComments": True,
+                "maxCommentsPerPost": 5,
+            }).encode("utf-8")
+            req2 = _urq2.Request(apify_url, data=apify_input, method="POST")
+            req2.add_header("X-Webhook-Secret", secret)
+            req2.add_header("Content-Type", "application/json")
+            with _urq2.urlopen(req2, timeout=120) as resp2:
+                fb_data = json.loads(resp2.read().decode("utf-8", errors="replace"))
+            if fb_data.get("ok"):
+                fb_leads = fb_data.get("leads", [])
+                if fb_leads:
+                    for fl in fb_leads:
+                        fl["_query"] = "facebook_apify"
+                    all_results.extend(fb_leads)
+                    with_contact = sum(1 for fl in fb_leads if fl.get("has_contact"))
+                    print(f"  Facebook (Apify): +{len(fb_leads)} leads ({with_contact} con contacto)", file=sys.stderr)
+                else:
+                    print(f"  Facebook (Apify): 0 leads", file=sys.stderr)
+            else:
+                print(f"  Facebook (Apify) ERROR: {fb_data.get('error','?')}", file=sys.stderr)
+    except Exception as e:
+        print(f"  Facebook (Apify) ERROR: {e}", file=sys.stderr)
+
     return all_results
 
 
