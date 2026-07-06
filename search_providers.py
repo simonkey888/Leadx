@@ -287,14 +287,6 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
     return results[:num]
 
 
-def c_data_iter(comment_listing):
-    """Itera sobre los bodies de comments de un listing de Reddit."""
-    try:
-        for c in comment_listing.get("data",{}).get("children",[])[:10]:
-            yield c.get("data",{}).get("body","")
-    except Exception:
-        return
-
     print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
     results = []
