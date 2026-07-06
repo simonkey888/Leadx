@@ -748,17 +748,23 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "titulo", "titular", "denuncia de venta", "formulario 08",
     ]
     vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
-    # Inicializar variables antes del check (fix UnboundLocalError)
+
+    # FIX BOMBA #2 (parte 2): VentaFe SIEMPRE pasa el filtro vehicular.
+    # Sus avisos son comerciales (vendedor con auto en venta) y aunque no tengan
+    # keywords de "dolor" (multa/transferencia), son leads válidos porque el
+    # vehículo está en venta y el teléfono es público.
+    is_ventafe = ('ventafe' in (result.get('source', '') or '').lower()
+                  or 'ventafe.com.ar' in url
+                  or result.get('host_name') == 'ventafe.com.ar')
+
+    # Si NO es VentaFe y no hay contexto vehicular, descartar
+    if not is_ventafe and vehicular_count < 2:
+        return None
+
+    # Inicializar variables de contacto
     phone = ""
     whatsapp = ""
     email = ""
-    has_contact = bool(phone or whatsapp or email)
-    # VentaFe: si tiene telefono, aceptar aunque no tenga keywords vehiculares
-    is_ventafe = 'ventafe' in (result.get('source', '') or '').lower()
-    if is_ventafe and has_contact:
-        pass  # Aceptar
-    elif vehicular_count < 2 and not has_contact:
-        return None
 
     # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
     if len(combined.strip()) < 50:
@@ -1190,6 +1196,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- PENALTY: sin dolor explicito = ruido (GPT insight) ---
     # Si el texto NO tiene ninguna keyword de dolor, penalizar fuerte
+    # FIX BOMBA #2 (parte 3): ampliar con keywords preventivas de VentaFe
     has_explicit_pain = any(kw in text for kw in [
         "multa", "multas", "fotomulta", "fotomultas",
         "infraccion", "infracciones", "infracción", "infracciones",
@@ -1197,11 +1204,24 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         "patente", "08 firmado", "cedula", "cedula verde",
         "veraz", "registro automotor", "juez de faltas",
         "peaje", "telepeaje", "deuda",
+        # Keywords preventivas (vendedores con papeles al día = lead comercial)
+        "papeles al dia", "papeles al día",
+        "listo para transferir", "sin deuda", "sin multas",
+        "libre de multas", "patente al dia", "patente al día",
+        "titular", "unica mano", "única mano",
     ])
-    if not has_explicit_pain:
+    # VentaFe: no penalizar aunque no haya dolor (avisos comerciales válidos)
+    is_ventafe_rec = (record.get("source", "") == "ventafe"
+                      or record.get("platform", "") == "VentaFe"
+                      or "ventafe.com.ar" in record.get("source_url", ""))
+    if not has_explicit_pain and not is_ventafe_rec:
         score -= 50
         breakdown["no_pain_penalty"] = -50
         signals.append("NO_PAIN")
+    elif is_ventafe_rec:
+        # VentaFe siempre es lead comercial si tiene contacto
+        has_explicit_pain = True
+        signals.append("VENTAFE_LEAD")
 
     # --- CONTACTO BOOST (GPT: lo que importa es el contacto) ---
     has_contact = bool(
