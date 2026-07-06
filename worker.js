@@ -297,6 +297,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   tr.heat-warm { background: #FFFBEB !important; }
   tr.heat-warm:hover { background: #FEF3C7 !important; }
   tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
+  tr.pinned-row { border-left: 3px solid #fbbf24 !important; background: #FFFbeb !important; }
+  tr.pinned-row:hover { background: #FEF3C7 !important; }
 
   /* Boton WhatsApp grande verde (GPT: para tu viejo) */
   .btn-wa-big {
@@ -970,6 +972,12 @@ function applyFilters() {
 
   const sort = document.getElementById('sortSel')?.value || 'heat';
   S.filtered.sort((a, b) => {
+    // Pinned primero (por pinned_rank ascendente)
+    const aPin = a.pinned ? 0 : 1;
+    const bPin = b.pinned ? 0 : 1;
+    if (aPin !== bPin) return aPin - bPin;
+    if (a.pinned && b.pinned) return (a.pinned_rank || 99) - (b.pinned_rank || 99);
+    // Resto: por heat_score o fecha
     if (sort === 'heat') return (b._heat_score || 0) - (a._heat_score || 0);
     if (sort === 'provincia') return (a.provincia || '').localeCompare(b.provincia || '');
     return (b.fecha_iso || '').localeCompare(a.fecha_iso || '');
@@ -995,9 +1003,9 @@ function renderTable() {
   }
 
   const rows = leads.map(l => \`
-    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label}">
+    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label} \${l.pinned ? 'pinned-row' : ''}">
       <td class="td-nombre">
-        \${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
+        \${l.pinned ? '📌 ' : ''}\${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
         \${escH(l._display_name)}
         <small>\${escH(l.fecha_iso || '—')} · \${escH(l.source_label || '?')}</small>
       </td>
@@ -2654,6 +2662,101 @@ export default {
       try {
         const result = await runPipelineCron(env);
         return jsonResponse({ ok: true, ...result }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/enrich-all ─── Cruce de datos: busca contactos en perfiles Reddit
+    // Para cada lead de Reddit sin contacto, scrapear bio + profile links
+    if (url.pathname === '/api/enrich-all' && (request.method === 'POST' || request.method === 'GET')) {
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        // Leer leads actuales
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) return jsonResponse({ ok: false, error: 'no_leads' }, corsHeaders, 404);
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        let enriched = 0;
+        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+
+        for (const lead of leads) {
+          // Solo Reddit leads sin contacto
+          if (lead.platform !== 'Reddit') continue;
+          if (lead.whatsapp_publico || lead.telefono_publico || lead.email_publico) continue;
+
+          const persona = (lead.persona || '').replace('u/', '').replace('@', '').trim();
+          if (!persona || persona === '(anónimo)' || persona.length < 3) continue;
+
+          let allText = '';
+
+          // 1. Scrapear comments.rss del usuario
+          try {
+            const rssRes = await fetch('https://www.reddit.com/user/' + encodeURIComponent(persona) + '/comments/.rss?limit=25', {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (rssRes.ok) {
+              const xml = await rssRes.text();
+              const entries = xml.split('<entry>').slice(1);
+              for (const entry of entries) {
+                const contentM = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+                if (contentM) {
+                  allText += ' ' + contentM[1].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&');
+                }
+              }
+            }
+          } catch (e) {}
+
+          // 2. Scrapear perfil HTML para links externos
+          try {
+            const htmlRes = await fetch('https://old.reddit.com/user/' + encodeURIComponent(persona), {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (htmlRes.ok) {
+              const html = await htmlRes.text();
+              const linkPattern = /href="(https?:\/\/(?:instagram\.com|facebook\.com|wa\.me|mercadolibre\.com\.ar)\/[^\s"]+)"/gi;
+              const links = [...html.matchAll(linkPattern)].map(m => m[1]);
+              allText += ' ' + links.join(' ');
+            }
+          } catch (e) {}
+
+          if (!allText) continue;
+
+          // Buscar teléfono
+          const phones = [...new Set((allText.match(AR_PHONE) || []).map(p => p.trim()))];
+          const emails = [...new Set((allText.match(EMAIL_RE) || [])
+            .map(e => e.toLowerCase().trim())
+            .filter(e => !e.includes('noreply') && !e.includes('example.com') && !e.includes('facebook.com')))];
+
+          if (phones.length > 0 || emails.length > 0) {
+            lead.telefono_publico = phones[0] || '';
+            lead.whatsapp_publico = phones[0] || '';
+            lead.email_publico = emails[0] || '';
+            lead.has_contact = true;
+            lead.contacto_publico = true;
+            lead.score = Math.min(100, (lead.score || 0) + 30);
+            lead.detected_signals = (lead.detected_signals || []).concat(['ENRICH_ALL']);
+            enriched++;
+          }
+        }
+
+        // Guardar de vuelta en KV
+        data.leads_all = leads;
+        data.leads_hot = leads.filter(l => (l.score || 0) >= 60);
+        data.meta.enriched_at = new Date().toISOString();
+        data.meta.enriched_count = enriched;
+        await env.LEADX_KV.put('leads:live', JSON.stringify(data));
+
+        return jsonResponse({
+          ok: true,
+          enriched: enriched,
+          total: leads.length,
+          message: enriched + ' leads enriquecidos con contacto desde perfil Reddit'
+        }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
       }
