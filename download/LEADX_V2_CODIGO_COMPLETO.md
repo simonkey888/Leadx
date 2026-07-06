@@ -1,39 +1,73 @@
 ================================================================================
-LEADX v2.6 — CODIGO COMPLETO ACTUALIZADO Y VERIFICADO
-Fecha: 6 julio 2026 | Commit: 52546d9 (ULTIMA VERSION)
+LEADX v2.9 — CODIGO COMPLETO ACTUALIZADO Y VERIFICADO
+Fecha: 6 julio 2026 | Commit: c064a44 (ULTIMA VERSION)
 Repo: https://github.com/simonkey888/Leadx
-Deploy: Cloudflare Worker 86e1a747 (Cron Activo)
+Deploy: Cloudflare Worker e1012dde (Cron Activo)
+Dashboard: https://leadx.simondalmasso44.workers.dev/
 ================================================================================
 
-NOVEDADES v2.6 (CRON NATIVO REACTIVADO):
-  - Cron del Worker reactivado (cada 1h, IP edge de Cloudflare)
-  - /api/cron-run reactivado para forzar run manual
-  - runPipelineCron() agregada (scraping Reddit RSS + scoring + merge KV)
-  - Soluciona bloqueos de IP de GitHub Actions (Reddit 429, DDG 403)
-  - 5 leads nuevos obtenidos en test inmediato (4.9s)
+VERIFICACION EN VIVO:
+  Dashboard: HTTP 200, 52KB ✅
+  Health: ok, 115 leads, freshness 29min, stale=false ✅
+  Metrics: 115 total, 93 hot, 2 contactables ✅
+  Cron: 0 * * * * activo ✅
+
+NOVEDADES v2.9 (Qwen+Kimi+DeepSeek consensus):
+  - Federal Regex v2 (captura formatos explicitos + federal + wa.me)
+  - WhatsApp Normalizer (phone_to_e164 con 9 mobile AR)
+  - Linktree Hunter (/api/shadow-osint busca en linktr.ee/solo.to/t.me)
+  - /api/enrich-all incluye Linktree como paso 3
+  - Test real: u/WillLife enriquecido con telefono 1101185629 via Linktree
+
+NOVEDADES v2.8:
+  - Pinned leads (13 curados aparecen primeros con 📌)
+  - /api/enrich-all (cruce de datos desde edge IP)
+
+NOVEDADES v2.7:
+  - Filtros estrictos (NEGATIVE_KEYWORDS, DISCARD_DOMAINS, REJECT_COUNTRIES)
+  - OSINT perfil Reddit (/api/reddit-profile-links)
+
+NOVEDADES v2.6:
+  - Cron nativo del Worker reactivado (edge IP no bloqueada)
+  - /api/cron-run para forzar run manual
+  - runPipelineCron() con scoring + regex + merge KV
 
 ARQUITECTURA FINAL (DUAL PIPELINE):
   1. Worker Cron (cada 1h) → Reddit RSS → scoring → KV (PRIMARIO)
   2. Python GH Actions (cada 1h) → OSINT + mining → POST /api/ingest (BACKUP)
-  Frontend → read only (renderiza l.score)
+  Frontend → read only (renderiza l.score + pinned)
 
-ENDPOINTS Worker (18):
+ENDPOINTS Worker (19):
   GET / CRM | GET /cookies.html | GET /api/leads | GET /api/metrics
   GET /api/health | POST /api/ingest | GET/POST /api/kv
-  GET /api/cron-run (REACTIVADO) | GET /api/ml-questions
-  GET /api/reddit-bio | POST /api/apify-facebook | POST /api/apify-webhook
+  GET /api/cron-run | GET /api/ml-questions | GET /api/reddit-bio
+  POST /api/apify-facebook | POST /api/apify-webhook
   POST /api/whatsapp-validate | POST /api/whatsapp-webhook
   GET /api/clasificar-basic | POST /api/clasificar-patente
   POST /api/clasificar-webhook | GET /api/ddg-foromoto
+  GET /api/reddit-profile-links | GET /api/shadow-osint (NUEVO)
+  POST /api/enrich-all (cruce de datos completo)
 
 SCORING: intencion(0-40) + contacto(0-30) + urgencia(0-20) + geo(0-10)
   >=70 hot (rojo) | 40-69 warm (naranja) | <40 cold (gris)
+  Pinned leads aparecen primero (📌 fila dorada)
+
+FUENTES:
+  ✅ Reddit /search.rss (cron Worker, edge IP)
+  ✅ Reddit comments/profile mining (Python)
+  ✅ Apify FB groups (fire & forget + webhook)
+  ✅ clasific.ar basic (free 200/mes)
+  ✅ WhatsApp validator (fire & forget + webhook)
+  ✅ OSINT shadow profile (username → ML/FB via DDG)
+  ✅ Linktree Hunter (linktr.ee/solo.to/t.me)
+  ✅ /api/enrich-all (cruce completo desde edge)
+  ❌ ML API (403) | ❌ CENAT (captcha)
 
 ================================================================================
 
 ================================================================================
-FILE: worker.js | 2843 lines | SHA: 5c5c9fdfe4ba
-DESC: Cloudflare Worker (edge only - CRM + 18 endpoints + Cron nativo)
+FILE: worker.js | 3079 lines | SHA: 02ca34a2c1d6
+DESC: Cloudflare Worker (CRM + 19 endpoints + Cron nativo + enrich-all + shadow-osint)
 ================================================================================
 
 ```javascript
@@ -336,6 +370,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   tr.heat-warm { background: #FFFBEB !important; }
   tr.heat-warm:hover { background: #FEF3C7 !important; }
   tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
+  tr.pinned-row { border-left: 3px solid #fbbf24 !important; background: #FFFbeb !important; }
+  tr.pinned-row:hover { background: #FEF3C7 !important; }
 
   /* Boton WhatsApp grande verde (GPT: para tu viejo) */
   .btn-wa-big {
@@ -1009,6 +1045,12 @@ function applyFilters() {
 
   const sort = document.getElementById('sortSel')?.value || 'heat';
   S.filtered.sort((a, b) => {
+    // Pinned primero (por pinned_rank ascendente)
+    const aPin = a.pinned ? 0 : 1;
+    const bPin = b.pinned ? 0 : 1;
+    if (aPin !== bPin) return aPin - bPin;
+    if (a.pinned && b.pinned) return (a.pinned_rank || 99) - (b.pinned_rank || 99);
+    // Resto: por heat_score o fecha
     if (sort === 'heat') return (b._heat_score || 0) - (a._heat_score || 0);
     if (sort === 'provincia') return (a.provincia || '').localeCompare(b.provincia || '');
     return (b.fecha_iso || '').localeCompare(a.fecha_iso || '');
@@ -1034,9 +1076,9 @@ function renderTable() {
   }
 
   const rows = leads.map(l => \`
-    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label}">
+    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label} \${l.pinned ? 'pinned-row' : ''}">
       <td class="td-nombre">
-        \${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
+        \${l.pinned ? '📌 ' : ''}\${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
         \${escH(l._display_name)}
         <small>\${escH(l.fecha_iso || '—')} · \${escH(l.source_label || '?')}</small>
       </td>
@@ -2698,6 +2740,234 @@ export default {
       }
     }
 
+    // ─── POST /api/enrich-all ─── Cruce de datos: busca contactos en perfiles Reddit
+    // Para cada lead de Reddit sin contacto, scrapear bio + profile links
+    if (url.pathname === '/api/enrich-all' && (request.method === 'POST' || request.method === 'GET')) {
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        // Leer leads actuales
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) return jsonResponse({ ok: false, error: 'no_leads' }, corsHeaders, 404);
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        let enriched = 0;
+        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+
+        for (const lead of leads) {
+          // Solo Reddit leads sin contacto
+          if (lead.platform !== 'Reddit') continue;
+          if (lead.whatsapp_publico || lead.telefono_publico || lead.email_publico) continue;
+
+          const persona = (lead.persona || '').replace('u/', '').replace('@', '').trim();
+          if (!persona || persona === '(anónimo)' || persona.length < 3) continue;
+
+          let allText = '';
+
+          // 1. Scrapear comments.rss del usuario
+          try {
+            const rssRes = await fetch('https://www.reddit.com/user/' + encodeURIComponent(persona) + '/comments/.rss?limit=25', {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (rssRes.ok) {
+              const xml = await rssRes.text();
+              const entries = xml.split('<entry>').slice(1);
+              for (const entry of entries) {
+                const contentM = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+                if (contentM) {
+                  allText += ' ' + contentM[1].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&');
+                }
+              }
+            }
+          } catch (e) {}
+
+          // 2. Scrapear perfil HTML para links externos
+          try {
+            const htmlRes = await fetch('https://old.reddit.com/user/' + encodeURIComponent(persona), {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (htmlRes.ok) {
+              const html = await htmlRes.text();
+              const linkPattern = /href="(https?:\/\/(?:instagram\.com|facebook\.com|wa\.me|mercadolibre\.com\.ar)\/[^\s"]+)"/gi;
+              const links = [...html.matchAll(linkPattern)].map(m => m[1]);
+              allText += ' ' + links.join(' ');
+            }
+          } catch (e) {}
+
+          if (!allText) continue;
+
+          // Buscar teléfono
+          const phones = [...new Set((allText.match(AR_PHONE) || []).map(p => p.trim()))];
+          const emails = [...new Set((allText.match(EMAIL_RE) || [])
+            .map(e => e.toLowerCase().trim())
+            .filter(e => !e.includes('noreply') && !e.includes('example.com') && !e.includes('facebook.com')))];
+
+          if (phones.length > 0 || emails.length > 0) {
+            lead.telefono_publico = phones[0] || '';
+            lead.whatsapp_publico = phones[0] || '';
+            lead.email_publico = emails[0] || '';
+            lead.has_contact = true;
+            lead.contacto_publico = true;
+            lead.score = Math.min(100, (lead.score || 0) + 30);
+            lead.detected_signals = (lead.detected_signals || []).concat(['ENRICH_ALL']);
+            enriched++;
+          }
+
+          // 3. Si todavia no hay contacto, probar shadow-osint (Linktree/solo.to)
+          if (!lead.has_contact) {
+            try {
+              const cleanUser = persona.replace(/^u\//, '').replace(/^@/, '').trim();
+              const shadowRes = await fetch('https://linktr.ee/' + encodeURIComponent(cleanUser), {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+              });
+              if (shadowRes.ok) {
+                const shadowHtml = await shadowRes.text();
+                const waMatch = shadowHtml.match(/wa\.me\/(549\d{10,11})/);
+                const telMatch = shadowHtml.match(/tel:([+]?\d[\d\s\-]{8,15})/);
+                const mailMatch = shadowHtml.match(/mailto:([^"\s]+@[^"\s]+)/);
+                const arPhoneMatch = shadowHtml.match(/(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}/);
+
+                if (waMatch) {
+                  lead.whatsapp_publico = waMatch[1];
+                  lead.telefono_publico = waMatch[1];
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 30);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                } else if (telMatch || arPhoneMatch) {
+                  const p = (telMatch && telMatch[1]) || (arPhoneMatch && arPhoneMatch[0]) || '';
+                  lead.telefono_publico = p;
+                  lead.whatsapp_publico = p;
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 25);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                } else if (mailMatch) {
+                  lead.email_publico = mailMatch[1].toLowerCase();
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 15);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+
+        // Guardar de vuelta en KV
+        data.leads_all = leads;
+        data.leads_hot = leads.filter(l => (l.score || 0) >= 60);
+        data.meta.enriched_at = new Date().toISOString();
+        data.meta.enriched_count = enriched;
+        await env.LEADX_KV.put('leads:live', JSON.stringify(data));
+
+        return jsonResponse({
+          ok: true,
+          enriched: enriched,
+          total: leads.length,
+          message: enriched + ' leads enriquecidos con contacto desde perfil Reddit'
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/reddit-profile-links ─── OSINT: extrae links de otras plataformas
+    if (url.pathname === '/api/reddit-profile-links' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+      try {
+        const html = await fetch('https://old.reddit.com/user/' + encodeURIComponent(username), {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html',
+            'Accept-Language': 'es-AR,es;q=0.9',
+          },
+        }).then(r => r.text());
+        const linkPattern = /href="(https?:\/\/(?:instagram\.com|facebook\.com|wa\.me|mercadolibre\.com\.ar|twitter\.com|x\.com|t\.me|youtube\.com)\/[^\s"]+)"/gi;
+        const links = [...new Set([...html.matchAll(linkPattern)].map(m => m[1]))];
+        return jsonResponse({ ok: true, username: username, links: links }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/shadow-osint ─── Busca username en Linktree/solo.to/t.me
+    if (url.pathname === '/api/shadow-osint' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+
+      const contacts = [];
+      const targets = [
+        { domain: 'linktr.ee', type: 'linktree' },
+        { domain: 'solo.to', type: 'solo' },
+        { domain: 't.me', type: 'telegram' },
+      ];
+
+      for (const t of targets) {
+        try {
+          const res = await fetch('https://' + t.domain + '/' + encodeURIComponent(username), {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+            },
+          });
+          if (!res.ok) continue;
+          const html = await res.text();
+
+          // Buscar wa.me directo
+          const wa = html.match(/wa\.me\/(549\d{10,11})/);
+          if (wa) {
+            contacts.push({ whatsapp: wa[1], source: t.type });
+            break;
+          }
+
+          // Buscar mailto:
+          const mail = html.match(/mailto:([^"\s]+@[^"\s]+)/);
+          if (mail) {
+            contacts.push({ email: mail[1], source: t.type });
+          }
+
+          // Buscar tel:
+          const tel = html.match(/tel:([+]?\d[\d\s\-]{8,15})/);
+          if (tel) {
+            contacts.push({ telefono: tel[1], source: t.type });
+          }
+
+          // Buscar telefono AR en el HTML
+          const arPhone = html.match(/(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}/);
+          if (arPhone && contacts.length === 0) {
+            contacts.push({ telefono: arPhone[0], source: t.type });
+          }
+        } catch (e) {}
+      }
+
+      return jsonResponse({
+        ok: true,
+        username: username,
+        contacts: contacts,
+        found: contacts.length > 0,
+      }, corsHeaders);
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },
@@ -2885,8 +3155,8 @@ async function runPipelineCron(env) {
 
 
 ================================================================================
-FILE: generate_payload.py | 1618 lines | SHA: 4e4937ffdac0
-DESC: Pipeline Python (scoring + OSINT + mining + PT filter)
+FILE: generate_payload.py | 1742 lines | SHA: 0f212fb0f2a9
+DESC: Pipeline Python (Federal Regex v2 + WA normalizer + OSINT + mining + filtros estrictos)
 ================================================================================
 
 ```python
@@ -3063,6 +3333,34 @@ REJECT_IF_CONTAINS = [
     "enviar dinero", "criptomoneda",
 ]
 
+# FILTROS ADICIONALES DE CALIDAD (DeepSeek+Qwen v2.7)
+NEGATIVE_KEYWORDS = [
+    'accidente', 'choque', 'siniestro', 'colisión',
+    'trabajo', 'empleo', 'renunciar', 'laboral',
+    'tablet', 'celular', 'notebook', 'electrónica',
+    'licitación', 'concurso', 'fraude', 'estafa',
+    'alquiler', 'departamento', 'propiedad',
+    'médico', 'hospital', 'salud',
+]
+
+DISCARD_DOMAINS = {
+    'iprofesional.com', 'ciudano.news', 'ciudadano.news', 'iusnoticias.com.ar',
+    'parrillacero5.com.ar', 'multas.ar', 'juridicamente.org',
+    'hlbpharma.com.ar', 'autodataar.com', 'tiempofinanciero.com.ar',
+    'tn.com.ar', 'infobae.com', 'clarin.com', 'lanacion.com.ar',
+    'perfil.com', 'cronista.com', 'ambito.com',
+    'segurarse.com.ar', 'carchecking.com.ar',
+    'multabot.com.ar', 'reclamosonline.com.ar',
+    'portaldeabogados.com', 'jus.gov.ar', 'gob.ar', 'gov.ar',
+    'wikipedia.org', 'youtube.com',
+}
+
+REJECT_COUNTRIES = {
+    'brasil', 'chile', 'uruguay', 'paraguay', 'bolivia',
+    'perú', 'colombia', 'ecuador', 'venezuela', 'méxico',
+    'españa', 'estados unidos', 'italia',
+}
+
 INSTITUTIONAL_DOMAINS = {
     "dnrpa.gov.ar", "argentina.gob.ar", "buenosaires.gob.ar",
     "gob.ar", "jus.gob.ar", "rentas.gob.ar", "arba.gov.ar",
@@ -3100,15 +3398,16 @@ ARGENTINA_SIGNALS = [
 ]
 
 # Phone patterns
-# MEJORA 1 (Qwen): Regex FEDERAL - cubre TODO el pais
-# CABA (11), Rosario (341), Cordoba (351), Mendoza (261),
-# La Plata (221), Tucuman (381), Neuquen (299), Santa Fe (342/343)
+# Qwen+Kimi v2: Regex FEDERAL v2 - captura formatos reales argentinos
 ARG_PHONE_PATTERNS = [
-    r"\+54\s?9?\s?(?:11|341|342|343|351|261|221|381|299)\s?\d{4}[\s\-]?\d{4}",
-    r"\b(?:11|341|342|343|351|261|221|381|299)\s?[\s\-]?\d{4}[\s\-]?\d{4}\b",
-    r"\b15\s?\d{4}\s?\d{4}\b",
-    r"\b0?(?:11|341|342|343|351|261|221|381|299)[\s\-]?\d{3,4}[\s\-]?\d{4}\b",
-    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9]|22[0-9]|29[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+    # Formato explicito: "whatsapp: 11 1234-5678", "llamame al 341-555-1234"
+    r"(?i)(?:whatsapp|wsp|wapp|wp|wasap|celular|cel|tel[eé]fono|tel|llamame|contactame|escribime|mandame)\s*:?\s*([+]?\d[\d\s\-]{8,15})",
+    # Formato federal: 11 1234-5678, 341-555-1234, 0351 1234567, +54 9 11 1234 5678
+    r"(?<!\d)(?:[+]?\d{0,2}\s?)?(?:0?\s?)?(?:11|15|341|342|343|351|358|381|385|387|388|221|261|264|291|294|297|299|336|362|370|376|379|380|383)\s?[\s\-]?\d{4}[\s\-]?\d{4}(?!\d)",
+    # Formato wa.me directo
+    r"wa\.me/(\d{8,15})",
+    # Formato generico: 11-1234-5678
+    r"\b(\d{2}[\s\-]?\d{4}[\s\-]?\d{4})\b",
 ]
 
 WHATSAPP_PATTERNS = [
@@ -3283,25 +3582,30 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
-    """Normaliza telefono a formato +54XXXXXXXXXX (Claude version mejorada).
-    Cubre: +54 9 11 1234 5678 / 11-1234-5678 / 011 1234-5678 / etc.
-    """
+    """Qwen+Kimi v2: Normaliza cualquier formato AR a E.164: +549112345678"""
     digits = re.sub(r"\D", "", phone)
-    if not digits or len(digits) < 8:
+    if not digits:
         return ""
     # Quitar prefijo pais si existe
     if digits.startswith("54"):
         digits = digits[2:]
-    # Quitar 0 inicial (prefix interurbano AR)
+    # Quitar 0 inicial (interurbano)
     if digits.startswith("0"):
         digits = digits[1:]
-    # Quitar 9 inicial (mobile prefix AR)
+    # Quitar 9 inicial (mobile prefix viejo)
     if digits.startswith("9") and len(digits) == 11:
         digits = digits[1:]
-    # Si tiene 10 digitos y empieza con 11 (CABA mobile), agregar 9
+    # Si tiene 10 digitos y empieza con 11 (CABA), agregar 9
     if len(digits) == 10 and digits.startswith("11"):
         digits = "9" + digits
-    return f"+54{digits}" if len(digits) >= 8 else ""
+    # Si tiene 10 digitos y NO empieza con 5, agregar 549
+    elif len(digits) == 10 and not digits.startswith("5"):
+        digits = "9" + digits
+    return f"+54{digits}" if len(digits) >= 10 else ""
+
+def normalize_phone_ar(raw: str) -> str:
+    """Alias de phone_to_e164 para compatibilidad."""
+    return phone_to_e164(raw)
 
 
 # ===========================================================================
@@ -3444,6 +3748,21 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     for reject in REJECT_IF_CONTAINS:
         if reject in combined_lower:
             return None
+
+    # FILTRO DE DOMINIOS DE MEDIOS (DeepSeek v2.7)
+    host = result.get("host", "") or get_host(url)
+    if any(d in host for d in DISCARD_DOMAINS):
+        return None
+
+    # FILTRO DE PAIS EXTRANJERO (DeepSeek v2.7)
+    for country in REJECT_COUNTRIES:
+        if country in combined_lower:
+            return None
+
+    # FILTRO DE PALABRAS CLAVE NEGATIVAS (DeepSeek v2.7)
+    neg_matches = sum(1 for kw in NEGATIVE_KEYWORDS if kw in combined_lower)
+    if neg_matches >= 2:
+        return None
 
     # FIX 2 (DeepSeek): Filtro de idioma portugués
     PORTUGUESE_INDICATORS = [
@@ -3886,14 +4205,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         problem_cat = "OTHER"
         problem_sum = "Lead vehicular"
 
-    # WhatsApp link
+    # WhatsApp link (Qwen fix: normalizar a E.164)
     wa_link = ""
     wa_num = record.get("whatsapp_publico", "") or record.get("telefono_publico", "")
     if wa_num:
-        digits = re.sub(r"\D", "", wa_num)
-        if not digits.startswith("54"):
-            digits = "54" + digits.lstrip("0")
-        wa_link = f"https://wa.me/{digits}"
+        normalized = phone_to_e164(wa_num)
+        if normalized and normalized.startswith("+54"):
+            wa_link = f"https://wa.me/{normalized[1:]}"
+        else:
+            digits = re.sub(r"\D", "", wa_num)
+            if len(digits) >= 8:
+                wa_link = f"https://wa.me/{digits}"
 
     return Lead(
         score=score,
@@ -4291,6 +4613,72 @@ def mine_profile_for_contacts(leads: List[Lead]) -> int:
     return enriched_count
 
 
+def enrich_contacts_via_reddit_profile(leads: List[Lead]) -> int:
+    """Busca links a otras plataformas en el perfil de Reddit y rastrea contactos."""
+    import urllib.request as _urq
+    enriched = 0
+    worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    ingest_secret = os.environ.get("INGEST_SECRET", "")
+    if not ingest_secret:
+        return 0
+
+    for lead in leads:
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+        if lead.platform != "Reddit":
+            continue
+        username = lead.persona.replace("u/", "").strip()
+        if len(username) < 3:
+            continue
+
+        try:
+            profile_url = f"{worker_url}/api/reddit-profile-links?user={username}"
+            req = _urq.Request(profile_url)
+            req.add_header("X-Webhook-Secret", ingest_secret)
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not data.get("ok") or not data.get("links"):
+                    continue
+
+                for link in data["links"][:5]:
+                    snippet = ""
+                    try:
+                        search_results = provider_search(f"site:{link}", num=2)
+                        for sr in search_results:
+                            snippet += sr.get("snippet", "") + " "
+                    except Exception:
+                        continue
+
+                    for pat in ARG_PHONE_PATTERNS:
+                        m = re.search(pat, snippet)
+                        if m:
+                            digits = re.sub(r"\D", "", m.group(0))
+                            if 10 <= len(digits) <= 15:
+                                lead.telefono_publico = m.group(0).strip()
+                                lead.contacto_publico = True
+                                lead.score = min(100, lead.score + 30)
+                                if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                    lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                                enriched += 1
+                                break
+                    if not lead.telefono_publico:
+                        m = re.search(EMAIL_PATTERN, snippet)
+                        if m:
+                            lead.email_publico = m.group(1).lower().strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, lead.score + 15)
+                            if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                            enriched += 1
+                time.sleep(0.5)
+        except Exception:
+            continue
+    if enriched:
+        print(f"  [ProfileLinkMining] {enriched} leads enriquecidos", file=sys.stderr)
+    return enriched
+
+
 def run_pipeline() -> Dict[str, Any]:
     global QUERIES_EXECUTED, _pqm_global
     _pqm_global = None  # se setea en Step 0.5
@@ -4472,6 +4860,12 @@ def run_pipeline() -> Dict[str, Any]:
     except Exception as e:
         print(f"  [OSINT] ERROR: {e}", file=sys.stderr)
 
+    # Step 4.8: Enriquecer contactos via links del perfil de Reddit (DeepSeek v2.7)
+    try:
+        enrich_contacts_via_reddit_profile(leads)
+    except Exception as e:
+        print(f"  [ProfileLinkMining] ERROR: {e}", file=sys.stderr)
+
     # Step 5: Dedup
     leads = deduplicate_cases(leads)
 
@@ -4514,7 +4908,7 @@ if __name__ == "__main__":
 
 ================================================================================
 FILE: search_providers.py | 1132 lines | SHA: fd8d715cc37f
-DESC: Providers (Reddit + DDG + FB + ML + Foros)
+DESC: Providers (Reddit + DDG + FB + ML + Foros + subreddit blacklist)
 ================================================================================
 
 ```python
@@ -6199,7 +6593,7 @@ class PendingQueryManager:
 
 ================================================================================
 FILE: wrangler.toml | 17 lines | SHA: e6da0ace636f
-DESC: Cloudflare config (KV + cron nativo cada 1h)
+DESC: Cloudflare config (KV + cron nativo)
 ================================================================================
 
 ```toml
@@ -6226,7 +6620,7 @@ crons = ["0 * * * *"]
 
 ================================================================================
 FILE: .github/workflows/radar-cron.yml | 84 lines | SHA: 02d3bcab712a
-DESC: GH Actions (backup - cron 1h)
+DESC: GH Actions (cron 1h, curl ingest)
 ================================================================================
 
 ```yaml
@@ -6319,6 +6713,9 @@ jobs:
 
 
 ================================================================================
-TOTAL: 241,254 chars | 6217 lines | 7 archivos
-Commit: 52546d9 | Version: v2.6
+TOTAL: 257,610 chars | 6577 lines | 7 archivos
+Commit: c064a44 | Version: v2.9
+Deploy: Cloudflare Worker e1012dde
+Dashboard: https://leadx.simondalmasso44.workers.dev/
+Repo: https://github.com/simonkey888/Leadx
 ================================================================================
