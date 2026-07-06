@@ -1,37 +1,12 @@
 {
-  "total_runs": 59,
-  "last_run": "2026-07-06T12:38:45.583107+00:00",
-  "last_run_id": "997a0249c6bb",
-  "total_leads_all_time": 548,
-  "total_hot_leads_all_time": 447,
-  "avg_hot_per_run": 7.6,
-  "runs_today": 8,
+  "total_runs": 60,
+  "last_run": "2026-07-06T14:22:05.479107+00:00",
+  "last_run_id": "0b0c9de2a60b",
+  "total_leads_all_time": 549,
+  "total_hot_leads_all_time": 448,
+  "avg_hot_per_run": 7.5,
+  "runs_today": 9,
   "last_7_days": [
-    {
-      "run_id": "5f0d0116fa8d",
-      "generated_at": "2026-07-06T05:43:50.271766+00:00",
-      "summary": {
-        "total_leads": 3,
-        "hot_leads": 1,
-        "warm_leads": 2,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 46.7,
-        "avg_score_hot": 60.0,
-        "conversion_probability": 33.3,
-        "by_category": {
-          "TRANSFER_PROBLEM": 3
-        },
-        "by_platform": {
-          "Reddit": 3
-        },
-        "by_province": {
-          "Santa Fe": 1
-        }
-      }
-    },
     {
       "run_id": "4c5975efda99",
       "generated_at": "2026-07-06T06:07:33.736251+00:00",
@@ -159,6 +134,29 @@
         },
         "by_platform": {
           "Reddit": 1,
+          "Ventafe.Com.Ar": 1
+        },
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "0b0c9de2a60b",
+      "generated_at": "2026-07-06T14:22:05.479107+00:00",
+      "summary": {
+        "total_leads": 1,
+        "hot_leads": 1,
+        "warm_leads": 0,
+        "contactable": 1,
+        "with_whatsapp": 0,
+        "with_phone": 1,
+        "with_email": 0,
+        "avg_score": 100.0,
+        "avg_score_hot": 100.0,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "FINE_DISPUTE": 1
+        },
+        "by_platform": {
           "Ventafe.Com.Ar": 1
         },
         "by_province": {}

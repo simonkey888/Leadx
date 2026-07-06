@@ -1,67 +1,32 @@
 {
-  "generated_at": "2026-07-06T12:38:45.583107+00:00",
-  "run_id": "997a0249c6bb",
+  "generated_at": "2026-07-06T14:22:05.479107+00:00",
+  "run_id": "0b0c9de2a60b",
   "summary": {
-    "total_leads": 2,
-    "hot_leads": 2,
+    "total_leads": 1,
+    "hot_leads": 1,
     "warm_leads": 0,
-    "contactable": 0,
+    "contactable": 1,
     "with_whatsapp": 0,
-    "with_phone": 0,
+    "with_phone": 1,
     "with_email": 0,
-    "avg_score": 72.5,
-    "avg_score_hot": 72.5,
+    "avg_score": 100.0,
+    "avg_score_hot": 100.0,
     "conversion_probability": 100.0,
     "by_category": {
-      "FINE_DISPUTE": 1,
-      "TRANSFER_PROBLEM": 1
+      "FINE_DISPUTE": 1
     },
     "by_platform": {
-      "Reddit": 1,
       "Ventafe.Com.Ar": 1
     },
     "by_province": {}
   },
   "leads_all": [
     {
-      "id": "41cd3beab4896ee5",
-      "score": 80,
+      "id": "f9a43651bcd25fae",
+      "score": 100,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Simple_Coconut_7000",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-06T00:57:29+00:00",
-      "fecha_iso": "2026-07-06T00:57:29+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1uoiw91/que_pasa_si_busco_un_auto_robado_hace_años",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola tengo una duda que puede ser muy tonta pero me da mucha curiosidad.</p> <p>A mi abuelo en los años 2000, le robaron su Chevrolet luv 0 km a punta de rifle en el campo.</p> <p>Él falleció en 2013, pero ahora estoy buscando varios de los autos que tuvo simplement",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-06T12:38:35.838221+00:00"
-    },
-    {
-      "id": "f9a43651bcd25fae",
-      "score": 65,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
       "persona": "u/Vendedor VentaFe",
       "provincia": "",
       "ciudad": "",
@@ -72,64 +37,35 @@
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
       "source_url": "https://www.ventafe.com.ar/automoviles",
-      "quoted_text": "$ 12.000.000 (0342) 15.... CITROËN C4 LOUNGE. 85.000km reales CITROËN C4 LOUNGE FEEL 1.6 THP 165CV – 2018 • Caja manual 6ta • 85.000 km reales (comprobables) • Único dueño • Service oficial Equipamiento: Control de estabilidad y tracción, frenos a disco en las 4 ruedas, airbags, control de velocidad",
-      "contacto_publico": false,
+      "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
+      "contacto_publico": true,
       "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
+      "whatsapp_link": "https://wa.me/5493426128372",
+      "telefono_publico": "+5493426128372",
+      "telefono_e164": "+5493426128372",
       "email_publico": "",
       "score_breakdown": {
         "ventafe_base": 20,
-        "transfer_problem": 45
+        "multa_or_fotomulta": 60,
+        "public_contact_visible": 25,
+        "has_contact": 30
       },
       "detected_signals": [
         "VENTAFE_LISTING",
-        "transfer_problem"
+        "multa_fotomulta",
+        "contact_visible",
+        "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T12:38:35.838893+00:00"
+      "discovery_timestamp": "2026-07-06T14:22:05.478747+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "41cd3beab4896ee5",
-      "score": 80,
+      "id": "f9a43651bcd25fae",
+      "score": 100,
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Simple_Coconut_7000",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-06T00:57:29+00:00",
-      "fecha_iso": "2026-07-06T00:57:29+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1uoiw91/que_pasa_si_busco_un_auto_robado_hace_años",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola tengo una duda que puede ser muy tonta pero me da mucha curiosidad.</p> <p>A mi abuelo en los años 2000, le robaron su Chevrolet luv 0 km a punta de rifle en el campo.</p> <p>Él falleció en 2013, pero ahora estoy buscando varios de los autos que tuvo simplement",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days"
-      ],
-      "discovery_timestamp": "2026-07-06T12:38:35.838221+00:00"
-    },
-    {
-      "id": "f9a43651bcd25fae",
-      "score": 65,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
       "persona": "u/Vendedor VentaFe",
       "provincia": "",
       "ciudad": "",
@@ -140,29 +76,33 @@
       "fecha_iso": "2026-07-06T00:00:00",
       "platform": "Ventafe.Com.Ar",
       "source_url": "https://www.ventafe.com.ar/automoviles",
-      "quoted_text": "$ 12.000.000 (0342) 15.... CITROËN C4 LOUNGE. 85.000km reales CITROËN C4 LOUNGE FEEL 1.6 THP 165CV – 2018 • Caja manual 6ta • 85.000 km reales (comprobables) • Único dueño • Service oficial Equipamiento: Control de estabilidad y tracción, frenos a disco en las 4 ruedas, airbags, control de velocidad",
-      "contacto_publico": false,
+      "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
+      "contacto_publico": true,
       "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
+      "whatsapp_link": "https://wa.me/5493426128372",
+      "telefono_publico": "+5493426128372",
+      "telefono_e164": "+5493426128372",
       "email_publico": "",
       "score_breakdown": {
         "ventafe_base": 20,
-        "transfer_problem": 45
+        "multa_or_fotomulta": 60,
+        "public_contact_visible": 25,
+        "has_contact": 30
       },
       "detected_signals": [
         "VENTAFE_LISTING",
-        "transfer_problem"
+        "multa_fotomulta",
+        "contact_visible",
+        "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T12:38:35.838893+00:00"
+      "discovery_timestamp": "2026-07-06T14:22:05.478747+00:00"
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 50% de los leads calientes provienen de Reddit.",
+    "El 100% de los leads calientes provienen de Ventafe.Com.Ar.",
     "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "0% de los leads calientes tienen contacto público visible."
+    "100% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
     "version": "1.0",
@@ -190,7 +130,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 76.89,
-    "queries_executed": 3
+    "runtime_seconds": 47.99,
+    "queries_executed": 1
   }
 }
