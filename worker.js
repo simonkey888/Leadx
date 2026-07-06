@@ -898,53 +898,17 @@ function extractPhone(text) {
 
 function normalizePhoneAR(raw) {
   if (!raw) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  // Quitar todo lo que no sea digito
   let digits = String(raw).replace(/[^0-9]/g, '');
   if (!digits) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  // Quitar prefijo pais
+  
+  // Quitar prefijo pais si existe
   if (digits.startsWith('54')) digits = digits.slice(2);
-  // Quitar 0 inicial
+  // Quitar 0 inicial (interurbano)
   if (digits.startsWith('0')) digits = digits.slice(1);
-  // Quitar 9 inicial si tiene 11 digitos
-  if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
-  // Caso especial: (0342) 156128372 → 342156128372 → despues de quitar 0 → 342156128372 (12 digitos)
-  // Necesitamos manejar numeros con codigo de area + 15 + numero
-  // Formato: 342 15 6128372 = 11 digitos → quitar el 15
-  if (digits.length === 11 && digits.match(/^(342|341|351|261|221|381|299)15/)) {
-    digits = digits.slice(0, 3) + digits.slice(5); // 342 + 6128372 = 10 digitos
+  // Quitar 15 del medio (formato viejo: 0342 15 6128372)
+  if (digits.length === 12 && /^\d{3,4}15\d{6,7}$/.test(digits)) {
+    digits = digits.replace(/15/, '');
   }
-  // Formato VentaFe: 342156128372 (12 digitos) → quitar el 15
-  if (digits.length === 12 && digits.match(/^(342|341|351|261|221|381|299)15/)) {
-    digits = digits.slice(0, 3) + digits.slice(5);
-  }
-  // Validar: 10 digitos empezando con 11 o 2x o 3x
-  if (digits.length !== 10) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  if (!/^(11|2[0-9]|3[0-9])/.test(digits)) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  // Si es CABA (11), agregar 9 para mobile
-  let mobile = digits;
-  if (digits.startsWith('11')) mobile = '9' + digits;
-  // Para interior (342, 341, etc), el 9 ya esta incluido en el numero mobile
-  // Pero si no tiene 9, agregarlo
-  if (!digits.startsWith('11') && !digits.startsWith('9') && digits.length === 10) {
-    mobile = '9' + digits;
-  }
-  return {
-    state: 'normalized_contact',
-    e164: '+549' + mobile,
-    display: '+54 9 ' + mobile.slice(0, 3) + ' ' + mobile.slice(3, 7) + ' ' + mobile.slice(7),
-    waUrl: 'https://wa.me/549' + mobile,
-  };
-};
-  let mobile = digits;
-  if (digits.startsWith('11')) mobile = '9' + digits;
-  return {
-    state: 'normalized_contact',
-    e164: '+549' + mobile,
-    display: '+' + mobile.slice(0, 2) + ' ' + mobile.slice(2, 6) + ' ' + mobile.slice(6),
-    waUrl: 'https://wa.me/' + mobile,
-  };
-}
-
 function buildWaUrl(phone) {
   const n = normalizePhoneAR(phone);
   return n.state === 'invalid_format' ? '' : n.waUrl;
@@ -1097,7 +1061,7 @@ function escH(s) {
 // ── KPIs ──────────────────────────────────────────────────────────────────
 function renderKPIs() {
   const leads    = S.crmLeads;
-  const withWa   = leads.filter(l => l._wa_url).length;
+  const withWa   = leads.filter(l => l._wa_url || l._wa_state === 'validated_whatsapp' || l._wa_state === 'normalized_contact').length;
   const enProc   = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
   const cerrados = leads.filter(l => l._status === 'Cerrado');
   const pct = getComisionPct() / 100;
@@ -3113,7 +3077,8 @@ async function runPipelineCron(env) {
         if (/multa|fotomulta|infraccion/.test(textLower)) problemas.push('MULTA');
         if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
         if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
-        if (!problemas.length && !patenteM) continue;
+        if (!problemas.length && !patenteM && !phones.length) continue;
+        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
         
         let score = 40;
         if (patenteM) score += 15;

@@ -24,6 +24,7 @@ import hashlib
 import json
 import random
 import re
+import html
 import re as _re
 import time
 import urllib.parse
@@ -266,7 +267,7 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
             snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
             snippet = _re2.sub(r"https?://\S+", "", snippet)
             snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
-            snippet = snippet.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'")
+            snippet = html.unescape(snippet)  # Qwen fix: decodifica TODAS las entidades HTML
             snippet = _re2.sub(r"\s+", " ", snippet).strip()
         
         # Solo incluir si es un post (tiene /comments/ en la URL) y no un subreddit
