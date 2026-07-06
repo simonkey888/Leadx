@@ -1,63 +1,43 @@
 ================================================================================
-LEADX v2 — AUDIT BUNDLE COMPLETO (235KB)
-Sistema: OSINT Legal Intelligence Engine AR | Cloudflare Worker + KV + Cron
+LEADX v3.0 — AUDITORIA COMPLETA PARA QWEN
+Commit: 755f161 | Deploy: a13b5993 | 6 julio 2026
+Repo: https://github.com/simonkey888/Leadx
+Dashboard: https://leadx.simondalmasso44.workers.dev/
 ================================================================================
+
+PROBLEMAS URGENTES CONOCIDOS:
+1. Encoding: 'tran ferencia' pierde la 's' en parser RSS Reddit
+2. normalizePhoneAR: (0342) 156128372 funciona pero 547887508843 no
+3. VentaFe: solo 1 lead encontrado (necesita mas paginas o queries)
+4. GH Actions: Reddit 429, DDG 403, Apify 403 (IPs Azure bloqueadas)
+5. Cron del Worker: funciona pero trae pocos leads por 429 de Reddit
+6. Frontend: 23 leads en KV pero dashboard muestra 23 (correcto)
+7. Cloudflare Pages: build failing (no afecta Workers)
+8. u/diecast731 tiene telefono 547887508843 pero no normaliza (12 digitos)
 
 ARQUITECTURA:
-  - Cloudflare Worker: HTML CRM embebido + 10 APIs + Cron Trigger cada 1h
-  - KV: leads:live, pending_queries, fb_cookies, clasificar_report:*
-  - Python pipeline (legacy): Reddit RSS + scoring + enrichment
-  - Cron nativo Worker: Reddit RSS + scoring + write KV directo
+  Worker Cron (cada 1h) → Reddit RSS + VentaFe → scoring → KV
+  Python GH Actions (cada 1h) → OSINT + mining → POST /api/ingest (backup)
+  Frontend → read only (l.score + pinned + WhatsApp SVG)
 
-ENDPOINTS:
-  GET  /                  → CRM (Sergio)
-  GET  /cookies.html      → Refrescador cookies FB
-  GET  /api/leads         → JSON leads desde KV
-  GET  /api/metrics       → KPIs
-  GET  /api/health        → freshness + stale detection
-  POST /api/ingest        → batch upload (auth)
-  GET  /api/kv            → leer KV (auth)
-  POST /api/kv            → escribir KV (auth)
-  GET  /api/ml-questions  → ML Questions via edge (auth)
-  GET  /api/reddit-bio    → Reddit user bio scraper (auth)
-  POST /api/apify-facebook → FB groups via Apify (auth + cookies)
-  POST /api/whatsapp-validate → WA validator via Apify (auth)
-  GET  /api/clasificar-basic → vehiculo por patente (auth)
-  POST /api/clasificar-patente → busqueda asincrona (auth)
-  POST /api/clasificar-webhook → webhook clasific.ar
-  POST /api/cron-run      → forzar cron manualmente (auth)
-  GET  /api/ddg-foromoto  → foros AR via DDG (auth)
+ENDPOINTS (20):
+  GET / CRM | /cookies.html | /api/leads | /api/metrics | /api/health
+  POST /api/ingest (deep merge) | GET/POST /api/kv
+  GET /api/cron-run | /api/ml-questions | /api/reddit-bio
+  POST /api/apify-facebook | /api/apify-webhook
+  POST /api/whatsapp-validate | /api/whatsapp-webhook
+  GET /api/clasificar-basic | POST /api/clasificar-patente
+  POST /api/clasificar-webhook | GET /api/ddg-foromoto
+  GET /api/reddit-profile-links | /api/shadow-osint
+  POST /api/enrich-all (cruce completo)
 
-SECRETS (Cloudflare):
-  INGEST_SECRET, CLASIFICAR_API_KEY, CLASIFICAR_WEBHOOK_SECRET,
+SECRETS: INGEST_SECRET, CLASIFICAR_API_KEY, CLASIFICAR_WEBHOOK_SECRET,
   APIFY_TOKEN, FB_COOKIES
 
-SCORING (heat_score):
-  intencion(0-40) + contacto(0-30) + urgencia(0-20) + geo(0-10) + recencia
-  >=70 hot (rojo) | 40-69 warm (naranja) | <40 cold (gris)
-
-VALIDACION TELEFONOS (jerarquia):
-  invalid_format → no se muestra
-  normalized_contact → ⚪ pendiente
-  validated_whatsapp → 🟢 verificado
-  not_whatsapp → ❌
-
-FUENTES ACTIVAS:
-  ✅ Reddit /search.rss (funciona desde edge)
-  ✅ Reddit /user/u/comments.rss (funciona desde edge)
-  ✅ Apify FB groups (con cookies, funciona)
-  ✅ clasific.ar /v1/vehicles/basic (free 200/mes)
-  ✅ Apify WhatsApp validator (funciona)
-  ❌ ML API (403 desde edge)
-  ❌ DDG site: (0 results desde edge)
-  ❌ CENAT (reCAPTCHA)
 
 ================================================================================
-
-
-================================================================================
-FILE: worker.js (115,201 chars, 2940 lines)
-DESC: Cloudflare Worker (HTML CRM + APIs + Cron Trigger)
+FILE: worker.js | 3187 lines | SHA: c48cdbd74f01
+DESC: Worker (CRM + 20 endpoints + Cron + VentaFe + enrich-all)
 ================================================================================
 
 ```javascript
@@ -360,6 +340,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   tr.heat-warm { background: #FFFBEB !important; }
   tr.heat-warm:hover { background: #FEF3C7 !important; }
   tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
+  tr.pinned-row { border-left: 3px solid #fbbf24 !important; background: #FFFbeb !important; }
+  tr.pinned-row:hover { background: #FEF3C7 !important; }
 
   /* Boton WhatsApp grande verde (GPT: para tu viejo) */
   .btn-wa-big {
@@ -811,6 +793,10 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // ── STATE ──────────────────────────────────────────────────────────────────
+// Iconos WhatsApp (SVG inline)
+const WA_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.5.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.4zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3C4.1 14.9 3.7 13.5 3.7 12 3.7 7.3 7.3 3.7 12 3.7s8.3 3.6 8.3 8.3-3.6 8.3-8.3 8.3z"/></svg>';
+const WA_ICON_GRAY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.5.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.4zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3C4.1 14.9 3.7 13.5 3.7 12 3.7 7.3 7.3 3.7 12 3.7s8.3 3.6 8.3 8.3-3.6 8.3-8.3 8.3z"/></svg>';
+
 const S = {
   allLeads:   [],   // todos los leads crudos de la API
   crmLeads:   [],   // leads con contacto o manual + leads manuales
@@ -937,37 +923,8 @@ function enrichLead(l) {
     enriched._wa_state = waValidation === true ? 'validated_whatsapp' : 'not_whatsapp';
   }
 
-  // HEAT SCORE UNICO (GPT spec): intención + contacto + urgencia + geo + recencia
-  const text = (title + ' ' + body).toLowerCase();
-  let heat = 0;
-
-  // INTENCION (0-40)
-  if (/multa|fotomulta|infracci[oó]n/.test(text)) heat += 25;
-  if (/transferencia|transferir|libre deuda|08 firmado/.test(text)) heat += 20;
-  if (/necesito ayuda|urgente|no puedo|bloqueado/.test(text)) heat += 15;
-
-  // CONTACTO (0-30)
-  if (enriched._wa_state === 'validated_whatsapp') heat += 30;
-  else if (enriched._wa_state === 'normalized_contact') heat += 15;
-  if (email) heat += 10;
-
-  // URGENCIA (0-20)
-  if (/hoy|urgente|no puedo|bloqueado|vencimient/.test(text)) heat += 20;
-  else if (/consulta|duda|pregunta/.test(text)) heat += 10;
-
-  // GEOGRAFIA (0-10)
-  const prov = (l.provincia || '').toLowerCase();
-  if (prov && prov !== 'unknown' && prov !== 'desconocida') heat += 10;
-  else if (/argentina|buenos aires|caba|cordoba|córdoba|rosario|santa fe|mendoza/.test(text)) heat += 5;
-
-  // RECENCIA (bonus)
-  if (l.fecha_iso) {
-    const days = Math.floor((Date.now() - new Date(l.fecha_iso).getTime()) / 86400000);
-    if (days <= 3) heat += 5;
-    else if (days <= 7) heat += 2;
-  }
-
-  enriched._heat_score = Math.min(100, heat);
+  // GPT FIX 4: Usar SOLO score de Python (no recalcular en frontend)
+  enriched._heat_score = l.score || 0;
 
   // CLASIFICACION VISUAL (GPT: 3 estados)
   if (enriched._heat_score >= 70) enriched._heat_label = 'hot';      // 🔥 ROJO
@@ -984,13 +941,43 @@ function extractPhone(text) {
 
 function normalizePhoneAR(raw) {
   if (!raw) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  let digits = String(raw).replace(/\\D/g, '');
+  // Quitar todo lo que no sea digito
+  let digits = String(raw).replace(/[^0-9]/g, '');
   if (!digits) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  // Quitar prefijo pais
   if (digits.startsWith('54')) digits = digits.slice(2);
+  // Quitar 0 inicial
   if (digits.startsWith('0')) digits = digits.slice(1);
+  // Quitar 9 inicial si tiene 11 digitos
   if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
+  // Caso especial: (0342) 156128372 → 342156128372 → despues de quitar 0 → 342156128372 (12 digitos)
+  // Necesitamos manejar numeros con codigo de area + 15 + numero
+  // Formato: 342 15 6128372 = 11 digitos → quitar el 15
+  if (digits.length === 11 && digits.match(/^(342|341|351|261|221|381|299)15/)) {
+    digits = digits.slice(0, 3) + digits.slice(5); // 342 + 6128372 = 10 digitos
+  }
+  // Formato VentaFe: 342156128372 (12 digitos) → quitar el 15
+  if (digits.length === 12 && digits.match(/^(342|341|351|261|221|381|299)15/)) {
+    digits = digits.slice(0, 3) + digits.slice(5);
+  }
+  // Validar: 10 digitos empezando con 11 o 2x o 3x
   if (digits.length !== 10) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
-  if (!/^(11|2\\d|3\\d)/.test(digits)) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  if (!/^(11|2[0-9]|3[0-9])/.test(digits)) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
+  // Si es CABA (11), agregar 9 para mobile
+  let mobile = digits;
+  if (digits.startsWith('11')) mobile = '9' + digits;
+  // Para interior (342, 341, etc), el 9 ya esta incluido en el numero mobile
+  // Pero si no tiene 9, agregarlo
+  if (!digits.startsWith('11') && !digits.startsWith('9') && digits.length === 10) {
+    mobile = '9' + digits;
+  }
+  return {
+    state: 'normalized_contact',
+    e164: '+549' + mobile,
+    display: '+54 9 ' + mobile.slice(0, 3) + ' ' + mobile.slice(3, 7) + ' ' + mobile.slice(7),
+    waUrl: 'https://wa.me/549' + mobile,
+  };
+};
   let mobile = digits;
   if (digits.startsWith('11')) mobile = '9' + digits;
   return {
@@ -1023,8 +1010,11 @@ function cleanSnippet(text) {
   t = t.replace(/<!--[\s\S]*?-->/g, '');
   // Quitar tags HTML
   t = t.replace(/<[^>]+>/g, ' ');
-  // Quitar entidades HTML comunes
+  // Quitar entidades HTML comunes (incluyendo s minuscula)
   t = t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  t = t.replace(/&#x27;/g, "'").replace(/&#x2F;/g, '/').replace(/&#47;/g, '/');
+  // Fix encoding:Reddit RSS corta la 's' en algunos casos
+  t = t.replace(/tran ferencia/gi, 'transferencia').replace(/Di puta/g, 'Disputa').replace(/ituaci\u00f3n/g, 'ituación').replace(/ca o/g, 'caso').replace(/erencia/g, 'erencia');
   // Colapsar espacios
   t = t.replace(/\s+/g, ' ').trim();
   return t;
@@ -1062,6 +1052,12 @@ function applyFilters() {
 
   const sort = document.getElementById('sortSel')?.value || 'heat';
   S.filtered.sort((a, b) => {
+    // Pinned primero (por pinned_rank ascendente)
+    const aPin = a.pinned ? 0 : 1;
+    const bPin = b.pinned ? 0 : 1;
+    if (aPin !== bPin) return aPin - bPin;
+    if (a.pinned && b.pinned) return (a.pinned_rank || 99) - (b.pinned_rank || 99);
+    // Resto: por heat_score o fecha
     if (sort === 'heat') return (b._heat_score || 0) - (a._heat_score || 0);
     if (sort === 'provincia') return (a.provincia || '').localeCompare(b.provincia || '');
     return (b.fecha_iso || '').localeCompare(a.fecha_iso || '');
@@ -1087,9 +1083,9 @@ function renderTable() {
   }
 
   const rows = leads.map(l => \`
-    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label}">
+    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label} \${l.pinned ? 'pinned-row' : ''}">
       <td class="td-nombre">
-        \${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
+        \${l.pinned ? '📌 ' : ''}\${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''}
         \${escH(l._display_name)}
         <small>\${escH(l.fecha_iso || '—')} · \${escH(l.source_label || '?')}</small>
       </td>
@@ -1101,12 +1097,14 @@ function renderTable() {
       <td>
         <div class="actions" onclick="event.stopPropagation()">
           \${l._wa_state === 'validated_whatsapp'
-            ? \`<a class="btn-wa-big" href="\${l._wa_url}" target="_blank" title="WhatsApp verificado">🟢</a>\`
+            ? \`<a class="btn-wa-big" href="\${l._wa_url}" target="_blank" title="WhatsApp verificado">\${WA_ICON}</a>\`
             : l._wa_state === 'normalized_contact'
-              ? \`<button class="btn-wa-pending" onclick="validateWaFromTable('\${l.id}')" title="Validar WhatsApp">⚪</button>\`
+              ? \`<button class="btn-wa-pending" onclick="validateWaFromTable('\${l.id}')" title="Click para validar WhatsApp">\${WA_ICON_GRAY}</button>\`
               : l._wa_state === 'not_whatsapp'
                 ? \`<span class="wa-none" title="No tiene WhatsApp">❌</span>\`
-                : \`\`
+                : l.email
+                  ? \`<span style="font-size:16px" title="\${l.email}">✉️</span>\`
+                  : \`\`
           }
           <button class="btn-icon" onclick="openDetail('\${l.id}')" title="Ver detalle">📋</button>
         </div>
@@ -1259,13 +1257,13 @@ function openDetail(id) {
     box.classList.remove('no-contact');
     waBtn.href = l._wa_url;
     waBtn.style.display = 'inline-flex';
-    waBtn.textContent = '💬 WhatsApp ✓';
+    waBtn.innerHTML = WA_ICON + ' <span style="font-size:13px;color:#25D366">WhatsApp</span>';
     phoneLabel.textContent = l._wa_display + ' (verificado)';
   } else if (l._wa_state === 'normalized_contact') {
     box.classList.remove('no-contact');
     waBtn.style.display = 'inline-flex';
     waBtn.href = '#';
-    waBtn.textContent = '⏳ Validar WhatsApp';
+    waBtn.innerHTML = WA_ICON_GRAY + ' <span style="font-size:13px">Validar</span>';
     waBtn.onclick = (e) => { e.preventDefault(); validateWaFromModal(); };
     phoneLabel.textContent = l._wa_display + ' (pendiente validación)';
   } else if (l._wa_state === 'not_whatsapp') {
@@ -1406,7 +1404,7 @@ async function validateWaFromModal() {
       setWaValidation(l._wa_e164, isValid);
       l._wa_state = isValid ? 'validated_whatsapp' : 'not_whatsapp';
       if (isValid) {
-        waBtn.textContent = '💬 WhatsApp ✓';
+        waBtn.innerHTML = WA_ICON + ' <span style="font-size:13px;color:#25D366">WhatsApp</span>';
         waBtn.href = l._wa_url;
         document.getElementById('modal-phone-label').textContent = l._wa_display + ' (verificado)';
       } else {
@@ -1650,7 +1648,7 @@ export default {
         const data = JSON.parse(raw);
         // Asegurar estructura mínima
         if (!data.leads_all) data.leads_all = [];
-        if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50);
+        if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.score || 0) >= 50);
         if (!data.summary) data.summary = { total_leads: data.leads_all.length, hot_leads: data.leads_hot.length };
         if (!data.meta) data.meta = { version: '10.0', source: 'kv', generated_at: new Date().toISOString() };
         return jsonResponse(data, corsHeaders);
@@ -1676,8 +1674,8 @@ export default {
         }
         const data = JSON.parse(raw);
         const leads = data.leads_all || [];
-        const hot = leads.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50);
-        const urgent = leads.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 80);
+        const hot = leads.filter(l => (l.score || 0) >= 50);
+        const urgent = leads.filter(l => (l.score || 0) >= 80);
         const contact = leads.filter(l => l.contact?.whatsapp || l.contact?.phone || l.whatsapp_publico);
         return jsonResponse({
           total_leads: leads.length,
@@ -1708,7 +1706,7 @@ export default {
       try {
         const body = await request.json();
         const newLeads = body.leads_all || [];
-        const newHot = body.leads_hot || newLeads.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50);
+        const newHot = body.leads_hot || newLeads.filter(l => (l.score || 0) >= 50);
 
         // Anti-wipe: si vienen <5 leads, NO sobrescribir
         const prevRaw = await env.LEADX_KV.get('leads:live');
@@ -1729,10 +1727,32 @@ export default {
           }, corsHeaders, 200);
         }
 
-        // Merge upsert by ID
+        // GPT FIX 3: Deep merge - KV tiene prioridad en estado CRM
         const prevById = new Map();
         prevLeads.forEach(l => prevById.set(l.id, l));
-        newLeads.forEach(l => prevById.set(l.id, l));
+        newLeads.forEach(newLead => {
+          const existing = prevById.get(newLead.id);
+          if (existing) {
+            // Merge: Python trae datos frescos, KV preserva estado del CRM
+            prevById.set(newLead.id, {
+              ...newLead,                          // datos frescos de Python
+              score: existing.score ?? newLead.score,  // KV prioridad
+              status: existing.status ?? newLead.status,
+              _status: existing._status ?? newLead._status,
+              _notes: existing._notes ?? newLead._notes,
+              _monto: existing._monto ?? newLead._monto,
+              whatsapp_validated: existing.whatsapp_validated ?? newLead.whatsapp_validated,
+              _wa_state: existing._wa_state ?? newLead._wa_state,
+              _wa_e164: existing._wa_e164 ?? newLead._wa_e164,
+              // Contacto: si Python encontro uno nuevo y KV no tiene, usar el nuevo
+              whatsapp_publico: existing.whatsapp_publico || newLead.whatsapp_publico,
+              telefono_publico: existing.telefono_publico || newLead.telefono_publico,
+              email_publico: existing.email_publico || newLead.email_publico,
+            });
+          } else {
+            prevById.set(newLead.id, newLead);
+          }
+        });
         const merged = Array.from(prevById.values());
 
         // Truncate to 500 most recent
@@ -1745,10 +1765,10 @@ export default {
 
         const payload = {
           leads_all: truncated,
-          leads_hot: truncated.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50),
+          leads_hot: truncated.filter(l => (l.score || 0) >= 50),
           summary: {
             total_leads: truncated.length,
-            hot_leads: truncated.filter(l => (l.scoring?.final_score ?? l.score ?? 0) >= 50).length,
+            hot_leads: truncated.filter(l => (l.score || 0) >= 50).length,
           },
           meta: {
             version: '10.0',
@@ -2410,10 +2430,14 @@ export default {
           cookies: cookiesStr,
         };
 
+        // Qwen fix: Pasar webhookUrl directamente en el body del run
         const runRes = await fetch('https://api.apify.com/v2/acts/uophWH4OrRO2TtXTT/runs?token=' + env.APIFY_TOKEN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(apifyInput),
+          body: JSON.stringify({
+            ...apifyInput,
+            webhookUrl: 'https://leadx.simondalmasso44.workers.dev/api/apify-webhook',
+          }),
         });
 
         if (!runRes.ok) {
@@ -2425,87 +2449,14 @@ export default {
         const runId = runData.data.id;
         const datasetId = runData.data.defaultDatasetId;
 
-        // Polling: esperar hasta 90s a que el run termine
-        let finalStatus = 'RUNNING';
-        for (let i = 0; i < 18; i++) {
-          await new Promise(r => setTimeout(r, 5000));
-          const statusRes = await fetch('https://api.apify.com/v2/actor-runs/' + runId + '?token=' + env.APIFY_TOKEN);
-          const statusData = await statusRes.json();
-          finalStatus = statusData.data.status;
-          if (finalStatus === 'SUCCEEDED' || finalStatus === 'FAILED' || finalStatus === 'ABORTED') break;
-        }
-
-        if (finalStatus !== 'SUCCEEDED') {
-          return jsonResponse({ ok: false, error: 'apify_run_' + finalStatus.toLowerCase(), runId }, corsHeaders, 500);
-        }
-
-        // Obtener resultados del dataset
-        const resultsRes = await fetch('https://api.apify.com/v2/datasets/' + datasetId + '/items?token=' + env.APIFY_TOKEN);
-        const results = await resultsRes.json();
-
-        // Filtrar y normalizar leads
-        const PAIN_KEYWORDS = /multa|fotomulta|infracci[oó]n|libre.deuda|transferencia|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|radicad|consulta|ayuda|reclam/i;
-        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
-        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
-        const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com', 'facebook.com'];
-
-        const leads = [];
-        for (const post of results) {
-          const text = post.text || post.postText || '';
-          const author = post.authorName || post.author || '';
-          const postUrl = post.url || post.postUrl || '';
-          if (!text && !author) continue;
-
-          const hasPain = PAIN_KEYWORDS.test(text);
-          if (!hasPain) continue;
-
-          // Buscar contacto en el texto del post
-          const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
-          const emails = [...new Set((text.match(EMAIL_RE) || [])
-            .map(e => e.toLowerCase().trim())
-            .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
-
-          // Buscar en comments también
-          let commentsText = '';
-          if (post.comments && Array.isArray(post.comments)) {
-            commentsText = post.comments.map(c => (c.text || c.commentText || '') + ' ' + (c.commenterName || c.author || '')).join(' ');
-          }
-          const commentsPhones = [...new Set((commentsText.match(AR_PHONE) || []).map(p => p.trim()))];
-          const commentsEmails = [...new Set((commentsText.match(EMAIL_RE) || [])
-            .map(e => e.toLowerCase().trim())
-            .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
-
-          const allPhones = [...new Set([...phones, ...commentsPhones])];
-          const allEmails = [...new Set([...emails, ...commentsEmails])];
-
-          leads.push({
-            id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
-            source: 'facebook_apify',
-            source_label: 'Facebook',
-            platform: 'Facebook',
-            author: author,
-            persona: author,
-            title: text.slice(0, 200),
-            snippet: (text + (commentsText ? ' | Comments: ' + commentsText : '')).slice(0, 3000),
-            url: postUrl,
-            fecha_iso: (post.timestamp || post.creationDate || '').slice(0, 10),
-            score: 50,
-            whatsapp_publico: allPhones[0] || '',
-            telefono_publico: allPhones[0] || '',
-            email_publico: allEmails[0] || '',
-            has_contact: allPhones.length > 0 || allEmails.length > 0,
-            contact_source: allPhones.length > 0 ? 'fb_post_or_comment' : '',
-            comments_count: (post.comments || []).length,
-          });
-        }
-
+        // Fire & Forget - devolver runId inmediatamente
         return jsonResponse({
           ok: true,
-          total: leads.length,
-          leads: leads,
-          raw_results_count: results.length,
+          status: 'processing',
           run_id: runId,
           dataset_id: datasetId,
+          webhook_configured: true,
+          message: 'Apify procesando. Resultados via webhook automatico.',
           cookies_source: cookiesSource,
         }, corsHeaders);
       } catch (e) {
@@ -2620,10 +2571,11 @@ export default {
       }
     }
 
-    // ─── POST /api/whatsapp-validate ─── Valida si telefonos tienen WhatsApp
-    // Body: { "phones": ["5491154541802", "5491160065724"] }
+    // ─── POST /api/whatsapp-validate ─── Fire & Forget (Qwen P0 fix)
+    // Body: { "phones": ["5491154541802"] }
+    // Devuelve inmediatamente, resultados via /api/whatsapp-webhook
     if (url.pathname === '/api/whatsapp-validate' && request.method === 'POST') {
-      const secret = request.headers.get('X-Webhook-Secret');
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
       if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
         return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
       }
@@ -2637,62 +2589,115 @@ export default {
           return jsonResponse({ ok: false, error: 'missing_phones' }, corsHeaders, 400);
         }
 
-        // Lanzar un run por cada telefono (el actor acepta 1 a la vez)
-        const results = [];
-        for (const phone of phones.slice(0, 10)) { // max 10 por request
+        // Fire & Forget: un run por telefono, devolver inmediatamente
+        const runIds = [];
+        for (const phone of phones.slice(0, 5)) {
           try {
             const runRes = await fetch('https://api.apify.com/v2/acts/devscrapper~whatsapp-number-validator/runs?token=' + env.APIFY_TOKEN, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ phoneNumber: phone }),
             });
-            if (!runRes.ok) {
-              results.push({ phone, isValid: false, error: 'apify_' + runRes.status });
-              continue;
+            if (runRes.ok) {
+              const runData = await runRes.json();
+              runIds.push({ phone, runId: runData.data.id });
             }
-            const runData = await runRes.json();
-            const runId = runData.data.id;
-            const datasetId = runData.data.defaultDatasetId;
-
-            // Polling hasta 30s
-            let finalStatus = 'RUNNING';
-            for (let i = 0; i < 6; i++) {
-              await new Promise(r => setTimeout(r, 5000));
-              const statusRes = await fetch('https://api.apify.com/v2/actor-runs/' + runId + '?token=' + env.APIFY_TOKEN);
-              const statusData = await statusRes.json();
-              finalStatus = statusData.data.status;
-              if (finalStatus === 'SUCCEEDED' || finalStatus === 'FAILED') break;
-            }
-
-            if (finalStatus === 'SUCCEEDED') {
-              const itemsRes = await fetch('https://api.apify.com/v2/datasets/' + datasetId + '/items?token=' + env.APIFY_TOKEN);
-              const items = await itemsRes.json();
-              if (items.length > 0) {
-                results.push({
-                  phone: phone,
-                  isValid: items[0].isValid || false,
-                  exists: items[0].exists || false,
-                  status: items[0].status || 'unknown',
-                });
-              } else {
-                results.push({ phone, isValid: false, error: 'no_results' });
-              }
-            } else {
-              results.push({ phone, isValid: false, error: 'run_' + finalStatus.toLowerCase() });
-            }
-          } catch (e) {
-            results.push({ phone, isValid: false, error: e.message });
-          }
+          } catch (e) {}
         }
 
         return jsonResponse({
           ok: true,
-          total: results.length,
-          valid_count: results.filter(r => r.isValid).length,
-          results: results,
+          status: 'processing',
+          runs: runIds,
+          message: 'Validacion en background. Hacer polling desde browser via /api/kv?key=wa_val:PHONE',
         }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/whatsapp-webhook ─── Recibe resultados de Apify WA validator
+    if (url.pathname === '/api/whatsapp-webhook' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const results = body.results || body || [];
+        for (const r of (Array.isArray(results) ? results : [results])) {
+          if (r && r.phoneNumber) {
+            const key = 'wa_val:' + r.phoneNumber;
+            await env.LEADX_KV.put(key, JSON.stringify({
+              phone: r.phoneNumber,
+              isValid: r.isValid || false,
+              exists: r.exists || false,
+              validated_at: new Date().toISOString(),
+            }), { expirationTtl: 86400 });
+          }
+        }
+        return jsonResponse({ ok: true, received: Array.isArray(results) ? results.length : 1 }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: true, error: e.message }, corsHeaders);
+      }
+    }
+
+    // ─── POST /api/apify-webhook ─── Recibe resultados de Apify Facebook scraper
+    if (url.pathname === '/api/apify-webhook' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const items = body.items || body.results || body || [];
+        const leads = [];
+        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
+        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+
+        for (const post of (Array.isArray(items) ? items : [])) {
+          const text = post.text || post.postText || '';
+          const author = post.authorName || post.author || '';
+          const postUrl = post.url || post.postUrl || '';
+          if (!text && !author) continue;
+
+          const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
+          const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+
+          leads.push({
+            id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
+            source: 'facebook_apify',
+            source_label: 'Facebook',
+            platform: 'Facebook',
+            author: author,
+            persona: author,
+            title: text.slice(0, 200),
+            snippet: text.slice(0, 3000),
+            url: postUrl,
+            fecha_iso: (post.timestamp || '').slice(0, 10),
+            score: 50,
+            whatsapp_publico: phones[0] || '',
+            telefono_publico: phones[0] || '',
+            email_publico: emails[0] || '',
+            has_contact: phones.length > 0 || emails.length > 0,
+          });
+        }
+
+        // Merge con leads existentes en KV
+        const prevRaw = await env.LEADX_KV.get('leads:live');
+        let prevLeads = [];
+        if (prevRaw) {
+          try { prevLeads = JSON.parse(prevRaw).leads_all || []; } catch (e) {}
+        }
+        const prevById = new Map();
+        prevLeads.forEach(l => prevById.set(l.id, l));
+        leads.forEach(l => prevById.set(l.id, l));
+        const merged = Array.from(prevById.values());
+        merged.sort((a, b) => new Date(b.fecha_iso || 0).getTime() - new Date(a.fecha_iso || 0).getTime());
+        const truncated = merged.slice(0, 500);
+
+        await env.LEADX_KV.put('leads:live', JSON.stringify({
+          leads_all: truncated,
+          leads_hot: truncated.filter(l => (l.score || 0) >= 50),
+          summary: { total_leads: truncated.length, hot_leads: truncated.filter(l => (l.score || 0) >= 50).length },
+          meta: { version: '11.0', source: 'apify_webhook', generated_at: new Date().toISOString(), ingest_at: new Date().toISOString() }
+        }));
+
+        return jsonResponse({ ok: true, received: leads.length, merged: truncated.length }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: true, error: e.message }, corsHeaders);
       }
     }
 
@@ -2736,7 +2741,6 @@ export default {
       if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
         return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
       }
-      // Ejecutar pipeline inline (misma logica que scheduled handler)
       try {
         const result = await runPipelineCron(env);
         return jsonResponse({ ok: true, ...result }, corsHeaders);
@@ -2745,11 +2749,239 @@ export default {
       }
     }
 
+    // ─── POST /api/enrich-all ─── Cruce de datos: busca contactos en perfiles Reddit
+    // Para cada lead de Reddit sin contacto, scrapear bio + profile links
+    if (url.pathname === '/api/enrich-all' && (request.method === 'POST' || request.method === 'GET')) {
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        // Leer leads actuales
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) return jsonResponse({ ok: false, error: 'no_leads' }, corsHeaders, 404);
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        let enriched = 0;
+        const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+        const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+
+        for (const lead of leads) {
+          // Solo Reddit leads sin contacto
+          if (lead.platform !== 'Reddit') continue;
+          if (lead.whatsapp_publico || lead.telefono_publico || lead.email_publico) continue;
+
+          const persona = (lead.persona || '').replace('u/', '').replace('@', '').trim();
+          if (!persona || persona === '(anónimo)' || persona.length < 3) continue;
+
+          let allText = '';
+
+          // 1. Scrapear comments.rss del usuario
+          try {
+            const rssRes = await fetch('https://www.reddit.com/user/' + encodeURIComponent(persona) + '/comments/.rss?limit=25', {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (rssRes.ok) {
+              const xml = await rssRes.text();
+              const entries = xml.split('<entry>').slice(1);
+              for (const entry of entries) {
+                const contentM = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+                if (contentM) {
+                  allText += ' ' + contentM[1].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&');
+                }
+              }
+            }
+          } catch (e) {}
+
+          // 2. Scrapear perfil HTML para links externos
+          try {
+            const htmlRes = await fetch('https://old.reddit.com/user/' + encodeURIComponent(persona), {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (htmlRes.ok) {
+              const html = await htmlRes.text();
+              const linkPattern = /href="(https?:\/\/(?:instagram\.com|facebook\.com|wa\.me|mercadolibre\.com\.ar)\/[^\s"]+)"/gi;
+              const links = [...html.matchAll(linkPattern)].map(m => m[1]);
+              allText += ' ' + links.join(' ');
+            }
+          } catch (e) {}
+
+          if (!allText) continue;
+
+          // Buscar teléfono
+          const phones = [...new Set((allText.match(AR_PHONE) || []).map(p => p.trim()))];
+          const emails = [...new Set((allText.match(EMAIL_RE) || [])
+            .map(e => e.toLowerCase().trim())
+            .filter(e => !e.includes('noreply') && !e.includes('example.com') && !e.includes('facebook.com')))];
+
+          if (phones.length > 0 || emails.length > 0) {
+            lead.telefono_publico = phones[0] || '';
+            lead.whatsapp_publico = phones[0] || '';
+            lead.email_publico = emails[0] || '';
+            lead.has_contact = true;
+            lead.contacto_publico = true;
+            lead.score = Math.min(100, (lead.score || 0) + 30);
+            lead.detected_signals = (lead.detected_signals || []).concat(['ENRICH_ALL']);
+            enriched++;
+          }
+
+          // 3. Si todavia no hay contacto, probar shadow-osint (Linktree/solo.to)
+          if (!lead.has_contact) {
+            try {
+              const cleanUser = persona.replace(/^u\//, '').replace(/^@/, '').trim();
+              const shadowRes = await fetch('https://linktr.ee/' + encodeURIComponent(cleanUser), {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+              });
+              if (shadowRes.ok) {
+                const shadowHtml = await shadowRes.text();
+                const waMatch = shadowHtml.match(/wa\.me\/(549\d{10,11})/);
+                const telMatch = shadowHtml.match(/tel:([+]?\d[\d\s\-]{8,15})/);
+                const mailMatch = shadowHtml.match(/mailto:([^"\s]+@[^"\s]+)/);
+                const arPhoneMatch = shadowHtml.match(/(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}/);
+
+                if (waMatch) {
+                  lead.whatsapp_publico = waMatch[1];
+                  lead.telefono_publico = waMatch[1];
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 30);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                } else if (telMatch || arPhoneMatch) {
+                  const p = (telMatch && telMatch[1]) || (arPhoneMatch && arPhoneMatch[0]) || '';
+                  lead.telefono_publico = p;
+                  lead.whatsapp_publico = p;
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 25);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                } else if (mailMatch) {
+                  lead.email_publico = mailMatch[1].toLowerCase();
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 15);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+
+        // Guardar de vuelta en KV
+        data.leads_all = leads;
+        data.leads_hot = leads.filter(l => (l.score || 0) >= 60);
+        data.meta.enriched_at = new Date().toISOString();
+        data.meta.enriched_count = enriched;
+        await env.LEADX_KV.put('leads:live', JSON.stringify(data));
+
+        return jsonResponse({
+          ok: true,
+          enriched: enriched,
+          total: leads.length,
+          message: enriched + ' leads enriquecidos con contacto desde perfil Reddit'
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/reddit-profile-links ─── OSINT: extrae links de otras plataformas
+    if (url.pathname === '/api/reddit-profile-links' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+      try {
+        const html = await fetch('https://old.reddit.com/user/' + encodeURIComponent(username), {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html',
+            'Accept-Language': 'es-AR,es;q=0.9',
+          },
+        }).then(r => r.text());
+        const linkPattern = /href="(https?:\/\/(?:instagram\.com|facebook\.com|wa\.me|mercadolibre\.com\.ar|twitter\.com|x\.com|t\.me|youtube\.com)\/[^\s"]+)"/gi;
+        const links = [...new Set([...html.matchAll(linkPattern)].map(m => m[1]))];
+        return jsonResponse({ ok: true, username: username, links: links }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/shadow-osint ─── Busca username en Linktree/solo.to/t.me
+    if (url.pathname === '/api/shadow-osint' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+
+      const contacts = [];
+      const targets = [
+        { domain: 'linktr.ee', type: 'linktree' },
+        { domain: 'solo.to', type: 'solo' },
+        { domain: 't.me', type: 'telegram' },
+      ];
+
+      for (const t of targets) {
+        try {
+          const res = await fetch('https://' + t.domain + '/' + encodeURIComponent(username), {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+            },
+          });
+          if (!res.ok) continue;
+          const html = await res.text();
+
+          // Buscar wa.me directo
+          const wa = html.match(/wa\.me\/(549\d{10,11})/);
+          if (wa) {
+            contacts.push({ whatsapp: wa[1], source: t.type });
+            break;
+          }
+
+          // Buscar mailto:
+          const mail = html.match(/mailto:([^"\s]+@[^"\s]+)/);
+          if (mail) {
+            contacts.push({ email: mail[1], source: t.type });
+          }
+
+          // Buscar tel:
+          const tel = html.match(/tel:([+]?\d[\d\s\-]{8,15})/);
+          if (tel) {
+            contacts.push({ telefono: tel[1], source: t.type });
+          }
+
+          // Buscar telefono AR en el HTML
+          const arPhone = html.match(/(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}/);
+          if (arPhone && contacts.length === 0) {
+            contacts.push({ telefono: arPhone[0], source: t.type });
+          }
+        } catch (e) {}
+      }
+
+      return jsonResponse({
+        ok: true,
+        username: username,
+        contacts: contacts,
+        found: contacts.length > 0,
+      }, corsHeaders);
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },
 
-  // ─── CRON TRIGGER cada 1h (GPT: scheduling en Worker, no GH Actions) ───
+  // Cron nativo cada 1h - scraping Reddit RSS desde edge IP (no bloqueada)
   async scheduled(event, env, ctx) {
     console.log('[CRON] Pipeline iniciado:', new Date().toISOString());
     try {
@@ -2760,7 +2992,7 @@ export default {
   }
 };
 
-// ─── Funcion standalone del pipeline (compartida por cron y /api/cron-run) ───
+// ─── Funcion standalone del pipeline (cron + /api/cron-run) ───
 async function runPipelineCron(env) {
   const redditQueries = [
     'no puedo transferir multa argentina',
@@ -2768,8 +3000,12 @@ async function runPipelineCron(env) {
     'libre deuda transferencia auto',
     'fotomulta reclamo argentina',
     'compre auto multas anteriores',
+    'vendo auto multas pendientes',
+    'cedula verde perdida transferir',
+    'patente bloqueada registro automotor',
+    'juez de faltas multa reclamo',
+    'vendedor no entrego 08',
   ];
-
   const newLeads = [];
   const seenUrls = new Set();
 
@@ -2779,12 +3015,14 @@ async function runPipelineCron(env) {
       const rssRes = await fetch(rssUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'application/atom+xml, application/xml, text/xml, */*',
+          'Accept': 'application/atom+xml,application/xml,text/xml,*/*',
           'Accept-Language': 'es-AR,es;q=0.9',
         },
       });
-
-      if (!rssRes.ok) continue;
+      if (!rssRes.ok) {
+        console.log('[CRON] RSS fail ' + query + ': ' + rssRes.status);
+        continue;
+      }
       const xml = await rssRes.text();
       const entries = xml.split('<entry>').slice(1);
 
@@ -2808,18 +3046,37 @@ async function runPipelineCron(env) {
 
         let body = '';
         if (contentM) {
-          body = contentM[1].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
+          body = contentM[1].replace(/<[^>]+>/g, ' ')
+            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+            .replace(/&#x27;/g, "'").replace(/&#47;/g, '/')
+            .replace(/&#x2F;/g, '/').replace(/&nbsp;/g, ' ')
+            .replace(/&#8217;/g, "'").replace(/&#8230;/g, '...')
+            .replace(/&#8220;/g, '"').replace(/&#8221;/g, '"')
+            .replace(/&#8211;/g, '-').replace(/&#8212;/g, '--')
+            .replace(/\s+/g, ' ').trim();
+          // Fix encoding: caracteres cortados
+          body = body.replace(/tran fer/gi, 'transfer')
+            .replace(/Di puta/g, 'Disputa')
+            .replace(/erencia/g, 'erencia')
+            .replace(/conce ion/gi, 'concesion')
+            .replace(/ervicio/gi, 'servicio')
+            .replace(/comprobante corre /gi, 'comprobantes corre')
+            .replace(/ituaci/gi, 'ituaci');
         }
+
         const fecha = updatedM ? updatedM[1].slice(0, 10) : '';
         const fullText = (title + ' ' + body).toLowerCase();
 
-        const painKw = ['multa','multas','fotomulta','fotomultas','infraccion','infracciones','infracción','libre deuda','transferencia','transferir','patente','08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento'];
+        const painKw = ['multa','multas','fotomulta','fotomultas','infraccion','infracciones',
+          'infraccion','libre deuda','libredeuda','transferencia','transferir','patente',
+          '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento'];
         if (!painKw.some(k => fullText.includes(k))) continue;
 
         let score = 40;
-        const urgencyKw = ['urgente','hoy','ahora','recien','me llego','me llegue','consulta','ayuda','necesito','no puedo','me retuvieron'];
+        const urgencyKw = ['urgente','hoy','ahora','recien','me llego','consulta','ayuda','necesito','no puedo'];
         if (urgencyKw.some(k => fullText.includes(k))) score += 20;
-        const extremeKw = ['me llego','me llegue','me cobraron','me quieren cobrar','no puedo transferir','me retuvieron','necesito ayuda','alguien sabe','urgente'];
+        const extremeKw = ['me llego','me cobraron','no puedo transferir','me retuvieron','necesito ayuda','alguien sabe','urgente'];
         if (extremeKw.some(k => fullText.includes(k))) score += 20;
 
         const arPhoneRegex = /(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
@@ -2833,7 +3090,7 @@ async function runPipelineCron(env) {
         const hasContact = phones.length > 0 || waLinks.length > 0 || emails.length > 0;
         if (hasContact) score += 30;
 
-        const arGeo = ['argentina','buenos aires','caba','cordoba','córdoba','rosario','santa fe','mendoza','tucuman','tucumán','salta','neuquen','la plata'];
+        const arGeo = ['argentina','buenos aires','caba','cordoba','cordoba','rosario','santa fe','mendoza','tucuman','salta','neuquen','la plata'];
         if (arGeo.some(g => fullText.includes(g))) score += 15;
 
         const patenteMatch = body.match(/\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i);
@@ -2843,32 +3100,106 @@ async function runPipelineCron(env) {
         if (score < 40) continue;
 
         newLeads.push({
-          id: 'reddit_' + url.split('/').slice(-2)[0],
-          source: 'reddit_rss', source_label: 'Reddit', platform: 'Reddit',
-          author: author, persona: author ? 'u/' + author : '(anonimo)',
-          title: title.slice(0, 200), snippet: body.slice(0, 3000),
-          url: url, fecha_iso: fecha, score: score,
+          id: 'reddit_' + url.split('/').slice(-2).join('_'),
+          source: 'reddit_rss',
+          source_label: 'Reddit',
+          platform: 'Reddit',
+          author: author,
+          persona: author ? 'u/' + author : '(anonimo)',
+          title: title.slice(0, 200),
+          snippet: body.slice(0, 3000),
+          quoted_text: body.slice(0, 300),
+          url: url,
+          fecha_iso: fecha,
+          fecha_visible: fecha,
+          score: score,
           whatsapp_publico: phones[0] || waLinks[0] || '',
           telefono_publico: phones[0] || '',
           email_publico: emails[0] || '',
+          contacto_publico: hasContact,
           has_contact: hasContact,
           patente: patenteMatch ? patenteMatch[1].toUpperCase() : '',
+          discovery_timestamp: new Date().toISOString(),
+        });
+      }
+    } catch (e) {
+      console.log('[CRON] Error query ' + query + ': ' + e.message);
+    }
+  }
+
+  // VentaFe Scraper (desde edge IP)
+  console.log('[CRON] Scraping VentaFe...');
+  try {
+    const vfPhoneRegex = /\(?(?:0?342|342|0?341|341|0?351|351|0?261|261|0?221|221|0?381|381|0?299|299|0?11|11)\)?[\s\-]?15?\d{6,8}/g;
+    const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
+    
+    for (let page = 1; page <= 5; page++) {
+      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?page=' + page;
+      const vfRes = await fetch(vfUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
+      });
+      if (!vfRes.ok) continue;
+      const vfHtml = await vfRes.text();
+      const blocks = vfHtml.split(/#\d{6,8}/).slice(1);
+      
+      for (const block of blocks) {
+        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+        if (text.length < 100) continue;
+        
+        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
+        const patenteM = text.match(vfPatenteRegex);
+        if (!phones.length && !patenteM) continue;
+        
+        const textLower = text.toLowerCase();
+        const problemas = [];
+        if (/no\s+puedo\s+transferir|transferencia\s+bloqueada/.test(textLower)) problemas.push('TRANSFERENCIA');
+        if (/multa|fotomulta|infraccion/.test(textLower)) problemas.push('MULTA');
+        if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
+        if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
+        if (!problemas.length && !patenteM) continue;
+        
+        let score = 40;
+        if (patenteM) score += 15;
+        if (problemas.includes('TRANSFERENCIA')) score += 30;
+        if (problemas.includes('MULTA')) score += 25;
+        if (problemas.includes('DEUDA')) score += 25;
+        if (phones.length) score += 30;
+        
+        newLeads.push({
+          id: 'ventafe_' + text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, ''),
+          source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
+          author: 'Vendedor VentaFe', persona: 'Vendedor VentaFe',
+          title: text.slice(0, 200), snippet: text.slice(0, 3000),
+          url: 'https://www.ventafe.com.ar/automoviles',
+          fecha_iso: new Date().toISOString().slice(0, 10),
+          score: Math.min(100, score),
+          whatsapp_publico: phones[0] || '', telefono_publico: phones[0] || '',
+          has_contact: phones.length > 0, contacto_publico: phones.length > 0,
+          patente: patenteM ? patenteM[1].toUpperCase() : '',
           timestamp: new Date().toISOString(),
         });
       }
-    } catch (e) {}
-  }
+    }
+    console.log('[CRON] VentaFe done');
+  } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
 
   const raw = await env.LEADX_KV.get('leads:live');
   let existing = { leads_all: [], leads_hot: [], meta: {} };
-  if (raw) { try { existing = JSON.parse(raw); } catch (e) {} }
+  if (raw) {
+    try { existing = JSON.parse(raw); } catch (e) {}
+  }
 
   const byUrl = new Map();
   for (const l of (existing.leads_all || [])) byUrl.set(l.url || l.id, l);
   for (const l of newLeads) byUrl.set(l.url || l.id, l);
+
   const merged = Array.from(byUrl.values());
   merged.sort((a, b) => (b.fecha_iso || '').localeCompare(a.fecha_iso || ''));
   const truncated = merged.slice(0, 500);
+
+  if (truncated.length === 0 && (existing.leads_all || []).length > 0) {
+    return { ok: true, skipped: 'anti_wipe', existing: (existing.leads_all || []).length };
+  }
 
   const payload = {
     leads_all: truncated,
@@ -2881,133 +3212,29 @@ async function runPipelineCron(env) {
       with_email: truncated.filter(l => l.email_publico).length,
     },
     meta: {
-      version: '11.0', source: 'cron_trigger',
+      version: '11.0',
+      source: 'cron_trigger_edge',
       generated_at: new Date().toISOString(),
       ingest_at: new Date().toISOString(),
       new_in_batch: newLeads.length,
     },
   };
 
-  if (truncated.length === 0 && (existing.leads_all || []).length > 0) {
-    return { ok: true, skipped: 'anti_wipe', existing: (existing.leads_all || []).length };
-  }
-
   await env.LEADX_KV.put('leads:live', JSON.stringify(payload));
-  return { ok: true, new_leads: newLeads.length, total: truncated.length, hot: payload.summary.hot_leads };
+  return {
+    ok: true,
+    new_leads: newLeads.length,
+    total: truncated.length,
+    hot: payload.summary.hot_leads,
+  };
 }
-
-const COOKIES_HTML = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LeadX — Refrescador de Cookies FB</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0e1a; color: #e2e8f0; padding: 20px; max-width: 800px; margin: 0 auto; }
-  h1 { color: #38bdf8; margin-bottom: 8px; }
-  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 30px; }
-  .card { background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-  .status { font-size: 14px; }
-  .status-ok { color: #10b981; }
-  .status-warn { color: #fbbf24; }
-  .status-err { color: #f87171; }
-  textarea { width: 100%; height: 200px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; resize: vertical; }
-  button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 8px; }
-  button:hover { background: #0284c7; }
-  button.test { background: #6554C0; }
-  button.test:hover { background: #4c3a9e; }
-  .info { font-size: 12px; color: #94a3b8; margin-top: 8px; line-height: 1.6; }
-  .info code { background: #0f172a; padding: 2px 6px; border-radius: 3px; color: #fbbf24; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
-  .stat { background: #0f172a; padding: 12px; border-radius: 6px; }
-  .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
-  .stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
-  #result { margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; }
-  .result-ok { background: #064e3b; color: #6ee7b7; }
-  .result-err { background: #7f1d1d; color: #fca5a5; }
-  a { color: #38bdf8; }
-</style>
-</head>
-<body>
-  <h1>🍪 Refrescador de Cookies FB</h1>
-  <div class="subtitle">LeadX — mantener sesión Facebook activa para Apify scraper</div>
-
-  <div class="card">
-    <div class="status" id="status">Cargando estado...</div>
-    <div class="stats" id="stats"></div>
-  </div>
-
-  <div class="card">
-    <h3 style="margin-bottom:12px">Pegar cookies nuevas</h3>
-    <textarea id="cookiesInput" placeholder='Pegá acá el JSON exportado de Cookie-Editor (Chrome). Ejemplo:&#10;[&#10;  {"domain":".facebook.com","name":"xs","value":"35%3A..."},&#10;  {"domain":".facebook.com","name":"c_user","value":"USER_ID_EXAMPLE"},&#10;  ...&#10;]'></textarea>
-    <div style="margin-top:12px">
-      <button onclick="saveCookies()">💾 Guardar cookies</button>
-      <button class="test" onclick="testCookies()">🧪 Probar cookies</button>
-      <button onclick="loadStatus()" style="background:#475569">↻ Refrescar estado</button>
-    </div>
-    <div id="result"></div>
-  </div>
-
-  <div class="card">
-    <div class="info">
-      <strong>¿Cómo conseguir las cookies?</strong><br>
-      1. Instalá la extensión <a href="https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm" target="_blank">Cookie-Editor</a> en Chrome<br>
-      2. Iniciá sesión en <a href="https://www.facebook.com" target="_blank">facebook.com</a> con tu cuenta<br>
-      3. Abrí Cookie-Editor (ícono de cookie arriba a la derecha)<br>
-      4. Click en "Export" → "Export as JSON"<br>
-      5. Pegá el JSON acá arriba → "Guardar cookies"
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="info">
-      <strong>¿Cada cuánto refrescar?</strong><br>
-      • Cada <strong>7-14 días</strong> (preventivo)<br>
-      • Si Apify devuelve 0 resultados (cookies vencidas)<br>
-      • Si Facebook te desloguea de tu browser<br>
-      • La cookie <code>xs</code> (sesión crítica) caduca en ~6 meses<br>
-      • Facebook puede invalidarla antes si detecta scraping
-    </div>
-  </div>
-
-<script>
-const SECRET = new URLSearchParams(location.search).get('key') || '';
-
-async function loadStatus() {
-  document.getElementById('status').innerHTML = 'Cargando...';
-  try {
-    const r = await fetch('/api/cookies?key=' + SECRET);
-    const d = await r.json();
-    if (!d.ok) {
-      document.getElementById('status').innerHTML = '<span class="status-err">Error: ' + (d.error || '?') + '</span>';
-      return;
-    }
-    let statusClass = 'status-ok';
-    let statusText = '✓ Cookies válidas';
-    if (d.status === 'never_set') { statusClass = 'status-err'; statusText = '✗ Sin cookies guardadas'; }
-    else if (d.status === 'expired') { statusClass = 'status-err'; statusText = '✗ Cookies VENCIDAS - refrescar ahora'; }
-    else if (d.status === 'no_xs') { statusClass = 'status-warn'; statusText = '⚠ Falta cookie xs (sesión)'; }
-    else if (d.days_until_expiry < 7) { statusClass = 'status-warn'; statusText = '⚠ Por vencer en ' + d.days_until_expiry + ' días'; }
-
-    document.getElementById('status').innerHTML = '<span class="' + statusClass + '">' + statusText + '</span>';
-    document.getElementById('stats').innerHTML = \`
-      <div class="stat"><div class="stat-label">Cookies guardadas</div><div class="stat-value">\${d.cookie_count || 0}</div></div>
-      <div class="stat"><div class="stat-label">Última actualización</div><div class="stat-value" style="font-size:13px">\${d.updated_at ? new Date(d.updated_at).toLocaleString('es-AR') : '—'}</div></div>
-      <div class="stat"><div class="stat-label">Cookie xs vence</div><div class="stat-value" style="font-size:13px">\${d.xs_expires_at ? new Date(d.xs_expires_at).toLocaleDateString('es-AR') : '—'}</div></div>
-      <div class="stat"><div class="stat-label">Días restantes</div><div class="stat-value">\${d.days_until_expiry !== null ? d.days_until_expiry : '—'}</div></div>
-    \`;
-}
-loadStatus();
-</script>
-</body>
-</html>`;
 
 ```
 
 
 ================================================================================
-FILE: generate_payload.py (52,027 chars, 1330 lines)
-DESC: Pipeline Python (scoring + enrichment)
+FILE: generate_payload.py | 1934 lines | SHA: b68013b29338
+DESC: Python (scoring + VentaFe + mining + OSINT + filtros)
 ================================================================================
 
 ```python
@@ -3184,6 +3411,34 @@ REJECT_IF_CONTAINS = [
     "enviar dinero", "criptomoneda",
 ]
 
+# FILTROS ADICIONALES DE CALIDAD (DeepSeek+Qwen v2.7)
+NEGATIVE_KEYWORDS = [
+    'accidente', 'choque', 'siniestro', 'colisión',
+    'trabajo', 'empleo', 'renunciar', 'laboral',
+    'tablet', 'celular', 'notebook', 'electrónica',
+    'licitación', 'concurso', 'fraude', 'estafa',
+    'alquiler', 'departamento', 'propiedad',
+    'médico', 'hospital', 'salud',
+]
+
+DISCARD_DOMAINS = {
+    'iprofesional.com', 'ciudano.news', 'ciudadano.news', 'iusnoticias.com.ar',
+    'parrillacero5.com.ar', 'multas.ar', 'juridicamente.org',
+    'hlbpharma.com.ar', 'autodataar.com', 'tiempofinanciero.com.ar',
+    'tn.com.ar', 'infobae.com', 'clarin.com', 'lanacion.com.ar',
+    'perfil.com', 'cronista.com', 'ambito.com',
+    'segurarse.com.ar', 'carchecking.com.ar',
+    'multabot.com.ar', 'reclamosonline.com.ar',
+    'portaldeabogados.com', 'jus.gov.ar', 'gob.ar', 'gov.ar',
+    'wikipedia.org', 'youtube.com',
+}
+
+REJECT_COUNTRIES = {
+    'brasil', 'chile', 'uruguay', 'paraguay', 'bolivia',
+    'perú', 'colombia', 'ecuador', 'venezuela', 'méxico',
+    'españa', 'estados unidos', 'italia',
+}
+
 INSTITUTIONAL_DOMAINS = {
     "dnrpa.gov.ar", "argentina.gob.ar", "buenosaires.gob.ar",
     "gob.ar", "jus.gob.ar", "rentas.gob.ar", "arba.gov.ar",
@@ -3221,12 +3476,18 @@ ARGENTINA_SIGNALS = [
 ]
 
 # Phone patterns
+# Qwen+Kimi v2: Regex FEDERAL v2 - captura formatos reales argentinos
 ARG_PHONE_PATTERNS = [
-    r"\+54\s?9?\s?11\s?\d{4}\s?\d{4}",
-    r"\b11\s?\d{4}\s?\d{4}\b",
-    r"\b15\s?\d{4}\s?\d{4}\b",
-    r"\b0(2[0-9]|3[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
-    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+    # Formato explicito: "whatsapp: 11 1234-5678", "llamame al 341-555-1234"
+    r"(?i)(?:whatsapp|wsp|wapp|wp|wasap|celular|cel|tel[eé]fono|tel|llamame|contactame|escribime|mandame)\s*:?\s*([+]?\d[\d\s\-]{8,15})",
+    # Formato federal: 11 1234-5678, 341-555-1234, 0351 1234567, +54 9 11 1234 5678
+    r"(?<!\d)(?:[+]?\d{0,2}\s?)?(?:0?\s?)?(?:11|15|341|342|343|351|358|381|385|387|388|221|261|264|291|294|297|299|336|362|370|376|379|380|383)\s?[\s\-]?\d{4}[\s\-]?\d{4}(?!\d)",
+    # Formato wa.me directo
+    r"wa\.me/(\d{8,15})",
+    # Formato generico: 11-1234-5678
+    r"\b(\d{2}[\s\-]?\d{4}[\s\-]?\d{4})\b",
+    # Formato con parentesis: (11) 1234-5678, (341) 555-1234 (Qwen v3 fix)
+    r"\((11|15|341|342|343|351|358|381|385|387|388|221|261|264|291|294|297|299|336|362|370|376|379|380|383)\)\s?\d{4}[\s\-]?\d{4}",
 ]
 
 WHATSAPP_PATTERNS = [
@@ -3401,30 +3662,146 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
-    """Normaliza telefono a formato +54XXXXXXXXXX (Claude version mejorada).
-    Cubre: +54 9 11 1234 5678 / 11-1234-5678 / 011 1234-5678 / etc.
-    """
+    """Qwen+Kimi v2: Normaliza cualquier formato AR a E.164: +549112345678"""
     digits = re.sub(r"\D", "", phone)
-    if not digits or len(digits) < 8:
+    if not digits:
         return ""
     # Quitar prefijo pais si existe
     if digits.startswith("54"):
         digits = digits[2:]
-    # Quitar 0 inicial (prefix interurbano AR)
+    # Quitar 0 inicial (interurbano)
     if digits.startswith("0"):
         digits = digits[1:]
-    # Quitar 9 inicial (mobile prefix AR)
+    # Quitar 9 inicial (mobile prefix viejo)
     if digits.startswith("9") and len(digits) == 11:
         digits = digits[1:]
-    # Si tiene 10 digitos y empieza con 11 (CABA mobile), agregar 9
+    # Si tiene 10 digitos y empieza con 11 (CABA), agregar 9
     if len(digits) == 10 and digits.startswith("11"):
         digits = "9" + digits
-    return f"+54{digits}" if len(digits) >= 8 else ""
+    # Si tiene 10 digitos y NO empieza con 5, agregar 549
+    elif len(digits) == 10 and not digits.startswith("5"):
+        digits = "9" + digits
+    return f"+54{digits}" if len(digits) >= 10 else ""
+
+def normalize_phone_ar(raw: str) -> str:
+    """Alias de phone_to_e164 para compatibilidad."""
+    return phone_to_e164(raw)
 
 
 # ===========================================================================
 # Step 1: Collect
 # ===========================================================================
+
+#===========================================================================
+# Step 1.5: VentaFe Scraper — Portal de clasificados del interior (ORO)
+#===========================================================================
+def scrape_ventafe_leads() -> List[Dict[str, Any]]:
+    """
+    Scrapea VentaFe.com.ar (clasificados de autos del interior).
+    Extrae: titulo, descripcion, precio, telefono, patente.
+    """
+    import urllib.request as _urq
+    import urllib.error
+    
+    print("[Step 1.5] Scraping VentaFe.com.ar...", file=sys.stderr)
+    
+    BASE_URL = "https://www.ventafe.com.ar/automoviles"
+    HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-AR,es;q=0.9,en;q=0.8',
+    }
+    
+    PHONE_REGEX = re.compile(
+        r'(?:\+?54\s?9?\s?)?'
+        r'(?:\(?(?:0?342|342|0?341|341|0?351|351|0?343|343|0?261|261|0?221|221|0?381|381|0?299|299)\)?[\s\-]?)?'
+        r'(?:15\s?)?'
+        r'\d{4}[\s\-]?\d{4}',
+        re.IGNORECASE
+    )
+    PATENTE_REGEX = re.compile(r'\b([A-Z]{2,3}\s?\d{3}\s?[A-Z]{2}|[A-Z]{3}\s?\d{3})\b')
+    
+    PROBLEMA_KEYWORDS = {
+        'TRANSFERENCIA_BLOQUEADA': r'no\s+puedo\s+transferir|transferencia\s+bloqueada|no\s+me\s+dejan\s+transferir',
+        'MULTA': r'multa|fotomulta|infraccion|infraccion',
+        'DEUDA': r'deuda|adeuda|debo|debe',
+        'LIBRE_DEUDA': r'libre\s+de\s+deuda|libre\s+deuda|sin\s+deuda',
+        'PAPELES_AL_DIA': r'papeles\s+al\s+d[ií]a|documentaci[oó]n\s+al\s+d[ií]a|listo\s+para\s+transferir',
+    }
+    
+    all_leads = []
+    total_pages = 8
+    
+    for page in range(1, total_pages + 1):
+        url = f"{BASE_URL}?page={page}" if page > 1 else BASE_URL
+        print(f"  [VentaFe] Scraping page {page}/{total_pages}...", file=sys.stderr)
+        
+        try:
+            req = _urq.Request(url, headers=HEADERS)
+            with _urq.urlopen(req, timeout=20) as resp:
+                html = resp.read().decode('utf-8', errors='replace')
+        except Exception as e:
+            print(f"  [VentaFe] Error page {page}: {e}", file=sys.stderr)
+            continue
+        
+        aviso_blocks = re.split(r'#\d{6,8}', html)
+        
+        for block in aviso_blocks[1:]:
+            text = re.sub(r'<[^>]+>', ' ', block)
+            text = re.sub(r'&[a-z]+;', ' ', text)
+            text = re.sub(r'\s+', ' ', text).strip()
+            
+            if len(text) < 100:
+                continue
+            
+            phone_matches = PHONE_REGEX.findall(text)
+            phones = []
+            for p in phone_matches:
+                digits = re.sub(r'\D', '', p)
+                if 10 <= len(digits) <= 15:
+                    if len(digits) == 10 and not digits.startswith('54'):
+                        digits = '54' + digits
+                    phones.append(digits)
+            phones = list(set(phones))
+            
+            patente_matches = PATENTE_REGEX.findall(text)
+            patentes = list(set([p.replace(' ', '').upper() for p in patente_matches]))
+            
+            problemas = []
+            for prob_name, prob_regex in PROBLEMA_KEYWORDS.items():
+                if re.search(prob_regex, text, re.IGNORECASE):
+                    problemas.append(prob_name)
+            
+            if not phones and not patentes:
+                continue
+            
+            lead_id = 'ventafe_' + hashlib.sha256(text[:200].encode()).hexdigest()[:12]
+            lead = {
+                'id': lead_id,
+                'name': text[:80],
+                'url': 'https://www.ventafe.com.ar/automoviles',
+                'snippet': text[:500],
+                'date': datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+                'host_name': 'ventafe.com.ar',
+                'username': '',
+                'author': 'Vendedor VentaFe',
+                'source': 'ventafe',
+                '_query': 'ventafe_automoviles',
+                'telefonos': phones,
+                'patentes': patentes,
+                'problemas': problemas,
+                'zona': 'Santa Fe',
+            }
+            all_leads.append(lead)
+        
+        time.sleep(2)
+    
+    hot_leads = [l for l in all_leads if l['problemas'] or l['patentes']]
+    print(f"  [VentaFe] Total scrapeados: {len(all_leads)} | Calientes: {len(hot_leads)}", file=sys.stderr)
+    
+    return hot_leads
+
+
 def collect_public_sources() -> List[Dict[str, Any]]:
     """Recolecta resultados de búsquedas públicas via search_providers web_search.
     
@@ -3541,6 +3918,15 @@ def collect_public_sources() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"  Facebook (Apify) ERROR: {e}", file=sys.stderr)
 
+    # VentaFe Scraper (portal de clasificados del interior - SANTA FE ORO)
+    try:
+        ventafe_results = scrape_ventafe_leads()
+        if ventafe_results:
+            all_results.extend(ventafe_results)
+            print(f"  VentaFe: +{len(ventafe_results)} leads agregados", file=sys.stderr)
+    except Exception as e:
+        print(f"  VentaFe ERROR: {e}", file=sys.stderr)
+
     return all_results
 
 
@@ -3563,8 +3949,81 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if reject in combined_lower:
             return None
 
-    # Extract phone
+    # FILTRO DE DOMINIOS DE MEDIOS (DeepSeek v2.7)
+    host = result.get("host", "") or get_host(url)
+    if any(d in host for d in DISCARD_DOMAINS):
+        return None
+
+    # FILTRO DE PAIS EXTRANJERO (DeepSeek v2.7)
+    for country in REJECT_COUNTRIES:
+        if country in combined_lower:
+            return None
+
+    # FILTRO DE PALABRAS CLAVE NEGATIVAS (DeepSeek v2.7)
+    neg_matches = sum(1 for kw in NEGATIVE_KEYWORDS if kw in combined_lower)
+    if neg_matches >= 2:
+        return None
+
+    # FIX 2 (DeepSeek): Filtro de idioma portugués
+    PORTUGUESE_INDICATORS = [
+        r"\b(?:eu|voc[êe]|voc[êe]s|n[óo]s|eles|elas|meu|sua|suas|nosso|nossa)\b",
+        r"\b(?:comprei|vendi|fiz|est[áa]|s[ãa]o|tem|fazer|pagar|transferir|consegui)\b",
+        r"\b(?:n[ãa]o|tamb[ée]m|j[áa]|ainda|ent[ãa]o|porque|mas|por[ée]m|s[óo]|depois|antes)\b",
+        r"\b(?:boa tarde|bom dia|boa noite|povo|galera|pessoal|abra[çc]o|obrigado|obrigada)\b",
+        r"\b(?:carro|moto|ve[íi]culo|multa|transfer[êe]ncia|documento|detran|cnh|emplacamento)\b",
+    ]
+    pt_matches = sum(1 for pattern in PORTUGUESE_INDICATORS if re.search(pattern, combined, re.IGNORECASE))
+    if pt_matches >= 3:
+        return None
+
+    # FIX 5 (DeepSeek): Filtro de contexto vehicular mas estricto
+    VEHICULAR_KEYWORDS_STRICT = [
+        "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones",
+        "infracción", "transferencia", "transferir", "08", "08 firmado", "cedula verde",
+        "libre deuda", "libredeuda", "patente", "registro automotor",
+        "veraz", "juez de faltas", "deuda patente", "inhibicion",
+        "titulo", "titular", "denuncia de venta", "formulario 08",
+    ]
+    vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
+    # Inicializar variables antes del check (fix UnboundLocalError)
     phone = ""
+    whatsapp = ""
+    email = ""
+    has_contact = bool(phone or whatsapp or email)
+    # Qwen fix: Solo descartar si NO tiene keywords vehiculares Y NO tiene contacto
+    if vehicular_count < 2 and not has_contact:
+        return None
+
+    # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
+    if len(combined.strip()) < 50:
+        return None
+    url_count = len(re.findall(r"https?://", combined))
+    html_tag_count = len(re.findall(r"<[^>]+>", combined))
+    if len(combined) > 0 and (url_count * 30 + html_tag_count * 10) / len(combined) > 0.5:
+        return None
+
+    # VentaFe: campos personalizados
+    telefonos_ventafe = result.get('telefonos', [])
+    patentes_ventafe = result.get('patentes', [])
+    problemas_ventafe = result.get('problemas', [])
+    zona_ventafe = result.get('zona', '')
+    
+    if telefonos_ventafe:
+        phone = telefonos_ventafe[0]
+        whatsapp = telefonos_ventafe[0]
+        contacto_publico = True
+    
+    if patentes_ventafe:
+        patent = patentes_ventafe[0]
+    
+    if problemas_ventafe:
+        combined += ' ' + ' '.join(problemas_ventafe)
+        combined_lower = combined.lower()
+    
+    if zona_ventafe:
+        provincia = zona_ventafe
+
+    # Extract phone (si no vino de VentaFe)
     for pattern in ARG_PHONE_PATTERNS:
         m = re.search(pattern, combined)
         if m:
@@ -3797,6 +4256,55 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
             signals.append("URGENCY")
             break
 
+    # VentaFe: scoring especifico para clasificados
+    source_str = (record.get("source", "") or "").lower()
+    if 'ventafe' in source_str:
+        score += 20
+        breakdown['ventafe_base'] = 20
+        signals.append('VENTAFE_LISTING')
+        
+        if record.get('patentes'):
+            score += 15
+            breakdown['ventafe_patente'] = 15
+            signals.append('VENTAFE_PATENTE')
+        
+        problemas = record.get('problemas', [])
+        if 'TRANSFERENCIA_BLOQUEADA' in problemas:
+            score += 30
+            breakdown['ventafe_transferencia'] = 30
+            signals.append('VENTAFE_TRANSFERENCIA')
+        if 'MULTA' in problemas:
+            score += 25
+            breakdown['ventafe_multa'] = 25
+            signals.append('VENTAFE_MULTA')
+        if 'DEUDA' in problemas:
+            score += 25
+            breakdown['ventafe_deuda'] = 25
+            signals.append('VENTAFE_DEUDA')
+
+    # DETECTOR DE CONTRADICCIONES (Qwen: VentaFe vs Clasific.ar)
+    promesas_ok = ["papeles al dia", "papeles al día", "listo para transferir",
+                   "sin deuda", "sin multas", "libre de deuda", "patente paga",
+                   "todo al dia", "todo al día", "transferencia inmediata"]
+    vendedor_promete_ok = any(p in text for p in promesas_ok)
+    
+    tiene_deuda_real = False
+    if record.get("clasificar_deuda") or record.get("clasificar_multas"):
+        tiene_deuda_real = True
+    if any(p in text for p in ["debo patente", "tiene multas", "deuda de patente", "infracciones"]):
+        tiene_deuda_real = True
+    
+    if vendedor_promete_ok and tiene_deuda_real:
+        score += 40
+        breakdown["contradiccion_detectada"] = 40
+        signals.append("CONTRADICCION_VENDEDOR")
+    
+    admite_problema = any(p in text for p in ["debo patentes", "tiene multas", "falta el 08", "no puedo transferir"])
+    if admite_problema:
+        score += 30
+        breakdown["admite_deuda"] = 30
+        signals.append("VENDEDOR_ADMITE_PROBLEMA")
+
     # multa_or_fotomulta: +60
     if "multa" in text or "fotomulta" in text:
         score += SCORE_RULES["multa_or_fotomulta"]
@@ -3967,14 +4475,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         problem_cat = "OTHER"
         problem_sum = "Lead vehicular"
 
-    # WhatsApp link
+    # WhatsApp link (Qwen fix: normalizar a E.164)
     wa_link = ""
     wa_num = record.get("whatsapp_publico", "") or record.get("telefono_publico", "")
     if wa_num:
-        digits = re.sub(r"\D", "", wa_num)
-        if not digits.startswith("54"):
-            digits = "54" + digits.lstrip("0")
-        wa_link = f"https://wa.me/{digits}"
+        normalized = phone_to_e164(wa_num)
+        if normalized and normalized.startswith("+54"):
+            wa_link = f"https://wa.me/{normalized[1:]}"
+        else:
+            digits = re.sub(r"\D", "", wa_num)
+            if len(digits) >= 8:
+                wa_link = f"https://wa.me/{digits}"
 
     return Lead(
         score=score,
@@ -4013,12 +4524,8 @@ def deduplicate_cases(leads: List[Lead]) -> List[Lead]:
     seen: Set[str] = set()
     out = []
     for lead in leads:
-        components = [
-            normalize_text(lead.quoted_text[:200]),
-            lead.source_url,
-            lead.persona,
-            lead.platform,
-        ]
+        # Qwen fix: Solo usar URL para ID (estable entre runs)
+        components = [lead.source_url or lead.quoted_text[:50]]
         composite = "|".join(components)
         h = hashlib.sha256(composite.encode("utf-8")).hexdigest()[:16]
         lead.id = h
@@ -4194,11 +4701,278 @@ _pqm_global = None  # PendingQueryManager global, seteado en run_pipeline
 _CURRENT_GROUP_IDX = 0
 
 
+#===========================================================================
+# Step 4.6: Comment Mining — Extraer contactos de comentarios del post
+#===========================================================================
+def mine_comments_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea comentarios del post y busca telefonos/emails del autor."""
+    print("[Step 4.6] Mining comments for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        url_parts = lead.source_url.rstrip("/").split("/")
+        if len(url_parts) < 7 or "comments" not in url_parts:
+            continue
+        post_id = url_parts[6]
+
+        comments_url = f"https://old.reddit.com/comments/{post_id}.json?limit=50"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(comments_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not isinstance(data, list) or len(data) < 2:
+                    continue
+
+                comments_listing = data[1]
+                all_comment_text = ""
+                lead_author = lead.persona.replace("u/", "").strip().lower()
+
+                for child in comments_listing.get("data", {}).get("children", []):
+                    comment = child.get("data", {})
+                    author = comment.get("author", "")
+                    body = comment.get("body", "")
+
+                    if author and author != "[deleted]" and body:
+                        if author.lower() == lead_author:
+                            all_comment_text += " " + body
+
+                if not all_comment_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_comment_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_comment_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_comment_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["COMMENT_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(2.0)  # Qwen fix: Rate limit
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Comment Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+#===========================================================================
+# Step 4.7: Profile Mining — Extraer contactos del perfil de Reddit del autor
+#===========================================================================
+def mine_profile_for_contacts(leads: List[Lead]) -> int:
+    """Scrapea el perfil del autor (comments.rss) y busca contacto en bio/historial."""
+    print("[Step 4.7] Mining user profiles for contacts...", file=sys.stderr)
+    enriched_count = 0
+
+    for lead in leads:
+        if lead.platform != "Reddit":
+            continue
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+
+        username = lead.persona.replace("u/", "").strip()
+        if not username or len(username) < 3:
+            continue
+
+        profile_url = f"https://www.reddit.com/user/{username}/comments/.rss?limit=25"
+
+        try:
+            import urllib.request as _urq
+            req = _urq.Request(profile_url)
+            req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
+            req.add_header("Accept", "application/atom+xml,application/xml,text/xml")
+            with _urq.urlopen(req, timeout=15) as resp:
+                xml_content = resp.read().decode("utf-8", errors="replace")
+
+                entries = re.findall(r"<entry>([\s\S]*?)</entry>", xml_content, re.DOTALL)
+                all_profile_text = ""
+
+                for entry in entries:
+                    content_m = re.search(r"<content[^>]*>([\s\S]*?)</content>", entry, re.DOTALL)
+                    if content_m:
+                        raw = content_m.group(1)
+                        cleaned = re.sub(r"<[^>]+>", " ", raw)
+                        cleaned = cleaned.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                        cleaned = cleaned.replace("&quot;", '"').replace("&#39;", "'")
+                        all_profile_text += " " + cleaned
+
+                if not all_profile_text:
+                    continue
+
+                for pattern in ARG_PHONE_PATTERNS:
+                    m = re.search(pattern, all_profile_text)
+                    if m:
+                        digits = re.sub(r"\D", "", m.group(0))
+                        if 10 <= len(digits) <= 15:
+                            lead.telefono_publico = m.group(0).strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, (lead.score or 0) + 25)
+                            lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_PHONE"]
+                            enriched_count += 1
+                            break
+
+                if not lead.whatsapp_publico:
+                    for pattern in WHATSAPP_PATTERNS:
+                        m = re.search(pattern, all_profile_text, re.IGNORECASE)
+                        if m:
+                            num = m.group(1) if m.groups() else m.group(0)
+                            digits = re.sub(r"\D", "", num)
+                            if 8 <= len(digits) <= 15:
+                                if len(digits) == 10 and digits.startswith("11"):
+                                    digits = "549" + digits
+                                lead.whatsapp_publico = digits
+                                lead.contacto_publico = True
+                                lead.score = min(100, (lead.score or 0) + 30)
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_WHATSAPP"]
+                                enriched_count += 1
+                                break
+
+                if not lead.email_publico:
+                    m = re.search(EMAIL_PATTERN, all_profile_text)
+                    if m:
+                        lead.email_publico = m.group(1).lower().strip()
+                        lead.contacto_publico = True
+                        lead.score = min(100, (lead.score or 0) + 15)
+                        lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_MINING_EMAIL"]
+                        enriched_count += 1
+
+                time.sleep(2.0)  # Qwen fix: Rate limit
+        except Exception:
+            continue
+
+    if enriched_count:
+        print(f"  [Profile Mining] {enriched_count} leads enriquecidos", file=sys.stderr)
+    return enriched_count
+
+
+def enrich_contacts_via_reddit_profile(leads: List[Lead]) -> int:
+    """Busca links a otras plataformas en el perfil de Reddit y rastrea contactos."""
+    import urllib.request as _urq
+    enriched = 0
+    worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    ingest_secret = os.environ.get("INGEST_SECRET", "")
+    if not ingest_secret:
+        return 0
+
+    for lead in leads:
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+        if lead.platform != "Reddit":
+            continue
+        username = lead.persona.replace("u/", "").strip()
+        if len(username) < 3:
+            continue
+
+        try:
+            profile_url = f"{worker_url}/api/reddit-profile-links?user={username}"
+            req = _urq.Request(profile_url)
+            req.add_header("X-Webhook-Secret", ingest_secret)
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not data.get("ok") or not data.get("links"):
+                    continue
+
+                for link in data["links"][:5]:
+                    snippet = ""
+                    try:
+                        search_results = provider_search(f"site:{link}", num=2)
+                        for sr in search_results:
+                            snippet += sr.get("snippet", "") + " "
+                    except Exception:
+                        continue
+
+                    for pat in ARG_PHONE_PATTERNS:
+                        m = re.search(pat, snippet)
+                        if m:
+                            digits = re.sub(r"\D", "", m.group(0))
+                            if 10 <= len(digits) <= 15:
+                                lead.telefono_publico = m.group(0).strip()
+                                lead.contacto_publico = True
+                                lead.score = min(100, lead.score + 30)
+                                if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                    lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                                enriched += 1
+                                break
+                    if not lead.telefono_publico:
+                        m = re.search(EMAIL_PATTERN, snippet)
+                        if m:
+                            lead.email_publico = m.group(1).lower().strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, lead.score + 15)
+                            if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                            enriched += 1
+                time.sleep(0.5)
+        except Exception:
+            continue
+    if enriched:
+        print(f"  [ProfileLinkMining] {enriched} leads enriquecidos", file=sys.stderr)
+    return enriched
+
+
 def run_pipeline() -> Dict[str, Any]:
     global QUERIES_EXECUTED, _pqm_global
     _pqm_global = None  # se setea en Step 0.5
 
     print("=" * 60, file=sys.stderr)
+    print("  LeadX Pipeline v2 (Python = unico cerebro)", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+    # GPT FIX: Descargar KV existente para merge correcto
+    # (Worker hace deep merge, pero Python necesita saber que ya existe)
+    try:
+        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+        ingest_secret = os.environ.get("INGEST_SECRET", "")
+        if ingest_secret:
+            import urllib.request as _urq_kv
+            kv_url = f"{worker_url}/api/kv?key=leads:live"
+            req_kv = _urq_kv.Request(kv_url)
+            req_kv.add_header("X-Webhook-Secret", ingest_secret)
+            with _urq_kv.urlopen(req_kv, timeout=15) as resp_kv:
+                kv_data = json.loads(resp_kv.read().decode("utf-8", errors="replace"))
+            existing_count = len(kv_data.get("value", {}).get("leads_all", []))
+            print(f"  [KV] Leads existentes en KV: {existing_count}", file=sys.stderr)
+    except Exception as e:
+        print(f"  [KV] WARNING: {e}", file=sys.stderr)
     print("  RADAR LEADS — Payload Generator v1.0", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
 
@@ -4305,6 +5079,63 @@ def run_pipeline() -> Dict[str, Any]:
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
+    # Step 4.6: Comment Mining (DeepSeek+Qwen insight)
+    mine_comments_for_contacts(leads)
+
+    # Step 4.7: Profile Mining (DeepSeek+Qwen insight)
+    mine_profile_for_contacts(leads)
+
+    # MEJORA 2 (Qwen): OSINT Shadow Profile - triangulacion de identidad
+    # Si un lead de Reddit no tiene contacto, buscar username en ML/FB via DDG
+    try:
+        from search_providers import search as _osint_search
+        osint_count = 0
+        for lead in leads:
+            if lead.whatsapp_publico or lead.email_publico or lead.telefono_publico:
+                continue  # Ya tiene contacto, saltar
+            if not lead.persona or not lead.persona.startswith("u/"):
+                continue  # No es Reddit user
+            username = lead.persona.replace("u/", "").strip()
+            if len(username) < 3:
+                continue
+            # Buscar username en MercadoLibre y Facebook
+            for q in [f'site:mercadolibre.com.ar "{username}"',
+                      f'site:facebook.com "{username}"']:
+                try:
+                    results = _osint_search(q, num=3)
+                    for r in results:
+                        snippet = r.get("snippet", "") + " " + r.get("title", "")
+                        # Reusar regex federal para extraer telefono
+                        for pattern in ARG_PHONE_PATTERNS:
+                            m = re.search(pattern, snippet)
+                            if m:
+                                digits = re.sub(r"\D", "", m.group(0))
+                                if 10 <= len(digits) <= 15:
+                                    lead.telefono_publico = m.group(0).strip()
+                                    lead.contacto_publico = True
+                                    lead.score = min(100, (lead.score or 0) + 20)
+                                    if "OSINT_SHADOW" not in (lead.detected_signals or []):
+                                        lead.detected_signals = (lead.detected_signals or []) + ["OSINT_SHADOW_PROFILE"]
+                                    osint_count += 1
+                                    break
+                        if lead.telefono_publico:
+                            break
+                    if lead.telefono_publico:
+                        break
+                except Exception:
+                    continue
+            time.sleep(1)  # rate limit DDG
+        if osint_count:
+            print(f"  [OSINT] {osint_count} leads enriquecidos via shadow profile", file=sys.stderr)
+    except Exception as e:
+        print(f"  [OSINT] ERROR: {e}", file=sys.stderr)
+
+    # Step 4.8: Enriquecer contactos via links del perfil de Reddit (DeepSeek v2.7)
+    try:
+        enrich_contacts_via_reddit_profile(leads)
+    except Exception as e:
+        print(f"  [ProfileLinkMining] ERROR: {e}", file=sys.stderr)
+
     # Step 5: Dedup
     leads = deduplicate_cases(leads)
 
@@ -4346,8 +5177,8 @@ if __name__ == "__main__":
 
 
 ================================================================================
-FILE: search_providers.py (43,386 chars, 1124 lines)
-DESC: Providers (Reddit RSS + DDG + FB + ML + Foros)
+FILE: search_providers.py | 1132 lines | SHA: fd8d715cc37f
+DESC: Providers (Reddit + DDG + FB + ML + Foros)
 ================================================================================
 
 ```python
@@ -4614,7 +5445,10 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
             if u2 and not author:
                 author = u2.group(1)
             # Strip HTML
-            snippet = _re2.sub(r"<[^>]+>", " ", raw)
+            snippet = _re2.sub(r"<img[^>]*>", "", raw)
+            snippet = _re2.sub(r"<[^>]+>", " ", snippet)
+            snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
+            snippet = _re2.sub(r"https?://\S+", "", snippet)
             snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
             snippet = snippet.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'")
             snippet = _re2.sub(r"\s+", " ", snippet).strip()
@@ -4622,6 +5456,19 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         # Solo incluir si es un post (tiene /comments/ en la URL) y no un subreddit
         if "/comments/" not in url:
             continue
+
+            # FIX 3 (DeepSeek): Filtrar subreddits irrelevantes
+            IRRELEVANT_SUBREDDITS = {
+                "androidafterlife", "android", "whatsapp", "androidmods",
+                "gbwhatsapp", "modding", "apks", "side_loaded",
+                "brasil", "portugal", "portuguese", "learnportuguese",
+                "portugues", "brasileiros",
+                "mexico", "colombia", "chile", "peru", "uruguay", "paraguay",
+                "bolivia", "ecuador", "venezuela", "costarica", "panama",
+            }
+            sub_match = re.search(r"reddit\.com/r/([^/]+)/", url)
+            if sub_match and sub_match.group(1).lower() in IRRELEVANT_SUBREDDITS:
+                continue
         
         results.append({
             "title": title[:200],
@@ -4639,14 +5486,6 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         _rss_cache[cache_key] = (_tm.time(), results)
     return results[:num]
 
-
-def c_data_iter(comment_listing):
-    """Itera sobre los bodies de comments de un listing de Reddit."""
-    try:
-        for c in comment_listing.get("data",{}).get("children",[])[:10]:
-            yield c.get("data",{}).get("body","")
-    except Exception:
-        return
 
     print(f"    [reddit] got {len(data.get('data',{}).get('children',[]))} results", file=_sys.stderr)
 
@@ -5480,8 +6319,8 @@ def search_reddit_with_status(query: str, num: int = 10):
 
 
 ================================================================================
-FILE: source_registry.py (10,766 chars, 316 lines)
-DESC: Source Registry (discovery + scoring)
+FILE: source_registry.py | 316 lines | SHA: 92c16a2f968e
+DESC: Source Registry
 ================================================================================
 
 ```python
@@ -5806,8 +6645,8 @@ if __name__ == "__main__":
 
 
 ================================================================================
-FILE: pending_queries_kv.py (7,896 chars, 207 lines)
-DESC: PendingQueryManager (cola 429)
+FILE: pending_queries_kv.py | 207 lines | SHA: eed8590c119f
+DESC: PendingQueryManager
 ================================================================================
 
 ```python
@@ -6023,8 +6862,8 @@ class PendingQueryManager:
 
 
 ================================================================================
-FILE: wrangler.toml (501 chars, 21 lines)
-DESC: Cloudflare config (KV + cron)
+FILE: wrangler.toml | 17 lines | SHA: e6da0ace636f
+DESC: Config (KV + cron)
 ================================================================================
 
 ```toml
@@ -6042,20 +6881,16 @@ id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
 [observability]
 enabled = true
 
-# Cron Trigger cada 1h - el Worker corre solo, sin GH Actions
+# Cron Trigger cada 1h - scraping desde edge IP (no bloqueada)
 [triggers]
 crons = ["0 * * * *"]
-
-# INGEST_SECRET debe definirse como secret (no como var):
-#   wrangler secret put INGEST_SECRET
-# NO lo pongas en este archivo como var.
 
 ```
 
 
 ================================================================================
-FILE: .github/workflows/radar-cron.yml (3,171 chars, 98 lines)
-DESC: GH Actions workflow (legacy, cron moved to Worker)
+FILE: .github/workflows/radar-cron.yml | 84 lines | SHA: 02d3bcab712a
+DESC: GH Actions (cron 1h)
 ================================================================================
 
 ```yaml
@@ -6093,9 +6928,9 @@ jobs:
       - name: Copy to public/data
         run: |
           mkdir -p public/data
-          cp data/dashboard_payload.json public/data/dashboard_payload.json
-          cp data/stats.json public/data/stats.json
-          cp data/history.json public/data/history.json
+          cp data/dashboard_payload.json public/data/dashboard_payload.json 2>/dev/null || true
+          cp data/stats.json public/data/stats.json 2>/dev/null || true
+          cp data/history.json public/data/history.json 2>/dev/null || true
 
       - name: Commit and push
         run: |
@@ -6110,38 +6945,24 @@ jobs:
           WORKER_URL: https://leadx.simondalmasso44.workers.dev
           INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
         run: |
-          pip install requests -q
-          python -c "
-          import os, json, requests, sys
-          url = os.environ['WORKER_URL'] + '/api/ingest'
-          secret = os.environ['INGEST_SECRET']
-          with open('data/dashboard_payload.json') as f:
-              payload = json.load(f)
-          leads = payload.get('leads_all', [])
-          print(f'Leads a subir: {len(leads)}')
-          if len(leads) == 0:
-              print('No hay leads — salteando POST')
-              sys.exit(0)
-          data = json.dumps(payload)
-          try:
-              resp = requests.post(
-                  url,
-                  data=data,
-                  headers={
-                      'Content-Type': 'application/json',
-                      'X-Webhook-Secret': secret,
-                      'User-Agent': 'LeadX-Pipeline/1.0'
-                  },
-                  timeout=30
-              )
-              print(f'HTTP {resp.status_code}')
-              print(resp.text[:500])
-              if resp.status_code >= 400:
-                  sys.exit(1)
-          except Exception as e:
-              print(f'Error: {e}')
-              sys.exit(1)
-          "
+          if [ ! -f data/dashboard_payload.json ]; then
+            echo "No payload file found, skipping ingest"
+            exit 0
+          fi
+          LEADS_COUNT=$(python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(len(d.get('leads_all',[])))")
+          echo "Uploading $LEADS_COUNT leads to Worker..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WORKER_URL/api/ingest" \
+            -H "X-Webhook-Secret: $INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            --data-binary @data/dashboard_payload.json)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "ERROR: Ingest failed"
+            exit 1
+          fi
 
       - name: Deploy Worker to Cloudflare
         env:
@@ -6155,7 +6976,13 @@ jobs:
         run: |
           echo "### Radar Pipeline" >> $GITHUB_STEP_SUMMARY
           if [ -f data/dashboard_payload.json ]; then
-            python -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
+            python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
           fi
 
 ```
+
+
+================================================================================
+TOTAL: 272,376 chars | 6877 lines | 7 archivos
+Commit: 755f161 | Version: v3.0
+================================================================================
