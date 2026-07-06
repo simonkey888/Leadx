@@ -3054,7 +3054,7 @@ async function runPipelineCron(env) {
     const vfPhoneRegex = /\(?(?:0?342|342|0?341|341|0?351|351|0?261|261|0?221|221|0?381|381|0?299|299|0?11|11)\)?[\s\-]?15?\d{6,8}/g;
     const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
     
-    for (let page = 1; page <= 5; page++) {
+    for (let page = 1; page <= 2; page++) {  // Qwen fix: 2 paginas para evitar timeout
       const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?page=' + page;
       const vfRes = await fetch(vfUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
