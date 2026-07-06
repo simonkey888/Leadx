@@ -236,15 +236,16 @@ ARGENTINA_SIGNALS = [
 ]
 
 # Phone patterns
-# MEJORA 1 (Qwen): Regex FEDERAL - cubre TODO el pais
-# CABA (11), Rosario (341), Cordoba (351), Mendoza (261),
-# La Plata (221), Tucuman (381), Neuquen (299), Santa Fe (342/343)
+# Qwen+Kimi v2: Regex FEDERAL v2 - captura formatos reales argentinos
 ARG_PHONE_PATTERNS = [
-    r"\+54\s?9?\s?(?:11|341|342|343|351|261|221|381|299)\s?\d{4}[\s\-]?\d{4}",
-    r"\b(?:11|341|342|343|351|261|221|381|299)\s?[\s\-]?\d{4}[\s\-]?\d{4}\b",
-    r"\b15\s?\d{4}\s?\d{4}\b",
-    r"\b0?(?:11|341|342|343|351|261|221|381|299)[\s\-]?\d{3,4}[\s\-]?\d{4}\b",
-    r"\b(34[0-9]|35[0-9]|26[0-9]|38[0-9]|22[0-9]|29[0-9])[\s\-]?\d{3}[\s\-]?\d{4}",
+    # Formato explicito: "whatsapp: 11 1234-5678", "llamame al 341-555-1234"
+    r"(?i)(?:whatsapp|wsp|wapp|wp|wasap|celular|cel|tel[eé]fono|tel|llamame|contactame|escribime|mandame)\s*:?\s*([+]?\d[\d\s\-]{8,15})",
+    # Formato federal: 11 1234-5678, 341-555-1234, 0351 1234567, +54 9 11 1234 5678
+    r"(?<!\d)(?:[+]?\d{0,2}\s?)?(?:0?\s?)?(?:11|15|341|342|343|351|358|381|385|387|388|221|261|264|291|294|297|299|336|362|370|376|379|380|383)\s?[\s\-]?\d{4}[\s\-]?\d{4}(?!\d)",
+    # Formato wa.me directo
+    r"wa\.me/(\d{8,15})",
+    # Formato generico: 11-1234-5678
+    r"\b(\d{2}[\s\-]?\d{4}[\s\-]?\d{4})\b",
 ]
 
 WHATSAPP_PATTERNS = [
@@ -419,25 +420,30 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
-    """Normaliza telefono a formato +54XXXXXXXXXX (Claude version mejorada).
-    Cubre: +54 9 11 1234 5678 / 11-1234-5678 / 011 1234-5678 / etc.
-    """
+    """Qwen+Kimi v2: Normaliza cualquier formato AR a E.164: +549112345678"""
     digits = re.sub(r"\D", "", phone)
-    if not digits or len(digits) < 8:
+    if not digits:
         return ""
     # Quitar prefijo pais si existe
     if digits.startswith("54"):
         digits = digits[2:]
-    # Quitar 0 inicial (prefix interurbano AR)
+    # Quitar 0 inicial (interurbano)
     if digits.startswith("0"):
         digits = digits[1:]
-    # Quitar 9 inicial (mobile prefix AR)
+    # Quitar 9 inicial (mobile prefix viejo)
     if digits.startswith("9") and len(digits) == 11:
         digits = digits[1:]
-    # Si tiene 10 digitos y empieza con 11 (CABA mobile), agregar 9
+    # Si tiene 10 digitos y empieza con 11 (CABA), agregar 9
     if len(digits) == 10 and digits.startswith("11"):
         digits = "9" + digits
-    return f"+54{digits}" if len(digits) >= 8 else ""
+    # Si tiene 10 digitos y NO empieza con 5, agregar 549
+    elif len(digits) == 10 and not digits.startswith("5"):
+        digits = "9" + digits
+    return f"+54{digits}" if len(digits) >= 10 else ""
+
+def normalize_phone_ar(raw: str) -> str:
+    """Alias de phone_to_e164 para compatibilidad."""
+    return phone_to_e164(raw)
 
 
 # ===========================================================================
@@ -1037,14 +1043,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         problem_cat = "OTHER"
         problem_sum = "Lead vehicular"
 
-    # WhatsApp link
+    # WhatsApp link (Qwen fix: normalizar a E.164)
     wa_link = ""
     wa_num = record.get("whatsapp_publico", "") or record.get("telefono_publico", "")
     if wa_num:
-        digits = re.sub(r"\D", "", wa_num)
-        if not digits.startswith("54"):
-            digits = "54" + digits.lstrip("0")
-        wa_link = f"https://wa.me/{digits}"
+        normalized = phone_to_e164(wa_num)
+        if normalized and normalized.startswith("+54"):
+            wa_link = f"https://wa.me/{normalized[1:]}"
+        else:
+            digits = re.sub(r"\D", "", wa_num)
+            if len(digits) >= 8:
+                wa_link = f"https://wa.me/{digits}"
 
     return Lead(
         score=score,

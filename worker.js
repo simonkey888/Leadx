@@ -2742,6 +2742,48 @@ export default {
             lead.detected_signals = (lead.detected_signals || []).concat(['ENRICH_ALL']);
             enriched++;
           }
+
+          // 3. Si todavia no hay contacto, probar shadow-osint (Linktree/solo.to)
+          if (!lead.has_contact) {
+            try {
+              const shadowRes = await fetch('https://linktr.ee/' + encodeURIComponent(persona), {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+              });
+              if (shadowRes.ok) {
+                const shadowHtml = await shadowRes.text();
+                const waMatch = shadowHtml.match(/wa\.me\/(549\d{10,11})/);
+                const telMatch = shadowHtml.match(/tel:([+]?\d[\d\s\-]{8,15})/);
+                const mailMatch = shadowHtml.match(/mailto:([^"\s]+@[^"\s]+)/);
+                const arPhoneMatch = shadowHtml.match(/(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}/);
+
+                if (waMatch) {
+                  lead.whatsapp_publico = waMatch[1];
+                  lead.telefono_publico = waMatch[1];
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 30);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                } else if (telMatch || arPhoneMatch) {
+                  const p = (telMatch && telMatch[1]) || (arPhoneMatch && arPhoneMatch[0]) || '';
+                  lead.telefono_publico = p;
+                  lead.whatsapp_publico = p;
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 25);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                } else if (mailMatch) {
+                  lead.email_publico = mailMatch[1].toLowerCase();
+                  lead.has_contact = true;
+                  lead.contacto_publico = true;
+                  lead.score = Math.min(100, (lead.score || 0) + 15);
+                  lead.detected_signals = (lead.detected_signals || []).concat(['SHADOW_OSINT_LINKTREE']);
+                  enriched++;
+                }
+              }
+            } catch (e) {}
+          }
         }
 
         // Guardar de vuelta en KV
@@ -2786,6 +2828,70 @@ export default {
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
       }
+    }
+
+    // ─── GET /api/shadow-osint ─── Busca username en Linktree/solo.to/t.me
+    if (url.pathname === '/api/shadow-osint' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+
+      const contacts = [];
+      const targets = [
+        { domain: 'linktr.ee', type: 'linktree' },
+        { domain: 'solo.to', type: 'solo' },
+        { domain: 't.me', type: 'telegram' },
+      ];
+
+      for (const t of targets) {
+        try {
+          const res = await fetch('https://' + t.domain + '/' + encodeURIComponent(username), {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+            },
+          });
+          if (!res.ok) continue;
+          const html = await res.text();
+
+          // Buscar wa.me directo
+          const wa = html.match(/wa\.me\/(549\d{10,11})/);
+          if (wa) {
+            contacts.push({ whatsapp: wa[1], source: t.type });
+            break;
+          }
+
+          // Buscar mailto:
+          const mail = html.match(/mailto:([^"\s]+@[^"\s]+)/);
+          if (mail) {
+            contacts.push({ email: mail[1], source: t.type });
+          }
+
+          // Buscar tel:
+          const tel = html.match(/tel:([+]?\d[\d\s\-]{8,15})/);
+          if (tel) {
+            contacts.push({ telefono: tel[1], source: t.type });
+          }
+
+          // Buscar telefono AR en el HTML
+          const arPhone = html.match(/(?:\+54\s?9?\s?)?(?:11|341|351|261|221|381|299)\s?[-.\s]?\d{4}[-.\s]?\d{4}/);
+          if (arPhone && contacts.length === 0) {
+            contacts.push({ telefono: arPhone[0], source: t.type });
+          }
+        } catch (e) {}
+      }
+
+      return jsonResponse({
+        ok: true,
+        username: username,
+        contacts: contacts,
+        found: contacts.length > 0,
+      }, corsHeaders);
     }
 
     // ─── 404 ───
