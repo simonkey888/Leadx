@@ -1799,11 +1799,14 @@ export default {
       }
 
       // Queries para foros AR con intención + contacto
+      // DDG tiene mala cobertura de site:foromoto, usar queries amplias con keywords AR
       const QUERIES = [
-        'site:foromoto.com.ar multa OR fotomulta whatsapp OR celular OR "11-"',
-        'site:foromoto.com.ar infraccion OR patente telefono OR contacto',
-        'site:clasificados.lavoz.com.ar automovil OR auto telefono whatsapp',
-        'site:demotores.com.ar particular vende whatsapp OR celular',
+        'multa fotomulta argentina whatsapp celular "11-"',
+        'no puedo transferir auto multa argentina telefono',
+        'libre deuda falso argentina whatsapp contacto',
+        'compre auto multas anteriores dueño argentina celular',
+        'vendo auto multas pendientes argentina whatsapp',
+        'me llego fotomulta argentina ayuda whatsapp',
       ];
 
       // Regex AR con códigos de área (Qwen consensus)
@@ -1876,12 +1879,19 @@ export default {
               // Solo incluir si HAY contacto (no es lead sin contacto)
               if (phones.length === 0 && was.length === 0 && emails.length === 0) continue;
 
-              // Determinar platform
+              // Determinar platform desde URL
               let platform = 'web';
               if (postUrl.includes('foromoto')) platform = 'ForoMoto';
               else if (postUrl.includes('lavoz')) platform = 'ClasificadosLaVoz';
               else if (postUrl.includes('demotores')) platform = 'Demotores';
               else if (postUrl.includes('olx')) platform = 'OLX';
+              else if (postUrl.includes('reddit')) platform = 'Reddit';
+              else if (postUrl.includes('facebook')) platform = 'Facebook';
+              else if (postUrl.includes('taringa')) platform = 'Taringa';
+              else {
+                // Extraer dominio
+                try { platform = new URL(postUrl).hostname.replace('www.', ''); } catch (e) {}
+              }
 
               allLeads.push({
                 id: 'foro_' + Math.abs(postUrl.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)),
