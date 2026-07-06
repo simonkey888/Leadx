@@ -1,66 +1,30 @@
 {
-  "generated_at": "2026-07-06T21:57:25.580914+00:00",
-  "run_id": "10927ee99153",
+  "generated_at": "2026-07-06T22:02:23.373296+00:00",
+  "run_id": "13e4c48feaaa",
   "summary": {
-    "total_leads": 2,
-    "hot_leads": 2,
+    "total_leads": 3,
+    "hot_leads": 3,
     "warm_leads": 0,
     "contactable": 1,
     "with_whatsapp": 0,
     "with_phone": 1,
     "with_email": 0,
-    "avg_score": 92.5,
-    "avg_score_hot": 92.5,
+    "avg_score": 73.3,
+    "avg_score_hot": 73.3,
     "conversion_probability": 100.0,
     "by_category": {
+      "FINE_DISPUTE": 1,
       "TRANSFER_PROBLEM": 1,
-      "FINE_DISPUTE": 1
+      "OTHER": 1
     },
     "by_platform": {
-      "Reddit": 1,
+      "Reddit": 2,
       "Ventafe.Com.Ar": 1
     },
     "by_province": {}
   },
   "leads_all": [
     {
-      "id": "f9a43651bcd25fae",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Vendedor VentaFe",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-06",
-      "fecha_iso": "2026-07-06T00:00:00",
-      "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
-      "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426128372",
-      "telefono_publico": "+5493426128372",
-      "telefono_e164": "+5493426128372",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "multa_or_fotomulta": 60,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "multa_fotomulta",
-        "contact_visible",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-06T21:57:23.981938+00:00"
-    },
-    {
       "id": "102637a7b92a4eee",
       "score": 85,
       "label": "real_lead",
@@ -91,48 +55,78 @@
         "transfer_problem",
         "document_08"
       ],
-      "discovery_timestamp": "2026-07-06T21:57:23.981042+00:00"
+      "discovery_timestamp": "2026-07-06T22:02:20.363585+00:00"
+    },
+    {
+      "id": "f9a43651bcd25fae",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-06",
+      "fecha_iso": "2026-07-06T00:00:00",
+      "platform": "Ventafe.Com.Ar",
+      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "quoted_text": "> Honda HR-V LX CVT 2017 PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores #5011376 $ 24000000 $ 24000000 AGREGAR A FAVORITO",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493424745891",
+      "telefono_publico": "+5493424745891",
+      "telefono_e164": "+5493424745891",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-06T22:02:20.364170+00:00"
+    },
+    {
+      "id": "e57482137f6b3774",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Beneficial-Ad-3881",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-05-21T01:08:07+00:00",
+      "fecha_iso": "2026-05-21T01:08:07+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/u_Beneficial-Ad-3881/comments/1tj55rl/si_están_pensando_en_impugnar_multas_nunca_boten",
+      "quoted_text": "<table> <tr><td> <a href=\" <img src=\" alt=\"Si están pensando en impugnar multas nunca boten su plata con esta empresa o similares @abogadosDeFotomultas ADF\" title=\"Si están pensando en impugnar multas nunca boten su plata con esta empresa o similares @abogadosDeFotomultas ADF\" /> </a> </td><td> <!--",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-06T22:02:20.363094+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "f9a43651bcd25fae",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Vendedor VentaFe",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-06",
-      "fecha_iso": "2026-07-06T00:00:00",
-      "platform": "Ventafe.Com.Ar",
-      "source_url": "https://www.ventafe.com.ar/automoviles",
-      "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426128372",
-      "telefono_publico": "+5493426128372",
-      "telefono_e164": "+5493426128372",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "multa_or_fotomulta": 60,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "multa_fotomulta",
-        "contact_visible",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-06T21:57:23.981938+00:00"
-    },
-    {
       "id": "102637a7b92a4eee",
       "score": 85,
       "label": "real_lead",
@@ -163,14 +157,81 @@
         "transfer_problem",
         "document_08"
       ],
-      "discovery_timestamp": "2026-07-06T21:57:23.981042+00:00"
+      "discovery_timestamp": "2026-07-06T22:02:20.363585+00:00"
+    },
+    {
+      "id": "f9a43651bcd25fae",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-06",
+      "fecha_iso": "2026-07-06T00:00:00",
+      "platform": "Ventafe.Com.Ar",
+      "source_url": "https://www.ventafe.com.ar/automoviles",
+      "quoted_text": "> Honda HR-V LX CVT 2017 PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores PALAMEDI AUTOS VENDE: Honda HR-V LX CVT 2017 - 103000km EXCELENTE ESTADO! SEGUINOS EN REDES @palamediautomotores #5011376 $ 24000000 $ 24000000 AGREGAR A FAVORITO",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493424745891",
+      "telefono_publico": "+5493424745891",
+      "telefono_e164": "+5493424745891",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-06T22:02:20.364170+00:00"
+    },
+    {
+      "id": "e57482137f6b3774",
+      "score": 60,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "u/Beneficial-Ad-3881",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-05-21T01:08:07+00:00",
+      "fecha_iso": "2026-05-21T01:08:07+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/u_Beneficial-Ad-3881/comments/1tj55rl/si_están_pensando_en_impugnar_multas_nunca_boten",
+      "quoted_text": "<table> <tr><td> <a href=\" <img src=\" alt=\"Si están pensando en impugnar multas nunca boten su plata con esta empresa o similares @abogadosDeFotomultas ADF\" title=\"Si están pensando en impugnar multas nunca boten su plata con esta empresa o similares @abogadosDeFotomultas ADF\" /> </a> </td><td> <!--",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60
+      },
+      "detected_signals": [
+        "multa_fotomulta"
+      ],
+      "discovery_timestamp": "2026-07-06T22:02:20.363094+00:00"
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 50% de los leads calientes provienen de Reddit.",
-    "El problema más frecuente es: Problema de transferencia.",
-    "50% de los leads calientes tienen contacto público visible.",
+    "El 67% de los leads calientes provienen de Reddit.",
+    "El problema más frecuente es: Disputa de multa/fotomulta.",
+    "33% de los leads calientes tienen contacto público visible.",
     "1 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
@@ -199,7 +260,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 69.56,
+    "runtime_seconds": 66.09,
     "queries_executed": 3
   }
 }
