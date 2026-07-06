@@ -453,239 +453,14 @@ def normalize_phone_ar(raw: str) -> str:
 # ===========================================================================
 
 #===========================================================================
-# Step 1.5: VentaFe Scraper — Portal de clasificados del interior (ORO)
-#===========================================================================
-def scrape_ventafe_leads() -> List[Dict[str, Any]]:
-    """
-    Scrapea VentaFe.com.ar (clasificados de autos del interior).
-    Extrae: titulo, descripcion, precio, telefono, patente.
-    """
-    import urllib.request as _urq
-    import urllib.error
-    
-    print("[Step 1.5] Scraping VentaFe.com.ar...", file=sys.stderr)
-    
-    BASE_URL = "https://www.ventafe.com.ar/automoviles"
-    HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'es-AR,es;q=0.9,en;q=0.8',
-    }
-    
-    PHONE_REGEX = re.compile(
-        r'(?:\+?54\s?9?\s?)?'
-        r'(?:\(?(?:0?342|342|0?341|341|0?351|351|0?343|343|0?261|261|0?221|221|0?381|381|0?299|299)\)?[\s\-]?)?'
-        r'(?:15\s?)?'
-        r'\d{4}[\s\-]?\d{4}',
-        re.IGNORECASE
-    )
-    PATENTE_REGEX = re.compile(r'\b([A-Z]{2,3}\s?\d{3}\s?[A-Z]{2}|[A-Z]{3}\s?\d{3})\b')
-    
-    PROBLEMA_KEYWORDS = {
-        'TRANSFERENCIA_BLOQUEADA': r'no\s+puedo\s+transferir|transferencia\s+bloqueada|no\s+me\s+dejan\s+transferir',
-        'MULTA': r'multa|fotomulta|infraccion|infraccion',
-        'DEUDA': r'deuda|adeuda|debo|debe',
-        'LIBRE_DEUDA': r'libre\s+de\s+deuda|libre\s+deuda|sin\s+deuda',
-        'PAPELES_AL_DIA': r'papeles\s+al\s+d[ií]a|documentaci[oó]n\s+al\s+d[ií]a|listo\s+para\s+transferir',
-    }
-    
-    all_leads = []
-    total_pages = 8
-    
-    for page in range(1, total_pages + 1):
-        url = f"{BASE_URL}?page={page}" if page > 1 else BASE_URL
-        print(f"  [VentaFe] Scraping page {page}/{total_pages}...", file=sys.stderr)
-        
-        try:
-            req = _urq.Request(url, headers=HEADERS)
-            with _urq.urlopen(req, timeout=20) as resp:
-                html = resp.read().decode('utf-8', errors='replace')
-        except Exception as e:
-            print(f"  [VentaFe] Error page {page}: {e}", file=sys.stderr)
-            continue
-        
-        aviso_blocks = re.split(r'#\d{6,8}', html)
-        
-        for block in aviso_blocks[1:]:
-            text = re.sub(r'<[^>]+>', ' ', block)
-            text = re.sub(r'&[a-z]+;', ' ', text)
-            text = re.sub(r'\s+', ' ', text).strip()
-            
-            if len(text) < 100:
-                continue
-            
-            phone_matches = PHONE_REGEX.findall(text)
-            phones = []
-            for p in phone_matches:
-                digits = re.sub(r'\D', '', p)
-                if 10 <= len(digits) <= 15:
-                    if len(digits) == 10 and not digits.startswith('54'):
-                        digits = '54' + digits
-                    phones.append(digits)
-            phones = list(set(phones))
-            
-            patente_matches = PATENTE_REGEX.findall(text)
-            patentes = list(set([p.replace(' ', '').upper() for p in patente_matches]))
-            
-            problemas = []
-            for prob_name, prob_regex in PROBLEMA_KEYWORDS.items():
-                if re.search(prob_regex, text, re.IGNORECASE):
-                    problemas.append(prob_name)
-            
-            if not phones and not patentes:
-                continue
-            
-            lead_id = 'ventafe_' + hashlib.sha256(text[:200].encode()).hexdigest()[:12]
-            lead = {
-                'id': lead_id,
-                'name': text[:80],
-                'url': 'https://www.ventafe.com.ar/automoviles',
-                'snippet': text[:500],
-                'date': datetime.now(timezone.utc).strftime('%Y-%m-%d'),
-                'host_name': 'ventafe.com.ar',
-                'username': '',
-                'author': 'Vendedor VentaFe',
-                'source': 'ventafe',
-                '_query': 'ventafe_automoviles',
-                'telefonos': phones,
-                'patentes': patentes,
-                'problemas': problemas,
-                'zona': 'Santa Fe',
-            }
-            all_leads.append(lead)
-        
-        time.sleep(2)
-    
-    hot_leads = [l for l in all_leads if l['problemas'] or l['patentes']]
-    print(f"  [VentaFe] Total scrapeados: {len(all_leads)} | Calientes: {len(hot_leads)}", file=sys.stderr)
-    
-    return hot_leads
-
-
-def collect_public_sources() -> List[Dict[str, Any]]:
-    """Recolecta resultados de búsquedas públicas via search_providers web_search.
-    
-    Si una query Reddit devuelve 429, la agrega a PendingQueryManager global.
-    """
-    print("[Step 1] Collecting public sources...", file=sys.stderr)
-    all_results = []
-    # PQM global accesible desde collect_public_sources
-    global _pqm_global
-    for i, query in enumerate(QUERIES):
-        elapsed = time.time() - START_TIME
-        if elapsed > MAX_RUNTIME_SECONDS:
-            print(f"  [timeout] {elapsed:.1f}s", file=sys.stderr)
-            break
-        print(f"  [{i+1}/{len(QUERIES)}] {query[:60]}", file=sys.stderr)
-        
-        # Si es query Reddit, usar wrapper con status para detectar 429
-        if "site:reddit.com" in query.lower():
-            results, got_429 = search_reddit_with_status(
-                query.lower().replace("site:reddit.com", "").strip(),
-                num=MAX_RESULTS_PER_QUERY
-            )
-            if got_429 and _pqm_global:
-                rss_url = f"https://www.reddit.com/search.rss?q={query}"
-                _pqm_global.add(rss_url, query, _CURRENT_GROUP_IDX)
-                print(f"  [PQM] 429 en '{query[:40]}' → agregado a pending", file=sys.stderr)
-        else:
-            results = web_search(query, num=MAX_RESULTS_PER_QUERY)
-        
-        for r in results:
-            r["_query"] = query
-        all_results.extend(results)
-        time.sleep(RATE_LIMIT_MS / 1000)
-    print(f"  Collected {len(all_results)} raw results", file=sys.stderr)
-
-    # Nota: el enrich separado fue reemplazado por la logica inline en search_reddit
-    # que trae selftext completo + top 10 comments por post en una sola pasada.
-    reddit_count = sum(1 for r in all_results if "reddit.com" in r.get("url", ""))
-    print(f"  Reddit posts in results: {reddit_count}", file=sys.stderr)
-
-    # ML Questions Radar — siempre corre (no depende del grupo rotativo)
-    try:
-        from search_providers import search_mercadolibre_questions
-        ml_leads = search_mercadolibre_questions(num=15)
-        if ml_leads:
-            for ml in ml_leads:
-                ml["_query"] = "mercadolibre_questions_radar"
-            all_results.extend(ml_leads)
-            print(f"  ML Questions Radar: +{len(ml_leads)} leads", file=sys.stderr)
-        else:
-            print(f"  ML Questions Radar: 0 leads (posible 403 o sin resultados)", file=sys.stderr)
-    except Exception as e:
-        print(f"  ML Questions Radar ERROR: {e}", file=sys.stderr)
-
-    # Foros AR via DDG (ForoMoto + ClasificadosLaVoz + Demotores)
-    # Llama al endpoint /api/ddg-foromoto del Worker (Cloudflare edge IP)
-    try:
-        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
-        secret = os.environ.get("INGEST_SECRET", "")
-        if secret:
-            import urllib.request as _urq
-            foro_url = f"{worker_url}/api/ddg-foromoto"
-            req = _urq.Request(foro_url)
-            req.add_header("X-Webhook-Secret", secret)
-            req.add_header("Accept", "application/json")
-            with _urq.urlopen(req, timeout=45) as resp:
-                foro_data = json.loads(resp.read().decode("utf-8", errors="replace"))
-            if foro_data.get("ok"):
-                foro_leads = foro_data.get("leads", [])
-                if foro_leads:
-                    for fl in foro_leads:
-                        fl["_query"] = "ddg_foros_ar"
-                    all_results.extend(foro_leads)
-                    print(f"  Foros AR (DDG): +{len(foro_leads)} leads con contacto", file=sys.stderr)
-                else:
-                    print(f"  Foros AR (DDG): 0 leads", file=sys.stderr)
-    except Exception as e:
-        print(f"  Foros AR ERROR: {e}", file=sys.stderr)
-
-    # Facebook Groups via Apify (con cookies FB reales)
-    # Llama al endpoint /api/apify-facebook del Worker
-    # Scrapea grupos publicos de multas AR con sesion autenticada
-    try:
-        worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
-        secret = os.environ.get("INGEST_SECRET", "")
-        if secret:
-            import urllib.request as _urq2
-            apify_url = f"{worker_url}/api/apify-facebook"
-            apify_input = json.dumps({
-                "groupUrls": [
-                    "https://www.facebook.com/groups/276074287942602",  # Defensas contra Multas AR
-                ],
-                "maxPosts": 20,
-                "fetchComments": True,
-                "maxCommentsPerPost": 5,
-            }).encode("utf-8")
-            req2 = _urq2.Request(apify_url, data=apify_input, method="POST")
-            req2.add_header("X-Webhook-Secret", secret)
-            req2.add_header("Content-Type", "application/json")
-            with _urq2.urlopen(req2, timeout=120) as resp2:
-                fb_data = json.loads(resp2.read().decode("utf-8", errors="replace"))
-            if fb_data.get("ok"):
-                fb_leads = fb_data.get("leads", [])
-                if fb_leads:
-                    for fl in fb_leads:
-                        fl["_query"] = "facebook_apify"
-                    all_results.extend(fb_leads)
-                    with_contact = sum(1 for fl in fb_leads if fl.get("has_contact"))
-                    print(f"  Facebook (Apify): +{len(fb_leads)} leads ({with_contact} con contacto)", file=sys.stderr)
-                else:
-                    print(f"  Facebook (Apify): 0 leads", file=sys.stderr)
-            else:
-                print(f"  Facebook (Apify) ERROR: {fb_data.get('error','?')}", file=sys.stderr)
-    except Exception as e:
-        print(f"  Facebook (Apify) ERROR: {e}", file=sys.stderr)
-
-    # VentaFe Scraper (portal de clasificados del interior - SANTA FE ORO)
+    # VentaFe Scraper (desde GH Actions - no bloqueado como el Worker)
     try:
         ventafe_results = scrape_ventafe_leads()
         if ventafe_results:
             all_results.extend(ventafe_results)
-            print(f"  VentaFe: +{len(ventafe_results)} leads agregados", file=sys.stderr)
+            print(f"  [VentaFe] +{len(ventafe_results)} leads inyectados al pipeline", file=sys.stderr)
     except Exception as e:
-        print(f"  VentaFe ERROR: {e}", file=sys.stderr)
+        print(f"  [VentaFe] ERROR en inyeccion: {e}", file=sys.stderr)
 
     return all_results
 
@@ -1932,3 +1707,111 @@ if __name__ == "__main__":
         "summary": payload["summary"],
         "insights": payload["insights"],
     }, ensure_ascii=False, indent=2))
+
+
+#===========================================================================
+# VentaFe Scraper — Portal de clasificados de Santa Fe (ORO)
+#===========================================================================
+def normalize_ar_phone_ventafe(raw: str) -> str:
+    """Normaliza telefonos AR complejos desde VentaFe (maneja 15, 0, 54)."""
+    digits = re.sub(r'\D', '', raw)
+    if not digits or len(digits) < 8:
+        return ""
+    if digits.startswith('54') and len(digits) > 11:
+        digits = digits[2:]
+    if digits.startswith('0'):
+        digits = digits[1:]
+    if digits.startswith('15') and len(digits) > 10:
+        digits = digits[2:]
+    # Manejar 15 en el medio (ej: 342 15 6128372 -> 342156128372)
+    if len(digits) == 12 and digits[3:5] == '15':
+        digits = digits[:3] + digits[5:]
+    elif len(digits) == 11 and digits[2:4] == '15':
+        digits = digits[:2] + digits[4:]
+    if len(digits) == 10:
+        return f"+549{digits}"
+    return ""
+
+
+def scrape_ventafe_leads() -> List[Dict[str, Any]]:
+    """Scrapea VentaFe.com.ar/automoviles y extrae telefonos visibles."""
+    import urllib.request as _urq
+    import re as _re
+    
+    print("[VentaFe] Scrapeando ventafe.com.ar/automoviles...", file=sys.stderr)
+    
+    url = "https://www.ventafe.com.ar/automoviles"
+    req = _urq.Request(url, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'es-AR,es;q=0.9',
+    })
+    try:
+        with _urq.urlopen(req, timeout=20) as resp:
+            html = resp.read().decode('utf-8', errors='replace')
+    except Exception as e:
+        print(f"  [VentaFe] Error fetching: {e}", file=sys.stderr)
+        return []
+    
+    print(f"  [VentaFe] HTML size: {len(html)}", file=sys.stderr)
+    
+    # Split por class="row item tipo-N" (estructura de avisos)
+    blocks = _re.split(r'class="row item tipo-\d+"', html)[1:]
+    print(f"  [VentaFe] Blocks encontrados: {len(blocks)}", file=sys.stderr)
+    
+    leads = []
+    seen_phones = set()
+    
+    for block in blocks:
+        # Limpiar HTML
+        text = _re.sub(r'<[^>]+>', ' ', block)
+        text = _re.sub(r'&[a-z]+;', ' ', text)
+        text = _re.sub(r'googletag[^;]+;', '', text)
+        text = _re.sub(r'\s+', ' ', text).strip()
+        
+        if len(text) < 50:
+            continue
+        
+        # Extraer telefonos con regex federal
+        raw_phones = _re.findall(r'\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}', text)
+        valid_phones = []
+        for p in raw_phones:
+            norm = normalize_ar_phone_ventafe(p)
+            if norm and norm not in seen_phones:
+                valid_phones.append(norm)
+                seen_phones.add(norm)
+        
+        if not valid_phones:
+            continue
+        
+        # Detectar keywords de dolor o "papeles al dia"
+        pain_points = []
+        if _re.search(r'multa|deuda|infraccion|patente', text, _re.IGNORECASE):
+            pain_points.append('MULTA/DEUDA')
+        if _re.search(r'listo para transferir|papeles al dia|papeles al d\u00eda|libre de deuda', text, _re.IGNORECASE):
+            pain_points.append('PAPELES_OK')
+        
+        has_wa_keyword = bool(_re.search(r'whatsapp|wsp|wsp|cel', text, _re.IGNORECASE))
+        
+        # Titulo: primeras palabras del texto
+        title = text[:80].strip()
+        
+        lead = {
+            "name": f"[VentaFe] {title}",
+            "url": "https://www.ventafe.com.ar/automoviles",
+            "snippet": text[:500],
+            "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+            "host_name": "ventafe.com.ar",
+            "username": "Vendedor VentaFe",
+            "author": "Vendedor VentaFe",
+            "source": "ventafe",
+            "_query": "ventafe_automoviles",
+            "telefonos": valid_phones,
+            "patentes": _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text),
+            "problemas": pain_points,
+            "zona": "Santa Fe",
+        }
+        leads.append(lead)
+    
+    print(f"  [VentaFe] Extraidos {len(leads)} leads con telefonos validos", file=sys.stderr)
+    return leads
