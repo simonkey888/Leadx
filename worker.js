@@ -2659,6 +2659,32 @@ export default {
       }
     }
 
+    // ─── GET /api/reddit-profile-links ─── OSINT: extrae links de otras plataformas
+    if (url.pathname === '/api/reddit-profile-links' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+      try {
+        const html = await fetch('https://old.reddit.com/user/' + encodeURIComponent(username), {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html',
+            'Accept-Language': 'es-AR,es;q=0.9',
+          },
+        }).then(r => r.text());
+        const linkPattern = /href="(https?:\/\/(?:instagram\.com|facebook\.com|wa\.me|mercadolibre\.com\.ar|twitter\.com|x\.com|t\.me|youtube\.com)\/[^\s"]+)"/gi;
+        const links = [...new Set([...html.matchAll(linkPattern)].map(m => m[1]))];
+        return jsonResponse({ ok: true, username: username, links: links }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
     // ─── 404 ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },

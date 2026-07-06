@@ -171,6 +171,34 @@ REJECT_IF_CONTAINS = [
     "enviar dinero", "criptomoneda",
 ]
 
+# FILTROS ADICIONALES DE CALIDAD (DeepSeek+Qwen v2.7)
+NEGATIVE_KEYWORDS = [
+    'accidente', 'choque', 'siniestro', 'colisión',
+    'trabajo', 'empleo', 'renunciar', 'laboral',
+    'tablet', 'celular', 'notebook', 'electrónica',
+    'licitación', 'concurso', 'fraude', 'estafa',
+    'alquiler', 'departamento', 'propiedad',
+    'médico', 'hospital', 'salud',
+]
+
+DISCARD_DOMAINS = {
+    'iprofesional.com', 'ciudano.news', 'ciudadano.news', 'iusnoticias.com.ar',
+    'parrillacero5.com.ar', 'multas.ar', 'juridicamente.org',
+    'hlbpharma.com.ar', 'autodataar.com', 'tiempofinanciero.com.ar',
+    'tn.com.ar', 'infobae.com', 'clarin.com', 'lanacion.com.ar',
+    'perfil.com', 'cronista.com', 'ambito.com',
+    'segurarse.com.ar', 'carchecking.com.ar',
+    'multabot.com.ar', 'reclamosonline.com.ar',
+    'portaldeabogados.com', 'jus.gov.ar', 'gob.ar', 'gov.ar',
+    'wikipedia.org', 'youtube.com',
+}
+
+REJECT_COUNTRIES = {
+    'brasil', 'chile', 'uruguay', 'paraguay', 'bolivia',
+    'perú', 'colombia', 'ecuador', 'venezuela', 'méxico',
+    'españa', 'estados unidos', 'italia',
+}
+
 INSTITUTIONAL_DOMAINS = {
     "dnrpa.gov.ar", "argentina.gob.ar", "buenosaires.gob.ar",
     "gob.ar", "jus.gob.ar", "rentas.gob.ar", "arba.gov.ar",
@@ -552,6 +580,21 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     for reject in REJECT_IF_CONTAINS:
         if reject in combined_lower:
             return None
+
+    # FILTRO DE DOMINIOS DE MEDIOS (DeepSeek v2.7)
+    host = result.get("host", "") or get_host(url)
+    if any(d in host for d in DISCARD_DOMAINS):
+        return None
+
+    # FILTRO DE PAIS EXTRANJERO (DeepSeek v2.7)
+    for country in REJECT_COUNTRIES:
+        if country in combined_lower:
+            return None
+
+    # FILTRO DE PALABRAS CLAVE NEGATIVAS (DeepSeek v2.7)
+    neg_matches = sum(1 for kw in NEGATIVE_KEYWORDS if kw in combined_lower)
+    if neg_matches >= 2:
+        return None
 
     # FIX 2 (DeepSeek): Filtro de idioma portugués
     PORTUGUESE_INDICATORS = [
@@ -1399,6 +1442,72 @@ def mine_profile_for_contacts(leads: List[Lead]) -> int:
     return enriched_count
 
 
+def enrich_contacts_via_reddit_profile(leads: List[Lead]) -> int:
+    """Busca links a otras plataformas en el perfil de Reddit y rastrea contactos."""
+    import urllib.request as _urq
+    enriched = 0
+    worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
+    ingest_secret = os.environ.get("INGEST_SECRET", "")
+    if not ingest_secret:
+        return 0
+
+    for lead in leads:
+        if lead.whatsapp_publico or lead.telefono_publico or lead.email_publico:
+            continue
+        if lead.platform != "Reddit":
+            continue
+        username = lead.persona.replace("u/", "").strip()
+        if len(username) < 3:
+            continue
+
+        try:
+            profile_url = f"{worker_url}/api/reddit-profile-links?user={username}"
+            req = _urq.Request(profile_url)
+            req.add_header("X-Webhook-Secret", ingest_secret)
+            req.add_header("Accept", "application/json")
+            with _urq.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+                if not data.get("ok") or not data.get("links"):
+                    continue
+
+                for link in data["links"][:5]:
+                    snippet = ""
+                    try:
+                        search_results = provider_search(f"site:{link}", num=2)
+                        for sr in search_results:
+                            snippet += sr.get("snippet", "") + " "
+                    except Exception:
+                        continue
+
+                    for pat in ARG_PHONE_PATTERNS:
+                        m = re.search(pat, snippet)
+                        if m:
+                            digits = re.sub(r"\D", "", m.group(0))
+                            if 10 <= len(digits) <= 15:
+                                lead.telefono_publico = m.group(0).strip()
+                                lead.contacto_publico = True
+                                lead.score = min(100, lead.score + 30)
+                                if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                    lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                                enriched += 1
+                                break
+                    if not lead.telefono_publico:
+                        m = re.search(EMAIL_PATTERN, snippet)
+                        if m:
+                            lead.email_publico = m.group(1).lower().strip()
+                            lead.contacto_publico = True
+                            lead.score = min(100, lead.score + 15)
+                            if "PROFILE_LINK_MINING" not in (lead.detected_signals or []):
+                                lead.detected_signals = (lead.detected_signals or []) + ["PROFILE_LINK_MINING"]
+                            enriched += 1
+                time.sleep(0.5)
+        except Exception:
+            continue
+    if enriched:
+        print(f"  [ProfileLinkMining] {enriched} leads enriquecidos", file=sys.stderr)
+    return enriched
+
+
 def run_pipeline() -> Dict[str, Any]:
     global QUERIES_EXECUTED, _pqm_global
     _pqm_global = None  # se setea en Step 0.5
@@ -1579,6 +1688,12 @@ def run_pipeline() -> Dict[str, Any]:
             print(f"  [OSINT] {osint_count} leads enriquecidos via shadow profile", file=sys.stderr)
     except Exception as e:
         print(f"  [OSINT] ERROR: {e}", file=sys.stderr)
+
+    # Step 4.8: Enriquecer contactos via links del perfil de Reddit (DeepSeek v2.7)
+    try:
+        enrich_contacts_via_reddit_profile(leads)
+    except Exception as e:
+        print(f"  [ProfileLinkMining] ERROR: {e}", file=sys.stderr)
 
     # Step 5: Dedup
     leads = deduplicate_cases(leads)
