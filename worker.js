@@ -3073,7 +3073,7 @@ async function runPipelineCron(env) {
   }
 
   // VentaFe Scraper (desde edge IP)
-  console.log('[CRON] Scraping VentaFe...');
+  console.log('[CRON] VentaFe start...');
   try {
     const vfPhoneRegex = /\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}/g;
     const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
@@ -3083,7 +3083,8 @@ async function runPipelineCron(env) {
       const vfRes = await fetch(vfUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
       });
-      if (!vfRes.ok) continue;
+      if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
+      console.log('[CRON] VentaFe page ' + page + ' OK, blocks: ' + vfHtml.split('class="row item tipo-').slice(1).length);
       const vfHtml = await vfRes.text();
       const blocks = vfHtml.split('class="row item tipo-').slice(1);
       
@@ -3126,7 +3127,7 @@ async function runPipelineCron(env) {
         });
       }
     }
-    console.log('[CRON] VentaFe done');
+    console.log('[CRON] VentaFe done: ' + ventafeLeads.length + ' leads found');
   } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
 
   const raw = await env.LEADX_KV.get('leads:live');
