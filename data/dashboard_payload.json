@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-07-06T05:43:50.271766+00:00",
-  "run_id": "5f0d0116fa8d",
+  "generated_at": "2026-07-06T06:07:33.736251+00:00",
+  "run_id": "4c5975efda99",
   "summary": {
     "total_leads": 3,
-    "hot_leads": 1,
-    "warm_leads": 2,
+    "hot_leads": 3,
+    "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 46.7,
-    "avg_score_hot": 60.0,
-    "conversion_probability": 33.3,
+    "avg_score": 100.0,
+    "avg_score_hot": 100.0,
+    "conversion_probability": 100.0,
     "by_category": {
       "TRANSFER_PROBLEM": 3
     },
@@ -19,27 +19,60 @@
       "Reddit": 3
     },
     "by_province": {
-      "Santa Fe": 1
+      "CABA": 1
     }
   },
   "leads_all": [
     {
-      "id": "882ae067284d3e4a",
-      "score": 60,
+      "id": "3edc7ab1e0baf509",
+      "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/urymasa1970",
-      "provincia": "Santa Fe",
+      "persona": "u/National-Effort-17",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-05-15T04:58:36+00:00",
+      "fecha_iso": "2026-05-15T04:58:36+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así/\"> <img src=\"https://preview.redd.it/46t9ndtpf81h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=f9f02955181b68dbf5a80fa86be2cf0b6d4e2fbc\" alt=\"Les pasó alguna",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-06T06:07:33.719769+00:00"
+    },
+    {
+      "id": "7b1b683fe1e9b47d",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/ibuorofeno800",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-05T09:40:24+00:00",
-      "fecha_iso": "2026-06-05T09:40:24+00:00",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/monte_video/comments/1txg5cu/los_comprobantes_de_la_transferencia_de_us_15_mil",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/monte_video/comments/1txg5cu/los_comprobantes_de_la_transferencia_de_us_15_mil/\"> <img src=\"https://preview.redd.it/auzkndnupf5h1.jpg?width=140&amp;height=99&amp;auto=webp&amp;s=9fd582aee4a7a6e527148745c5e0596c7b682e66\" alt=\"Los comprobantes de la t",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -47,96 +80,108 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "urgency_hint": 30,
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "08_or_document_problem": 40,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "URGENCY",
+        "multa_fotomulta",
+        "transfer_problem",
+        "document_08",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-06T06:07:33.720229+00:00"
+    },
+    {
+      "id": "37887ef59e148e82",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/TomasRojoM",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2025-02-05T23:55:23+00:00",
+      "fecha_iso": "2025-02-05T23:55:23+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren/\"> <img src=\"https://b.thumbs.redditmedia.com/e2x3sLjaiXt5AKnB2JUQGmqffscX787HINeGvrS9AoQ.jpg\" alt=\"Al hacer una trasferencia de moto, se transfieren también las multas?\" tit",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "transfer_problem": 45,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
         "transfer_problem",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-06T05:43:50.270678+00:00"
-    },
-    {
-      "id": "dbeed92a2b39f5bc",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/diecast731",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-28T01:53:14+00:00",
-      "fecha_iso": "2026-06-28T01:53:14+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/u_diecast731/comments/1uhkef9/premium_protectors_available_5055",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_diecast731/comments/1uhkef9/premium_protectors_available_5055/\"> <img src=\"https://preview.redd.it/qqzip8gdjx9h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=791fd75439c22b2f6a4056be8197fba56df06f65\" alt=\"PREMIUM PROTECTORS",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-06T05:43:50.270178+00:00"
-    },
-    {
-      "id": "6832add8b503d6bd",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Fun-Diver-6166",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-05-13T15:54:17+00:00",
-      "fecha_iso": "2026-05-13T15:54:17+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Imagina_Se/comments/1tc3rtk/e_se_as_pessoas_que_controlam_o_mundo_escondessem",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Imagina_Se/comments/1tc3rtk/e_se_as_pessoas_que_controlam_o_mundo_escondessem/\"> <img src=\"https://preview.redd.it/ftvqniilfx0h1.png?width=140&amp;height=93&amp;auto=webp&amp;s=56d7827436477395f0e5921d103482be42117208\" alt=\"E se as pessoas que contr",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-06T05:43:50.271317+00:00"
+      "discovery_timestamp": "2026-07-06T06:07:33.723059+00:00"
     }
   ],
   "leads_hot": [
     {
-      "id": "882ae067284d3e4a",
-      "score": 60,
+      "id": "3edc7ab1e0baf509",
+      "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/urymasa1970",
-      "provincia": "Santa Fe",
+      "persona": "u/National-Effort-17",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-05-15T04:58:36+00:00",
+      "fecha_iso": "2026-05-15T04:58:36+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_National-Effort-17/comments/1tdm7pw/les_pasó_alguna_vez_algo_así/\"> <img src=\"https://preview.redd.it/46t9ndtpf81h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=f9f02955181b68dbf5a80fa86be2cf0b6d4e2fbc\" alt=\"Les pasó alguna",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "transfer_problem"
+      ],
+      "discovery_timestamp": "2026-07-06T06:07:33.719769+00:00"
+    },
+    {
+      "id": "7b1b683fe1e9b47d",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/ibuorofeno800",
+      "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-06-05T09:40:24+00:00",
-      "fecha_iso": "2026-06-05T09:40:24+00:00",
+      "fecha_visible": "2026-03-18T15:40:41+00:00",
+      "fecha_iso": "2026-03-18T15:40:41+00:00",
       "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/monte_video/comments/1txg5cu/los_comprobantes_de_la_transferencia_de_us_15_mil",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/monte_video/comments/1txg5cu/los_comprobantes_de_la_transferencia_de_us_15_mil/\"> <img src=\"https://preview.redd.it/auzkndnupf5h1.jpg?width=140&amp;height=99&amp;auto=webp&amp;s=9fd582aee4a7a6e527148745c5e0596c7b682e66\" alt=\"Los comprobantes de la t",
+      "source_url": "https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/ArAutos/comments/1rx7bjx/ayuda_con_mi_primer_auto/\"> <img src=\"https://preview.redd.it/ygw0o4uyyspg1.png?width=140&amp;height=81&amp;auto=webp&amp;s=351255cb4776fb7d6a1a20de5fcb9e03c87505e3\" alt=\"Ayuda con mi primer auto\" title=\"Ayuda con mi primer",
       "contacto_publico": false,
       "whatsapp_publico": "",
       "whatsapp_link": "",
@@ -144,85 +189,64 @@
       "telefono_e164": "",
       "email_publico": "",
       "score_breakdown": {
+        "urgency_hint": 30,
+        "multa_or_fotomulta": 60,
+        "transfer_problem": 45,
+        "08_or_document_problem": 40,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "URGENCY",
+        "multa_fotomulta",
+        "transfer_problem",
+        "document_08",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-06T06:07:33.720229+00:00"
+    },
+    {
+      "id": "37887ef59e148e82",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/TomasRojoM",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "moto",
+      "patente": "",
+      "fecha_visible": "2025-02-05T23:55:23+00:00",
+      "fecha_iso": "2025-02-05T23:55:23+00:00",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren",
+      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/MotosArg/comments/1iiotyp/al_hacer_una_trasferencia_de_moto_se_transfieren/\"> <img src=\"https://b.thumbs.redditmedia.com/e2x3sLjaiXt5AKnB2JUQGmqffscX787HINeGvrS9AoQ.jpg\" alt=\"Al hacer una trasferencia de moto, se transfieren también las multas?\" tit",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
         "transfer_problem": 45,
         "argentina_signal": 15
       },
       "detected_signals": [
+        "multa_fotomulta",
         "transfer_problem",
         "argentina"
       ],
-      "discovery_timestamp": "2026-07-06T05:43:50.270678+00:00"
+      "discovery_timestamp": "2026-07-06T06:07:33.723059+00:00"
     }
   ],
-  "leads_warm": [
-    {
-      "id": "dbeed92a2b39f5bc",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/diecast731",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-06-28T01:53:14+00:00",
-      "fecha_iso": "2026-06-28T01:53:14+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/u_diecast731/comments/1uhkef9/premium_protectors_available_5055",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/u_diecast731/comments/1uhkef9/premium_protectors_available_5055/\"> <img src=\"https://preview.redd.it/qqzip8gdjx9h1.jpg?width=140&amp;height=140&amp;crop=1:1,smart&amp;auto=webp&amp;s=791fd75439c22b2f6a4056be8197fba56df06f65\" alt=\"PREMIUM PROTECTORS",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-06T05:43:50.270178+00:00"
-    },
-    {
-      "id": "6832add8b503d6bd",
-      "score": 40,
-      "label": "commercial_signal",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Fun-Diver-6166",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-05-13T15:54:17+00:00",
-      "fecha_iso": "2026-05-13T15:54:17+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/Imagina_Se/comments/1tc3rtk/e_se_as_pessoas_que_controlam_o_mundo_escondessem",
-      "quoted_text": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Imagina_Se/comments/1tc3rtk/e_se_as_pessoas_que_controlam_o_mundo_escondessem/\"> <img src=\"https://preview.redd.it/ftvqniilfx0h1.png?width=140&amp;height=93&amp;auto=webp&amp;s=56d7827436477395f0e5921d103482be42117208\" alt=\"E se as pessoas que contr",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "08_or_document_problem": 40
-      },
-      "detected_signals": [
-        "document_08"
-      ],
-      "discovery_timestamp": "2026-07-06T05:43:50.271317+00:00"
-    }
-  ],
+  "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de Reddit.",
-    "El 100% de los leads calientes son de Santa Fe.",
+    "El 33% de los leads calientes son de CABA.",
     "El problema más frecuente es: Problema de transferencia.",
-    "0% de los leads calientes tienen contacto público visible."
+    "0% de los leads calientes tienen contacto público visible.",
+    "1 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
     "version": "1.0",
@@ -250,7 +274,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 61.14,
+    "runtime_seconds": 61.49,
     "queries_executed": 1
   }
 }
