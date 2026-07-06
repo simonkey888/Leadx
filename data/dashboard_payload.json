@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-06T22:14:04.803197+00:00",
-  "run_id": "f38ac02aff06",
+  "generated_at": "2026-07-06T22:16:28.692817+00:00",
+  "run_id": "1b70f4dd0c8d",
   "summary": {
     "total_leads": 14,
     "hot_leads": 14,
@@ -66,7 +66,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269088+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329605+00:00"
     },
     {
       "id": "0a7e2fd69f060334",
@@ -104,7 +104,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269562+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330028+00:00"
     },
     {
       "id": "e0d26b4daac177cf",
@@ -142,7 +142,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270109+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330584+00:00"
     },
     {
       "id": "ce660c61ca3c5ff7",
@@ -180,7 +180,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270839+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331275+00:00"
     },
     {
       "id": "7449b19ea61c6cda",
@@ -220,7 +220,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.271078+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331532+00:00"
     },
     {
       "id": "41cd3beab4896ee5",
@@ -253,7 +253,7 @@
         "multa_fotomulta",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.267948+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.328519+00:00"
     },
     {
       "id": "1dd4f6dae8092acc",
@@ -289,7 +289,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.268676+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329172+00:00"
     },
     {
       "id": "6406d133ba10818b",
@@ -325,7 +325,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.268863+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329352+00:00"
     },
     {
       "id": "a9ba836cb738939e",
@@ -361,7 +361,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269286+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329805+00:00"
     },
     {
       "id": "3cec4b873fc26893",
@@ -397,7 +397,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269736+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330189+00:00"
     },
     {
       "id": "d5983a9803cd9748",
@@ -433,7 +433,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269897+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330345+00:00"
     },
     {
       "id": "eaa4e8db585f3aee",
@@ -469,7 +469,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270340+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330819+00:00"
     },
     {
       "id": "a51686cad36f17ab",
@@ -505,7 +505,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270593+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331037+00:00"
     },
     {
       "id": "3cf2a229d7e884be",
@@ -541,7 +541,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.271317+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331768+00:00"
     }
   ],
   "leads_hot": [
@@ -583,7 +583,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269088+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329605+00:00"
     },
     {
       "id": "0a7e2fd69f060334",
@@ -621,7 +621,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269562+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330028+00:00"
     },
     {
       "id": "e0d26b4daac177cf",
@@ -659,7 +659,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270109+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330584+00:00"
     },
     {
       "id": "ce660c61ca3c5ff7",
@@ -697,7 +697,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270839+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331275+00:00"
     },
     {
       "id": "7449b19ea61c6cda",
@@ -737,7 +737,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.271078+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331532+00:00"
     },
     {
       "id": "41cd3beab4896ee5",
@@ -770,7 +770,7 @@
         "multa_fotomulta",
         "recent_0_3_days"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.267948+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.328519+00:00"
     },
     {
       "id": "1dd4f6dae8092acc",
@@ -806,7 +806,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.268676+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329172+00:00"
     },
     {
       "id": "6406d133ba10818b",
@@ -842,7 +842,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.268863+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329352+00:00"
     },
     {
       "id": "a9ba836cb738939e",
@@ -878,7 +878,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269286+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.329805+00:00"
     },
     {
       "id": "3cec4b873fc26893",
@@ -914,7 +914,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269736+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330189+00:00"
     },
     {
       "id": "d5983a9803cd9748",
@@ -950,7 +950,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.269897+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330345+00:00"
     },
     {
       "id": "eaa4e8db585f3aee",
@@ -986,7 +986,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270340+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.330819+00:00"
     },
     {
       "id": "a51686cad36f17ab",
@@ -1022,7 +1022,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.270593+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331037+00:00"
     },
     {
       "id": "3cf2a229d7e884be",
@@ -1058,7 +1058,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-06T22:14:01.271317+00:00"
+      "discovery_timestamp": "2026-07-06T22:16:27.331768+00:00"
     }
   ],
   "leads_warm": [],
@@ -1094,7 +1094,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 52.54,
+    "runtime_seconds": 49.97,
     "queries_executed": 2
   }
 }
