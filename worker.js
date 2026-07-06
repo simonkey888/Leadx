@@ -1834,7 +1834,7 @@ export default {
             if (!r.ok) continue;
             const html = await r.text();
             debugHtmlSize = Math.max(debugHtmlSize, html.length);
-            const resultBlocks = html.split(/<div class="result[^"]*"/).slice(1);
+            const resultBlocks = html.split('<div class="result ').slice(1);
             debugResultCount = Math.max(debugResultCount, resultBlocks.length);
             if (!debugFirstSnippet) {
               const firstBlock = resultBlocks[0] || '';
@@ -1843,7 +1843,7 @@ export default {
             }
 
             // Extraer resultados de DDG (cada resultado es un <a class="result__a"> y <a class="result__snippet">)
-            const resultBlocks = html.split(/<div class="result[^"]*"/).slice(1);
+            const resultBlocks = html.split('<div class="result ').slice(1);
 
             for (const block of resultBlocks.slice(0, 15)) {
               // Extraer title + url
