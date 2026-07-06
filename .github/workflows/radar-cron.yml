@@ -32,9 +32,9 @@ jobs:
       - name: Copy to public/data
         run: |
           mkdir -p public/data
-          cp data/dashboard_payload.json public/data/dashboard_payload.json
-          cp data/stats.json public/data/stats.json
-          cp data/history.json public/data/history.json
+          cp data/dashboard_payload.json public/data/dashboard_payload.json 2>/dev/null || true
+          cp data/stats.json public/data/stats.json 2>/dev/null || true
+          cp data/history.json public/data/history.json 2>/dev/null || true
 
       - name: Commit and push
         run: |
@@ -49,38 +49,24 @@ jobs:
           WORKER_URL: https://leadx.simondalmasso44.workers.dev
           INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
         run: |
-          pip install requests -q
-          python -c "
-          import os, json, requests, sys
-          url = os.environ['WORKER_URL'] + '/api/ingest'
-          secret = os.environ['INGEST_SECRET']
-          with open('data/dashboard_payload.json') as f:
-              payload = json.load(f)
-          leads = payload.get('leads_all', [])
-          print(f'Leads a subir: {len(leads)}')
-          if len(leads) == 0:
-              print('No hay leads — salteando POST')
-              sys.exit(0)
-          data = json.dumps(payload)
-          try:
-              resp = requests.post(
-                  url,
-                  data=data,
-                  headers={
-                      'Content-Type': 'application/json',
-                      'X-Webhook-Secret': secret,
-                      'User-Agent': 'LeadX-Pipeline/1.0'
-                  },
-                  timeout=30
-              )
-              print(f'HTTP {resp.status_code}')
-              print(resp.text[:500])
-              if resp.status_code >= 400:
-                  sys.exit(1)
-          except Exception as e:
-              print(f'Error: {e}')
-              sys.exit(1)
-          "
+          if [ ! -f data/dashboard_payload.json ]; then
+            echo "No payload file found, skipping ingest"
+            exit 0
+          fi
+          LEADS_COUNT=$(python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(len(d.get('leads_all',[])))")
+          echo "Uploading $LEADS_COUNT leads to Worker..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WORKER_URL/api/ingest" \
+            -H "X-Webhook-Secret: $INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            --data-binary @data/dashboard_payload.json)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "ERROR: Ingest failed"
+            exit 1
+          fi
 
       - name: Deploy Worker to Cloudflare
         env:
@@ -94,5 +80,5 @@ jobs:
         run: |
           echo "### Radar Pipeline" >> $GITHUB_STEP_SUMMARY
           if [ -f data/dashboard_payload.json ]; then
-            python -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
+            python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
           fi

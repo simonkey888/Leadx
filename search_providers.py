@@ -261,7 +261,10 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
             if u2 and not author:
                 author = u2.group(1)
             # Strip HTML
-            snippet = _re2.sub(r"<[^>]+>", " ", raw)
+            snippet = _re2.sub(r"<img[^>]*>", "", raw)
+            snippet = _re2.sub(r"<[^>]+>", " ", snippet)
+            snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
+            snippet = _re2.sub(r"https?://\S+", "", snippet)
             snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
             snippet = snippet.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'")
             snippet = _re2.sub(r"\s+", " ", snippet).strip()
@@ -269,6 +272,19 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         # Solo incluir si es un post (tiene /comments/ en la URL) y no un subreddit
         if "/comments/" not in url:
             continue
+
+            # FIX 3 (DeepSeek): Filtrar subreddits irrelevantes
+            IRRELEVANT_SUBREDDITS = {
+                "androidafterlife", "android", "whatsapp", "androidmods",
+                "gbwhatsapp", "modding", "apks", "side_loaded",
+                "brasil", "portugal", "portuguese", "learnportuguese",
+                "portugues", "brasileiros",
+                "mexico", "colombia", "chile", "peru", "uruguay", "paraguay",
+                "bolivia", "ecuador", "venezuela", "costarica", "panama",
+            }
+            sub_match = re.search(r"reddit\.com/r/([^/]+)/", url)
+            if sub_match and sub_match.group(1).lower() in IRRELEVANT_SUBREDDITS:
+                continue
         
         results.append({
             "title": title[:200],

@@ -553,6 +553,38 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if reject in combined_lower:
             return None
 
+    # FIX 2 (DeepSeek): Filtro de idioma portugués
+    PORTUGUESE_INDICATORS = [
+        r"\b(?:eu|voc[êe]|voc[êe]s|n[óo]s|eles|elas|meu|sua|suas|nosso|nossa)\b",
+        r"\b(?:comprei|vendi|fiz|est[áa]|s[ãa]o|tem|fazer|pagar|transferir|consegui)\b",
+        r"\b(?:n[ãa]o|tamb[ée]m|j[áa]|ainda|ent[ãa]o|porque|mas|por[ée]m|s[óo]|depois|antes)\b",
+        r"\b(?:boa tarde|bom dia|boa noite|povo|galera|pessoal|abra[çc]o|obrigado|obrigada)\b",
+        r"\b(?:carro|moto|ve[íi]culo|multa|transfer[êe]ncia|documento|detran|cnh|emplacamento)\b",
+    ]
+    pt_matches = sum(1 for pattern in PORTUGUESE_INDICATORS if re.search(pattern, combined, re.IGNORECASE))
+    if pt_matches >= 3:
+        return None
+
+    # FIX 5 (DeepSeek): Filtro de contexto vehicular mas estricto
+    VEHICULAR_KEYWORDS_STRICT = [
+        "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones",
+        "infracción", "transferencia", "transferir", "08", "08 firmado", "cedula verde",
+        "libre deuda", "libredeuda", "patente", "registro automotor",
+        "veraz", "juez de faltas", "deuda patente", "inhibicion",
+        "titulo", "titular", "denuncia de venta", "formulario 08",
+    ]
+    vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
+    if vehicular_count < 2:
+        return None
+
+    # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
+    if len(combined.strip()) < 50:
+        return None
+    url_count = len(re.findall(r"https?://", combined))
+    html_tag_count = len(re.findall(r"<[^>]+>", combined))
+    if len(combined) > 0 and (url_count * 30 + html_tag_count * 10) / len(combined) > 0.5:
+        return None
+
     # Extract phone
     phone = ""
     for pattern in ARG_PHONE_PATTERNS:

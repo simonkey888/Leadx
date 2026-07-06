@@ -1341,22 +1341,7 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  // Qwen fix: sessionStorage + URL param
-  let secret = sessionStorage.getItem('leadx_secret');
-  if (!secret) {
-    const urlSecret = new URLSearchParams(location.search).get('key');
-    if (urlSecret) {
-      sessionStorage.setItem('leadx_secret', urlSecret);
-      secret = urlSecret;
-    }
-  }
-  return secret || '';
-}
-
-// Prompt de auth al cargar si no hay secret
-if (!sessionStorage.getItem('leadx_secret') && !new URLSearchParams(location.search).get('key')) {
-  const s = prompt('🔒 Ingresá la clave de acceso:');
-  if (s) sessionStorage.setItem('leadx_secret', s);
+  return new URLSearchParams(location.search).get('key') || '';
 }
 
 function closeModal() {
