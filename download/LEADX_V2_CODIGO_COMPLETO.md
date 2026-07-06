@@ -1,59 +1,52 @@
 ================================================================================
-LEADX v2.3 — CODIGO COMPLETO ACTUALIZADO
-Fecha: 6 julio 2026 | Commit: 17f93fd (ULTIMA VERSION)
+LEADX v2.5 — CODIGO COMPLETO ACTUALIZADO
+Fecha: 6 julio 2026 | Commit: 91acac9 (ULTIMA VERSION)
 Repo: github.com/simonkey888/Leadx
 ================================================================================
 
-NOVEDADES v2.3 (Qwen fixes):
-  FIX 1: Frontend auth con sessionStorage (prompt al cargar, sin ?key= en URL)
-  FIX 2: Apify Facebook webhook configurado (resultados ya no se pierden)
+NOVEDADES v2.5 (DeepSeek+Qwen 7 fixes):
+  FIX 1: Prompt de auth eliminado (URL param simple)
+  FIX 2: Filtro de idioma portugues (Brasil/Portugal)
+  FIX 3: Blacklist 25+ subreddits irrelevantes
+  FIX 4: Limpieza HTML basura (img, comments, URLs)
+  FIX 5: Contexto vehicular estricto (2+ keywords)
+  FIX 6: Bloquear posts de solo imagenes/links
+  FIX 7: Workflow simplificado con curl
 
-NOVEDADES v2.2 (DeepSeek + Qwen):
-  Step 4.6: mine_comments_for_contacts() - scraea comentarios del post
-  Step 4.7: mine_profile_for_contacts() - scraea perfil del autor (comments.rss)
+NOVEDADES v2.3 (Qwen):
+  sessionStorage auth + Apify webhook configurado
 
-NOVEDADES v2.1 (Qwen+InternLM+DeepSeek P0 fixes):
-  WhatsApp validate fire & forget + /api/apify-webhook + /api/whatsapp-webhook
-  Limpieza: cron-run, runPipelineCron, c_data_iter eliminados
+NOVEDADES v2.2 (DeepSeek+Qwen):
+  Step 4.6: mine_comments_for_contacts() - scraea comentarios
+  Step 4.7: mine_profile_for_contacts() - scraea perfil autor
 
 ARQUITECTURA FINAL:
-  Python (GH Actions cron 1h) → scraping + scoring + OSINT + mining → POST /api/ingest
-  Worker → edge API + KV proxy + deep merge (CERO logica de negocio)
+  Python (GH Actions cron 1h) → scraping+scoring+OSINT+mining → POST /api/ingest
+  Worker → edge API + KV proxy + deep merge (CERO logica negocio)
   Frontend → read only (renderiza l.score de Python)
 
-REGLA DE ORO: Ningun dato se calcula en dos lugares.
-  Score → Python (unico cerebro)
-  Estado CRM → KV (preservado en merge)
-  Render → Frontend (read only)
-
 ENDPOINTS Worker (17):
-  GET  /                  CRM | GET  /cookies.html   Refrescador FB
-  GET  /api/leads         KV  | GET  /api/metrics    KPIs
-  GET  /api/health        Mon | POST /api/ingest     Deep merge
-  GET  /api/kv            KV  | POST /api/kv         KV write
-  GET  /api/ml-questions  ML  | GET  /api/reddit-bio  Bio scraper
-  POST /api/apify-facebook FB | POST /api/apify-webhook FB resultados (auto)
-  POST /api/whatsapp-validate | POST /api/whatsapp-webhook WA resultados
-  GET  /api/clasificar-basic  | POST /api/clasificar-patente
-  POST /api/clasificar-webhook| GET  /api/ddg-foromoto
+  GET / CRM | GET /cookies.html | GET /api/leads | GET /api/metrics
+  GET /api/health | POST /api/ingest | GET/POST /api/kv
+  GET /api/ml-questions | GET /api/reddit-bio
+  POST /api/apify-facebook | POST /api/apify-webhook
+  POST /api/whatsapp-validate | POST /api/whatsapp-webhook
+  GET /api/clasificar-basic | POST /api/clasificar-patente
+  POST /api/clasificar-webhook | GET /api/ddg-foromoto
 
-SECRETS Cloudflare: INGEST_SECRET, CLASIFICAR_API_KEY,
-  CLASIFICAR_WEBHOOK_SECRET, APIFY_TOKEN, FB_COOKIES
-
-SCORING: intencion(0-40) + contacto(0-30) + urgencia(0-20) + geo(0-10)
-  >=70 hot (rojo) | 40-69 warm (naranja) | <40 cold (gris)
+SCORING: intencion(0-40)+contacto(0-30)+urgencia(0-20)+geo(0-10)
+  >=70 hot | 40-69 warm | <40 cold
 
 FUENTES:
-  ✅ Reddit /search.rss | ✅ Reddit comments.rss | ✅ Apify FB (webhook auto)
-  ✅ clasific.ar basic  | ✅ WA validator       | ✅ OSINT shadow profile
-  ✅ Comment mining     | ✅ Profile mining      | ❌ ML API (403)
+  ✅ Reddit RSS | ✅ Reddit comments/profile mining | ✅ Apify FB (webhook)
+  ✅ clasific.ar | ✅ WA validator | ✅ OSINT shadow profile
+  ❌ ML API (403) | ❌ CENAT (captcha)
 
 ================================================================================
 
-
 ================================================================================
-FILE: worker.js | 2682 lines | SHA: b6d379717a03
-DESC: Cloudflare Worker (edge only - 17 endpoints + CRM + sessionStorage auth)
+FILE: worker.js | 2667 lines | SHA: d49a69db2cce
+DESC: Cloudflare Worker (edge only - CRM + 17 endpoints)
 ================================================================================
 
 ```javascript
@@ -1400,22 +1393,7 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  // Qwen fix: sessionStorage + URL param
-  let secret = sessionStorage.getItem('leadx_secret');
-  if (!secret) {
-    const urlSecret = new URLSearchParams(location.search).get('key');
-    if (urlSecret) {
-      sessionStorage.setItem('leadx_secret', urlSecret);
-      secret = urlSecret;
-    }
-  }
-  return secret || '';
-}
-
-// Prompt de auth al cargar si no hay secret
-if (!sessionStorage.getItem('leadx_secret') && !new URLSearchParams(location.search).get('key')) {
-  const s = prompt('🔒 Ingresá la clave de acceso:');
-  if (s) sessionStorage.setItem('leadx_secret', s);
+  return new URLSearchParams(location.search).get('key') || '';
 }
 
 function closeModal() {
@@ -2744,8 +2722,8 @@ export default {
 
 
 ================================================================================
-FILE: generate_payload.py | 1585 lines | SHA: 712f8c25c6f9
-DESC: Pipeline Python (unico cerebro - scoring + OSINT + comment mining + profile mining)
+FILE: generate_payload.py | 1617 lines | SHA: 642b67e7dc80
+DESC: Pipeline Python (scoring + OSINT + mining + PT filter + vehicular strict)
 ================================================================================
 
 ```python
@@ -3303,6 +3281,38 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     for reject in REJECT_IF_CONTAINS:
         if reject in combined_lower:
             return None
+
+    # FIX 2 (DeepSeek): Filtro de idioma portugués
+    PORTUGUESE_INDICATORS = [
+        r"\b(?:eu|voc[êe]|voc[êe]s|n[óo]s|eles|elas|meu|sua|suas|nosso|nossa)\b",
+        r"\b(?:comprei|vendi|fiz|est[áa]|s[ãa]o|tem|fazer|pagar|transferir|consegui)\b",
+        r"\b(?:n[ãa]o|tamb[ée]m|j[áa]|ainda|ent[ãa]o|porque|mas|por[ée]m|s[óo]|depois|antes)\b",
+        r"\b(?:boa tarde|bom dia|boa noite|povo|galera|pessoal|abra[çc]o|obrigado|obrigada)\b",
+        r"\b(?:carro|moto|ve[íi]culo|multa|transfer[êe]ncia|documento|detran|cnh|emplacamento)\b",
+    ]
+    pt_matches = sum(1 for pattern in PORTUGUESE_INDICATORS if re.search(pattern, combined, re.IGNORECASE))
+    if pt_matches >= 3:
+        return None
+
+    # FIX 5 (DeepSeek): Filtro de contexto vehicular mas estricto
+    VEHICULAR_KEYWORDS_STRICT = [
+        "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones",
+        "infracción", "transferencia", "transferir", "08", "08 firmado", "cedula verde",
+        "libre deuda", "libredeuda", "patente", "registro automotor",
+        "veraz", "juez de faltas", "deuda patente", "inhibicion",
+        "titulo", "titular", "denuncia de venta", "formulario 08",
+    ]
+    vehicular_count = sum(1 for kw in VEHICULAR_KEYWORDS_STRICT if kw in combined_lower)
+    if vehicular_count < 2:
+        return None
+
+    # FIX 6 (DeepSeek): Bloquear imagenes/HTML como contenido principal
+    if len(combined.strip()) < 50:
+        return None
+    url_count = len(re.findall(r"https?://", combined))
+    html_tag_count = len(re.findall(r"<[^>]+>", combined))
+    if len(combined) > 0 and (url_count * 30 + html_tag_count * 10) / len(combined) > 0.5:
+        return None
 
     # Extract phone
     phone = ""
@@ -4339,8 +4349,8 @@ def mine_profile_for_contacts(leads: List[Lead]) -> int:
 
 
 ================================================================================
-FILE: search_providers.py | 1116 lines | SHA: 7b36d28bca7e
-DESC: Providers (Reddit RSS + DDG + FB + ML + Foros)
+FILE: search_providers.py | 1132 lines | SHA: fd8d715cc37f
+DESC: Providers (Reddit + DDG + FB + ML + Foros + subreddit blacklist)
 ================================================================================
 
 ```python
@@ -4607,7 +4617,10 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
             if u2 and not author:
                 author = u2.group(1)
             # Strip HTML
-            snippet = _re2.sub(r"<[^>]+>", " ", raw)
+            snippet = _re2.sub(r"<img[^>]*>", "", raw)
+            snippet = _re2.sub(r"<[^>]+>", " ", snippet)
+            snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
+            snippet = _re2.sub(r"https?://\S+", "", snippet)
             snippet = _re2.sub(r"<!--.*?-->", "", snippet, flags=_re2.DOTALL)
             snippet = snippet.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'")
             snippet = _re2.sub(r"\s+", " ", snippet).strip()
@@ -4615,6 +4628,19 @@ def search_reddit(query: str, num: int = 10) -> List[Dict[str, Any]]:
         # Solo incluir si es un post (tiene /comments/ en la URL) y no un subreddit
         if "/comments/" not in url:
             continue
+
+            # FIX 3 (DeepSeek): Filtrar subreddits irrelevantes
+            IRRELEVANT_SUBREDDITS = {
+                "androidafterlife", "android", "whatsapp", "androidmods",
+                "gbwhatsapp", "modding", "apks", "side_loaded",
+                "brasil", "portugal", "portuguese", "learnportuguese",
+                "portugues", "brasileiros",
+                "mexico", "colombia", "chile", "peru", "uruguay", "paraguay",
+                "bolivia", "ecuador", "venezuela", "costarica", "panama",
+            }
+            sub_match = re.search(r"reddit\.com/r/([^/]+)/", url)
+            if sub_match and sub_match.group(1).lower() in IRRELEVANT_SUBREDDITS:
+                continue
         
         results.append({
             "title": title[:200],
@@ -5466,7 +5492,7 @@ def search_reddit_with_status(query: str, num: int = 10):
 
 ================================================================================
 FILE: source_registry.py | 316 lines | SHA: 92c16a2f968e
-DESC: Source Registry (discovery + scoring)
+DESC: Source Registry
 ================================================================================
 
 ```python
@@ -5792,7 +5818,7 @@ if __name__ == "__main__":
 
 ================================================================================
 FILE: pending_queries_kv.py | 207 lines | SHA: eed8590c119f
-DESC: PendingQueryManager (cola 429)
+DESC: PendingQueryManager
 ================================================================================
 
 ```python
@@ -6035,8 +6061,8 @@ enabled = true
 
 
 ================================================================================
-FILE: .github/workflows/radar-cron.yml | 98 lines | SHA: 5e50f77f166a
-DESC: GH Actions workflow (cron 1h)
+FILE: .github/workflows/radar-cron.yml | 84 lines | SHA: 02d3bcab712a
+DESC: GH Actions (cron 1h, curl ingest)
 ================================================================================
 
 ```yaml
@@ -6074,9 +6100,9 @@ jobs:
       - name: Copy to public/data
         run: |
           mkdir -p public/data
-          cp data/dashboard_payload.json public/data/dashboard_payload.json
-          cp data/stats.json public/data/stats.json
-          cp data/history.json public/data/history.json
+          cp data/dashboard_payload.json public/data/dashboard_payload.json 2>/dev/null || true
+          cp data/stats.json public/data/stats.json 2>/dev/null || true
+          cp data/history.json public/data/history.json 2>/dev/null || true
 
       - name: Commit and push
         run: |
@@ -6091,38 +6117,24 @@ jobs:
           WORKER_URL: https://leadx.simondalmasso44.workers.dev
           INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
         run: |
-          pip install requests -q
-          python -c "
-          import os, json, requests, sys
-          url = os.environ['WORKER_URL'] + '/api/ingest'
-          secret = os.environ['INGEST_SECRET']
-          with open('data/dashboard_payload.json') as f:
-              payload = json.load(f)
-          leads = payload.get('leads_all', [])
-          print(f'Leads a subir: {len(leads)}')
-          if len(leads) == 0:
-              print('No hay leads — salteando POST')
-              sys.exit(0)
-          data = json.dumps(payload)
-          try:
-              resp = requests.post(
-                  url,
-                  data=data,
-                  headers={
-                      'Content-Type': 'application/json',
-                      'X-Webhook-Secret': secret,
-                      'User-Agent': 'LeadX-Pipeline/1.0'
-                  },
-                  timeout=30
-              )
-              print(f'HTTP {resp.status_code}')
-              print(resp.text[:500])
-              if resp.status_code >= 400:
-                  sys.exit(1)
-          except Exception as e:
-              print(f'Error: {e}')
-              sys.exit(1)
-          "
+          if [ ! -f data/dashboard_payload.json ]; then
+            echo "No payload file found, skipping ingest"
+            exit 0
+          fi
+          LEADS_COUNT=$(python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(len(d.get('leads_all',[])))")
+          echo "Uploading $LEADS_COUNT leads to Worker..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WORKER_URL/api/ingest" \
+            -H "X-Webhook-Secret: $INGEST_SECRET" \
+            -H "Content-Type: application/json" \
+            --data-binary @data/dashboard_payload.json)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "ERROR: Ingest failed"
+            exit 1
+          fi
 
       - name: Deploy Worker to Cloudflare
         env:
@@ -6136,13 +6148,13 @@ jobs:
         run: |
           echo "### Radar Pipeline" >> $GITHUB_STEP_SUMMARY
           if [ -f data/dashboard_payload.json ]; then
-            python -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
+            python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(f'Leads: {d[\"summary\"][\"total_leads\"]} | Hot: {d[\"summary\"][\"hot_leads\"]}')" >> $GITHUB_STEP_SUMMARY
           fi
 
 ```
 
 
 ================================================================================
-TOTAL: 231,729 chars | 6021 lines | 7 archivos
-Commit: 17f93fd | Version: v2.3
+TOTAL: 233,551 chars | 6040 lines | 7 archivos
+Commit: 91acac9 | Version: v2.5
 ================================================================================
