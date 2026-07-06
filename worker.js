@@ -2120,7 +2120,6 @@ export default {
         if (!cookiesStr) {
           return jsonResponse({ ok: false, error: 'no_fb_cookies', hint: 'Ir a /cookies.html?key=SECRET para configurar' }, corsHeaders, 500);
         }
-        try {
         const body = await request.json();
         const groupUrls = body.groupUrls || [
           'https://www.facebook.com/groups/276074287942602', // Defensas contra Multas AR
