@@ -1905,6 +1905,10 @@ export default {
           leads: allLeads,
           total: allLeads.length,
           sources_queried: QUERIES.length,
+          debug: {
+            queries: QUERIES,
+            note: 'Si total=0, probablemente DDG no devolvio snippets con dolor+contacto',
+          },
         }, corsHeaders);
       } catch (err) {
         return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
