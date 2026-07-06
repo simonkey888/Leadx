@@ -533,9 +533,15 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         # Titulo: primeras palabras del texto
         title = text[:80].strip()
         
+        # FIX BOMBA #2 (parte 4): URL unica por lead para evitar dedup masivo.
+        # Todos los leads VentaFe compartian la misma URL base, lo que hacia que
+        # la dedup por source_url colapsara los 17 leads en 1 solo.
+        phone_slug = valid_phones[0].replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
+        
         lead = {
             "name": f"[VentaFe] {title}",
-            "url": "https://www.ventafe.com.ar/automoviles",
+            "url": unique_url,
             "snippet": text[:500],
             "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
             "host_name": "ventafe.com.ar",
@@ -1319,7 +1325,11 @@ def deduplicate_cases(leads: List[Lead]) -> List[Lead]:
     out = []
     for lead in leads:
         # Qwen fix: Solo usar URL para ID (estable entre runs)
+        # FIX BOMBA #2 (parte 4): Para VentaFe, incluir telefono en el composite
+        # para que cada vendedor tenga su propio ID (todos comparten URL base).
         components = [lead.source_url or lead.quoted_text[:50]]
+        if lead.telefono_publico or lead.whatsapp_publico:
+            components.append(lead.telefono_publico or lead.whatsapp_publico)
         composite = "|".join(components)
         h = hashlib.sha256(composite.encode("utf-8")).hexdigest()[:16]
         lead.id = h
