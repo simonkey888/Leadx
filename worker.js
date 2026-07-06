@@ -2502,7 +2502,7 @@ export default {
     // Body: { "phones": ["5491154541802"] }
     // Devuelve inmediatamente, resultados via /api/whatsapp-webhook
     if (url.pathname === '/api/whatsapp-validate' && request.method === 'POST') {
-      const secret = request.headers.get('X-Webhook-Secret');
+      const secret = request.headers.get('X-Webhook-Secret') || url.searchParams.get('key') || '';
       if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
         return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
       }
