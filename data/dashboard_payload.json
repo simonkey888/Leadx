@@ -1,24 +1,24 @@
 {
-  "generated_at": "2026-07-07T17:10:07.608372+00:00",
-  "run_id": "b43ffc1bc368",
+  "generated_at": "2026-07-07T19:12:01.947380+00:00",
+  "run_id": "21887bb068ca",
   "summary": {
-    "total_leads": 6,
-    "hot_leads": 6,
+    "total_leads": 7,
+    "hot_leads": 7,
     "warm_leads": 0,
-    "contactable": 6,
+    "contactable": 7,
     "with_whatsapp": 4,
-    "with_phone": 6,
+    "with_phone": 7,
     "with_email": 0,
-    "avg_score": 83.3,
-    "avg_score_hot": 83.3,
+    "avg_score": 82.1,
+    "avg_score_hot": 82.1,
     "conversion_probability": 100.0,
     "by_category": {
       "FINE_DISPUTE": 1,
-      "OTHER": 2,
+      "OTHER": 3,
       "TRANSFER_PROBLEM": 3
     },
     "by_platform": {
-      "VentaFe": 6
+      "VentaFe": 7
     },
     "by_province": {}
   },
@@ -59,7 +59,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.606075+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.944636+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -98,7 +98,44 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607626+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.946564+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "bc9ad1bfd7a69621",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/Vendedor #4797964",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-07-07",
+      "fecha_iso": "2026-07-07T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4797964-mercedes-benz-c350-avangarden-2008",
+      "quoted_text": "> MERCEDES BENZ C350 AVANGARDEN 2008 Mercedes Benz C350 Avangarden año 2008 en excelente estado general. Unico dueño. 150 mil Km. Papeles al dia. Entrega inmediata. OPORTUNIDAD Mercedes Benz C350 Avangarden año 2008 en excelente estado general. Unico dueño. 150 mil Km. Papeles al dia. Entrega inmedi",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493424668832",
+      "telefono_publico": "+5493424668832",
+      "telefono_e164": "+5493424668832",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-07T19:12:01.945276+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -135,7 +172,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.606748+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.945613+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -172,7 +209,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607050+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.945958+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -209,7 +246,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607342+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.946257+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -246,7 +283,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607997+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.946975+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -287,7 +324,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.606075+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.944636+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -326,7 +363,44 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607626+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.946564+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "bc9ad1bfd7a69621",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "OTHER",
+      "problem_summary": "Lead vehicular",
+      "persona": "u/Vendedor #4797964",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-07-07",
+      "fecha_iso": "2026-07-07T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/4797964-mercedes-benz-c350-avangarden-2008",
+      "quoted_text": "> MERCEDES BENZ C350 AVANGARDEN 2008 Mercedes Benz C350 Avangarden año 2008 en excelente estado general. Unico dueño. 150 mil Km. Papeles al dia. Entrega inmediata. OPORTUNIDAD Mercedes Benz C350 Avangarden año 2008 en excelente estado general. Unico dueño. 150 mil Km. Papeles al dia. Entrega inmedi",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493424668832",
+      "telefono_publico": "+5493424668832",
+      "telefono_e164": "+5493424668832",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-07T19:12:01.945276+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -363,7 +437,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.606748+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.945613+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -400,7 +474,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607050+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.945958+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -437,7 +511,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607342+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.946257+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -474,14 +548,14 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T17:10:07.607997+00:00",
+      "discovery_timestamp": "2026-07-07T19:12:01.946975+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de VentaFe.",
-    "El problema más frecuente es: Problema de transferencia.",
+    "El problema más frecuente es: Lead vehicular.",
     "100% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
@@ -510,7 +584,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 62.17,
+    "runtime_seconds": 73.73,
     "queries_executed": 2
   }
 }

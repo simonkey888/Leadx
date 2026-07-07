@@ -1,41 +1,12 @@
 {
-  "total_runs": 88,
-  "last_run": "2026-07-07T17:10:07.608372+00:00",
-  "last_run_id": "b43ffc1bc368",
-  "total_leads_all_time": 1037,
-  "total_hot_leads_all_time": 936,
+  "total_runs": 89,
+  "last_run": "2026-07-07T19:12:01.947380+00:00",
+  "last_run_id": "21887bb068ca",
+  "total_leads_all_time": 1044,
+  "total_hot_leads_all_time": 943,
   "avg_hot_per_run": 10.6,
-  "runs_today": 19,
+  "runs_today": 20,
   "last_7_days": [
-    {
-      "run_id": "c162e9e94d4d",
-      "generated_at": "2026-07-07T08:19:24.574621+00:00",
-      "summary": {
-        "total_leads": 30,
-        "hot_leads": 30,
-        "warm_leads": 0,
-        "contactable": 30,
-        "with_whatsapp": 17,
-        "with_phone": 30,
-        "with_email": 0,
-        "avg_score": 87.7,
-        "avg_score_hot": 87.7,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "OTHER": 14,
-          "TRANSFER_PROBLEM": 13,
-          "OWNERSHIP_ISSUE": 2,
-          "FINE_DISPUTE": 1
-        },
-        "by_platform": {
-          "VentaFe": 30
-        },
-        "by_province": {
-          "CABA": 2,
-          "Paraná": 1
-        }
-      }
-    },
     {
       "run_id": "8c1cffbe7078",
       "generated_at": "2026-07-07T11:44:31.250380+00:00",
@@ -194,6 +165,31 @@
         },
         "by_platform": {
           "VentaFe": 6
+        },
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "21887bb068ca",
+      "generated_at": "2026-07-07T19:12:01.947380+00:00",
+      "summary": {
+        "total_leads": 7,
+        "hot_leads": 7,
+        "warm_leads": 0,
+        "contactable": 7,
+        "with_whatsapp": 4,
+        "with_phone": 7,
+        "with_email": 0,
+        "avg_score": 82.1,
+        "avg_score_hot": 82.1,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "FINE_DISPUTE": 1,
+          "OTHER": 3,
+          "TRANSFER_PROBLEM": 3
+        },
+        "by_platform": {
+          "VentaFe": 7
         },
         "by_province": {}
       }
