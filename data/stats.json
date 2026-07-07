@@ -1,42 +1,12 @@
 {
-  "total_runs": 78,
-  "last_run": "2026-07-07T05:20:47.654263+00:00",
-  "last_run_id": "556cb3ecc440",
-  "total_leads_all_time": 808,
-  "total_hot_leads_all_time": 707,
-  "avg_hot_per_run": 9.1,
-  "runs_today": 9,
+  "total_runs": 79,
+  "last_run": "2026-07-07T05:29:31.281875+00:00",
+  "last_run_id": "baa9cad809df",
+  "total_leads_all_time": 838,
+  "total_hot_leads_all_time": 737,
+  "avg_hot_per_run": 9.3,
+  "runs_today": 10,
   "last_7_days": [
-    {
-      "run_id": "268b06858904",
-      "generated_at": "2026-07-07T04:21:11.982965+00:00",
-      "summary": {
-        "total_leads": 13,
-        "hot_leads": 13,
-        "warm_leads": 0,
-        "contactable": 12,
-        "with_whatsapp": 4,
-        "with_phone": 12,
-        "with_email": 0,
-        "avg_score": 85.4,
-        "avg_score_hot": 85.4,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "TRANSFER_PROBLEM": 5,
-          "OTHER": 6,
-          "OWNERSHIP_ISSUE": 1,
-          "FINE_DISPUTE": 1
-        },
-        "by_platform": {
-          "Reddit": 1,
-          "Ventafe.Com.Ar": 12
-        },
-        "by_province": {
-          "CABA": 1,
-          "Paraná": 1
-        }
-      }
-    },
     {
       "run_id": "0ec2d53c4710",
       "generated_at": "2026-07-07T04:25:00.642848+00:00",
@@ -184,6 +154,35 @@
     {
       "run_id": "556cb3ecc440",
       "generated_at": "2026-07-07T05:20:47.654263+00:00",
+      "summary": {
+        "total_leads": 30,
+        "hot_leads": 30,
+        "warm_leads": 0,
+        "contactable": 30,
+        "with_whatsapp": 17,
+        "with_phone": 30,
+        "with_email": 0,
+        "avg_score": 87.7,
+        "avg_score_hot": 87.7,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "OTHER": 14,
+          "TRANSFER_PROBLEM": 13,
+          "OWNERSHIP_ISSUE": 2,
+          "FINE_DISPUTE": 1
+        },
+        "by_platform": {
+          "Ventafe.Com.Ar": 30
+        },
+        "by_province": {
+          "CABA": 2,
+          "Paraná": 1
+        }
+      }
+    },
+    {
+      "run_id": "baa9cad809df",
+      "generated_at": "2026-07-07T05:29:31.281875+00:00",
       "summary": {
         "total_leads": 30,
         "hot_leads": 30,
