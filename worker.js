@@ -1782,6 +1782,23 @@ export default {
         });
         const merged = Array.from(prevById.values());
 
+        // FIX GEMINI: Decay temporal de leads (>7 días sin gestión pierden 5 pts/día).
+        // Evita que el dashboard se llene de leads viejos "calientes" que nunca se contactaron.
+        // Solo aplica a leads en estado 'Nuevo' o sin estado (no toca los que ya están en gestión).
+        merged.forEach(l => {
+          const ts = l.fecha_iso || l.discovery_timestamp;
+          const leadDate = ts ? new Date(ts) : null;
+          if (leadDate && !isNaN(leadDate.getTime())) {
+            const ageDays = (Date.now() - leadDate.getTime()) / 86400000;
+            if (ageDays > 7 && (l._status === 'Nuevo' || l.status === 'Nuevo' || !l._status)) {
+              const decay = Math.floor((ageDays - 7) * 5);
+              l.score = Math.max(0, (l.score || 0) - decay);
+              l._decay_applied = decay;
+              l._heat_label = l.score >= 70 ? 'hot' : l.score >= 40 ? 'warm' : 'cold';
+            }
+          }
+        });
+
         // Truncate to 500 most recent
         merged.sort((a, b) => {
           const da = new Date(a.fecha_iso || a.discovery_timestamp || 0).getTime();

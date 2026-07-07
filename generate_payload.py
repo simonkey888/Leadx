@@ -753,15 +753,7 @@ def collect_public_sources() -> List[Dict[str, Any]]:
         print(f"  Facebook (Apify) ERROR: {e}", file=sys.stderr)
 
     # VentaFe Scraper (portal de clasificados del interior - SANTA FE ORO)
-    try:
-        ventafe_results = scrape_ventafe_leads()
-        if ventafe_results:
-            all_results.extend(ventafe_results)
-            print(f"  VentaFe: +{len(ventafe_results)} leads agregados", file=sys.stderr)
-    except Exception as e:
-        print(f"  VentaFe ERROR: {e}", file=sys.stderr)
-
-    # VentaFe Scraper (desde GH Actions)
+    # FIX GEMINI: eliminar llamada duplicada (estaba 2 veces, scrapendo 5 paginas x2 = 15s perdido)
     try:
         ventafe_results = scrape_ventafe_leads()
         if ventafe_results:
@@ -1256,6 +1248,27 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         ]
         if not has_arg_signal and not any(kw in text for kw in ar_keywords_extra):
             return None  # Descarte inmediato, no llega al CRM
+
+    # FIX GEMINI: Validación cruzada geográfica código de área vs provincia.
+    # Si el teléfono empieza con 342 (Santa Fe) pero provincia dice "Córdoba",
+    # hay inconsistencia → penalizar levemente y marcar signal.
+    if record.get("telefono_publico") and record.get("provincia"):
+        AREA_PROV_MAP = {
+            '342': 'Santa Fe', '341': 'Santa Fe',
+            '351': 'Córdoba', '261': 'Mendoza',
+            '221': 'Buenos Aires', '11': 'CABA',
+            '381': 'Tucumán', '299': 'Neuquén',
+        }
+        clean_num = re.sub(r"^\+?54\s?9?", "", record["telefono_publico"]).lstrip('0')
+        for code, prov in AREA_PROV_MAP.items():
+            if clean_num.startswith(code):
+                rec_prov_norm = record["provincia"].lower().strip()
+                prov_norm = prov.lower().strip()
+                if prov_norm not in rec_prov_norm and rec_prov_norm not in prov_norm:
+                    signals.append('ORIGEN_MISMATCH')
+                    score -= 10
+                    breakdown["origen_mismatch"] = -10
+                break
 
     # --- Penalties ---
 
