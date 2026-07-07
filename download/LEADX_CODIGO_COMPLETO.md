@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 22:03 UTC  
+**Generado:** 2026-07-07 22:14 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 6a69fcb6-3bc6-4a21-80d1-75be2313c708  
-**Estado:** Producción activa · cron cada 1h · 36 leads en KV (14 VentaFe + 20 Facebook + 2 Reddit) · APIFY_TOKEN refrescado · 2 grupos FB activos · rediseño Twenty.com · KPI=bandeja
-**Timestamp generación:** 2026-07-07 22:03 UTC (hora UTC) · Argentina: 2026-07-07 19:03:59 ART
+**Worker Version:** ae6f2b84-41af-4700-8495-7cb6fb9f4b49  
+**Estado:** Producción activa · cron cada 1h · 14 leads VentaFe preventivos (KV limpio, FB filtrado) · apify-webhook con filtro estricto dolor + scoring dinámico · rediseño Twenty.com · KPI=bandeja
+**Timestamp generación:** 2026-07-07 22:14 UTC (hora UTC) · Argentina: 2026-07-07 19:14:11 ART
 
 ---
 
@@ -14,7 +14,7 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,328 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 1 | `worker.js` | 3,346 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
 | 2 | `generate_payload.py` | 2,351 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
@@ -568,11 +568,39 @@
 - Posts enviados al KV via `/api/apify-webhook` → 20 leads Facebook mergeados
 - **Total KV:** 36 leads (14 VentaFe con WhatsApp + 20 Facebook + 2 Reddit)
 
+### ✅ FIX QWEN — Filtro estricto dolor + scoring dinámico en apify-webhook → DONE
+
+**Problema:** `/api/apify-webhook` ingería todo lo que Apify devolvía sin filtro, hardcodeaba `score:50` y mandaba al KV. Por eso había heladeras, muebles y ventas genéricas en el dashboard.
+
+**3 cambios en el webhook:**
+
+**1. Filtro estricto de dolor vehicular (PAIN_KW):**
+- Regex que exige al menos una keyword: multa, fotomulta, infracción, libre deuda, transferencia, transferir, patente, 08, cédula, veraz, registro automotor, juez de faltas, peaje, deuda, vencimiento, prescripción, papeles al día, listo para transferir, sin deuda, titular
+- Si no matchea → `continue` (descartar inmediatamente)
+
+**2. Scoring dinámico (no hardcodear 50):**
+- Base: 40
+- multa/fotomulta: +20
+- transferencia/transferir/08: +15
+- deuda/libre deuda: +15
+- tiene teléfono o email: +20
+- Max: 100
+
+**3. Umbral mínimo:** `score < 50` → descartar
+
+**Resultado verificado:**
+- 20 posts de FB re-procesados con el nuevo filtro → `received: 0, filtered_out: 20`
+- Los 20 posts NO mencionaban dolor vehicular (heladeras, muebles, ventas genéricas) → todos descartados
+- KV purgado y regenerado: **14 leads VentaFe preventivos** (limpios, sin basura FB)
+- Solo posts de FB con dolor vehicular explícito llegarán al KV en el futuro
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+8065468 radar: auto-update 2026-07-07 22:11 UTC
+9008659 fix(qwen): filtro estricto dolor + scoring dinamico en apify-webhook
 a2f3607 feat(qwen): agregar Grupo B (Venta Santa Fe) al scraper Apify FB
 e7d966c radar: auto-update 2026-07-07 21:20 UTC
 913b2de radar: auto-update 2026-07-07 20:27 UTC
@@ -591,8 +619,6 @@ a3191cc radar: auto-update 2026-07-07 19:49 UTC
 2ef83a5 feat(gemini tunel detalle): scraper de pagina de detalle para extraer patentes
 fe3d660 radar: auto-update 2026-07-07 19:33 UTC
 812ee6f feat(gemini tunel): clasific.ar audita VentaFe con patente + boost dinamico deuda
-11ca114 radar: auto-update 2026-07-07 19:12 UTC
-87ce6b7 fix(gemini arquitectura): eliminar scraper VentaFe del Edge Cron
 ```
 
 ---
@@ -3327,6 +3353,7 @@ export default {
     }
 
     // ─── POST /api/apify-webhook ─── Recibe resultados de Apify Facebook scraper
+    // FIX QWEN: filtro estricto de dolor vehicular + scoring dinámico (no hardcodear 50)
     if (url.pathname === '/api/apify-webhook' && request.method === 'POST') {
       try {
         const body = await request.json();
@@ -3335,14 +3362,31 @@ export default {
         const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
         const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
 
+        // FILTRO ESTRICTO DE DOLOR (obligatorio para FB, cero excepciones)
+        const PAIN_KW = /multa|fotomulta|infracci[oó]n|libre.?deuda|transferencia|transferir|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|vencimiento|prescripci[oó]n|papeles.al.d[ií]a|listo.para.transferir|sin.deuda|titular/i;
+
         for (const post of (Array.isArray(items) ? items : [])) {
           const text = post.text || post.postText || '';
           const author = post.authorName || post.author || '';
           const postUrl = post.url || post.postUrl || '';
           if (!text && !author) continue;
 
+          // RECHAZO INMEDIATO si no hay dolor vehicular explícito
+          if (!PAIN_KW.test(text)) continue;
+
           const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+
+          // Scoring dinámico (alineado con pipeline Python)
+          let score = 40;
+          if (/multa|fotomulta/i.test(text)) score += 20;
+          if (/transferencia|transferir|08/i.test(text)) score += 15;
+          if (/deuda|libre.deuda/i.test(text)) score += 15;
+          if (phones.length > 0 || emails.length > 0) score += 20;
+          score = Math.min(100, score);
+
+          // Umbral mínimo: si no llega a 50, no es lead
+          if (score < 50) continue;
 
           leads.push({
             id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
@@ -3355,7 +3399,7 @@ export default {
             snippet: text.slice(0, 3000),
             url: postUrl,
             fecha_iso: (post.timestamp || '').slice(0, 10),
-            score: 50,
+            score: score,
             whatsapp_publico: phones[0] || '',
             telefono_publico: phones[0] || '',
             email_publico: emails[0] || '',
@@ -3380,10 +3424,10 @@ export default {
           leads_all: truncated,
           leads_hot: truncated.filter(l => (l.score || 0) >= 50),
           summary: { total_leads: truncated.length, hot_leads: truncated.filter(l => (l.score || 0) >= 50).length },
-          meta: { version: '11.0', source: 'apify_webhook', generated_at: new Date().toISOString(), ingest_at: new Date().toISOString() }
+          meta: { version: '11.1', source: 'apify_webhook_filtered', generated_at: new Date().toISOString(), ingest_at: new Date().toISOString() }
         }));
 
-        return jsonResponse({ ok: true, received: leads.length, merged: truncated.length }, corsHeaders);
+        return jsonResponse({ ok: true, received: leads.length, merged: truncated.length, filtered_out: (Array.isArray(items) ? items.length : 0) - leads.length }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: true, error: e.message }, corsHeaders);
       }
@@ -10472,7 +10516,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 22:03 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 22:14 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
