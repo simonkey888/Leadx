@@ -1,11 +1,11 @@
-# 📦 LeadX — Código Completo (Bundle Único)
+# 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 05:01 UTC  
+**Generado:** 2026-07-07 15:33 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** f12be03c-1a50-4d6f-aae4-2fe9c60e89bd  
-**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link · 30 VentaFe con URL clickeable · dashboard sin prompt de auth
+**Worker Version:** 75f407e5-0900-4fd4-b227-ce6922acdfd2  
+**Estado:** Producción activa · cron cada 1h · 32 leads en KV · 32 con teléfono · 32 con WhatsApp link · KPI=bandeja (alineados)
 
 ---
 
@@ -13,8 +13,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,316 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,102 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,362 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,138 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -147,20 +147,25 @@
 
 ### Estado final del KV (verificado)
 
-| Métrica | Antes | Post-Qwen P0 | Post-Qwen v2.7 | Post-Qwen v2.8 | Post-Qwen v2.9 |
-|---|---|---|---|---|---|
-| Total leads | 53 | 80 | 117 | 117 | **117** |
-| Leads con teléfono | 1 | 28 | 45 | 45 | **45** |
-| Leads con WhatsApp link | 1 | 27 | 44 | 44 | **44** |
-| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | 30 | 30 (3 estrategias) | **30** |
-| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' | ✅ | ✅ |
-| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | 5 págs (45 leads) | 5 págs (45 leads) | **5 págs (45 leads)** |
-| ML Questions | num=15 | num=15 | num=50 | num=50 | **num=50** |
-| clasific.ar enriquecimiento | Todos con patente | Todos con patente | Solo score>=70 | Solo score>=70 | **Solo score>=70** |
-| Filtros frontend | 3 (Estado/Prov/Fuente) | 3 | 3 | 5 (+Contacto +Temperatura) | **5** |
-| Anti-gaming filter | ❌ | ❌ | ❌ | ✅ (subreddits + 30 keywords) | **✅** |
-| Auth frontend | ❌ prompt + sessionStorage | ✅ sessionStorage + fallback | ✅ | ✅ | **✅ Sin prompt (hardcodeado)** |
-| Reddit SOLO Argentina | ❌ | ❌ | ❌ | ❌ | **✅ (filtro estricto + query 'argentina')** |
+| Métrica | Antes | Post-Qwen P0 | v2.7 | v2.8 | v2.9 | v3.0 | v3.0.1 | Audit v5 |
+|---|---|---|---|---|---|---|---|---|
+| Total leads | 53 | 80 | 117 | 117 | 117 | 30 (purged) | 30 | **32** |
+| Leads con teléfono | 1 | 28 | 45 | 45 | 45 | 30 | 30 | **32** |
+| Leads con WhatsApp link | 1 | 27 | 44 | 44 | 44 | 30 | 30 | **32** |
+| Botón WhatsApp funcional | ❌ Unauthorized | ✅ wa.me directo | ✅ | ✅ | ✅ | ✅ | ✅ | **✅** |
+| Scraper VentaFe | 1 pág (17) | 1 pág (17) | 5 págs (45) | 5 págs (45) | 5 págs (45) | 5 págs (45) | 5 págs (45) | **5 págs (45)** |
+| ML Questions | num=15 | num=15 | num=50 | num=50 | num=50 | num=50 | num=50 | **num=50** |
+| clasific.ar enriquecimiento | Todos | Todos | Solo score≥70 | Solo score≥70 | Solo score≥70 | Solo score≥70 | Solo score≥70 | **Solo score≥70** |
+| Filtros frontend | 3 | 3 | 3 | 5 | 5 | 5 (defaults VentaFe/WA/hot) | 5 (defaults todos) | **5 (defaults todos)** |
+| Anti-gaming filter | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | **✅** |
+| Auth frontend | ❌ prompt | ✅ sessionStorage | ✅ | ✅ | ✅ Sin prompt | ✅ Sin prompt | ✅ Sin prompt | **✅ Sin prompt** |
+| Reddit SOLO Argentina | ❌ | ❌ | ❌ | ❌ | ✅ Python | ✅ Python | ✅ Python | **✅ Python + Edge Cron** |
+| Edge Cron TDZ fix | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Decay temporal (>7d) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Validación cruzada área↔prov | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ (-10 pts mismatch)** |
+| Encoding 'transferencia' | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ html.unescape()** |
+| Persona única VentaFe | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Vendedor #{aviso_id}** |
+| KPI Total casos = bandeja | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Alineados** |
 
 ### FIX QWEN v2.7 — Escala real (3 cambios) → DONE
 
@@ -227,31 +232,108 @@
 - Resultado: cero leads Reddit de Italia/USA/genéricos llegan al CRM
 - Los leads Reddit viejos del KV envejecen naturalmente (deep merge los conserva pero no se renuevan)
 
+### FIX GEMINI AUDIT v3 — sourceFilter case-insensitive + PLATFORM_MAP VentaFe → DONE
+
+**#1 — PLATFORM_MAP en generate_payload.py:**
+- Agregado `'ventafe.com.ar': 'VentaFe'` y `'www.ventafe.com.ar': 'VentaFe'` al diccionario
+- Antes Python hacía `host.title()` produciendo `'Ventafe.Com.Ar'` (inconsistente con filtro)
+- Ahora asigna `'VentaFe'` directamente, sin caer al fallback `.title()`
+
+**#2 — sourceFilter case-insensitive + substring match en worker.js:**
+- Antes: `(l.source_label || '') !== sf` → fallaba con `'Ventafe.Com.Ar' !== 'VentaFe'`
+- Ahora: `leadSrc.includes(filterSrc) || filterSrc.includes(leadSrc)` (case-insensitive)
+- Funciona incluso si los leads viejos del KV todavía tienen `'Ventafe.Com.Ar'` como source_label
+
+### FIX GEMINI AUDIT v4 — Defaults filtros a 'todos' → DONE
+
+- Antes: `sourceFilter='VentaFe'` + `contactFilter='whatsapp'` + `heatFilter='hot'` por defecto
+- Solo 2 leads cumplían los 3 criterios simultáneamente → tabla mostraba 2 mientras KPI decía 33
+- Ahora: los 3 filtros arrancan en `'todos'`. Botones HTML `'active'` en `'Todos'`.
+- Sergio puede filtrar manualmente después si quiere segmentar.
+
+### FIX VISUAL — Encoding 'tran ferencia' + Persona única → DONE
+
+**#1 — Encoding 'tran ferencia' (generate_payload.py scrape_ventafe_leads):**
+- Antes: `_re.sub(r'&[a-z]+;', ' ', text)` reemplazaba TODAS las entidades HTML con espacio
+  rompiendo palabras como `'transferencia'` → `'tran ferencia'` (entidades `&#101;` en el medio)
+- Ahora: `html.unescape()` ANTES del regex de limpieza para decodificar entidades correctamente
+- Resultado: 0 leads con `'tran ferencia'`, encoding correcto.
+
+**#2 — Persona única por lead VentaFe:**
+- Antes: todos los leads tenían `username='Vendedor VentaFe'` y `author='Vendedor VentaFe'` (indistinguibles)
+- Ahora: cada lead tiene `persona_label = 'Vendedor #{aviso_id}'` (ej: `'Vendedor #5011376'`)
+  o `'Vendedor tel …1234'` como fallback
+- Sergio puede ver cuál es cuál en la tabla.
+
+### FIX GEMINI AUDIT v5 — KPI Total casos = bandeja → DONE
+
+- Antes: `applyFilters()` tenía 2 filtros extras ocultos:
+  - `if (resumenLow.includes('lead vehicular') || ...) return false;`
+  - `if (!l.provincia && !l.pinned) return false;` ← ESTE mataba 29 leads (la mayoría de VentaFe no tiene provincia)
+- KPI decía 32 pero la tabla mostraba 3 (los 29 restantes caían en el filtro oculto)
+- Ahora: `applyFilters()` solo aplica los filtros de la sidebar (status, prov, source, contact, heat, search)
+- Resultado: KPI `'Total casos'` = número de filas en bandeja. Siempre.
+
+### FIX GEMINI AUDIT v3-EDGE — Edge Cron Reddit SOLO AR + fix TDZ VentaFe → DONE
+
+**#1 — Edge Cron Reddit SOLO Argentina (worker.js runPipelineCron):**
+- El Edge Cron del Worker NO tenía el filtro AR estricto que sí existe en `classify_and_score` del Python
+- Traía 17 leads Reddit basura (portugués, sin señal AR, sin teléfono)
+- Agregado filtro: si no hay keyword AR explícita, descartar el lead
+- Adicional: requiere `painKwStrict` (multa/transferencia/deuda/patente/libre deuda — no solo 'auto/moto' genérico)
+- `junkKw` extendido: lovecraft, meteorito, paysandu, gaming, playstation, xbox
+
+**#2 — Bug TDZ en scraper VentaFe del Edge Cron:**
+- `vfHtml` se usaba en línea 3245 ANTES de ser declarado en línea 3254 (Temporal Dead Zone)
+- El scraper VentaFe del Edge Cron fallaba silenciosamente
+- Movido `const vfHtml = await vfRes.text()` ANTES del primer uso
+
+**#3 — Paginación VentaFe del Edge Cron:**
+- Usaba `?page=` (que NO pagina en VentaFe, devuelve siempre página 1)
+- Cambiado a `?p=` (paginación real, misma que el Python)
+
+### FIX GEMINI EXTRA — Decay temporal + Validación cruzada geo + Fix duplicado → DONE
+
+**#1 — Decay temporal en /api/ingest (worker.js):**
+- Leads con estado `'Nuevo'` (o sin estado) que tienen >7 días de antigüad pierden 5 pts de score por día extra
+- Recalcula `_heat_label` automáticamente (hot/warm/cold)
+- Solo aplica a leads NO gestionados (no toca Contactado/En gestión/Cerrado)
+
+**#2 — Validación cruzada código de área vs provincia (generate_payload.py classify_and_score):**
+- Si teléfono empieza con 342 (Santa Fe) pero provincia dice 'Córdoba', marcar signal `ORIGEN_MISMATCH`
+- Penalización: -10 al score
+- Mapa: 342/341=Santa Fe, 351=Córdoba, 261=Mendoza, 221=Buenos Aires, 11=CABA, 381=Tucumán, 299=Neuquén
+
+**#3 — Eliminar llamada duplicada a scrape_ventafe_leads (generate_payload.py):**
+- Estaba llamada 2 veces en `collect_public_sources` (líneas 757 y 766)
+- Cada llamada scrapea 5 páginas con `sleep(3)` = 15s extra perdido
+- Ahora se llama 1 sola vez. Pipeline 15s más rápido.
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+d5e5cae fix(gemini audit v5): KPI Total casos = bandeja (quitar filtros extras)
+296fff4 radar: auto-update 2026-07-07 14:46 UTC
+b989c0a fix(visual): encoding transferencia + persona unico por lead VentaFe
+3c4b520 radar: auto-update 2026-07-07 14:21 UTC
+ea80709 radar: auto-update 2026-07-07 11:44 UTC
+7bb10fd radar: auto-update 2026-07-07 08:19 UTC
+95647a0 fix(gemini audit v4): defaults filtros a 'todos' (tabla vacia con 2 de 33)
+8e07861 radar: auto-update 2026-07-07 05:42 UTC
+30f42be fix(gemini audit v3): sourceFilter case-insensitive + PLATFORM_MAP VentaFe
+7ff9db0 radar: auto-update 2026-07-07 05:36 UTC
+1fe44cb fix(gemini audit v2): Edge Cron requiere pain keyword strict + junk filter
+cbdad73 fix(gemini audit): Edge Cron Reddit SOLO AR + fix TDZ VentaFe
+4872e25 radar: auto-update 2026-07-07 05:29 UTC
+aedf2e1 feat(gemini): decay temporal + validacion cruzada geo + fix duplicado
+7a1c2fd radar: auto-update 2026-07-07 05:20 UTC
+f23ab77 fix(v3.0.1): relajar filtro VentaFe (OR en vez de AND)
+e883bb0 radar: auto-update 2026-07-07 05:14 UTC
+04329ca fix(qwen v3.0): purgar KV + defaults filtros + bloquear genericos
 b571f4d radar: auto-update 2026-07-07 04:54 UTC
 ebb8d84 fix(qwen v2.9): sin prompt auth + Reddit SOLO Argentina
-02c28fe radar: auto-update 2026-07-07 04:47 UTC
-ab425ac radar: auto-update 2026-07-07 04:40 UTC
-56bccc8 fix(qwen v2.8): URLs VentaFe 3-estrategias + filtros frontend + anti-gaming
-abb08e6 radar: auto-update 2026-07-07 04:25 UTC
-71b54de fix(ventafe): usar ?p=N en vez de ?page=N (paginacion real)
-d6ef7e9 radar: auto-update 2026-07-07 04:21 UTC
-6c383f5 feat(qwen v2.7): VentaFe 5 paginas + ML Questions 50 + clasific.ar quirurgico
-0def7f8 fix(qwen v3.1): validar WhatsApp marca lead como 'Contactado' automaticamente
-fb5c1a6 radar: auto-update 2026-07-07 00:52 UTC
-56bff65 fix(qwen P0): webhookUrl Apify WA + scoring VentaFe umbrales relajados
-47dfc8b radar: auto-update 2026-07-07 00:04 UTC
-bd643d8 fix(qwen): abrir WhatsApp directo sin validacion Apify
-039d611 radar: auto-update 2026-07-06 22:16 UTC
-6f7b030 radar: auto-update 2026-07-06 22:14 UTC
-8b07acb fix(qwen): VentaFe URLs reales con aviso_id del HTML
-22fa7e8 radar: auto-update 2026-07-06 22:10 UTC
-f032961 radar: auto-update 2026-07-06 22:04 UTC
-9c6ab1b fix(bomba2 parte4): dedup VentaFe usa URL+telefono como composite
 ```
 
 ---
@@ -1056,9 +1138,9 @@ const S = {
   filtered:   [],
   statusFilter: 'todos',
   provFilter:   'todos',
-  sourceFilter: 'todos',
-  contactFilter: 'todos',  // FIX QWEN v2.8: filtro por tipo de contacto
-  heatFilter:    'todos',  // FIX QWEN v2.8: filtro por temperatura
+  sourceFilter: 'todos',     // FIX GEMINI AUDIT v4: volver a 'todos' (era 'VentaFe')
+  contactFilter: 'todos',   // FIX GEMINI AUDIT v4: volver a 'todos' (era 'whatsapp')
+  heatFilter:    'todos',   // FIX GEMINI AUDIT v4: volver a 'todos' (era 'hot')
   currentId:    null,
 };
 
@@ -1297,7 +1379,14 @@ function applyFilters() {
   S.filtered = S.crmLeads.filter(l => {
     if (S.statusFilter !== 'todos' && l._status !== S.statusFilter) return false;
     if (pv !== 'todos' && (l.provincia || '') !== pv) return false;
-    if (sf !== 'todos' && (l.source_label || l.source || '') !== sf) return false;
+    // FIX GEMINI: sourceFilter case-insensitive + substring match.
+    // Antes: comparacion estricta fallaba porque Python hacia .title() → "Ventafe.Com.Ar"
+    // Ahora: matchea si el source del lead contiene el filtro (case-insensitive)
+    if (sf !== 'todos') {
+      const leadSrc = (l.source_label || l.source || l.platform || '').toLowerCase();
+      const filterSrc = sf.toLowerCase();
+      if (!leadSrc.includes(filterSrc) && !filterSrc.includes(leadSrc)) return false;
+    }
     // FIX QWEN v2.8: filtro Contacto
     if (cf === 'whatsapp' && !l._wa_url) return false;
     if (cf === 'email' && !(l.email || l.email_publico)) return false;
@@ -1308,6 +1397,9 @@ function applyFilters() {
       const hay = \`\${l._display_name} \${l.provincia} \${l._resumen} \${l.source_label}\`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
+    // FIX GEMINI AUDIT v5: NO bloquear leads sin provincia ni por resumen genérico.
+    // Esos filtros extras hacían que la tabla mostrara 3 leads mientras el KPI decía 32.
+    // Ahora la tabla respeta solo los filtros de la sidebar (igual que el KPI).
     return true;
   });
 
@@ -2040,6 +2132,23 @@ export default {
           }
         });
         const merged = Array.from(prevById.values());
+
+        // FIX GEMINI: Decay temporal de leads (>7 días sin gestión pierden 5 pts/día).
+        // Evita que el dashboard se llene de leads viejos "calientes" que nunca se contactaron.
+        // Solo aplica a leads en estado 'Nuevo' o sin estado (no toca los que ya están en gestión).
+        merged.forEach(l => {
+          const ts = l.fecha_iso || l.discovery_timestamp;
+          const leadDate = ts ? new Date(ts) : null;
+          if (leadDate && !isNaN(leadDate.getTime())) {
+            const ageDays = (Date.now() - leadDate.getTime()) / 86400000;
+            if (ageDays > 7 && (l._status === 'Nuevo' || l.status === 'Nuevo' || !l._status)) {
+              const decay = Math.floor((ageDays - 7) * 5);
+              l.score = Math.max(0, (l.score || 0) - decay);
+              l._decay_applied = decay;
+              l._heat_label = l.score >= 70 ? 'hot' : l.score >= 40 ? 'warm' : 'cold';
+            }
+          }
+        });
 
         // Truncate to 500 most recent
         merged.sort((a, b) => {
@@ -3402,10 +3511,28 @@ async function runPipelineCron(env) {
           '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento',
           'auto','moto','vehiculo','vendo','compro','permuta'];
         if (!painKw.some(k => fullText.includes(k))) continue;
-        
+
+        // FIX GEMINI AUDIT: Filtro Reddit SOLO Argentina (mismo criterio que classify_and_score del Python).
+        // Si no hay señal AR explícita en el texto, descartar el lead.
+        const arKw = ['argentina','buenos aires','caba','capital federal','cordoba','cordoba',
+          'santa fe','rosario','mendoza','entre rios','neuquen','salta','la plata','arba',
+          'dnrpa','rentas','pba','gba','patente argentina','parana','tigre','avellaneda',
+          'quilmes','moron','pilar'];
+        if (!arKw.some(g => fullText.includes(g))) continue;
+
+        // FIX GEMINI AUDIT v2: requiere señal vehicular ESPECÍFICA de dolor (no solo "auto/moto" genérico).
+        // Evita que pasen posts random que mencionan "argentina" pero no son leads vehiculares.
+        const painKwStrict = ['multa','multas','fotomulta','fotomultas','infraccion','infracciones',
+          'infraccion','libre deuda','libredeuda','transferencia','transferir',
+          '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje',
+          'deuda','vencimiento','patente','no puedo transferir','me llego multa',
+          'me cobraron','papeles al dia','listo para transferir'];
+        if (!painKwStrict.some(k => fullText.includes(k))) continue;
+
         // Anti-junk
         const junkKw = ['renunciar','empleo','galaxy','tablet','licitacion','falsa competencia',
-          'guardia roja','gracia inmerecida','euphoria','depre','ajuste de equilibrio','probabilit'];
+          'guardia roja','gracia inmerecida','euphoria','depre','ajuste de equilibrio','probabilit',
+          'lovecraft','meteorito','paysandu','gaming','playstation','xbox'];
         if (junkKw.some(k => fullText.includes(k))) continue;
         const ptKw = ['nao','voce','comprei','vendi','carro','detran','cnh','obrigado','galera','deix','crever','belezura'];
         if (ptKw.filter(k => fullText.includes(k)).length >= 2) continue;
@@ -3471,11 +3598,13 @@ async function runPipelineCron(env) {
     const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
     
     for (let page = 1; page <= 2; page++) {  // Qwen fix: 2 paginas para evitar timeout
-      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?page=' + page;
+      // FIX GEMINI AUDIT: usar ?p= (NO ?page= que no pagina en VentaFe) + declarar vfHtml antes de usarlo (TDZ fix)
+      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?p=' + page;
       const vfRes = await fetch(vfUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
       });
       if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
+      const vfHtml = await vfRes.text();  // Declarar ANTES de usar (fix TDZ)
       const vfBlocks = vfHtml.split('class="row item tipo-').slice(1);
       let vfPhoneCount = 0;
       for (const block of vfBlocks) {
@@ -3485,8 +3614,7 @@ async function runPipelineCron(env) {
         if (phones.length > 0) vfPhoneCount++;
       }
       console.log('[CRON] VentaFe page ' + page + ': ' + vfBlocks.length + ' blocks, ' + vfPhoneCount + ' with phones');
-      const vfHtml = await vfRes.text();
-      const blocks = vfHtml.split('class="row item tipo-').slice(1);
+      const blocks = vfBlocks;  // Reusar la variable ya parseada
       
       for (const block of blocks) {
         let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
@@ -3934,6 +4062,8 @@ PLATFORM_MAP = {
     "mercadolibre.com.ar": "MercadoLibre",
     "listado.mercadolibre.com.ar": "MercadoLibre",
     "auto.mercadolibre.com.ar": "MercadoLibre",
+    "ventafe.com.ar": "VentaFe",  # FIX GEMINI: evitar que .title() produzca "Ventafe.Com.Ar"
+    "www.ventafe.com.ar": "VentaFe",
 }
 
 
@@ -4141,10 +4271,15 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
     for block in blocks:
         # Limpiar HTML
         text = _re.sub(r'<[^>]+>', ' ', block)
-        text = _re.sub(r'&[a-z]+;', ' ', text)
+        # FIX ENCODING: usar html.unescape() para decodificar entidades HTML correctamente.
+        # Antes se hacia _re.sub(r'&[a-z]+;', ' ', text) que reemplazaba TODAS las entidades
+        # con un espacio, rompiendo palabras como "transferencia" → "tran ferencia".
+        import html as _html_mod
+        text = _html_mod.unescape(text)
+        text = _re.sub(r'&[a-z]+;', ' ', text)  # Limpiar entidades residuales no decodificables
         text = _re.sub(r'googletag[^;]+;', '', text)
         text = _re.sub(r'\s+', ' ', text).strip()
-        
+
         if len(text) < 50:
             continue
         
@@ -4193,6 +4328,12 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
                 unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
                 aviso_id = phone_slug
 
+        # FIX PERSONA: cada lead VentaFe tiene un identificador unico (aviso_id o telefono)
+        # para que no aparezcan todos como "u/Vendedor VentaFe" en el dashboard.
+        # Formato: "Vendedor #{aviso_id}" o "Vendedor tel XXXX"
+        phone_display = valid_phones[0][-4:] if valid_phones else "????"
+        persona_label = f"Vendedor #{aviso_id}" if aviso_id and aviso_id.isdigit() else f"Vendedor tel …{phone_display}"
+
         lead = {
             "name": f"[VentaFe] {title}",
             "url": unique_url,
@@ -4200,8 +4341,8 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
             "snippet": text[:500],
             "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
             "host_name": "ventafe.com.ar",
-            "username": "Vendedor VentaFe",
-            "author": "Vendedor VentaFe",
+            "username": persona_label,
+            "author": persona_label,
             "source": "ventafe",
             "_query": "ventafe_automoviles",
             "telefonos": valid_phones,
@@ -4340,15 +4481,7 @@ def collect_public_sources() -> List[Dict[str, Any]]:
         print(f"  Facebook (Apify) ERROR: {e}", file=sys.stderr)
 
     # VentaFe Scraper (portal de clasificados del interior - SANTA FE ORO)
-    try:
-        ventafe_results = scrape_ventafe_leads()
-        if ventafe_results:
-            all_results.extend(ventafe_results)
-            print(f"  VentaFe: +{len(ventafe_results)} leads agregados", file=sys.stderr)
-    except Exception as e:
-        print(f"  VentaFe ERROR: {e}", file=sys.stderr)
-
-    # VentaFe Scraper (desde GH Actions)
+    # FIX GEMINI: eliminar llamada duplicada (estaba 2 veces, scrapendo 5 paginas x2 = 15s perdido)
     try:
         ventafe_results = scrape_ventafe_leads()
         if ventafe_results:
@@ -4673,9 +4806,19 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- Scoring ---
 
-    # Boost ML Questions Radar (alta calidad - Sakana+Claude)
+    # FIX QWEN v3.0 (corregido v3.0.1): Rechazar VentaFe SOLO si no tiene NINGUN dato real.
+    # Antes requería AMBOS (provincia AND telefono) y mataba 27 de 30 leads validos.
+    # Ahora: rechazar solo si no tiene provincia/zona Y no tiene telefono/whatsapp.
     platform_str = (record.get("platform", "") or "").lower()
     source_str = (record.get("source", "") or "").lower()
+    if "ventafe" in source_str or "ventafe" in platform_str or "ventafe.com.ar" in (record.get("source_url", "") or ""):
+        has_provincia = bool(record.get("provincia") or record.get("zona"))
+        has_contacto = bool(record.get("telefono_publico") or record.get("phone")
+                            or record.get("whatsapp_publico") or record.get("whatsapp"))
+        if not has_provincia and not has_contacto:
+            return None  # Sin provincia Y sin contacto → dato trucho, descartar
+
+    # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
         score += 25
         breakdown["ml_questions"] = 25
@@ -4833,6 +4976,27 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         ]
         if not has_arg_signal and not any(kw in text for kw in ar_keywords_extra):
             return None  # Descarte inmediato, no llega al CRM
+
+    # FIX GEMINI: Validación cruzada geográfica código de área vs provincia.
+    # Si el teléfono empieza con 342 (Santa Fe) pero provincia dice "Córdoba",
+    # hay inconsistencia → penalizar levemente y marcar signal.
+    if record.get("telefono_publico") and record.get("provincia"):
+        AREA_PROV_MAP = {
+            '342': 'Santa Fe', '341': 'Santa Fe',
+            '351': 'Córdoba', '261': 'Mendoza',
+            '221': 'Buenos Aires', '11': 'CABA',
+            '381': 'Tucumán', '299': 'Neuquén',
+        }
+        clean_num = re.sub(r"^\+?54\s?9?", "", record["telefono_publico"]).lstrip('0')
+        for code, prov in AREA_PROV_MAP.items():
+            if clean_num.startswith(code):
+                rec_prov_norm = record["provincia"].lower().strip()
+                prov_norm = prov.lower().strip()
+                if prov_norm not in rec_prov_norm and rec_prov_norm not in prov_norm:
+                    signals.append('ORIGEN_MISMATCH')
+                    score -= 10
+                    breakdown["origen_mismatch"] = -10
+                break
 
     # --- Penalties ---
 
@@ -9870,7 +10034,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 05:01 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 15:33 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
