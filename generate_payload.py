@@ -347,6 +347,8 @@ PLATFORM_MAP = {
     "mercadolibre.com.ar": "MercadoLibre",
     "listado.mercadolibre.com.ar": "MercadoLibre",
     "auto.mercadolibre.com.ar": "MercadoLibre",
+    "ventafe.com.ar": "VentaFe",  # FIX GEMINI: evitar que .title() produzca "Ventafe.Com.Ar"
+    "www.ventafe.com.ar": "VentaFe",
 }
 
 
