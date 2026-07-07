@@ -1,11 +1,11 @@
 # 📦 LeadX — Código Completo (Bundle Único para Kimi)
 
-**Generado:** 2026-07-07 03:50 UTC  
+**Generado:** 2026-07-07 04:26 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** e300aa8a-40c4-41eb-9835-f894b11c1833  
-**Estado:** Producción activa · cron cada 1h · 80 leads en KV · 28 con teléfono · 27 con WhatsApp link
+**Worker Version:** 4b43cfab-f343-49d1-9dff-bb322d2a6233  
+**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link
 
 ---
 
@@ -13,8 +13,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,263 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,004 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real). |
+| 1 | `worker.js` | 3,266 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,028 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -34,15 +34,19 @@
 │  GITHUB ACTIONS (cron cada 1h)                              │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ generate_payload.py                                 │   │
-│  │  1. scrape_ventafe_leads()  → VentaFe (HTML + tel)  │   │
+│  │  1. scrape_ventafe_leads()  → VentaFe 5 paginas     │   │
 │  │     • URL real del aviso: /automoviles/ID-slug      │   │
 │  │     • normalize_ar_phone_ventafe()                  │   │
+│  │     • time.sleep(3) entre paginas (?p=N)            │   │
 │  │  2. search_reddit()         → /search.rss (Atom)    │   │
+│  │  2b. ML Questions num=50   → /api/ml-questions       │   │
 │  │  3. extract_entities()      → phone/patent/persona  │   │
 │  │     • PAIN_KEYWORDS_RE + excepción VentaFe          │   │
 │  │  4. classify_and_score()    → heat 0-100            │   │
 │  │     • VentaFe: umbrales 40/25 + has_contact         │   │
 │  │     • Otras fuentes: 50/30 + has_explicit_pain      │   │
+│  │  4.5 clasific.ar QUIRURGICO (solo score>=70+patente)│   │
+│  │     • agrega campo deuda_clasificar al Lead         │   │
 │  │  5. dedup by URL+teléfono (estable entre runs)      │   │
 │  │  6. POST /api/ingest → Worker (deep merge por ID)   │   │
 │  └─────────────────────────────────────────────────────┘   │
@@ -143,20 +147,46 @@
 
 ### Estado final del KV (verificado)
 
-| Métrica | Antes de todos los fixes | Después |
-|---|---|---|
-| Total leads | 53 | **80** |
-| Leads con teléfono | 1 | **28** |
-| Leads con WhatsApp link | 1 | **27** |
-| Leads VentaFe con URL clickeable al aviso real | 0 | **13** |
-| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo |
-| `/api/whatsapp-validate` webhook | ❌ Sin webhook | ✅ `webhook_configured:true` |
+| Métrica | Antes de todos los fixes | Post-Qwen P0 | Post-Qwen v2.7 |
+|---|---|---|---|
+| Total leads | 53 | 80 | **117** |
+| Leads con teléfono | 1 | 28 | **45** |
+| Leads con WhatsApp link | 1 | 27 | **44** |
+| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | **30** |
+| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' automático |
+| `/api/whatsapp-validate` webhook | ❌ Sin webhook | ✅ `webhook_configured:true` | ✅ |
+| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | **5 páginas (45 leads)** |
+| ML Questions | num=15 | num=15 | **num=50** |
+| clasific.ar enriquecimiento | Todos con patente | Todos con patente | **Solo score>=70** (200/mes rinden) |
+
+### FIX QWEN v2.7 — Escala real (3 cambios) → DONE
+
+**#1 — VentaFe paginación 5 páginas:**
+- Antes: solo página 1 (~100 bloques, 17 leads)
+- Ahora: itera 5 páginas con `?p=N` (NO `?page=N` que devuelve siempre página 1)
+- `time.sleep(3)` entre páginas para no saturar
+- Resultado: 500 bloques → 45 leads extraídos por run (vs 17 antes)
+
+**#2 — ML Questions num=50:**
+- Antes: `search_mercadolibre_questions(num=15)`
+- Ahora: `search_mercadolibre_questions(num=50)`
+- Aprovecha el endpoint `/api/ml-questions` del Worker que bypassea 403 de ML
+
+**#3 — clasific.ar quirúrgico:**
+- Antes: enriquecía TODOS los leads con PATENTE_DETECTED (gastaba 200/mes rápido)
+- Ahora: solo si `score >= 70` AND `PATENTE_DETECTED` (200/mes rinden mucho más)
+- Agregado campo `deuda_clasificar` al dataclass Lead para mostrar en modal
+- Rate limit aumentado a 1s entre consultas (era 0.5s)
 
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+71b54de fix(ventafe): usar ?p=N en vez de ?page=N (paginacion real)
+d6ef7e9 radar: auto-update 2026-07-07 04:21 UTC
+6c383f5 feat(qwen v2.7): VentaFe 5 paginas + ML Questions 50 + clasific.ar quirurgico
+0def7f8 fix(qwen v3.1): validar WhatsApp marca lead como 'Contactado' automaticamente
 fb5c1a6 radar: auto-update 2026-07-07 00:52 UTC
 56bff65 fix(qwen P0): webhookUrl Apify WA + scoring VentaFe umbrales relajados
 47dfc8b radar: auto-update 2026-07-07 00:04 UTC
@@ -173,10 +203,6 @@ f032961 radar: auto-update 2026-07-06 22:04 UTC
 e97f30e fix(bombas): getUrlSecret sessionStorage + PAIN_KEYWORDS_RE excepcion VentaFe
 c25aa72 radar: auto-update 2026-07-06 20:50 UTC
 68b09b8 radar: auto-update 2026-07-06 18:08 UTC
-6dbca63 radar: auto-update 2026-07-06 15:50 UTC
-57bf966 fix: VentaFe con telefono aceptado sin filtro vehicular estricto
-c1e8299 radar: auto-update 2026-07-06 14:22 UTC
-e9fe22b fix: restaurar collect_public_sources + mover VentaFe antes de collect
 ```
 
 ---
@@ -1545,9 +1571,12 @@ async function validateWaFromModal() {
   // Abrir WhatsApp en nueva pestaña
   window.open(waUrl, '_blank');
 
-  // Marcar como validado localmente (state persistido en localStorage)
+  // Marcar como validado y contactado localmente (Qwen P0 v3.1)
+  // Persistencia en localStorage via DB.set para que el estado sobreviva reloads
   if (l._wa_e164) setWaValidation(l._wa_e164, true);
   l._wa_state = 'validated_whatsapp';
+  l._status = 'Contactado';
+  DB.set(S.currentId, { ...DB.get(S.currentId), status: 'Contactado' });
 
   const waBtn = document.getElementById('modal-wa-btn');
   if (waBtn) {
@@ -3454,7 +3483,7 @@ async function runPipelineCron(env) {
 
 ## 2. `generate_payload.py`
 
-**Descripción:** Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real).  
+**Descripción:** Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50.  
 
 ```python
 #!/usr/bin/env python3
@@ -3803,6 +3832,7 @@ class Lead:
     score_breakdown: Dict[str, int] = field(default_factory=dict)
     detected_signals: List[str] = field(default_factory=list)
     discovery_timestamp: str = ""
+    deuda_clasificar: int = 0  # CAMBIO QWEN v2.7: deuda según clasific.ar
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -3930,30 +3960,45 @@ def normalize_ar_phone_ventafe(raw: str) -> str:
 
 
 def scrape_ventafe_leads() -> List[Dict[str, Any]]:
-    """Scrapea VentaFe.com.ar/automoviles y extrae telefonos visibles."""
+    """Scrapea VentaFe.com.ar/automoviles (5 paginas) y extrae telefonos visibles."""
     import urllib.request as _urq
     import re as _re
-    
-    print("[VentaFe] Scrapeando ventafe.com.ar/automoviles...", file=sys.stderr)
-    
-    url = "https://www.ventafe.com.ar/automoviles"
-    req = _urq.Request(url, headers={
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'es-AR,es;q=0.9',
-    })
-    try:
-        with _urq.urlopen(req, timeout=20) as resp:
-            html = resp.read().decode('utf-8', errors='replace')
-    except Exception as e:
-        print(f"  [VentaFe] Error fetching: {e}", file=sys.stderr)
-        return []
-    
-    print(f"  [VentaFe] HTML size: {len(html)}", file=sys.stderr)
-    
-    # Split por class="row item tipo-N" (estructura de avisos)
-    blocks = _re.split(r'class="row item tipo-\d+"', html)[1:]
-    print(f"  [VentaFe] Blocks encontrados: {len(blocks)}", file=sys.stderr)
+
+    print("[VentaFe] Scrapeando ventafe.com.ar/automoviles (5 paginas)...", file=sys.stderr)
+
+    BASE_URL = "https://www.ventafe.com.ar/automoviles"
+    TOTAL_PAGES = 5  # CAMBIO QWEN v2.7: era 1 pagina, ahora 5 = ~150 autos
+    all_blocks: List[str] = []
+    seen_phones_global: set = set()
+
+    for page in range(1, TOTAL_PAGES + 1):
+        # FIX: VentaFe usa ?p=N (NO ?page=N que devuelve siempre pagina 1)
+        url = f"{BASE_URL}?p={page}" if page > 1 else BASE_URL
+        print(f"  [VentaFe] Pagina {page}/{TOTAL_PAGES}: {url}", file=sys.stderr)
+        req = _urq.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml',
+            'Accept-Language': 'es-AR,es;q=0.9',
+        })
+        try:
+            with _urq.urlopen(req, timeout=20) as resp:
+                html = resp.read().decode('utf-8', errors='replace')
+        except Exception as e:
+            print(f"  [VentaFe] Error fetching pagina {page}: {e}", file=sys.stderr)
+            continue
+
+        print(f"  [VentaFe] HTML size pag {page}: {len(html)}", file=sys.stderr)
+
+        # Split por class="row item tipo-N" (estructura de avisos)
+        page_blocks = _re.split(r'class="row item tipo-\d+"', html)[1:]
+        print(f"  [VentaFe] Blocks pag {page}: {len(page_blocks)}", file=sys.stderr)
+        all_blocks.extend(page_blocks)
+
+        if page < TOTAL_PAGES:
+            time.sleep(3)  # CAMBIO QWEN v2.7: rate limit entre paginas (no saturar)
+
+    blocks = all_blocks
+    print(f"  [VentaFe] Total blocks acumulados: {len(blocks)}", file=sys.stderr)
     
     leads = []
     seen_phones = set()
@@ -4073,7 +4118,7 @@ def collect_public_sources() -> List[Dict[str, Any]]:
     # ML Questions Radar — siempre corre (no depende del grupo rotativo)
     try:
         from search_providers import search_mercadolibre_questions
-        ml_leads = search_mercadolibre_questions(num=15)
+        ml_leads = search_mercadolibre_questions(num=50)  # CAMBIO QWEN v2.7: era 15, ahora 50
         if ml_leads:
             for ml in ml_leads:
                 ml["_query"] = "mercadolibre_questions_radar"
@@ -5328,8 +5373,9 @@ def run_pipeline() -> Dict[str, Any]:
             leads.append(lead)
     print(f"  Scored {len(leads)} leads (rejected rest)", file=sys.stderr)
 
-    # Step 4.5: Enriquecer leads con patente detectada via clasific.ar
-    # H.AI insight + GPT filter: solo enriquecer si hay patente + dolor
+    # Step 4.5: Enriquecer SOLO leads calientes con clasific.ar (CAMBIO QWEN v2.7)
+    # Quirurgico: solo score >= 70 Y PATENTE_DETECTED → ahorra las 200 consultas/mes
+    # para los leads realmente calientes con patente valida.
     try:
         worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
         ingest_secret = os.environ.get("INGEST_SECRET", "")
@@ -5337,28 +5383,35 @@ def run_pipeline() -> Dict[str, Any]:
             enriched_count = 0
             import urllib.request as _urq3
             for lead in leads:
-                if "PATENTE_DETECTED" in (lead.detected_signals or []):
-                    # Buscar patente en el texto
-                    patente_m = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", lead.quoted_text or "", re.IGNORECASE)
-                    if patente_m:
-                        patente = patente_m.group(1).upper()
-                        try:
-                            basic_url = f"{worker_url}/api/clasificar-basic?plate={patente}"
-                            req3 = _urq3.Request(basic_url)
-                            req3.add_header("X-Webhook-Secret", ingest_secret)
-                            req3.add_header("Accept", "application/json")
-                            with _urq3.urlopen(req3, timeout=10) as resp3:
-                                veh_data = json.loads(resp3.read().decode("utf-8", errors="replace"))
-                            if veh_data.get("ok") and veh_data.get("data", {}).get("data"):
-                                v = veh_data["data"]["data"]
-                                lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
-                                lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
-                                enriched_count += 1
-                        except Exception:
-                            pass
-                        time.sleep(0.5)  # rate limit clasific.ar
+                # CAMBIO QWEN v2.7: solo enriquecer leads calientes con patente
+                if lead.score < 70:
+                    continue
+                if "PATENTE_DETECTED" not in (lead.detected_signals or []):
+                    continue
+
+                # Buscar patente en el texto
+                patente_m = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", lead.quoted_text or "", re.IGNORECASE)
+                if patente_m:
+                    patente = patente_m.group(1).upper()
+                    try:
+                        basic_url = f"{worker_url}/api/clasificar-basic?plate={patente}"
+                        req3 = _urq3.Request(basic_url)
+                        req3.add_header("X-Webhook-Secret", ingest_secret)
+                        req3.add_header("Accept", "application/json")
+                        with _urq3.urlopen(req3, timeout=10) as resp3:
+                            veh_data = json.loads(resp3.read().decode("utf-8", errors="replace"))
+                        if veh_data.get("ok") and veh_data.get("data", {}).get("data"):
+                            v = veh_data["data"]["data"]
+                            lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
+                            lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
+                            # CAMBIO QWEN v2.7: agregar campo deuda_clasificar para mostrar en modal
+                            lead.deuda_clasificar = v.get("deuda", 0)
+                            enriched_count += 1
+                    except Exception:
+                        pass
+                    time.sleep(1)  # CAMBIO QWEN v2.7: rate limit clasific.ar (200/mes)
             if enriched_count:
-                print(f"  [clasific.ar] {enriched_count} leads enriquecidos con datos vehiculares", file=sys.stderr)
+                print(f"  [clasific.ar] {enriched_count} leads calientes enriquecidos", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
@@ -9644,7 +9697,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 03:50 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 04:26 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)

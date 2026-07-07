@@ -18,12 +18,13 @@ FILES = [
      "/api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, "
      "pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100."),
     ("generate_payload.py", "python",
-     "Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con URLs reales del aviso "
+     "Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso "
      "(/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con "
      "excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), "
      "scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), "
      "dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), "
-     "enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real)."),
+     "enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), "
+     "clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50."),
     ("search_providers.py", "python",
      "Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, "
      "MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries."),
@@ -70,8 +71,8 @@ def build():
     lines.append(f"**Repo:** https://github.com/simonkey888/Leadx  ")
     lines.append(f"**Deploy:** https://leadx.simondalmasso44.workers.dev  ")
     lines.append(f"**Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  ")
-    lines.append(f"**Worker Version:** e300aa8a-40c4-41eb-9835-f894b11c1833  ")
-    lines.append(f"**Estado:** Producción activa · cron cada 1h · 80 leads en KV · 28 con teléfono · 27 con WhatsApp link")
+    lines.append(f"**Worker Version:** 4b43cfab-f343-49d1-9dff-bb322d2a6233  ")
+    lines.append(f"**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -93,15 +94,19 @@ def build():
     lines.append("│  GITHUB ACTIONS (cron cada 1h)                              │")
     lines.append("│  ┌─────────────────────────────────────────────────────┐   │")
     lines.append("│  │ generate_payload.py                                 │   │")
-    lines.append("│  │  1. scrape_ventafe_leads()  → VentaFe (HTML + tel)  │   │")
+    lines.append("│  │  1. scrape_ventafe_leads()  → VentaFe 5 paginas     │   │")
     lines.append("│  │     • URL real del aviso: /automoviles/ID-slug      │   │")
     lines.append("│  │     • normalize_ar_phone_ventafe()                  │   │")
+    lines.append("│  │     • time.sleep(3) entre paginas (?p=N)            │   │")
     lines.append("│  │  2. search_reddit()         → /search.rss (Atom)    │   │")
+    lines.append("│  │  2b. ML Questions num=50   → /api/ml-questions       │   │")
     lines.append("│  │  3. extract_entities()      → phone/patent/persona  │   │")
     lines.append("│  │     • PAIN_KEYWORDS_RE + excepción VentaFe          │   │")
     lines.append("│  │  4. classify_and_score()    → heat 0-100            │   │")
     lines.append("│  │     • VentaFe: umbrales 40/25 + has_contact         │   │")
     lines.append("│  │     • Otras fuentes: 50/30 + has_explicit_pain      │   │")
+    lines.append("│  │  4.5 clasific.ar QUIRURGICO (solo score>=70+patente)│   │")
+    lines.append("│  │     • agrega campo deuda_clasificar al Lead         │   │")
     lines.append("│  │  5. dedup by URL+teléfono (estable entre runs)      │   │")
     lines.append("│  │  6. POST /api/ingest → Worker (deep merge por ID)   │   │")
     lines.append("│  └─────────────────────────────────────────────────────┘   │")
@@ -202,14 +207,36 @@ def build():
     lines.append("")
     lines.append("### Estado final del KV (verificado)")
     lines.append("")
-    lines.append("| Métrica | Antes de todos los fixes | Después |")
-    lines.append("|---|---|---|")
-    lines.append("| Total leads | 53 | **80** |")
-    lines.append("| Leads con teléfono | 1 | **28** |")
-    lines.append("| Leads con WhatsApp link | 1 | **27** |")
-    lines.append("| Leads VentaFe con URL clickeable al aviso real | 0 | **13** |")
-    lines.append("| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo |")
-    lines.append("| `/api/whatsapp-validate` webhook | ❌ Sin webhook | ✅ `webhook_configured:true` |")
+    lines.append("| Métrica | Antes de todos los fixes | Post-Qwen P0 | Post-Qwen v2.7 |")
+    lines.append("|---|---|---|---|")
+    lines.append("| Total leads | 53 | 80 | **117** |")
+    lines.append("| Leads con teléfono | 1 | 28 | **45** |")
+    lines.append("| Leads con WhatsApp link | 1 | 27 | **44** |")
+    lines.append("| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | **30** |")
+    lines.append("| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' automático |")
+    lines.append("| `/api/whatsapp-validate` webhook | ❌ Sin webhook | ✅ `webhook_configured:true` | ✅ |")
+    lines.append("| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | **5 páginas (45 leads)** |")
+    lines.append("| ML Questions | num=15 | num=15 | **num=50** |")
+    lines.append("| clasific.ar enriquecimiento | Todos con patente | Todos con patente | **Solo score>=70** (200/mes rinden) |")
+    lines.append("")
+    lines.append("### FIX QWEN v2.7 — Escala real (3 cambios) → DONE")
+    lines.append("")
+    lines.append("**#1 — VentaFe paginación 5 páginas:**")
+    lines.append("- Antes: solo página 1 (~100 bloques, 17 leads)")
+    lines.append("- Ahora: itera 5 páginas con `?p=N` (NO `?page=N` que devuelve siempre página 1)")
+    lines.append("- `time.sleep(3)` entre páginas para no saturar")
+    lines.append("- Resultado: 500 bloques → 45 leads extraídos por run (vs 17 antes)")
+    lines.append("")
+    lines.append("**#2 — ML Questions num=50:**")
+    lines.append("- Antes: `search_mercadolibre_questions(num=15)`")
+    lines.append("- Ahora: `search_mercadolibre_questions(num=50)`")
+    lines.append("- Aprovecha el endpoint `/api/ml-questions` del Worker que bypassea 403 de ML")
+    lines.append("")
+    lines.append("**#3 — clasific.ar quirúrgico:**")
+    lines.append("- Antes: enriquecía TODOS los leads con PATENTE_DETECTED (gastaba 200/mes rápido)")
+    lines.append("- Ahora: solo si `score >= 70` AND `PATENTE_DETECTED` (200/mes rinden mucho más)")
+    lines.append("- Agregado campo `deuda_clasificar` al dataclass Lead para mostrar en modal")
+    lines.append("- Rate limit aumentado a 1s entre consultas (era 0.5s)")
     lines.append("")
     lines.append("---")
     lines.append("")

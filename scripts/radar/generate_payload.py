@@ -344,6 +344,7 @@ class Lead:
     score_breakdown: Dict[str, int] = field(default_factory=dict)
     detected_signals: List[str] = field(default_factory=list)
     discovery_timestamp: str = ""
+    deuda_clasificar: int = 0  # CAMBIO QWEN v2.7: deuda según clasific.ar
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -471,30 +472,45 @@ def normalize_ar_phone_ventafe(raw: str) -> str:
 
 
 def scrape_ventafe_leads() -> List[Dict[str, Any]]:
-    """Scrapea VentaFe.com.ar/automoviles y extrae telefonos visibles."""
+    """Scrapea VentaFe.com.ar/automoviles (5 paginas) y extrae telefonos visibles."""
     import urllib.request as _urq
     import re as _re
-    
-    print("[VentaFe] Scrapeando ventafe.com.ar/automoviles...", file=sys.stderr)
-    
-    url = "https://www.ventafe.com.ar/automoviles"
-    req = _urq.Request(url, headers={
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'es-AR,es;q=0.9',
-    })
-    try:
-        with _urq.urlopen(req, timeout=20) as resp:
-            html = resp.read().decode('utf-8', errors='replace')
-    except Exception as e:
-        print(f"  [VentaFe] Error fetching: {e}", file=sys.stderr)
-        return []
-    
-    print(f"  [VentaFe] HTML size: {len(html)}", file=sys.stderr)
-    
-    # Split por class="row item tipo-N" (estructura de avisos)
-    blocks = _re.split(r'class="row item tipo-\d+"', html)[1:]
-    print(f"  [VentaFe] Blocks encontrados: {len(blocks)}", file=sys.stderr)
+
+    print("[VentaFe] Scrapeando ventafe.com.ar/automoviles (5 paginas)...", file=sys.stderr)
+
+    BASE_URL = "https://www.ventafe.com.ar/automoviles"
+    TOTAL_PAGES = 5  # CAMBIO QWEN v2.7: era 1 pagina, ahora 5 = ~150 autos
+    all_blocks: List[str] = []
+    seen_phones_global: set = set()
+
+    for page in range(1, TOTAL_PAGES + 1):
+        # FIX: VentaFe usa ?p=N (NO ?page=N que devuelve siempre pagina 1)
+        url = f"{BASE_URL}?p={page}" if page > 1 else BASE_URL
+        print(f"  [VentaFe] Pagina {page}/{TOTAL_PAGES}: {url}", file=sys.stderr)
+        req = _urq.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml',
+            'Accept-Language': 'es-AR,es;q=0.9',
+        })
+        try:
+            with _urq.urlopen(req, timeout=20) as resp:
+                html = resp.read().decode('utf-8', errors='replace')
+        except Exception as e:
+            print(f"  [VentaFe] Error fetching pagina {page}: {e}", file=sys.stderr)
+            continue
+
+        print(f"  [VentaFe] HTML size pag {page}: {len(html)}", file=sys.stderr)
+
+        # Split por class="row item tipo-N" (estructura de avisos)
+        page_blocks = _re.split(r'class="row item tipo-\d+"', html)[1:]
+        print(f"  [VentaFe] Blocks pag {page}: {len(page_blocks)}", file=sys.stderr)
+        all_blocks.extend(page_blocks)
+
+        if page < TOTAL_PAGES:
+            time.sleep(3)  # CAMBIO QWEN v2.7: rate limit entre paginas (no saturar)
+
+    blocks = all_blocks
+    print(f"  [VentaFe] Total blocks acumulados: {len(blocks)}", file=sys.stderr)
     
     leads = []
     seen_phones = set()
@@ -614,7 +630,7 @@ def collect_public_sources() -> List[Dict[str, Any]]:
     # ML Questions Radar — siempre corre (no depende del grupo rotativo)
     try:
         from search_providers import search_mercadolibre_questions
-        ml_leads = search_mercadolibre_questions(num=15)
+        ml_leads = search_mercadolibre_questions(num=50)  # CAMBIO QWEN v2.7: era 15, ahora 50
         if ml_leads:
             for ml in ml_leads:
                 ml["_query"] = "mercadolibre_questions_radar"
@@ -1869,8 +1885,9 @@ def run_pipeline() -> Dict[str, Any]:
             leads.append(lead)
     print(f"  Scored {len(leads)} leads (rejected rest)", file=sys.stderr)
 
-    # Step 4.5: Enriquecer leads con patente detectada via clasific.ar
-    # H.AI insight + GPT filter: solo enriquecer si hay patente + dolor
+    # Step 4.5: Enriquecer SOLO leads calientes con clasific.ar (CAMBIO QWEN v2.7)
+    # Quirurgico: solo score >= 70 Y PATENTE_DETECTED → ahorra las 200 consultas/mes
+    # para los leads realmente calientes con patente valida.
     try:
         worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
         ingest_secret = os.environ.get("INGEST_SECRET", "")
@@ -1878,28 +1895,35 @@ def run_pipeline() -> Dict[str, Any]:
             enriched_count = 0
             import urllib.request as _urq3
             for lead in leads:
-                if "PATENTE_DETECTED" in (lead.detected_signals or []):
-                    # Buscar patente en el texto
-                    patente_m = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", lead.quoted_text or "", re.IGNORECASE)
-                    if patente_m:
-                        patente = patente_m.group(1).upper()
-                        try:
-                            basic_url = f"{worker_url}/api/clasificar-basic?plate={patente}"
-                            req3 = _urq3.Request(basic_url)
-                            req3.add_header("X-Webhook-Secret", ingest_secret)
-                            req3.add_header("Accept", "application/json")
-                            with _urq3.urlopen(req3, timeout=10) as resp3:
-                                veh_data = json.loads(resp3.read().decode("utf-8", errors="replace"))
-                            if veh_data.get("ok") and veh_data.get("data", {}).get("data"):
-                                v = veh_data["data"]["data"]
-                                lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
-                                lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
-                                enriched_count += 1
-                        except Exception:
-                            pass
-                        time.sleep(0.5)  # rate limit clasific.ar
+                # CAMBIO QWEN v2.7: solo enriquecer leads calientes con patente
+                if lead.score < 70:
+                    continue
+                if "PATENTE_DETECTED" not in (lead.detected_signals or []):
+                    continue
+
+                # Buscar patente en el texto
+                patente_m = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", lead.quoted_text or "", re.IGNORECASE)
+                if patente_m:
+                    patente = patente_m.group(1).upper()
+                    try:
+                        basic_url = f"{worker_url}/api/clasificar-basic?plate={patente}"
+                        req3 = _urq3.Request(basic_url)
+                        req3.add_header("X-Webhook-Secret", ingest_secret)
+                        req3.add_header("Accept", "application/json")
+                        with _urq3.urlopen(req3, timeout=10) as resp3:
+                            veh_data = json.loads(resp3.read().decode("utf-8", errors="replace"))
+                        if veh_data.get("ok") and veh_data.get("data", {}).get("data"):
+                            v = veh_data["data"]["data"]
+                            lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
+                            lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
+                            # CAMBIO QWEN v2.7: agregar campo deuda_clasificar para mostrar en modal
+                            lead.deuda_clasificar = v.get("deuda", 0)
+                            enriched_count += 1
+                    except Exception:
+                        pass
+                    time.sleep(1)  # CAMBIO QWEN v2.7: rate limit clasific.ar (200/mes)
             if enriched_count:
-                print(f"  [clasific.ar] {enriched_count} leads enriquecidos con datos vehiculares", file=sys.stderr)
+                print(f"  [clasific.ar] {enriched_count} leads calientes enriquecidos", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
