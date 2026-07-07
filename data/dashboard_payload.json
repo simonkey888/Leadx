@@ -1,32 +1,71 @@
 {
-  "generated_at": "2026-07-07T11:44:31.250380+00:00",
-  "run_id": "8c1cffbe7078",
+  "generated_at": "2026-07-07T14:21:31.209934+00:00",
+  "run_id": "1f904792008c",
   "summary": {
-    "total_leads": 30,
-    "hot_leads": 30,
+    "total_leads": 31,
+    "hot_leads": 31,
     "warm_leads": 0,
-    "contactable": 30,
-    "with_whatsapp": 17,
-    "with_phone": 30,
+    "contactable": 31,
+    "with_whatsapp": 18,
+    "with_phone": 31,
     "with_email": 0,
-    "avg_score": 87.7,
-    "avg_score_hot": 87.7,
+    "avg_score": 88.9,
+    "avg_score_hot": 88.9,
     "conversion_probability": 100.0,
     "by_category": {
-      "OTHER": 14,
-      "TRANSFER_PROBLEM": 13,
+      "TRANSFER_PROBLEM": 15,
+      "OTHER": 13,
       "OWNERSHIP_ISSUE": 2,
       "FINE_DISPUTE": 1
     },
     "by_platform": {
-      "VentaFe": 30
+      "VentaFe": 31
     },
     "by_province": {
       "CABA": 2,
-      "Paraná": 1
+      "Paraná": 2
     }
   },
   "leads_all": [
+    {
+      "id": "927f4ab64911c062",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "peugeot",
+      "patente": "",
+      "fecha_visible": "2026-07-07",
+      "fecha_iso": "2026-07-07T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011468-peugeot-308-allure-nav-ano-2016-110-000km",
+      "quoted_text": "> Peugeot 308 Allure + Nav año 2016 110.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, pantalla táctil con navegador, techo panorámico, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acérc",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426139897",
+      "telefono_publico": "+5493426139897",
+      "telefono_e164": "+5493426139897",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "08_or_document_problem": 40,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "document_08",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-07T14:21:31.202606+00:00",
+      "deuda_clasificar": 0
+    },
     {
       "id": "0b8f73ff610ca352",
       "score": 100,
@@ -67,7 +106,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.243902+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203371+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -106,7 +145,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244395+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203837+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -145,7 +184,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244971+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204421+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -184,7 +223,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245720+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204922+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -225,7 +264,48 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245984+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.205184+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "47022a255a9c0b37",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "Paraná",
+      "ciudad": "Paraná",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-07",
+      "fecha_iso": "2026-07-07T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010152-ka-1-5-sel-2016-68-780km",
+      "quoted_text": "> KA 1.5 SEL 2016 68.780KM KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Co",
+      "contacto_publico": true,
+      "whatsapp_publico": "543424172512",
+      "whatsapp_link": "https://wa.me/5493424172512",
+      "telefono_publico": "WhatsApp 3424172512",
+      "telefono_e164": "+5493424172512",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "08_or_document_problem": 40,
+        "public_contact_visible": 25,
+        "argentina_signal": 15,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "document_08",
+        "contact_visible",
+        "argentina",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-07T14:21:31.205450+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -244,7 +324,7 @@
       "fecha_iso": "2026-07-07T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009567-grand-vitara-2-0-4x4",
-      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 }); }); <div",
+      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493424893019",
@@ -264,7 +344,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246413+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.205887+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -303,7 +383,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246906+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206399+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -342,7 +422,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247144+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206631+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -381,7 +461,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247386+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206876+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -420,7 +500,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247632+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207120+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -463,7 +543,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247870+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207391+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -504,7 +584,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248851+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208403+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -543,7 +623,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249481+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209032+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -582,7 +662,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249704+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209271+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -621,7 +701,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248362+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207886+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -660,7 +740,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249956+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209515+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -697,7 +777,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.243400+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.202849+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -734,7 +814,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.243609+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203039+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -771,7 +851,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244153+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203591+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -790,7 +870,7 @@
       "fecha_iso": "2026-07-07T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5010992-jeep-compass-sport-a-t6-92000-kms",
-      "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 }); <div",
+      "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493424523197",
@@ -808,7 +888,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244566+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204009+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -845,44 +925,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244732+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "eaa4e8db585f3aee",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5010568-jeep-renegade-ano-2023-solo-21-000km",
-      "quoted_text": "> Jeep Renegade año 2023 Solo 21.000km!! Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, cámara de retroceso, pantalla táctil, velocidad crucero, control de pendiente, climatizador automático, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426139897",
-      "telefono_publico": "+5493426139897",
-      "telefono_e164": "+5493426139897",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245220+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204176+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -919,7 +962,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245458+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204661+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -956,7 +999,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246236+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.205709+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -993,7 +1036,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246673+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206146+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1030,7 +1073,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248115+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207629+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1067,7 +1110,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248610+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208141+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1104,7 +1147,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249005+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208552+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1141,7 +1184,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249253+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208801+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1178,12 +1221,51 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.250192+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209754+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "927f4ab64911c062",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "peugeot",
+      "patente": "",
+      "fecha_visible": "2026-07-07",
+      "fecha_iso": "2026-07-07T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5011468-peugeot-308-allure-nav-ano-2016-110-000km",
+      "quoted_text": "> Peugeot 308 Allure + Nav año 2016 110.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, pantalla táctil con navegador, techo panorámico, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acérc",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426139897",
+      "telefono_publico": "+5493426139897",
+      "telefono_e164": "+5493426139897",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "08_or_document_problem": 40,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "document_08",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-07T14:21:31.202606+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "0b8f73ff610ca352",
       "score": 100,
       "label": "real_lead",
@@ -1223,7 +1305,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.243902+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203371+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1262,7 +1344,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244395+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203837+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1301,7 +1383,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244971+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204421+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1340,7 +1422,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245720+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204922+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1381,7 +1463,48 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245984+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.205184+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "47022a255a9c0b37",
+      "score": 100,
+      "label": "real_lead",
+      "problem_category": "TRANSFER_PROBLEM",
+      "problem_summary": "Problema de transferencia",
+      "persona": "u/Vendedor VentaFe",
+      "provincia": "Paraná",
+      "ciudad": "Paraná",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-07",
+      "fecha_iso": "2026-07-07T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010152-ka-1-5-sel-2016-68-780km",
+      "quoted_text": "> KA 1.5 SEL 2016 68.780KM KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Co",
+      "contacto_publico": true,
+      "whatsapp_publico": "543424172512",
+      "whatsapp_link": "https://wa.me/5493424172512",
+      "telefono_publico": "WhatsApp 3424172512",
+      "telefono_e164": "+5493424172512",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "08_or_document_problem": 40,
+        "public_contact_visible": 25,
+        "argentina_signal": 15,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "VENTAFE_LISTING",
+        "document_08",
+        "contact_visible",
+        "argentina",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-07T14:21:31.205450+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1400,7 +1523,7 @@
       "fecha_iso": "2026-07-07T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009567-grand-vitara-2-0-4x4",
-      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 }); }); <div",
+      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493424893019",
@@ -1420,7 +1543,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246413+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.205887+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1459,7 +1582,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246906+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206399+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1498,7 +1621,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247144+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206631+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1537,7 +1660,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247386+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206876+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1576,7 +1699,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247632+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207120+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1619,7 +1742,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.247870+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207391+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1660,7 +1783,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248851+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208403+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1699,7 +1822,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249481+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209032+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1738,7 +1861,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249704+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209271+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1777,7 +1900,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248362+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207886+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1816,7 +1939,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249956+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209515+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1853,7 +1976,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.243400+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.202849+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1890,7 +2013,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.243609+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203039+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1927,7 +2050,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244153+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.203591+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1946,7 +2069,7 @@
       "fecha_iso": "2026-07-07T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5010992-jeep-compass-sport-a-t6-92000-kms",
-      "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 }); <div",
+      "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493424523197",
@@ -1964,7 +2087,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244566+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204009+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2001,44 +2124,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.244732+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "eaa4e8db585f3aee",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5010568-jeep-renegade-ano-2023-solo-21-000km",
-      "quoted_text": "> Jeep Renegade año 2023 Solo 21.000km!! Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, cámara de retroceso, pantalla táctil, velocidad crucero, control de pendiente, climatizador automático, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426139897",
-      "telefono_publico": "+5493426139897",
-      "telefono_e164": "+5493426139897",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245220+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204176+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2075,7 +2161,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.245458+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.204661+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2112,7 +2198,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246236+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.205709+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2149,7 +2235,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.246673+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.206146+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2186,7 +2272,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248115+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.207629+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2223,7 +2309,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.248610+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208141+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2260,7 +2346,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249005+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208552+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2297,7 +2383,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.249253+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.208801+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2334,15 +2420,15 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T11:44:31.250192+00:00",
+      "discovery_timestamp": "2026-07-07T14:21:31.209754+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de VentaFe.",
-    "El 7% de los leads calientes son de CABA.",
-    "El problema más frecuente es: Lead vehicular.",
+    "El 6% de los leads calientes son de CABA.",
+    "El problema más frecuente es: Problema de transferencia.",
     "100% de los leads calientes tienen contacto público visible.",
     "1 leads calientes muestran señales de urgencia temporal."
   ],
@@ -2372,7 +2458,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 74.28,
-    "queries_executed": 2
+    "runtime_seconds": 74.99,
+    "queries_executed": 3
   }
 }

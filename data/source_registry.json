@@ -2,7 +2,7 @@
   "metadata": {
     "version": "10.2",
     "created_at": "2026-07-03T22:33:56.147502+00:00",
-    "updated_at": "2026-07-07T11:43:39.790809+00:00"
+    "updated_at": "2026-07-07T14:20:38.604628+00:00"
   },
   "sources": [
     {
@@ -566,6 +566,33 @@
       "noise_score": 0,
       "final_score": 80,
       "discovered_at": "2026-07-06T22:13:28.260562+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "525ecf2b476f",
+      "name": "Fotomultas y radares: cómo funcionan - Multas Online",
+      "canonical_url": "https://multasonline.com.ar/fotomultas",
+      "domain": "multasonline.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-07T14:20:23.846393+00:00",
       "discovery_origin": "web_search",
       "topics": [
         "multas",

@@ -1,39 +1,12 @@
 {
-  "total_runs": 83,
-  "last_run": "2026-07-07T11:44:31.250380+00:00",
-  "last_run_id": "8c1cffbe7078",
-  "total_leads_all_time": 958,
-  "total_hot_leads_all_time": 857,
-  "avg_hot_per_run": 10.3,
-  "runs_today": 14,
+  "total_runs": 84,
+  "last_run": "2026-07-07T14:21:31.209934+00:00",
+  "last_run_id": "1f904792008c",
+  "total_leads_all_time": 989,
+  "total_hot_leads_all_time": 888,
+  "avg_hot_per_run": 10.6,
+  "runs_today": 15,
   "last_7_days": [
-    {
-      "run_id": "f2f8ca3e3264",
-      "generated_at": "2026-07-07T05:14:20.093813+00:00",
-      "summary": {
-        "total_leads": 3,
-        "hot_leads": 3,
-        "warm_leads": 0,
-        "contactable": 3,
-        "with_whatsapp": 3,
-        "with_phone": 3,
-        "with_email": 0,
-        "avg_score": 96.7,
-        "avg_score_hot": 96.7,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "TRANSFER_PROBLEM": 2,
-          "OTHER": 1
-        },
-        "by_platform": {
-          "Ventafe.Com.Ar": 3
-        },
-        "by_province": {
-          "CABA": 2,
-          "Paraná": 1
-        }
-      }
-    },
     {
       "run_id": "556cb3ecc440",
       "generated_at": "2026-07-07T05:20:47.654263+00:00",
@@ -205,6 +178,35 @@
         "by_province": {
           "CABA": 2,
           "Paraná": 1
+        }
+      }
+    },
+    {
+      "run_id": "1f904792008c",
+      "generated_at": "2026-07-07T14:21:31.209934+00:00",
+      "summary": {
+        "total_leads": 31,
+        "hot_leads": 31,
+        "warm_leads": 0,
+        "contactable": 31,
+        "with_whatsapp": 18,
+        "with_phone": 31,
+        "with_email": 0,
+        "avg_score": 88.9,
+        "avg_score_hot": 88.9,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "TRANSFER_PROBLEM": 15,
+          "OTHER": 13,
+          "OWNERSHIP_ISSUE": 2,
+          "FINE_DISPUTE": 1
+        },
+        "by_platform": {
+          "VentaFe": 31
+        },
+        "by_province": {
+          "CABA": 2,
+          "Paraná": 2
         }
       }
     }
