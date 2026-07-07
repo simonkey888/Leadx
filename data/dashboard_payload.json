@@ -1,191 +1,26 @@
 {
-  "generated_at": "2026-07-07T20:07:31.081591+00:00",
-  "run_id": "f42e2b14d2ec",
+  "generated_at": "2026-07-07T20:11:01.014541+00:00",
+  "run_id": "dce347949a75",
   "summary": {
-    "total_leads": 2,
-    "hot_leads": 2,
+    "total_leads": 0,
+    "hot_leads": 0,
     "warm_leads": 0,
-    "contactable": 2,
-    "with_whatsapp": 1,
-    "with_phone": 2,
+    "contactable": 0,
+    "with_whatsapp": 0,
+    "with_phone": 0,
     "with_email": 0,
-    "avg_score": 100.0,
-    "avg_score_hot": 100.0,
-    "conversion_probability": 100.0,
-    "by_category": {
-      "FINE_DISPUTE": 1,
-      "TRANSFER_PROBLEM": 1
-    },
-    "by_platform": {
-      "VentaFe": 2
-    },
+    "avg_score": 0,
+    "avg_score_hot": 0,
+    "conversion_probability": 0,
+    "by_category": {},
+    "by_platform": {},
     "by_province": {}
   },
-  "leads_all": [
-    {
-      "id": "e0d26b4daac177cf",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Vendedor #4945502",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/4945502-mercedes-benz-a200-blueefficiency-46-000-km-unico",
-      "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426128372",
-      "telefono_publico": "+5493426128372",
-      "telefono_e164": "+5493426128372",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "multa_or_fotomulta": 60,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "multa_fotomulta",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:07:31.074921+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "a1eca4fc123a618b",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor #5008014",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "peugeot",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5008014-peugeot-208-feline-34-000km-2022",
-      "quoted_text": "> Peugeot 208 Feline 34.000km 2022 Impecable. Listo para transferir. Patente paga 2026, sin multas. $25.000.000 charlables con plata en mano. Acepto USD. Versión feline (full, no style, no allure), 34.000km, 2022. Service al día con comprobantes. Puede venir a verlo con su mecánico y escanear. 34242",
-      "contacto_publico": true,
-      "whatsapp_publico": "543424216870",
-      "whatsapp_link": "https://wa.me/5493424216870",
-      "telefono_publico": "3424216870",
-      "telefono_e164": "+5493424216870",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "multa_or_fotomulta": 60,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "multa_fotomulta",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:07:31.078719+00:00",
-      "deuda_clasificar": 0
-    }
-  ],
-  "leads_hot": [
-    {
-      "id": "e0d26b4daac177cf",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Vendedor #4945502",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/4945502-mercedes-benz-a200-blueefficiency-46-000-km-unico",
-      "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426128372",
-      "telefono_publico": "+5493426128372",
-      "telefono_e164": "+5493426128372",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "multa_or_fotomulta": 60,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "multa_fotomulta",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:07:31.074921+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "a1eca4fc123a618b",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "TRANSFER_PROBLEM",
-      "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor #5008014",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "peugeot",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5008014-peugeot-208-feline-34-000km-2022",
-      "quoted_text": "> Peugeot 208 Feline 34.000km 2022 Impecable. Listo para transferir. Patente paga 2026, sin multas. $25.000.000 charlables con plata en mano. Acepto USD. Versión feline (full, no style, no allure), 34.000km, 2022. Service al día con comprobantes. Puede venir a verlo con su mecánico y escanear. 34242",
-      "contacto_publico": true,
-      "whatsapp_publico": "543424216870",
-      "whatsapp_link": "https://wa.me/5493424216870",
-      "telefono_publico": "3424216870",
-      "telefono_e164": "+5493424216870",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "multa_or_fotomulta": 60,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "multa_fotomulta",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:07:31.078719+00:00",
-      "deuda_clasificar": 0
-    }
-  ],
+  "leads_all": [],
+  "leads_hot": [],
   "leads_warm": [],
   "insights": [
-    "El 100% de los leads calientes provienen de VentaFe.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "100% de los leads calientes tienen contacto público visible."
+    "Sin datos suficientes para generar insights."
   ],
   "meta": {
     "version": "1.0",
@@ -213,7 +48,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 109.24,
-    "queries_executed": 2
+    "runtime_seconds": 99.6,
+    "queries_executed": 3
   }
 }
