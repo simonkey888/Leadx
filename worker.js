@@ -1052,10 +1052,9 @@ function applyFilters() {
       const hay = \`\${l._display_name} \${l.provincia} \${l._resumen} \${l.source_label}\`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
-    // FIX QWEN v3.0: Bloquear resúmenes genéricos o sin provincia (datos truchos)
-    const resumenLow = (l._resumen || '').toLowerCase();
-    if (resumenLow.includes('lead vehicular') || resumenLow.includes('problema de titularidad')) return false;
-    if (!l.provincia && !l.pinned) return false;
+    // FIX GEMINI AUDIT v5: NO bloquear leads sin provincia ni por resumen genérico.
+    // Esos filtros extras hacían que la tabla mostrara 3 leads mientras el KPI decía 32.
+    // Ahora la tabla respeta solo los filtros de la sidebar (igual que el KPI).
     return true;
   });
 
