@@ -1543,6 +1543,14 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     # Clamp
     score = max(0, min(100, score))
 
+    # FIX QWEN v2: Los preventivos sin deuda comprobada NUNCA son calientes.
+    # Capar score a 42 para que aparezcan como tibio/frío, no como 🔥.
+    # Si además no tienen patente ni dolor explícito, descartar directamente.
+    if "PREVENTIVO_A_VERIFICAR" in signals and "DEUDA_COMPROBADA" not in signals:
+        score = min(score, 42)
+        if "DOLOR_EXPLICITO_REGISTRAL" not in signals and not has_patente:
+            return None  # Preventivo puro sin patente ni dolor → descartar
+
     # --- CLASSIFY (Qwen fix P0: umbrales relajados para VentaFe) ---
     # VentaFe: leads comerciales preventivos (vendedor con auto en venta).
     # Aceptar con umbrales más bajos si tiene contacto, aunque no haya "dolor".
@@ -2231,18 +2239,17 @@ def run_pipeline() -> Dict[str, Any]:
         is_vf_out = ("ventafe" in (lead.platform or "").lower()
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
-            # FIX GEMINI HIBRIDO: pasar si tiene signals validas (dolor, preventivo, deuda)
-            has_valid_signals = any(sig in (lead.detected_signals or []) for sig in [
-                "DOLOR_EXPLICITO_REGISTRAL", "PREVENTIVO_A_VERIFICAR", "DEUDA_COMPROBADA"
-            ])
-            has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
-            has_patente_out = bool(getattr(lead, "patente", "") or "")
-            if has_valid_signals or has_validated_debt or has_patente_out:
+            # FIX QWEN v2: Solo pasan si tienen dolor explícito O deuda comprobada por clasific.ar
+            has_real_pain = "DOLOR_EXPLICITO_REGISTRAL" in (lead.detected_signals or [])
+            has_proven_debt = ("DEUDA_COMPROBADA" in (lead.detected_signals or [])
+                               or (getattr(lead, "deuda_clasificar", 0) or 0) > 0)
+            if has_real_pain or has_proven_debt:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin signals validas",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: preventivo sin deuda/dolor real",
                       file=sys.stderr)
+                continue
         else:
             filtered_leads.append(lead)
     leads = filtered_leads
