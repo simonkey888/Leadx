@@ -2282,5 +2282,34 @@
         "Paraná": 2
       }
     }
+  },
+  {
+    "run_id": "a356d87fa93e",
+    "generated_at": "2026-07-07T14:46:49.426442+00:00",
+    "summary": {
+      "total_leads": 30,
+      "hot_leads": 30,
+      "warm_leads": 0,
+      "contactable": 30,
+      "with_whatsapp": 18,
+      "with_phone": 30,
+      "with_email": 0,
+      "avg_score": 89.3,
+      "avg_score_hot": 89.3,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 15,
+        "OTHER": 12,
+        "OWNERSHIP_ISSUE": 2,
+        "FINE_DISPUTE": 1
+      },
+      "by_platform": {
+        "VentaFe": 30
+      },
+      "by_province": {
+        "CABA": 2,
+        "Paraná": 2
+      }
+    }
   }
 ]

@@ -1,25 +1,25 @@
 {
-  "generated_at": "2026-07-07T14:21:31.209934+00:00",
-  "run_id": "1f904792008c",
+  "generated_at": "2026-07-07T14:46:49.426442+00:00",
+  "run_id": "a356d87fa93e",
   "summary": {
-    "total_leads": 31,
-    "hot_leads": 31,
+    "total_leads": 30,
+    "hot_leads": 30,
     "warm_leads": 0,
-    "contactable": 31,
+    "contactable": 30,
     "with_whatsapp": 18,
-    "with_phone": 31,
+    "with_phone": 30,
     "with_email": 0,
-    "avg_score": 88.9,
-    "avg_score_hot": 88.9,
+    "avg_score": 89.3,
+    "avg_score_hot": 89.3,
     "conversion_probability": 100.0,
     "by_category": {
       "TRANSFER_PROBLEM": 15,
-      "OTHER": 13,
+      "OTHER": 12,
       "OWNERSHIP_ISSUE": 2,
       "FINE_DISPUTE": 1
     },
     "by_platform": {
-      "VentaFe": 31
+      "VentaFe": 30
     },
     "by_province": {
       "CABA": 2,
@@ -33,7 +33,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011468",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -63,7 +63,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.202606+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.419484+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -72,7 +72,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4859456",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
@@ -106,7 +106,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203371+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420210+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -115,7 +115,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011101",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -145,7 +145,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203837+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420655+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -154,7 +154,7 @@
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4945502",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -184,7 +184,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204421+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421107+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -193,7 +193,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010301",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -223,7 +223,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204922+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421589+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -232,7 +232,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010012",
       "provincia": "Paraná",
       "ciudad": "Paraná",
       "pais": "Argentina",
@@ -264,16 +264,16 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205184+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421837+00:00",
       "deuda_clasificar": 0
     },
     {
-      "id": "47022a255a9c0b37",
+      "id": "b4800ce9d95e66e9",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010145",
       "provincia": "Paraná",
       "ciudad": "Paraná",
       "pais": "Argentina",
@@ -282,8 +282,8 @@
       "fecha_visible": "2026-07-07",
       "fecha_iso": "2026-07-07T00:00:00",
       "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5010152-ka-1-5-sel-2016-68-780km",
-      "quoted_text": "> KA 1.5 SEL 2016 68.780KM KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Co",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010145-prisma-1-4-ltz-mt-2016-95-463km",
+      "quoted_text": "> PRISMA 1.4 LTZ MT 2016 95.463KM PRISMA 1.4 LTZ MT 2016 95.463KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS PRISMA 1.4 LTZ MT 2016 95.463KM COINAUTO S.A. Suc. Paraná - Av. Almafuer",
       "contacto_publico": true,
       "whatsapp_publico": "543424172512",
       "whatsapp_link": "https://wa.me/5493424172512",
@@ -305,7 +305,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205450+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422099+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -314,7 +314,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009567",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -344,7 +344,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205887+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422515+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -353,7 +353,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009432",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -383,7 +383,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206399+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423025+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -392,7 +392,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008934",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -422,7 +422,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206631+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423253+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -431,7 +431,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008488",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -461,7 +461,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206876+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423497+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -470,7 +470,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008096",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -500,7 +500,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207120+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423732+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -509,7 +509,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008014",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -543,7 +543,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207391+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423961+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -552,7 +552,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5006858",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -584,7 +584,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208403+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424930+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -593,7 +593,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5005707",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -623,7 +623,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209032+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425560+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -632,7 +632,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5000534",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -662,7 +662,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209271+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425780+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -671,7 +671,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5007646",
       "provincia": "",
       "ciudad": "",
       "pais": "Argentina",
@@ -701,7 +701,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207886+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424448+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -710,7 +710,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4950422",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
@@ -740,7 +740,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209515+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.426033+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -749,7 +749,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011376",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -777,7 +777,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.202849+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.419714+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -786,7 +786,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011309",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -814,7 +814,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203039+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.419893+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -823,7 +823,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4994232",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -851,44 +851,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203591+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3cec4b873fc26893",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5010992-jeep-compass-sport-a-t6-92000-kms",
-      "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 <div",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493424523197",
-      "telefono_publico": "+5493424523197",
-      "telefono_e164": "+5493424523197",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204009+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420420+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -897,7 +860,7 @@
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
       "problem_summary": "Problema de titularidad",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4886932",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -925,7 +888,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204176+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420855+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -934,7 +897,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010492",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -962,7 +925,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204661+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421341+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -971,7 +934,7 @@
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
       "problem_summary": "Problema de titularidad",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009812",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -999,7 +962,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205709+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422345+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1008,7 +971,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009542",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1036,7 +999,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206146+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422770+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1045,7 +1008,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5007764",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1073,7 +1036,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207629+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424209+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1082,7 +1045,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5007426",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1110,7 +1073,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208141+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424695+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1119,7 +1082,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5006538",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1147,7 +1110,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208552+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425094+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1156,7 +1119,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4952012",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1184,7 +1147,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208801+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425336+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1193,7 +1156,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4978698",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1221,7 +1184,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209754+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.426267+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -1232,7 +1195,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011468",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1262,7 +1225,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.202606+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.419484+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1271,7 +1234,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4859456",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
@@ -1305,7 +1268,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203371+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420210+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1314,7 +1277,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011101",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1344,7 +1307,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203837+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420655+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1353,7 +1316,7 @@
       "label": "real_lead",
       "problem_category": "FINE_DISPUTE",
       "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4945502",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1383,7 +1346,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204421+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421107+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1392,7 +1355,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010301",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1422,7 +1385,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204922+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421589+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1431,7 +1394,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010012",
       "provincia": "Paraná",
       "ciudad": "Paraná",
       "pais": "Argentina",
@@ -1463,16 +1426,16 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205184+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421837+00:00",
       "deuda_clasificar": 0
     },
     {
-      "id": "47022a255a9c0b37",
+      "id": "b4800ce9d95e66e9",
       "score": 100,
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010145",
       "provincia": "Paraná",
       "ciudad": "Paraná",
       "pais": "Argentina",
@@ -1481,8 +1444,8 @@
       "fecha_visible": "2026-07-07",
       "fecha_iso": "2026-07-07T00:00:00",
       "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5010152-ka-1-5-sel-2016-68-780km",
-      "quoted_text": "> KA 1.5 SEL 2016 68.780KM KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA 1.5 SEL 2016 68.780KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Co",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5010145-prisma-1-4-ltz-mt-2016-95-463km",
+      "quoted_text": "> PRISMA 1.4 LTZ MT 2016 95.463KM PRISMA 1.4 LTZ MT 2016 95.463KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS PRISMA 1.4 LTZ MT 2016 95.463KM COINAUTO S.A. Suc. Paraná - Av. Almafuer",
       "contacto_publico": true,
       "whatsapp_publico": "543424172512",
       "whatsapp_link": "https://wa.me/5493424172512",
@@ -1504,7 +1467,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205450+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422099+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1513,7 +1476,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009567",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1543,7 +1506,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205887+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422515+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1552,7 +1515,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009432",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1582,7 +1545,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206399+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423025+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1591,7 +1554,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008934",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1621,7 +1584,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206631+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423253+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1630,7 +1593,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008488",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1660,7 +1623,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206876+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423497+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1669,7 +1632,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008096",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1699,7 +1662,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207120+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423732+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1708,7 +1671,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5008014",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1742,7 +1705,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207391+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.423961+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1751,7 +1714,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5006858",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1783,7 +1746,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208403+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424930+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1792,7 +1755,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5005707",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1822,7 +1785,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209032+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425560+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1831,7 +1794,7 @@
       "label": "real_lead",
       "problem_category": "TRANSFER_PROBLEM",
       "problem_summary": "Problema de transferencia",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5000534",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1861,7 +1824,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209271+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425780+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1870,7 +1833,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5007646",
       "provincia": "",
       "ciudad": "",
       "pais": "Argentina",
@@ -1900,7 +1863,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207886+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424448+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1909,7 +1872,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4950422",
       "provincia": "CABA",
       "ciudad": "",
       "pais": "Argentina",
@@ -1939,7 +1902,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209515+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.426033+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1948,7 +1911,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011376",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -1976,7 +1939,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.202849+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.419714+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1985,7 +1948,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5011309",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2013,7 +1976,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203039+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.419893+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2022,7 +1985,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4994232",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2050,44 +2013,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.203591+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3cec4b873fc26893",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5010992-jeep-compass-sport-a-t6-92000-kms",
-      "quoted_text": "> Jeep Compass Sport A/T6 - 92000 kms Impecable - Único dueño - Full - Caja Automática Impecable - Único dueño - Full - Caja Automática #5010992 $ $ AGREGAR A FAVORITOS FORNI ENRIQUE ANSELMO (0342) 4523197 #5010992 #5010992 $ FORNI ENRIQUE ANSELMO (0342) 4523197 <div",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493424523197",
-      "telefono_publico": "+5493424523197",
-      "telefono_e164": "+5493424523197",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204009+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420420+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2096,7 +2022,7 @@
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
       "problem_summary": "Problema de titularidad",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4886932",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2124,7 +2050,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204176+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.420855+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2133,7 +2059,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5010492",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2161,7 +2087,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.204661+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.421341+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2170,7 +2096,7 @@
       "label": "real_lead",
       "problem_category": "OWNERSHIP_ISSUE",
       "problem_summary": "Problema de titularidad",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009812",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2198,7 +2124,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.205709+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422345+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2207,7 +2133,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5009542",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2235,7 +2161,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.206146+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.422770+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2244,7 +2170,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5007764",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2272,7 +2198,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.207629+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424209+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2281,7 +2207,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5007426",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2309,7 +2235,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208141+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.424695+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2318,7 +2244,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #5006538",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2346,7 +2272,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208552+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425094+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2355,7 +2281,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4952012",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2383,7 +2309,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.208801+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.425336+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2392,7 +2318,7 @@
       "label": "real_lead",
       "problem_category": "OTHER",
       "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor VentaFe",
+      "persona": "u/Vendedor #4978698",
       "provincia": "",
       "ciudad": "",
       "pais": "Unknown",
@@ -2420,14 +2346,14 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T14:21:31.209754+00:00",
+      "discovery_timestamp": "2026-07-07T14:46:49.426267+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de VentaFe.",
-    "El 6% de los leads calientes son de CABA.",
+    "El 7% de los leads calientes son de CABA.",
     "El problema más frecuente es: Problema de transferencia.",
     "100% de los leads calientes tienen contacto público visible.",
     "1 leads calientes muestran señales de urgencia temporal."
@@ -2458,7 +2384,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 74.99,
-    "queries_executed": 3
+    "runtime_seconds": 74.04,
+    "queries_executed": 2
   }
 }
