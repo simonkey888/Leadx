@@ -484,7 +484,8 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
     seen_phones_global: set = set()
 
     for page in range(1, TOTAL_PAGES + 1):
-        url = f"{BASE_URL}?page={page}" if page > 1 else BASE_URL
+        # FIX: VentaFe usa ?p=N (NO ?page=N que devuelve siempre pagina 1)
+        url = f"{BASE_URL}?p={page}" if page > 1 else BASE_URL
         print(f"  [VentaFe] Pagina {page}/{TOTAL_PAGES}: {url}", file=sys.stderr)
         req = _urq.Request(url, headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
