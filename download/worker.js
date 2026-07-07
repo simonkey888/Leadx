@@ -2560,14 +2560,20 @@ export default {
         }
 
         // Fire & Forget: un run por telefono, devolver inmediatamente
+        // FIX QWEN P0: Pasar webhookUrl como query param para que Apify
+        // llame a /api/whatsapp-webhook cuando termine (sin polling).
+        const webhookUrl = `${url.origin}/api/whatsapp-webhook`;
         const runIds = [];
         for (const phone of phones.slice(0, 5)) {
           try {
-            const runRes = await fetch('https://api.apify.com/v2/acts/devscrapper~whatsapp-number-validator/runs?token=' + env.APIFY_TOKEN, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phoneNumber: phone }),
-            });
+            const runRes = await fetch(
+              `https://api.apify.com/v2/acts/devscrapper~whatsapp-number-validator/runs?token=${env.APIFY_TOKEN}&webhookUrl=${encodeURIComponent(webhookUrl)}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber: phone }),
+              }
+            );
             if (runRes.ok) {
               const runData = await runRes.json();
               runIds.push({ phone, runId: runData.data.id });
@@ -2579,7 +2585,8 @@ export default {
           ok: true,
           status: 'processing',
           runs: runIds,
-          message: 'Validacion en background. Hacer polling desde browser via /api/kv?key=wa_val:PHONE',
+          webhook_configured: true,
+          message: 'Validacion en background. Resultados via webhook automatico.',
         }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);

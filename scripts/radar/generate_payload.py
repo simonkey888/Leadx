@@ -1255,14 +1255,25 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     # Clamp
     score = max(0, min(100, score))
 
-    # --- CLASSIFY (GPT: umbral mas alto para CRM) ---
-    # Antes: 60 = real_lead. Ahora: 50 = real_lead (con filtro de dolor)
-    if score >= 50 and not is_foreign and has_explicit_pain:
-        label = "real_lead"
-    elif score >= 30 and not is_foreign and has_explicit_pain:
-        label = "commercial_signal"
+    # --- CLASSIFY (Qwen fix P0: umbrales relajados para VentaFe) ---
+    # VentaFe: leads comerciales preventivos (vendedor con auto en venta).
+    # Aceptar con umbrales más bajos si tiene contacto, aunque no haya "dolor".
+    # Otras fuentes: mantener lógica estricta original.
+    if is_ventafe_rec:
+        if score >= 40 and has_contact and not is_foreign:
+            label = "real_lead"
+        elif score >= 25 and has_contact and not is_foreign:
+            label = "commercial_signal"
+        else:
+            label = "reject"
     else:
-        label = "reject"
+        # Lógica original para Reddit, FB, etc.
+        if score >= 50 and not is_foreign and has_explicit_pain:
+            label = "real_lead"
+        elif score >= 30 and not is_foreign and has_explicit_pain:
+            label = "commercial_signal"
+        else:
+            label = "reject"
 
     if label == "reject":
         return None
