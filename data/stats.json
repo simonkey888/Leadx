@@ -1,35 +1,12 @@
 {
-  "total_runs": 69,
-  "last_run": "2026-07-06T22:16:28.692817+00:00",
-  "last_run_id": "1b70f4dd0c8d",
-  "total_leads_all_time": 612,
-  "total_hot_leads_all_time": 511,
-  "avg_hot_per_run": 7.4,
-  "runs_today": 18,
+  "total_runs": 70,
+  "last_run": "2026-07-07T00:04:07.985219+00:00",
+  "last_run_id": "7099359b4955",
+  "total_leads_all_time": 625,
+  "total_hot_leads_all_time": 524,
+  "avg_hot_per_run": 7.5,
+  "runs_today": 1,
   "last_7_days": [
-    {
-      "run_id": "4b6fce945190",
-      "generated_at": "2026-07-06T20:50:37.407299+00:00",
-      "summary": {
-        "total_leads": 1,
-        "hot_leads": 1,
-        "warm_leads": 0,
-        "contactable": 1,
-        "with_whatsapp": 0,
-        "with_phone": 1,
-        "with_email": 0,
-        "avg_score": 100.0,
-        "avg_score_hot": 100.0,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "FINE_DISPUTE": 1
-        },
-        "by_platform": {
-          "Ventafe.Com.Ar": 1
-        },
-        "by_province": {}
-      }
-    },
     {
       "run_id": "10927ee99153",
       "generated_at": "2026-07-06T21:57:25.580914+00:00",
@@ -192,6 +169,35 @@
         },
         "by_platform": {
           "Reddit": 1,
+          "Ventafe.Com.Ar": 13
+        },
+        "by_province": {
+          "CABA": 1,
+          "Paraná": 1
+        }
+      }
+    },
+    {
+      "run_id": "7099359b4955",
+      "generated_at": "2026-07-07T00:04:07.985219+00:00",
+      "summary": {
+        "total_leads": 13,
+        "hot_leads": 13,
+        "warm_leads": 0,
+        "contactable": 13,
+        "with_whatsapp": 5,
+        "with_phone": 13,
+        "with_email": 0,
+        "avg_score": 84.6,
+        "avg_score_hot": 84.6,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "OTHER": 6,
+          "TRANSFER_PROBLEM": 4,
+          "OWNERSHIP_ISSUE": 2,
+          "FINE_DISPUTE": 1
+        },
+        "by_platform": {
           "Ventafe.Com.Ar": 13
         },
         "by_province": {
