@@ -3169,9 +3169,19 @@ async function runPipelineCron(env) {
           'quilmes','moron','pilar'];
         if (!arKw.some(g => fullText.includes(g))) continue;
 
+        // FIX GEMINI AUDIT v2: requiere señal vehicular ESPECÍFICA de dolor (no solo "auto/moto" genérico).
+        // Evita que pasen posts random que mencionan "argentina" pero no son leads vehiculares.
+        const painKwStrict = ['multa','multas','fotomulta','fotomultas','infraccion','infracciones',
+          'infraccion','libre deuda','libredeuda','transferencia','transferir',
+          '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje',
+          'deuda','vencimiento','patente','no puedo transferir','me llego multa',
+          'me cobraron','papeles al dia','listo para transferir'];
+        if (!painKwStrict.some(k => fullText.includes(k))) continue;
+
         // Anti-junk
         const junkKw = ['renunciar','empleo','galaxy','tablet','licitacion','falsa competencia',
-          'guardia roja','gracia inmerecida','euphoria','depre','ajuste de equilibrio','probabilit'];
+          'guardia roja','gracia inmerecida','euphoria','depre','ajuste de equilibrio','probabilit',
+          'lovecraft','meteorito','paysandu','gaming','playstation','xbox'];
         if (junkKw.some(k => fullText.includes(k))) continue;
         const ptKw = ['nao','voce','comprei','vendi','carro','detran','cnh','obrigado','galera','deix','crever','belezura'];
         if (ptKw.filter(k => fullText.includes(k)).length >= 2) continue;
