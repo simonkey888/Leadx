@@ -1,29 +1,28 @@
 {
-  "generated_at": "2026-07-07T04:25:00.642848+00:00",
-  "run_id": "0ec2d53c4710",
+  "generated_at": "2026-07-07T04:40:07.911855+00:00",
+  "run_id": "586e8db346f9",
   "summary": {
-    "total_leads": 34,
-    "hot_leads": 34,
+    "total_leads": 30,
+    "hot_leads": 30,
     "warm_leads": 0,
     "contactable": 30,
     "with_whatsapp": 17,
     "with_phone": 30,
     "with_email": 0,
-    "avg_score": 85.3,
-    "avg_score_hot": 85.3,
+    "avg_score": 87.7,
+    "avg_score_hot": 87.7,
     "conversion_probability": 100.0,
     "by_category": {
-      "FINE_DISPUTE": 5,
       "OTHER": 14,
       "TRANSFER_PROBLEM": 13,
-      "OWNERSHIP_ISSUE": 2
+      "OWNERSHIP_ISSUE": 2,
+      "FINE_DISPUTE": 1
     },
     "by_platform": {
-      "Reddit": 4,
       "Ventafe.Com.Ar": 30
     },
     "by_province": {
-      "CABA": 4,
+      "CABA": 2,
       "Paraná": 1
     }
   },
@@ -66,7 +65,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022042+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898479+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -105,7 +104,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022375+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898947+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -144,7 +143,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022799+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899509+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -183,7 +182,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023350+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900260+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -224,7 +223,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023536+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900512+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -263,7 +262,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023865+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900951+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -302,7 +301,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024234+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901444+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -341,7 +340,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024401+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901706+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -380,7 +379,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024580+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901951+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -419,7 +418,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024766+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902192+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -462,7 +461,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024938+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902426+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -503,7 +502,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025665+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903462+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -542,7 +541,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026126+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904102+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -581,7 +580,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026292+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904325+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -620,7 +619,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025287+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902973+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -659,75 +658,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026469+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3f7700c8e589d13a",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/saantibustos",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2025-02-16T21:16:01+00:00",
-      "fecha_iso": "2025-02-16T21:16:01+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ir2tqx/posibilidad_de_embargo_por_fotomultas",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas tardes, quería consultar acerca de unas fotomultas viejas que tengo en mi vehículo… justo hace un ratito me llegó un comunicado diciendo que los legajos de 2 multas en 15 días pasarían a reclamo por vía ejecutiva… tengo miedo de que esto pueda resultar en un",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.020645+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "041221ff1de6402e",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/dinovfx",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2022-12-05T02:15:53+00:00",
-      "fecha_iso": "2022-12-05T02:15:53+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/zctti6/caba_fotomulta_a_otro_domicilio",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas noches, </p> <p><strong>Puedo impugnar la multa ( leve ) por estar mal/no notificada?</strong><br/> El GCBA me notificó, por correo simple, de una fotomulta a un domicilio antiguo donde no resido hace más de 12 años y donde , que yo sepa, <strong>no recibo ni",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.021238+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904579+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -764,7 +695,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.021722+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898031+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -801,7 +732,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.021863+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898238+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -838,7 +769,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022197+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898705+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -875,7 +806,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022503+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899121+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -912,7 +843,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022634+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899286+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -949,7 +880,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022980+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899768+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -986,7 +917,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023152+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900000+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1023,7 +954,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023735+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900774+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1060,7 +991,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024060+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901208+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1097,7 +1028,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025107+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902722+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1134,7 +1065,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025473+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903222+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1171,7 +1102,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025774+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903630+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1208,7 +1139,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025957+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903875+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1245,71 +1176,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026676+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "ac08d01054973fc0",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Ok_Difference_5418",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-01-02T21:11:53+00:00",
-      "fecha_iso": "2026-01-02T21:11:53+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/MotosArg/comments/1q2arpe/fotomulta_mal_asignada_y_reclamo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas gente, entré a revisar infracciones por dominio de patente y ví que me asignaron erroneamente una multa de otra moto - practicamente mismo nro de patente pero le da un poco el sol y tomaron una E como una L.</p> <p>Cuestión que de momento me falta rendir el e",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.020413+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "abbd4571d6742c19",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/EnvironmentalBet768",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2024-05-11T14:52:47+00:00",
-      "fecha_iso": "2024-05-11T14:52:47+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1cpj8jg/reclamar_pago_de_multa_cañuelas",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>En los últimos días salió la noticia que en el tramo de la ruta 205 de Cañuelas, se iban a ANULAR las infracciones entre <strong>1 de marzo y el 15 de julio del 2023</strong>. </p> <p><a href=\" </p> <p><a href=\" </p> <p>Me habían labrado una el 26 de mayo del 2023,",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.020901+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904818+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -1352,7 +1219,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022042+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898479+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1391,7 +1258,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022375+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898947+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1430,7 +1297,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022799+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899509+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1469,7 +1336,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023350+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900260+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1510,7 +1377,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023536+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900512+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1549,7 +1416,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023865+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900951+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1588,7 +1455,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024234+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901444+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1627,7 +1494,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024401+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901706+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1666,7 +1533,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024580+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901951+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1705,7 +1572,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024766+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902192+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1748,7 +1615,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024938+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902426+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1789,7 +1656,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025665+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903462+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1828,7 +1695,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026126+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904102+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1867,7 +1734,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026292+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904325+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1906,7 +1773,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025287+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902973+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1945,7 +1812,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026469+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904579+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1982,7 +1849,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.021722+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898031+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2019,7 +1886,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.021863+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898238+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2056,7 +1923,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022197+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.898705+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2093,7 +1960,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022503+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899121+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2130,7 +1997,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022634+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899286+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2167,7 +2034,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.022980+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.899768+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2204,7 +2071,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023152+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900000+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2241,7 +2108,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.023735+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.900774+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2278,7 +2145,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.024060+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.901208+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2315,7 +2182,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025107+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.902722+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2352,7 +2219,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025473+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903222+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2389,7 +2256,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025774+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903630+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2426,7 +2293,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.025957+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.903875+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -2463,148 +2330,16 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T04:24:55.026676+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3f7700c8e589d13a",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/saantibustos",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2025-02-16T21:16:01+00:00",
-      "fecha_iso": "2025-02-16T21:16:01+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1ir2tqx/posibilidad_de_embargo_por_fotomultas",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas tardes, quería consultar acerca de unas fotomultas viejas que tengo en mi vehículo… justo hace un ratito me llegó un comunicado diciendo que los legajos de 2 multas en 15 días pasarían a reclamo por vía ejecutiva… tengo miedo de que esto pueda resultar en un",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.020645+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "041221ff1de6402e",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/dinovfx",
-      "provincia": "CABA",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2022-12-05T02:15:53+00:00",
-      "fecha_iso": "2022-12-05T02:15:53+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/zctti6/caba_fotomulta_a_otro_domicilio",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas noches, </p> <p><strong>Puedo impugnar la multa ( leve ) por estar mal/no notificada?</strong><br/> El GCBA me notificó, por correo simple, de una fotomulta a un domicilio antiguo donde no resido hace más de 12 años y donde , que yo sepa, <strong>no recibo ni",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.021238+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "ac08d01054973fc0",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Ok_Difference_5418",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-01-02T21:11:53+00:00",
-      "fecha_iso": "2026-01-02T21:11:53+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/MotosArg/comments/1q2arpe/fotomulta_mal_asignada_y_reclamo",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Buenas gente, entré a revisar infracciones por dominio de patente y ví que me asignaron erroneamente una multa de otra moto - practicamente mismo nro de patente pero le da un poco el sol y tomaron una E como una L.</p> <p>Cuestión que de momento me falta rendir el e",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.020413+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "abbd4571d6742c19",
-      "score": 60,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/EnvironmentalBet768",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2024-05-11T14:52:47+00:00",
-      "fecha_iso": "2024-05-11T14:52:47+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1cpj8jg/reclamar_pago_de_multa_cañuelas",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>En los últimos días salió la noticia que en el tramo de la ruta 205 de Cañuelas, se iban a ANULAR las infracciones entre <strong>1 de marzo y el 15 de julio del 2023</strong>. </p> <p><a href=\" </p> <p><a href=\" </p> <p>Me habían labrado una el 26 de mayo del 2023,",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60
-      },
-      "detected_signals": [
-        "multa_fotomulta"
-      ],
-      "discovery_timestamp": "2026-07-07T04:24:55.020901+00:00",
+      "discovery_timestamp": "2026-07-07T04:40:07.904818+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 88% de los leads calientes provienen de Ventafe.Com.Ar.",
-    "El 12% de los leads calientes son de CABA.",
+    "El 100% de los leads calientes provienen de Ventafe.Com.Ar.",
+    "El 7% de los leads calientes son de CABA.",
     "El problema más frecuente es: Lead vehicular.",
-    "88% de los leads calientes tienen contacto público visible.",
+    "100% de los leads calientes tienen contacto público visible.",
     "1 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
@@ -2633,7 +2368,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 98.22,
-    "queries_executed": 3
+    "runtime_seconds": 86.79,
+    "queries_executed": 1
   }
 }
