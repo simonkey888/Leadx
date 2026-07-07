@@ -858,6 +858,31 @@ def collect_public_sources() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"  [VentaFe] ERROR: {e}", file=sys.stderr)
 
+    # FIX GEMINI MEJORA 2: Dorking Facebook grupos A+B sin cookies.
+    # Los buscadores indexan posts de grupos públicos de Facebook, permitiendo
+    # extraer fragmentos con teléfonos sin necesidad de sesión/cookies.
+    fb_dorks = [
+        # Grupo A: Defensa contra multas de tránsito
+        'site:facebook.com/groups/276074287942602 "multa" OR "fotomulta" "11" OR "342" OR "341"',
+        # Grupo B: Venta de Autos Santa Fe y Alrededores
+        'site:facebook.com/groups/1314803566577708 "debe" OR "deuda" OR "08" OR "fallecido" "342" OR "15"',
+    ]
+    print("[OSINT] Dorking grupos Facebook (sin cookies)...", file=sys.stderr)
+    for dork in fb_dorks:
+        try:
+            print(f"  [FB Dork] {dork[:70]}", file=sys.stderr)
+            fb_results = web_search(dork, num=8)
+            for r in fb_results:
+                r["_query"] = "facebook_group_direct_dork"
+                r["source"] = "facebook_groups"
+                r["host_name"] = "facebook.com"
+            all_results.extend(fb_results)
+            if fb_results:
+                print(f"  [FB Dork] +{len(fb_results)} resultados", file=sys.stderr)
+            time.sleep(2.0)
+        except Exception as e:
+            print(f"  [FB Dork] Error: {e}", file=sys.stderr)
+
     return all_results
 
 
@@ -1190,30 +1215,39 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if is_vf:
         text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
         text_lower_vf = text_for_pain.lower()
-        # FIX GEMINI VIA A: Filtro de DOLOR REGISTRAL (no solo multa/deuda genérico).
-        # Un gestor automotor no solo vive de deudas de patentes; sus servicios más
-        # valiosos resuelven problemas registrales complejos que el vendedor declara
-        # en el texto para justificar un precio bajo o urgencia de venta:
-        # - Formulario 08 vencido/firmado en blanco/titular inubicable
-        # - Titular fallecido (sucesiones pendientes)
-        # - Vehículos inhibidos o con problemas de papeles
-        # - Mera tenencia / denuncia de compra / solo poseedores
-        # Esto descarta autos limpios (Mercedes A200) pero rescata leads de alta conversión.
-        has_registral_pain = any(kw in text_lower_vf for kw in [
-            # Dolor documental especifico (ALTA conversión para gestor)
+        # FIX GEMINI HIBRIDO: Enfoque preventivo + dolor real.
+        # Caso 1: Vendedor admite problemas reales → Score Alto (caliente)
+        # Caso 2: Vendedor dice estar al día → Score medio (tibio, preventivo)
+        # Caso 3: No menciona nada → descartar (ruido)
+        has_explicit_pain = any(kw in text_lower_vf for kw in [
             "debo patente", "debe patente", "adeuda", "embargo", "inhibicion", "inhibición",
             "bloqueado", "sin 08", "08 vencido", "08 firmado en blanco",
             "titular fallecido", "no tengo el 08", "titular inubicable",
             "sucesion", "sucesión", "titular no firma", "poseedor", "denuncia de compra",
             "tarjeta rosa", "solo poseedores", "problema de papeles", "faltan papeles",
-            # Dolor de multas REAL (no preventivo)
             "debo multa", "debe multa", "multas impagas", "multa pendiente",
             "me llego multa", "tengo multa", "con multas", "con deuda",
             "no puedo transferir", "transferencia bloqueada",
         ])
+        is_preventive = any(kw in text_lower_vf for kw in [
+            "papeles al dia", "papeles al día", "listo para transferir",
+            "sin deudas", "sin multas", "libre de multas", "al dia", "al día",
+            "patente paga", "patente al dia", "patente al día",
+        ])
         has_patente = bool(record.get("patente"))
-        if not (has_registral_pain or has_patente):
-            return None  # VentaFe sin dolor registral ni patente → descartar
+
+        if has_explicit_pain:
+            score += 40
+            if "DOLOR_EXPLICITO_REGISTRAL" not in signals:
+                signals.append("DOLOR_EXPLICITO_REGISTRAL")
+        elif is_preventive or has_patente:
+            # Preventivo: score base moderado, etiqueta clara para Sergio
+            score += 15
+            if "PREVENTIVO_A_VERIFICAR" not in signals:
+                signals.append("PREVENTIVO_A_VERIFICAR")
+        else:
+            # No menciona dolor ni papeles al día → descartar (ruido)
+            return None
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -1532,8 +1566,14 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if label == "reject":
         return None
 
-    # Problem category
-    if "transferencia" in text or "transferir" in text or re.search(r"\b08\b", text):
+    # Problem category (FIX GEMINI HIBRIDO: etiquetado preventivo)
+    if "DOLOR_EXPLICITO_REGISTRAL" in signals:
+        problem_cat = "DOCUMENTATION_ISSUE"
+        problem_sum = "Trámite registral complejo detectado"
+    elif "PREVENTIVO_A_VERIFICAR" in signals:
+        problem_cat = "PREVENTIVE_SCAN"
+        problem_sum = "Preventivo — Verificación de deuda sugerida"
+    elif "transferencia" in text or "transferir" in text or re.search(r"\b08\b", text):
         problem_cat = "TRANSFER_PROBLEM"
         problem_sum = "Problema de transferencia"
     elif "multa" in text or "fotomulta" in text:
@@ -1547,7 +1587,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         problem_sum = "Problema de titularidad"
     else:
         problem_cat = "OTHER"
-        problem_sum = "Lead vehicular"
+        problem_sum = "Lead vehicular calificado"
 
     # WhatsApp link (Qwen fix: normalizar a E.164)
     wa_link = ""
@@ -2191,27 +2231,17 @@ def run_pipeline() -> Dict[str, Any]:
         is_vf_out = ("ventafe" in (lead.platform or "").lower()
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
-            text_lower_out = (lead.quoted_text or "").lower()
-            # FIX GEMINI VIA A: mismo filtro de dolor registral que admision
-            has_registral_pain = any(kw in text_lower_out for kw in [
-                "debo patente", "debe patente", "adeuda", "embargo", "inhibicion", "inhibición",
-                "bloqueado", "sin 08", "08 vencido", "08 firmado en blanco",
-                "titular fallecido", "no tengo el 08", "titular inubicable",
-                "sucesion", "sucesión", "titular no firma", "poseedor", "denuncia de compra",
-                "tarjeta rosa", "solo poseedores", "problema de papeles", "faltan papeles",
-                "debo multa", "debe multa", "multas impagas", "multa pendiente",
-                "me llego multa", "tengo multa", "con multas", "con deuda",
-                "no puedo transferir", "transferencia bloqueada",
+            # FIX GEMINI HIBRIDO: pasar si tiene signals validas (dolor, preventivo, deuda)
+            has_valid_signals = any(sig in (lead.detected_signals or []) for sig in [
+                "DOLOR_EXPLICITO_REGISTRAL", "PREVENTIVO_A_VERIFICAR", "DEUDA_COMPROBADA"
             ])
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
-            has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
             has_patente_out = bool(getattr(lead, "patente", "") or "")
-            # Pasa si: dolor registral OR deuda comprobada OR patente (para auditar)
-            if has_registral_pain or has_validated_debt or has_deuda_signal or has_patente_out:
+            if has_valid_signals or has_validated_debt or has_patente_out:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor registral ni patente",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin signals validas",
                       file=sys.stderr)
         else:
             filtered_leads.append(lead)
