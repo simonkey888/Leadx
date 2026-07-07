@@ -1146,14 +1146,38 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         # FIX GEMINI SABUESO FASE 3: SOLO dolor textual real y explicito.
         # Eliminadas keywords preventivas ('sin deuda', 'sin multas', 'papeles al dia',
         # 'patente paga', 'listo para transferir') porque sin patente no podemos
-        # auditar si el vendedor miente. Evita falsos positivos como Mercedes A200
-        # que dice "sin deuda, multas" pero no se puede verificar.
-        has_explicit_pain_text = any(kw in text_lower_vf for kw in [
-            "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-            "debo", "debe", "adeuda", "deuda", "deudas", "embargo", "inhibicion", "inhibición",
-            "bloqueada", "bloqueado", "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-            "no puedo transferir", "traba", "bloqueo", "impedimento", "titular no firma",
-        ])
+        # auditar si el vendedor miente. Evita falsos positivos como Mercedes A200.
+        # FIX FASE 3.1: usar regex con word boundaries para evitar que 'traba' matchee
+        # 'trabajo/trabajar' o que 'deuda' matchee 'sin deuda, multas' (contexto negativo).
+        import re as _re_vf
+        # Keywords de dolor real (regex con \\b para word boundary)
+        pain_patterns = [
+            r"\bmultas?\b", r"\bfotomultas?\b", r"\binfracciones?\b", r"\binfracción\b",
+            r"\bdebo\b", r"\bdebe\b", r"\badeuda\b", r"\bdeudas?\b", r"\bembargo\b",
+            r"\binhibicion\b", r"\binhibición\b", r"\bbloqueada\b", r"\bbloqueado\b",
+            r"\bsin 08\b", r"\b08 vencido\b", r"\btitular fallecido\b", r"\bno tengo el 08\b",
+            r"\bno puedo transferir\b", r"\btraba(?:da|o|os|as)?\b(?!jo|jando|jar)",
+            r"\bbloqueo\b", r"\bimpedimento\b", r"\btitular no firma\b",
+        ]
+        has_explicit_pain_text = any(_re_vf.search(p, text_lower_vf) for p in pain_patterns)
+
+        # FIX FASE 3.1: excluir contexto negativo ('sin deuda', 'sin multas', 'sin infracciones').
+        # Si la unica razon por la que matchea es porque dice 'sin deuda' o 'sin multas',
+        # no es dolor real, es declaracion de estar limpio.
+        negative_contexts = ["sin deuda", "sin deudas", "sin multa", "sin multas",
+                             "sin infraccion", "sin infracciones", "libre deuda",
+                             "libre de deuda", "libre de multas", "no debe", "no adeuda"]
+        has_negative_context = any(nc in text_lower_vf for nc in negative_contexts)
+
+        # Si solo matchea por contexto negativo, no es dolor real
+        if has_explicit_pain_text and has_negative_context:
+            # Verificar si hay match fuera del contexto negativo
+            # Remover frases negativas y volver a chequear
+            text_without_negative = text_lower_vf
+            for nc in negative_contexts:
+                text_without_negative = text_without_negative.replace(nc, "")
+            has_explicit_pain_text = any(_re_vf.search(p, text_without_negative) for p in pain_patterns)
+
         has_patente = bool(record.get("patente"))
         if not (has_explicit_pain_text or has_patente):
             return None  # VentaFe sin dolor real ni patente → descartar
