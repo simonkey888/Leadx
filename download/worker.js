@@ -1357,9 +1357,12 @@ async function validateWaFromModal() {
   // Abrir WhatsApp en nueva pestaña
   window.open(waUrl, '_blank');
 
-  // Marcar como validado localmente (state persistido en localStorage)
+  // Marcar como validado y contactado localmente (Qwen P0 v3.1)
+  // Persistencia en localStorage via DB.set para que el estado sobreviva reloads
   if (l._wa_e164) setWaValidation(l._wa_e164, true);
   l._wa_state = 'validated_whatsapp';
+  l._status = 'Contactado';
+  DB.set(S.currentId, { ...DB.get(S.currentId), status: 'Contactado' });
 
   const waBtn = document.getElementById('modal-wa-btn');
   if (waBtn) {
