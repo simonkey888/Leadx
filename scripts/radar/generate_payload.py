@@ -171,6 +171,37 @@ REJECT_IF_CONTAINS = [
     "enviar dinero", "criptomoneda",
 ]
 
+# ===========================================================================
+# FIX QWEN v2.8: FILTROS ANTI-BASURA (GAMING, USA, GAMING ACHIEVEMENTS, ETC.)
+# ===========================================================================
+GAMING_KEYWORDS = [
+    "playstation", "playstation 3", "playstation 4", "playstation 5", "ps3", "ps4", "ps5",
+    "xbox", "xbox one", "xbox series", "nintendo", "switch",
+    "gta", "grand theft auto", "gta v", "gta 5",
+    "final fantasy", "littlebigplanet", "motorstorm", "need for speed", "silent hill",
+    "college hoop", "blur", "call of duty", "cod",
+    "logros", "achievements", "logros de", "logros del modo",
+    "gaming", "gamer", "gamer argentino", "gamers",
+    "steam", "epic games", "steam deck",
+    "xbox game pass", "game pass", "xbox gamepass",
+    "playstation plus", "ps plus",
+    "nintendo switch", "switch oled",
+    "how can i prevent", "writer from automatically",
+    "font name when i type", "achievements related",
+]
+
+GAMING_SUBREDDITS = {
+    "gaming", "gamingargentina", "argentinagaming", "argentinagamer",
+    "gamerargentina", "argentina_gaming",
+    "playstation", "playstationargentina",
+    "xboxargentina", "xbox", "nintendo", "nintendoswitch",
+    "steam", "steamargentina", "steamdeck", "pcgaming",
+    "pcmasterrace", "pcgamingargentina",
+}
+
+# Extender REJECT_IF_CONTAINS con keywords de gaming
+REJECT_IF_CONTAINS.extend(GAMING_KEYWORDS)
+
 # FILTROS ADICIONALES DE CALIDAD (DeepSeek+Qwen v2.7)
 NEGATIVE_KEYWORDS = [
     'accidente', 'choque', 'siniestro', 'colisión',
@@ -226,6 +257,11 @@ FOREIGN_INDICATORS = {
     "Italia": ["pisa", "roma", "milano", "italia"],
     "España": ["madrid", "barcelona", "españa", "espana"],
     "EEUU": ["miami", "new york", "california", "estados unidos"],
+    # FIX QWEN v2.8: indicadores USA + Gaming más precisos
+    "USA": ["usa-tn", "usa-tx", "usa-ca", "usa-ny", "usa-fl", "[usa-", "[h]", "[w]",
+            "paypal", "venmo", "zelle"],
+    "Gaming": ["playstation", "playstation 3", "ps3", "ps4", "ps5", "xbox",
+               "gta", "gta v", "final fantasy"],
 }
 
 ARGENTINA_SIGNALS = [
@@ -549,18 +585,26 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         # Titulo: primeras palabras del texto
         title = text[:80].strip()
 
-        # FIX QWEN: URL unica REAL del aviso (no generica) para evitar dedup masivo.
-        # VentaFe expone URLs tipo /automoviles/5011376-honda-hr-v-lx-cvt-2017
-        # Si no encontramos el href, caemos a anchor por telefono.
+        # FIX QWEN v2.8: URL unica REAL del aviso (3 estrategias en cascada).
+        # 1) href real del HTML (lo mas confiable: VentaFe ya arma el slug correcto)
+        # 2) Si no hay href, construir desde #ID del bloque + slug del titulo
+        # 3) Si tampoco hay #ID, anchor por telefono (ultimo recurso)
         href_match = _re.search(r'href="(/automoviles/(\d+)-[^"]+)"', block)
         if href_match:
             unique_url = "https://www.ventafe.com.ar" + href_match.group(1)
             aviso_id = href_match.group(2)
         else:
-            # Fallback: anchor por telefono
-            phone_slug = _re.sub(r'\D', '', valid_phones[0])
-            unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
-            aviso_id = phone_slug
+            # Estrategia 2: construir URL desde #ID + slug del titulo
+            id_match = _re.search(r'#(\d{6,8})', block)
+            if id_match:
+                aviso_id = id_match.group(1)
+                slug = _re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')[:60] or 'aviso'
+                unique_url = f"https://www.ventafe.com.ar/automoviles/{aviso_id}-{slug}"
+            else:
+                # Estrategia 3: anchor por telefono
+                phone_slug = _re.sub(r'\D', '', valid_phones[0])
+                unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
+                aviso_id = phone_slug
 
         lead = {
             "name": f"[VentaFe] {title}",
@@ -746,6 +790,17 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     # FILTRO DE DOMINIOS DE MEDIOS (DeepSeek v2.7)
     host = result.get("host", "") or get_host(url)
     if any(d in host for d in DISCARD_DOMAINS):
+        return None
+
+    # FIX QWEN v2.8: Filtro de subreddits de gaming
+    subreddit_match = re.search(r'reddit\.com/r/([^/]+)/', url, re.IGNORECASE)
+    subreddit = subreddit_match.group(1).lower() if subreddit_match else ""
+    if subreddit in GAMING_SUBREDDITS:
+        return None
+
+    # FIX QWEN v2.8: Filtro de posts con 2+ keywords de gaming
+    gaming_matches = sum(1 for kw in GAMING_KEYWORDS if kw in combined_lower)
+    if gaming_matches >= 2:
         return None
 
     # FILTRO DE PAIS EXTRANJERO (DeepSeek v2.7)

@@ -548,6 +548,39 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="sidebar-label">Fuente</div>
       <div id="source-filters"></div>
     </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Contacto</div>
+      <div class="filter-item active" onclick="filterContact('todos', this)" id="fc-todos">
+        Todos <span class="filter-count" id="cnt-contact-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('whatsapp', this)" id="fc-whatsapp">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" style="vertical-align:middle"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+        Con WhatsApp <span class="filter-count" id="cnt-whatsapp">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('email', this)" id="fc-email">
+        ✉️ Con Email <span class="filter-count" id="cnt-email">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('sin_contacto', this)" id="fc-sin-contacto">
+        ❌ Sin contacto <span class="filter-count" id="cnt-sin-contacto">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Temperatura</div>
+      <div class="filter-item active" onclick="filterHeat('todos', this)" id="fh-todos">
+        Todos <span class="filter-count" id="cnt-heat-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('hot', this)" id="fh-hot">
+        🔥 Calientes <span class="filter-count" id="cnt-hot">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('warm', this)" id="fh-warm">
+        ⚡ Tibios <span class="filter-count" id="cnt-warm">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('cold', this)" id="fh-cold">
+        ⚪ Fríos <span class="filter-count" id="cnt-cold">0</span>
+      </div>
+    </div>
   </div>
 
   <!-- MAIN -->
@@ -761,6 +794,8 @@ const S = {
   statusFilter: 'todos',
   provFilter:   'todos',
   sourceFilter: 'todos',
+  contactFilter: 'todos',  // FIX QWEN v2.8: filtro por tipo de contacto
+  heatFilter:    'todos',  // FIX QWEN v2.8: filtro por temperatura
   currentId:    null,
 };
 
@@ -985,15 +1020,38 @@ function filterStatus(val, el) {
   applyFilters();
 }
 
+// FIX QWEN v2.8: Nuevos filtros Contacto y Temperatura
+function filterContact(val, el) {
+  S.contactFilter = val;
+  document.querySelectorAll('#fc-todos, #fc-whatsapp, #fc-email, #fc-sin-contacto').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function filterHeat(val, el) {
+  S.heatFilter = val;
+  document.querySelectorAll('#fh-todos, #fh-hot, #fh-warm, #fh-cold').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
 function applyFilters() {
   const q   = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const pv  = S.provFilter;
   const sf  = S.sourceFilter;
+  const cf  = S.contactFilter;
+  const hf  = S.heatFilter;
 
   S.filtered = S.crmLeads.filter(l => {
     if (S.statusFilter !== 'todos' && l._status !== S.statusFilter) return false;
     if (pv !== 'todos' && (l.provincia || '') !== pv) return false;
     if (sf !== 'todos' && (l.source_label || l.source || '') !== sf) return false;
+    // FIX QWEN v2.8: filtro Contacto
+    if (cf === 'whatsapp' && !l._wa_url) return false;
+    if (cf === 'email' && !(l.email || l.email_publico)) return false;
+    if (cf === 'sin_contacto' && (l._wa_url || l.email || l.email_publico)) return false;
+    // FIX QWEN v2.8: filtro Temperatura
+    if (hf !== 'todos' && l._heat_label !== hf) return false;
     if (q) {
       const hay = \`\${l._display_name} \${l.provincia} \${l._resumen} \${l.source_label}\`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -1116,6 +1174,25 @@ function renderCounts() {
     const el = document.getElementById('cnt-' + s);
     if (el) el.textContent = S.crmLeads.filter(l => l._status === s).length;
   });
+
+  // FIX QWEN v2.8: contadores nuevos Contacto y Temperatura
+  const cntContactTodos = document.getElementById('cnt-contact-todos');
+  const cntWhatsapp     = document.getElementById('cnt-whatsapp');
+  const cntEmail        = document.getElementById('cnt-email');
+  const cntSinContacto  = document.getElementById('cnt-sin-contacto');
+  const cntHeatTodos    = document.getElementById('cnt-heat-todos');
+  const cntHot          = document.getElementById('cnt-hot');
+  const cntWarm         = document.getElementById('cnt-warm');
+  const cntCold         = document.getElementById('cnt-cold');
+
+  if (cntContactTodos) cntContactTodos.textContent = S.crmLeads.length;
+  if (cntWhatsapp)     cntWhatsapp.textContent     = S.crmLeads.filter(l => l._wa_url).length;
+  if (cntEmail)        cntEmail.textContent        = S.crmLeads.filter(l => l.email || l.email_publico).length;
+  if (cntSinContacto)  cntSinContacto.textContent  = S.crmLeads.filter(l => !l._wa_url && !(l.email || l.email_publico)).length;
+  if (cntHeatTodos)    cntHeatTodos.textContent    = S.crmLeads.length;
+  if (cntHot)          cntHot.textContent          = S.crmLeads.filter(l => l._heat_label === 'hot').length;
+  if (cntWarm)         cntWarm.textContent         = S.crmLeads.filter(l => l._heat_label === 'warm').length;
+  if (cntCold)         cntCold.textContent         = S.crmLeads.filter(l => l._heat_label === 'cold').length;
 }
 
 function renderSidebar() {

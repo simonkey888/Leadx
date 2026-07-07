@@ -1,11 +1,11 @@
 # 📦 LeadX — Código Completo (Bundle Único para Kimi)
 
-**Generado:** 2026-07-07 04:26 UTC  
+**Generado:** 2026-07-07 04:42 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 4b43cfab-f343-49d1-9dff-bb322d2a6233  
-**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link
+**Worker Version:** 8ef31786-a427-405d-9f2a-8578b0f5ecdb  
+**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link · 30 VentaFe con URL clickeable al aviso real
 
 ---
 
@@ -13,8 +13,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,266 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,028 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,343 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,083 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -147,17 +147,18 @@
 
 ### Estado final del KV (verificado)
 
-| Métrica | Antes de todos los fixes | Post-Qwen P0 | Post-Qwen v2.7 |
-|---|---|---|---|
-| Total leads | 53 | 80 | **117** |
-| Leads con teléfono | 1 | 28 | **45** |
-| Leads con WhatsApp link | 1 | 27 | **44** |
-| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | **30** |
-| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' automático |
-| `/api/whatsapp-validate` webhook | ❌ Sin webhook | ✅ `webhook_configured:true` | ✅ |
-| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | **5 páginas (45 leads)** |
-| ML Questions | num=15 | num=15 | **num=50** |
-| clasific.ar enriquecimiento | Todos con patente | Todos con patente | **Solo score>=70** (200/mes rinden) |
+| Métrica | Antes | Post-Qwen P0 | Post-Qwen v2.7 | Post-Qwen v2.8 |
+|---|---|---|---|---|
+| Total leads | 53 | 80 | 117 | **117** |
+| Leads con teléfono | 1 | 28 | 45 | **45** |
+| Leads con WhatsApp link | 1 | 27 | 44 | **44** |
+| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | 30 | **30** (3 estrategias) |
+| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' | ✅ |
+| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | 5 págs (45 leads) | **5 págs (45 leads)** |
+| ML Questions | num=15 | num=15 | num=50 | **num=50** |
+| clasific.ar enriquecimiento | Todos con patente | Todos con patente | Solo score>=70 | **Solo score>=70** |
+| Filtros frontend | 3 (Estado/Prov/Fuente) | 3 | 3 | **5 (+Contacto +Temperatura)** |
+| Anti-gaming filter | ❌ | ❌ | ❌ | **✅ (subreddits + 30 keywords)** |
 
 ### FIX QWEN v2.7 — Escala real (3 cambios) → DONE
 
@@ -178,11 +179,39 @@
 - Agregado campo `deuda_clasificar` al dataclass Lead para mostrar en modal
 - Rate limit aumentado a 1s entre consultas (era 0.5s)
 
+### FIX QWEN v2.8 — 3 fixes urgentes → DONE
+
+**#1 — URLs VentaFe con 3 estrategias en cascada:**
+- Antes: solo extraía href real del HTML (muy restrictivo)
+- Ahora: 3 estrategias en cascada:
+  1. `href` real del HTML (lo más confiable — VentaFe ya arma el slug correcto)
+  2. Construir URL desde `#ID` del bloque + slug del título (nuevo)
+  3. Anchor por teléfono (último recurso)
+
+**#2 — Filtros frontend (sidebar) — 7 filtros nuevos:**
+- Nueva sección **Contacto**: Todos / Con WhatsApp / Con Email / Sin contacto
+- Nueva sección **Temperatura**: Todos / 🔥 Calientes / ⚡ Tibios / ⚪ Fríos
+- `S.contactFilter` y `S.heatFilter` en el state object
+- `filterContact()` y `filterHeat()` funciones nuevas
+- `applyFilters()` extendido con `cf` y `hf` (8 líneas nuevas)
+- `renderCounts()` extendido con 8 contadores nuevos (cnt-whatsapp, cnt-hot, etc.)
+- Icono SVG de WhatsApp verde en el filtro 'Con WhatsApp'
+
+**#3 — Filtros anti-basura (gaming + USA):**
+- `GAMING_KEYWORDS` (30+ keywords: playstation, xbox, gta, steam, etc.)
+- `GAMING_SUBREDDITS` (20+ subreddits: gaming, gamingargentina, playstation, etc.)
+- `REJECT_IF_CONTAINS.extend(GAMING_KEYWORDS)`
+- `FOREIGN_INDICATORS` extendido con `USA` (paypal, venmo, zelle, [usa-*, [h], [w]) y `Gaming`
+- `extract_entities()` filtra subreddits de gaming (return None)
+- `extract_entities()` filtra posts con 2+ keywords de gaming (return None)
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+56bccc8 fix(qwen v2.8): URLs VentaFe 3-estrategias + filtros frontend + anti-gaming
+abb08e6 radar: auto-update 2026-07-07 04:25 UTC
 71b54de fix(ventafe): usar ?p=N en vez de ?page=N (paginacion real)
 d6ef7e9 radar: auto-update 2026-07-07 04:21 UTC
 6c383f5 feat(qwen v2.7): VentaFe 5 paginas + ML Questions 50 + clasific.ar quirurgico
@@ -201,8 +230,6 @@ f032961 radar: auto-update 2026-07-06 22:04 UTC
 53dce4c fix(bomba2): VentaFe bypass filtros vehicular + pain + scoring
 3b6aadb radar: auto-update 2026-07-06 21:57 UTC
 e97f30e fix(bombas): getUrlSecret sessionStorage + PAIN_KEYWORDS_RE excepcion VentaFe
-c25aa72 radar: auto-update 2026-07-06 20:50 UTC
-68b09b8 radar: auto-update 2026-07-06 18:08 UTC
 ```
 
 ---
@@ -762,6 +789,39 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="sidebar-label">Fuente</div>
       <div id="source-filters"></div>
     </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Contacto</div>
+      <div class="filter-item active" onclick="filterContact('todos', this)" id="fc-todos">
+        Todos <span class="filter-count" id="cnt-contact-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('whatsapp', this)" id="fc-whatsapp">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" style="vertical-align:middle"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+        Con WhatsApp <span class="filter-count" id="cnt-whatsapp">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('email', this)" id="fc-email">
+        ✉️ Con Email <span class="filter-count" id="cnt-email">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('sin_contacto', this)" id="fc-sin-contacto">
+        ❌ Sin contacto <span class="filter-count" id="cnt-sin-contacto">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Temperatura</div>
+      <div class="filter-item active" onclick="filterHeat('todos', this)" id="fh-todos">
+        Todos <span class="filter-count" id="cnt-heat-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('hot', this)" id="fh-hot">
+        🔥 Calientes <span class="filter-count" id="cnt-hot">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('warm', this)" id="fh-warm">
+        ⚡ Tibios <span class="filter-count" id="cnt-warm">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('cold', this)" id="fh-cold">
+        ⚪ Fríos <span class="filter-count" id="cnt-cold">0</span>
+      </div>
+    </div>
   </div>
 
   <!-- MAIN -->
@@ -975,6 +1035,8 @@ const S = {
   statusFilter: 'todos',
   provFilter:   'todos',
   sourceFilter: 'todos',
+  contactFilter: 'todos',  // FIX QWEN v2.8: filtro por tipo de contacto
+  heatFilter:    'todos',  // FIX QWEN v2.8: filtro por temperatura
   currentId:    null,
 };
 
@@ -1199,15 +1261,38 @@ function filterStatus(val, el) {
   applyFilters();
 }
 
+// FIX QWEN v2.8: Nuevos filtros Contacto y Temperatura
+function filterContact(val, el) {
+  S.contactFilter = val;
+  document.querySelectorAll('#fc-todos, #fc-whatsapp, #fc-email, #fc-sin-contacto').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function filterHeat(val, el) {
+  S.heatFilter = val;
+  document.querySelectorAll('#fh-todos, #fh-hot, #fh-warm, #fh-cold').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
 function applyFilters() {
   const q   = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const pv  = S.provFilter;
   const sf  = S.sourceFilter;
+  const cf  = S.contactFilter;
+  const hf  = S.heatFilter;
 
   S.filtered = S.crmLeads.filter(l => {
     if (S.statusFilter !== 'todos' && l._status !== S.statusFilter) return false;
     if (pv !== 'todos' && (l.provincia || '') !== pv) return false;
     if (sf !== 'todos' && (l.source_label || l.source || '') !== sf) return false;
+    // FIX QWEN v2.8: filtro Contacto
+    if (cf === 'whatsapp' && !l._wa_url) return false;
+    if (cf === 'email' && !(l.email || l.email_publico)) return false;
+    if (cf === 'sin_contacto' && (l._wa_url || l.email || l.email_publico)) return false;
+    // FIX QWEN v2.8: filtro Temperatura
+    if (hf !== 'todos' && l._heat_label !== hf) return false;
     if (q) {
       const hay = \`\${l._display_name} \${l.provincia} \${l._resumen} \${l.source_label}\`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -1330,6 +1415,25 @@ function renderCounts() {
     const el = document.getElementById('cnt-' + s);
     if (el) el.textContent = S.crmLeads.filter(l => l._status === s).length;
   });
+
+  // FIX QWEN v2.8: contadores nuevos Contacto y Temperatura
+  const cntContactTodos = document.getElementById('cnt-contact-todos');
+  const cntWhatsapp     = document.getElementById('cnt-whatsapp');
+  const cntEmail        = document.getElementById('cnt-email');
+  const cntSinContacto  = document.getElementById('cnt-sin-contacto');
+  const cntHeatTodos    = document.getElementById('cnt-heat-todos');
+  const cntHot          = document.getElementById('cnt-hot');
+  const cntWarm         = document.getElementById('cnt-warm');
+  const cntCold         = document.getElementById('cnt-cold');
+
+  if (cntContactTodos) cntContactTodos.textContent = S.crmLeads.length;
+  if (cntWhatsapp)     cntWhatsapp.textContent     = S.crmLeads.filter(l => l._wa_url).length;
+  if (cntEmail)        cntEmail.textContent        = S.crmLeads.filter(l => l.email || l.email_publico).length;
+  if (cntSinContacto)  cntSinContacto.textContent  = S.crmLeads.filter(l => !l._wa_url && !(l.email || l.email_publico)).length;
+  if (cntHeatTodos)    cntHeatTodos.textContent    = S.crmLeads.length;
+  if (cntHot)          cntHot.textContent          = S.crmLeads.filter(l => l._heat_label === 'hot').length;
+  if (cntWarm)         cntWarm.textContent         = S.crmLeads.filter(l => l._heat_label === 'warm').length;
+  if (cntCold)         cntCold.textContent         = S.crmLeads.filter(l => l._heat_label === 'cold').length;
 }
 
 function renderSidebar() {
@@ -3659,6 +3763,37 @@ REJECT_IF_CONTAINS = [
     "enviar dinero", "criptomoneda",
 ]
 
+# ===========================================================================
+# FIX QWEN v2.8: FILTROS ANTI-BASURA (GAMING, USA, GAMING ACHIEVEMENTS, ETC.)
+# ===========================================================================
+GAMING_KEYWORDS = [
+    "playstation", "playstation 3", "playstation 4", "playstation 5", "ps3", "ps4", "ps5",
+    "xbox", "xbox one", "xbox series", "nintendo", "switch",
+    "gta", "grand theft auto", "gta v", "gta 5",
+    "final fantasy", "littlebigplanet", "motorstorm", "need for speed", "silent hill",
+    "college hoop", "blur", "call of duty", "cod",
+    "logros", "achievements", "logros de", "logros del modo",
+    "gaming", "gamer", "gamer argentino", "gamers",
+    "steam", "epic games", "steam deck",
+    "xbox game pass", "game pass", "xbox gamepass",
+    "playstation plus", "ps plus",
+    "nintendo switch", "switch oled",
+    "how can i prevent", "writer from automatically",
+    "font name when i type", "achievements related",
+]
+
+GAMING_SUBREDDITS = {
+    "gaming", "gamingargentina", "argentinagaming", "argentinagamer",
+    "gamerargentina", "argentina_gaming",
+    "playstation", "playstationargentina",
+    "xboxargentina", "xbox", "nintendo", "nintendoswitch",
+    "steam", "steamargentina", "steamdeck", "pcgaming",
+    "pcmasterrace", "pcgamingargentina",
+}
+
+# Extender REJECT_IF_CONTAINS con keywords de gaming
+REJECT_IF_CONTAINS.extend(GAMING_KEYWORDS)
+
 # FILTROS ADICIONALES DE CALIDAD (DeepSeek+Qwen v2.7)
 NEGATIVE_KEYWORDS = [
     'accidente', 'choque', 'siniestro', 'colisión',
@@ -3714,6 +3849,11 @@ FOREIGN_INDICATORS = {
     "Italia": ["pisa", "roma", "milano", "italia"],
     "España": ["madrid", "barcelona", "españa", "espana"],
     "EEUU": ["miami", "new york", "california", "estados unidos"],
+    # FIX QWEN v2.8: indicadores USA + Gaming más precisos
+    "USA": ["usa-tn", "usa-tx", "usa-ca", "usa-ny", "usa-fl", "[usa-", "[h]", "[w]",
+            "paypal", "venmo", "zelle"],
+    "Gaming": ["playstation", "playstation 3", "ps3", "ps4", "ps5", "xbox",
+               "gta", "gta v", "final fantasy"],
 }
 
 ARGENTINA_SIGNALS = [
@@ -4037,18 +4177,26 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         # Titulo: primeras palabras del texto
         title = text[:80].strip()
 
-        # FIX QWEN: URL unica REAL del aviso (no generica) para evitar dedup masivo.
-        # VentaFe expone URLs tipo /automoviles/5011376-honda-hr-v-lx-cvt-2017
-        # Si no encontramos el href, caemos a anchor por telefono.
+        # FIX QWEN v2.8: URL unica REAL del aviso (3 estrategias en cascada).
+        # 1) href real del HTML (lo mas confiable: VentaFe ya arma el slug correcto)
+        # 2) Si no hay href, construir desde #ID del bloque + slug del titulo
+        # 3) Si tampoco hay #ID, anchor por telefono (ultimo recurso)
         href_match = _re.search(r'href="(/automoviles/(\d+)-[^"]+)"', block)
         if href_match:
             unique_url = "https://www.ventafe.com.ar" + href_match.group(1)
             aviso_id = href_match.group(2)
         else:
-            # Fallback: anchor por telefono
-            phone_slug = _re.sub(r'\D', '', valid_phones[0])
-            unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
-            aviso_id = phone_slug
+            # Estrategia 2: construir URL desde #ID + slug del titulo
+            id_match = _re.search(r'#(\d{6,8})', block)
+            if id_match:
+                aviso_id = id_match.group(1)
+                slug = _re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')[:60] or 'aviso'
+                unique_url = f"https://www.ventafe.com.ar/automoviles/{aviso_id}-{slug}"
+            else:
+                # Estrategia 3: anchor por telefono
+                phone_slug = _re.sub(r'\D', '', valid_phones[0])
+                unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
+                aviso_id = phone_slug
 
         lead = {
             "name": f"[VentaFe] {title}",
@@ -4234,6 +4382,17 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     # FILTRO DE DOMINIOS DE MEDIOS (DeepSeek v2.7)
     host = result.get("host", "") or get_host(url)
     if any(d in host for d in DISCARD_DOMAINS):
+        return None
+
+    # FIX QWEN v2.8: Filtro de subreddits de gaming
+    subreddit_match = re.search(r'reddit\.com/r/([^/]+)/', url, re.IGNORECASE)
+    subreddit = subreddit_match.group(1).lower() if subreddit_match else ""
+    if subreddit in GAMING_SUBREDDITS:
+        return None
+
+    # FIX QWEN v2.8: Filtro de posts con 2+ keywords de gaming
+    gaming_matches = sum(1 for kw in GAMING_KEYWORDS if kw in combined_lower)
+    if gaming_matches >= 2:
         return None
 
     # FILTRO DE PAIS EXTRANJERO (DeepSeek v2.7)
@@ -9697,7 +9856,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 04:26 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 04:42 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
