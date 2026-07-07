@@ -1143,25 +1143,20 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if is_vf:
         text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
         text_lower_vf = text_for_pain.lower()
-        # FIX GEMINI SABUESO FASE 2: Solo frases compuestas de alto valor preventivo.
-        # NO admitir 'transferencia' o 'transferir' sueltas (95% de avisos comunes las usan).
+        # FIX GEMINI SABUESO FASE 3: SOLO dolor textual real y explicito.
+        # Eliminadas keywords preventivas ('sin deuda', 'sin multas', 'papeles al dia',
+        # 'patente paga', 'listo para transferir') porque sin patente no podemos
+        # auditar si el vendedor miente. Evita falsos positivos como Mercedes A200
+        # que dice "sin deuda, multas" pero no se puede verificar.
         has_explicit_pain_text = any(kw in text_lower_vf for kw in [
-            # Dolor explicito
             "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
-            "bloqueada", "bloqueado",
-            # Dolor documental especifico
-            "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-            # Preventivo de alta calidad (frases compuestas, no palabras sueltas)
-            "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
-            "sin deudas", "sin multas", "libre de multas",
-            "patente paga", "patentes pagas", "patente al dia", "patente al día",
-            "listo para transferir", "transferencia inmediata",
-            "se transfiere si o si", "se transfiere sí o sí",
+            "debo", "debe", "adeuda", "deuda", "deudas", "embargo", "inhibicion", "inhibición",
+            "bloqueada", "bloqueado", "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
+            "no puedo transferir", "traba", "bloqueo", "impedimento", "titular no firma",
         ])
         has_patente = bool(record.get("patente"))
         if not (has_explicit_pain_text or has_patente):
-            return None  # VentaFe sin dolor ni patente → aviso comun, descartar
+            return None  # VentaFe sin dolor real ni patente → descartar
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -1381,15 +1376,20 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["generic_penalty"]
         breakdown["generic_penalty"] = SCORE_RULES["generic_penalty"]
 
-    # --- PATENTE DETECTION (H.AI insight + GPT filter) ---
-    # Detectar patente AR en texto y boost +15
-    patente_match = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", record.get("combined_text", ""), re.IGNORECASE)
+    # --- PATENTE DETECTION (FIX GEMINI: regex federal con soporte para espacios) ---
+    # Soporta: AA111AA, AA 111 AA, AAA111, AAA 111 (mayusculas y minusculas).
+    # Comun en ML Q&A y Reddit donde usuarios escriben "AA 111 AA" con espacios.
+    patente_clean_text = record.get("combined_text", "")
+    patente_match = re.search(r"\b([A-Za-z]{2}\s?\d{3}\s?[A-Za-z]{2}|[A-Za-z]{3}\s?\d{3})\b", patente_clean_text)
     if patente_match:
+        # Limpiar espacios y normalizar a mayusculas
+        norm_plate = re.sub(r"\s+", "", patente_match.group(1)).upper()
+        record["patente"] = norm_plate
         score += 15
         breakdown["patente_detected"] = 15
-        signals.append("PATENTE_DETECTED")
+        if "PATENTE_DETECTED" not in signals:
+            signals.append("PATENTE_DETECTED")
         # Marcar para enriquecimiento automatico con clasific.ar
-        # (se hace en run_pipeline despues de classify_and_score)
 
     # --- INTENCION EXTREMA BOOST (GPT insight: filtrar ruido) ---
     # Solo leads con dolor MUY explicito merecen boost
@@ -2135,26 +2135,22 @@ def run_pipeline() -> Dict[str, Any]:
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
             text_lower_out = (lead.quoted_text or "").lower()
-            # FIX GEMINI TUNEL: misma lista de keywords que filtro de admision (Fase 2)
+            # FIX GEMINI SABUESO FASE 3: SOLO dolor real explicito (sin preventivas).
+            # Misma lista que filtro de admision. Sin patente no se admiten preventivas.
             has_explicit_pain_text = any(kw in text_lower_out for kw in [
                 "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
-                "bloqueada", "bloqueado",
-                "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-                "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
-                "sin deudas", "sin multas", "libre de multas",
-                "patente paga", "patentes pagas", "patente al dia", "patente al día",
-                "listo para transferir", "transferencia inmediata",
-                "se transfiere si o si", "se transfiere sí o sí",
+                "debo", "debe", "adeuda", "deuda", "deudas", "embargo", "inhibicion", "inhibición",
+                "bloqueada", "bloqueado", "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
+                "no puedo transferir", "traba", "bloqueo", "impedimento", "titular no firma",
             ])
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
             has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
-            # Pasa si: dolor textual OR deuda comprobada por clasific.ar
+            # Pasa si: dolor textual real OR deuda comprobada por clasific.ar
             if has_explicit_pain_text or has_validated_debt or has_deuda_signal:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor textual y deuda=0",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado por falta de dolor real comprobado",
                       file=sys.stderr)
         else:
             filtered_leads.append(lead)
