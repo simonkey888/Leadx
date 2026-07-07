@@ -509,6 +509,38 @@ def normalize_ar_phone_ventafe(raw: str) -> str:
     return ""
 
 
+def try_triangulate_plate(brand: str, model: str, mileage: str, location: str) -> str:
+    """
+    FIX GEMINI VIA B: Cross-Platform Matcher.
+    Busca publicaciones duplicadas en MercadoLibre usando marca+modelo+kilometraje exacto
+    para extraer la patente de las Q&A (donde compradores preguntan y vendedores responden).
+    Retorna la patente en formato AA111AA o string vacio si no encuentra.
+    """
+    if not brand or not mileage or mileage == "0":
+        return ""
+    try:
+        from search_providers import search as _osint_search
+        # Query altamente especifica: marca + modelo + kilometraje exacto en ML
+        query_parts = [f'site:mercadolibre.com.ar "{brand}"']
+        if model:
+            query_parts.append(f'"{model}"')
+        query_parts.append(f'"{mileage}"')
+        query = " ".join(query_parts)
+        results = _osint_search(query, num=3)
+        for r in results:
+            text_to_analyze = (r.get("snippet", "") + " " + r.get("title", "") + " " + r.get("name", ""))
+            # Buscar patente en formato Mercosur (AA111AA) con espacios opcionales
+            patente_m = re.search(r"\b([A-Za-z]{2}\s?\d{3}\s?[A-Za-z]{2})\b", text_to_analyze)
+            if patente_m:
+                plate = re.sub(r"\s+", "", patente_m.group(1)).upper()
+                if len(plate) == 7:  # Validar longitud exacta
+                    print(f"      [Triangulacion OSINT] Patente {plate} recuperada de ML espejo", file=sys.stderr)
+                    return plate
+    except Exception:
+        pass
+    return ""
+
+
 def scrape_ventafe_leads() -> List[Dict[str, Any]]:
     """Scrapea VentaFe.com.ar/automoviles (5 paginas) y extrae telefonos visibles."""
     import urllib.request as _urq
@@ -654,6 +686,21 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
 
         # Patentes finales: las del detalle (prioridad) + las del listado (fallback)
         patentes_finales = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+
+        # FIX GEMINI VIA B: Triangulación Cross-Platform Matcher.
+        # Si no se encontró patente en VentaFe (listado ni detalle), intentar
+        # buscar la publicación espejo en MercadoLibre por marca+modelo+kilometraje.
+        # Solo se hace si no hay patentes todavía (para no gastar cuota innecesariamente).
+        if not patentes_finales:
+            mileage_match = _re.search(r"\b(\d{2,3}\.\d{3})\s*(?:km|kms)\b", text, _re.IGNORECASE)
+            if mileage_match:
+                mileage_val = mileage_match.group(1)
+                title_words = title.split()
+                brand_guess = title_words[0] if title_words else ""
+                model_guess = title_words[1] if len(title_words) > 1 else ""
+                triangulated_plate = try_triangulate_plate(brand_guess, model_guess, mileage_val, "Santa Fe")
+                if triangulated_plate:
+                    patentes_finales = [triangulated_plate]
 
         lead = {
             "name": f"[VentaFe] {title}",
@@ -1143,52 +1190,30 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if is_vf:
         text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
         text_lower_vf = text_for_pain.lower()
-        # FIX GEMINI SABUESO FASE 3: SOLO dolor textual real y explicito.
-        # Eliminadas keywords preventivas ('sin deuda', 'sin multas', 'papeles al dia',
-        # 'patente paga', 'listo para transferir') porque sin patente no podemos
-        # auditar si el vendedor miente. Evita falsos positivos como Mercedes A200.
-        # FIX FASE 3.1: usar regex con word boundaries para evitar que 'traba' matchee
-        # 'trabajo/trabajar' o que 'deuda' matchee 'sin deuda, multas' (contexto negativo).
-        import re as _re_vf
-        # Keywords de dolor real (regex con \\b para word boundary)
-        pain_patterns = [
-            r"\bmultas?\b", r"\bfotomultas?\b", r"\binfracciones?\b", r"\binfracción\b",
-            r"\bdebo\b", r"\bdebe\b", r"\badeuda\b", r"\bdeudas?\b", r"\bembargo\b",
-            r"\binhibicion\b", r"\binhibición\b", r"\bbloqueada\b", r"\bbloqueado\b",
-            r"\bsin 08\b", r"\b08 vencido\b", r"\btitular fallecido\b", r"\bno tengo el 08\b",
-            r"\bno puedo transferir\b", r"\btraba(?:da|o|os|as)?\b(?!jo|jando|jar)",
-            r"\bbloqueo\b", r"\bimpedimento\b", r"\btitular no firma\b",
-        ]
-        has_explicit_pain_text = any(_re_vf.search(p, text_lower_vf) for p in pain_patterns)
-
-        # FIX FASE 3.1: excluir contexto negativo ('sin deuda', 'sin multas', 'sin infracciones').
-        # Si la unica razon por la que matchea es porque dice 'sin deuda' o 'sin multas',
-        # no es dolor real, es declaracion de estar limpio.
-        # FIX FASE 3.2: remover tambien la lista de items que sigue al 'sin' (ej: "sin deuda, multas, etc."
-        # deja ", multas, etc." que matchea 'multas'). Remover patron completo con regex.
-        negative_contexts = ["sin deuda", "sin deudas", "sin multa", "sin multas",
-                             "sin infraccion", "sin infracciones", "libre deuda",
-                             "libre de deuda", "libre de multas", "no debe", "no adeuda"]
-        has_negative_context = any(nc in text_lower_vf for nc in negative_contexts)
-
-        # Si solo matchea por contexto negativo, no es dolor real
-        if has_explicit_pain_text and has_negative_context:
-            # Remover frases negativas Y la lista de items que las sigue (hasta punto o fin de linea)
-            # Ej: "sin deuda, multas, etc." → "sin deuda, multas, etc." se remueve completo
-            text_without_negative = text_lower_vf
-            # Primero remover patrones como "sin deuda, multas, etc." completos
-            text_without_negative = _re_vf.sub(
-                r"sin\s+(?:deuda|multas?|infracciones?|deudas)[^.]*(?:etc\.|\.|$)",
-                " ", text_without_negative
-            )
-            # Luego remover frases negativas sueltas
-            for nc in negative_contexts:
-                text_without_negative = text_without_negative.replace(nc, " ")
-            has_explicit_pain_text = any(_re_vf.search(p, text_without_negative) for p in pain_patterns)
-
+        # FIX GEMINI VIA A: Filtro de DOLOR REGISTRAL (no solo multa/deuda genérico).
+        # Un gestor automotor no solo vive de deudas de patentes; sus servicios más
+        # valiosos resuelven problemas registrales complejos que el vendedor declara
+        # en el texto para justificar un precio bajo o urgencia de venta:
+        # - Formulario 08 vencido/firmado en blanco/titular inubicable
+        # - Titular fallecido (sucesiones pendientes)
+        # - Vehículos inhibidos o con problemas de papeles
+        # - Mera tenencia / denuncia de compra / solo poseedores
+        # Esto descarta autos limpios (Mercedes A200) pero rescata leads de alta conversión.
+        has_registral_pain = any(kw in text_lower_vf for kw in [
+            # Dolor documental especifico (ALTA conversión para gestor)
+            "debo patente", "debe patente", "adeuda", "embargo", "inhibicion", "inhibición",
+            "bloqueado", "sin 08", "08 vencido", "08 firmado en blanco",
+            "titular fallecido", "no tengo el 08", "titular inubicable",
+            "sucesion", "sucesión", "titular no firma", "poseedor", "denuncia de compra",
+            "tarjeta rosa", "solo poseedores", "problema de papeles", "faltan papeles",
+            # Dolor de multas REAL (no preventivo)
+            "debo multa", "debe multa", "multas impagas", "multa pendiente",
+            "me llego multa", "tengo multa", "con multas", "con deuda",
+            "no puedo transferir", "transferencia bloqueada",
+        ])
         has_patente = bool(record.get("patente"))
-        if not (has_explicit_pain_text or has_patente):
-            return None  # VentaFe sin dolor real ni patente → descartar
+        if not (has_registral_pain or has_patente):
+            return None  # VentaFe sin dolor registral ni patente → descartar
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -2167,39 +2192,26 @@ def run_pipeline() -> Dict[str, Any]:
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
             text_lower_out = (lead.quoted_text or "").lower()
-            # FIX GEMINI SABUESO FASE 3.1+3.2: misma logica que admision con contexto negativo
-            import re as _re_out
-            pain_patterns_out = [
-                r"\bmultas?\b", r"\bfotomultas?\b", r"\binfracciones?\b", r"\binfracción\b",
-                r"\bdebo\b", r"\bdebe\b", r"\badeuda\b", r"\bdeudas?\b", r"\bembargo\b",
-                r"\binhibicion\b", r"\binhibición\b", r"\bbloqueada\b", r"\bbloqueado\b",
-                r"\bsin 08\b", r"\b08 vencido\b", r"\btitular fallecido\b", r"\bno tengo el 08\b",
-                r"\bno puedo transferir\b", r"\btraba(?:da|o|os|as)?\b(?!jo|jando|jar)",
-                r"\bbloqueo\b", r"\bimpedimento\b", r"\btitular no firma\b",
-            ]
-            has_explicit_pain_text = any(_re_out.search(p, text_lower_out) for p in pain_patterns_out)
-
-            # Excluir contexto negativo
-            negative_contexts_out = ["sin deuda", "sin deudas", "sin multa", "sin multas",
-                                      "sin infraccion", "sin infracciones", "libre deuda",
-                                      "libre de deuda", "libre de multas", "no debe", "no adeuda"]
-            has_negative_context = any(nc in text_lower_out for nc in negative_contexts_out)
-            if has_explicit_pain_text and has_negative_context:
-                text_wo_neg = _re_out.sub(
-                    r"sin\s+(?:deuda|multas?|infracciones?|deudas)[^.]*(?:etc\.|\.|$)",
-                    " ", text_lower_out
-                )
-                for nc in negative_contexts_out:
-                    text_wo_neg = text_wo_neg.replace(nc, " ")
-                has_explicit_pain_text = any(_re_out.search(p, text_wo_neg) for p in pain_patterns_out)
-
+            # FIX GEMINI VIA A: mismo filtro de dolor registral que admision
+            has_registral_pain = any(kw in text_lower_out for kw in [
+                "debo patente", "debe patente", "adeuda", "embargo", "inhibicion", "inhibición",
+                "bloqueado", "sin 08", "08 vencido", "08 firmado en blanco",
+                "titular fallecido", "no tengo el 08", "titular inubicable",
+                "sucesion", "sucesión", "titular no firma", "poseedor", "denuncia de compra",
+                "tarjeta rosa", "solo poseedores", "problema de papeles", "faltan papeles",
+                "debo multa", "debe multa", "multas impagas", "multa pendiente",
+                "me llego multa", "tengo multa", "con multas", "con deuda",
+                "no puedo transferir", "transferencia bloqueada",
+            ])
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
             has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
-            if has_explicit_pain_text or has_validated_debt or has_deuda_signal:
+            has_patente_out = bool(getattr(lead, "patente", "") or "")
+            # Pasa si: dolor registral OR deuda comprobada OR patente (para auditar)
+            if has_registral_pain or has_validated_debt or has_deuda_signal or has_patente_out:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado por falta de dolor real comprobado",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor registral ni patente",
                       file=sys.stderr)
         else:
             filtered_leads.append(lead)
