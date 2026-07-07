@@ -2723,6 +2723,7 @@ export default {
     }
 
     // ─── POST /api/apify-webhook ─── Recibe resultados de Apify Facebook scraper
+    // FIX QWEN: filtro estricto de dolor vehicular + scoring dinámico (no hardcodear 50)
     if (url.pathname === '/api/apify-webhook' && request.method === 'POST') {
       try {
         const body = await request.json();
@@ -2731,14 +2732,31 @@ export default {
         const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
         const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
 
+        // FILTRO ESTRICTO DE DOLOR (obligatorio para FB, cero excepciones)
+        const PAIN_KW = /multa|fotomulta|infracci[oó]n|libre.?deuda|transferencia|transferir|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|vencimiento|prescripci[oó]n|papeles.al.d[ií]a|listo.para.transferir|sin.deuda|titular/i;
+
         for (const post of (Array.isArray(items) ? items : [])) {
           const text = post.text || post.postText || '';
           const author = post.authorName || post.author || '';
           const postUrl = post.url || post.postUrl || '';
           if (!text && !author) continue;
 
+          // RECHAZO INMEDIATO si no hay dolor vehicular explícito
+          if (!PAIN_KW.test(text)) continue;
+
           const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+
+          // Scoring dinámico (alineado con pipeline Python)
+          let score = 40;
+          if (/multa|fotomulta/i.test(text)) score += 20;
+          if (/transferencia|transferir|08/i.test(text)) score += 15;
+          if (/deuda|libre.deuda/i.test(text)) score += 15;
+          if (phones.length > 0 || emails.length > 0) score += 20;
+          score = Math.min(100, score);
+
+          // Umbral mínimo: si no llega a 50, no es lead
+          if (score < 50) continue;
 
           leads.push({
             id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
@@ -2751,7 +2769,7 @@ export default {
             snippet: text.slice(0, 3000),
             url: postUrl,
             fecha_iso: (post.timestamp || '').slice(0, 10),
-            score: 50,
+            score: score,
             whatsapp_publico: phones[0] || '',
             telefono_publico: phones[0] || '',
             email_publico: emails[0] || '',
@@ -2776,10 +2794,10 @@ export default {
           leads_all: truncated,
           leads_hot: truncated.filter(l => (l.score || 0) >= 50),
           summary: { total_leads: truncated.length, hot_leads: truncated.filter(l => (l.score || 0) >= 50).length },
-          meta: { version: '11.0', source: 'apify_webhook', generated_at: new Date().toISOString(), ingest_at: new Date().toISOString() }
+          meta: { version: '11.1', source: 'apify_webhook_filtered', generated_at: new Date().toISOString(), ingest_at: new Date().toISOString() }
         }));
 
-        return jsonResponse({ ok: true, received: leads.length, merged: truncated.length }, corsHeaders);
+        return jsonResponse({ ok: true, received: leads.length, merged: truncated.length, filtered_out: (Array.isArray(items) ? items.length : 0) - leads.length }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: true, error: e.message }, corsHeaders);
       }
