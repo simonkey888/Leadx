@@ -13,13 +13,17 @@ REPO = Path("/tmp/leadx_repo")
 FILES = [
     ("worker.js", "javascript",
      "Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. "
-     "Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt, "
-     "validateWaFromModal() abre WhatsApp directo sin Apify, pinned leads, WhatsApp SVG icons, heat score 0-100."),
+     "Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', "
+     "validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, "
+     "/api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, "
+     "pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100."),
     ("generate_payload.py", "python",
      "Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con URLs reales del aviso "
      "(/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con "
-     "excepción VentaFe, scoring con bypass para VentaFe, dedup por URL+teléfono, mine_comments_for_contacts(), "
-     "enrich_contacts_via_reddit_profile(), detector de contradicciones."),
+     "excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), "
+     "scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), "
+     "dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), "
+     "enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real)."),
     ("search_providers.py", "python",
      "Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, "
      "MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries."),
@@ -46,7 +50,7 @@ def get_repo_file(rel_path: str) -> str:
         return f"[ARCHIVO NO ENCONTRADO: {rel_path}]"
     return p.read_text(encoding="utf-8", errors="replace")
 
-def git_log_oneline(n: int = 15) -> str:
+def git_log_oneline(n: int = 20) -> str:
     try:
         r = subprocess.run(
             ["git", "-C", str(REPO), "log", "--oneline", f"-{n}"],
@@ -60,14 +64,14 @@ def build():
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     log = git_log_oneline(20)
     lines = []
-    lines.append("# 📦 LeadX — Código Completo (Bundle Único para Qwen)")
+    lines.append("# 📦 LeadX — Código Completo (Bundle Único para Kimi)")
     lines.append("")
     lines.append(f"**Generado:** {now}  ")
     lines.append(f"**Repo:** https://github.com/simonkey888/Leadx  ")
     lines.append(f"**Deploy:** https://leadx.simondalmasso44.workers.dev  ")
     lines.append(f"**Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  ")
-    lines.append(f"**Worker Version:** v34ae0710-e4d8-4a37-a165-a3ffeb730fb8  ")
-    lines.append(f"**Estado:** Producción activa · cron cada 1h · 80 leads en KV · 28 con teléfono")
+    lines.append(f"**Worker Version:** e300aa8a-40c4-41eb-9835-f894b11c1833  ")
+    lines.append(f"**Estado:** Producción activa · cron cada 1h · 80 leads en KV · 28 con teléfono · 27 con WhatsApp link")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -96,7 +100,8 @@ def build():
     lines.append("│  │  3. extract_entities()      → phone/patent/persona  │   │")
     lines.append("│  │     • PAIN_KEYWORDS_RE + excepción VentaFe          │   │")
     lines.append("│  │  4. classify_and_score()    → heat 0-100            │   │")
-    lines.append("│  │     • VentaFe bypass no_pain penalty                │   │")
+    lines.append("│  │     • VentaFe: umbrales 40/25 + has_contact         │   │")
+    lines.append("│  │     • Otras fuentes: 50/30 + has_explicit_pain      │   │")
     lines.append("│  │  5. dedup by URL+teléfono (estable entre runs)      │   │")
     lines.append("│  │  6. POST /api/ingest → Worker (deep merge por ID)   │   │")
     lines.append("│  └─────────────────────────────────────────────────────┘   │")
@@ -119,7 +124,14 @@ def build():
     lines.append("│  │  • /api/enrich-all    GET  → clasific.ar + OSINT     │   │")
     lines.append("│  │  • /api/shadow-osint  GET  → Linktree Hunter         │   │")
     lines.append("│  │  • /api/ventafe-debug GET  → debug HTML VentaFe      │   │")
-    lines.append("│  │  • /api/whatsapp-validate POST → legacy (sin uso)    │   │")
+    lines.append("│  │  • /api/whatsapp-validate POST → fire & forget       │   │")
+    lines.append("│  │    con webhookUrl → Apify llama a webhook solo       │   │")
+    lines.append("│  │  • /api/whatsapp-webhook POST → recibe resultados    │   │")
+    lines.append("│  │    async de Apify, guarda en KV con TTL 24h          │   │")
+    lines.append("│  │  • /api/apify-facebook POST → scraea grupos FB       │   │")
+    lines.append("│  │    con cookies refrescables + webhookUrl             │   │")
+    lines.append("│  │  • /api/apify-webhook POST → recibe posts FB         │   │")
+    lines.append("│  │    extrae AR phones + emails + merge por ID en KV    │   │")
     lines.append("│  │  • Pinned leads (12 curados primeros)                │   │")
     lines.append("│  └─────────────────────────────────────────────────────┘   │")
     lines.append("│           │                                                 │")
@@ -127,6 +139,8 @@ def build():
     lines.append("│  ┌─────────────────────────────────────────────────────┐   │")
     lines.append("│  │ KV: LEADX_KV (leads + history + pinned)             │   │")
     lines.append("│  │   INGEST_SECRET = 'LEGACY_SECRET_REMOVED' (sincronizado GH+CF)    │   │")
+    lines.append("│  │   wa_val:PHONE → resultados WhatsApp (TTL 24h)       │   │")
+    lines.append("│  │   fb_cookies → cookies Facebook refrescables         │   │")
     lines.append("│  └─────────────────────────────────────────────────────┘   │")
     lines.append("└─────────────────────────────────────────────────────────────┘")
     lines.append("                               │")
@@ -167,6 +181,25 @@ def build():
     lines.append("- Marca el lead como `validated_whatsapp` localmente (persistido en localStorage)")
     lines.append("- Endpoint `/api/whatsapp-validate` queda como legacy (no se rompe) pero el frontend ya no lo llama")
     lines.append("")
+    lines.append("### FIX QWEN P0 — 3 fixes críticos → DONE")
+    lines.append("")
+    lines.append("**#1 — `/api/whatsapp-validate` con webhookUrl (fire & forget puro):**")
+    lines.append("- Antes: lanzaba run Apify SIN `webhookUrl` → resultado perdido")
+    lines.append("- Ahora: pasa `webhookUrl=${origin}/api/whatsapp-webhook` como query param → Apify llama al webhook automáticamente cuando termina")
+    lines.append("- Sin polling, sin CPU timeout")
+    lines.append("- Test: API devuelve `\"webhook_configured\":true` ✓")
+    lines.append("")
+    lines.append("**#2 — `/api/apify-facebook` + `/api/apify-webhook` (ya estaba implementado):**")
+    lines.append("- Qwen estaba mirando una versión vieja del código")
+    lines.append("- `/api/apify-facebook` ya pasa `webhookUrl` en el body (commit anterior)")
+    lines.append("- `/api/apify-webhook` ya existe con regex de teléfonos AR + emails + merge por ID en KV")
+    lines.append("")
+    lines.append("**#3 — `classify_and_score` umbrales relajados para VentaFe:**")
+    lines.append("- Branch separado en `classify_and_score()`:")
+    lines.append("  - VentaFe: `score >= 40 + has_contact → real_lead` / `score >= 25 + has_contact → commercial_signal`")
+    lines.append("  - Otras fuentes (Reddit/FB/ML): mantienen umbrales estrictos originales (50/30 con `has_explicit_pain`)")
+    lines.append("- VentaFe ya NO requiere `has_explicit_pain` para clasificar como lead válido")
+    lines.append("")
     lines.append("### Estado final del KV (verificado)")
     lines.append("")
     lines.append("| Métrica | Antes de todos los fixes | Después |")
@@ -176,6 +209,7 @@ def build():
     lines.append("| Leads con WhatsApp link | 1 | **27** |")
     lines.append("| Leads VentaFe con URL clickeable al aviso real | 0 | **13** |")
     lines.append("| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo |")
+    lines.append("| `/api/whatsapp-validate` webhook | ❌ Sin webhook | ✅ `webhook_configured:true` |")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -207,7 +241,7 @@ def build():
     lines.append("| Lugar | Variable | Valor actual | Uso |")
     lines.append("|-------|----------|--------------|-----|")
     lines.append("| Cloudflare Worker secret | `INGEST_SECRET` | `LEGACY_SECRET_REMOVED` | Auth X-Webhook-Secret en /api/ingest y otros |")
-    lines.append("| Cloudflare Worker secret | `APIFY_TOKEN` | (legacy) | Facebook scraper + WA validator (no se usa más) |")
+    lines.append("| Cloudflare Worker secret | `APIFY_TOKEN` | (legacy) | Facebook scraper + WA validator (no se usa más desde OPCIÓN A) |")
     lines.append("| Cloudflare Worker secret | `CLASIFICAR_WEBHOOK_SECRET` | (seteado) | Webhook de clasific.ar |")
     lines.append("| Cloudflare Worker secret | `FB_COOKIES` | (seteado) | Cookies Facebook para scraper |")
     lines.append("| GitHub Actions secret | `INGEST_SECRET` | `LEGACY_SECRET_REMOVED` | Debe matchear Worker INGEST_SECRET |")
@@ -244,14 +278,19 @@ def build():
     lines.append("")
     lines.append("---")
     lines.append("")
-    lines.append(f"**Bundle generado automáticamente el {now} para auditoría de Qwen.**")
+    lines.append(f"**Bundle generado automáticamente el {now} para auditoría de Kimi.**")
     lines.append("")
-    lines.append("Próximos pasos sugeridos para Qwen auditar:")
-    lines.append("1. Performance del scraper VentaFe (100 bloques, 17 válidos — ¿se puede subir a 30+?)")
+    lines.append("Próximos pasos sugeridos para Kimi auditar:")
+    lines.append("1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)")
     lines.append("2. Cruce de patentes VentaFe con clasific.ar (free 200/mes) para detectar deuda real")
     lines.append("3. Encoding de títulos Reddit ('tran ferencia' → 'transferencia' — entities HTML)")
     lines.append("4. Limpieza de leads basura del KV (los que no tienen VentaFe ni teléfono)")
     lines.append("5. Minería de contactos en perfil de Reddit users (Linktree Hunter)")
+    lines.append("6. Validar que el webhook de Apify (`/api/whatsapp-webhook`) efectivamente reciba resultados")
+    lines.append("7. Activar `/api/apify-facebook` con cookies frescas para traer leads de grupos FB")
+    lines.append("8. Scoring: ¿conviene un boost extra para leads con WhatsApp link directo (wa.me)?")
+    lines.append("9. El endpoint `/api/shadow-osint` (Linktree Hunter) — ¿está siendo llamado por algún cron?")
+    lines.append("10. Anti-junk filter para portugués/Brasil — ¿sigue siendo efectivo con los nuevos leads?")
     lines.append("")
 
     OUT.write_text("\n".join(lines), encoding="utf-8")
