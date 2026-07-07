@@ -2030,20 +2030,24 @@ def run_pipeline() -> Dict[str, Any]:
             leads.append(lead)
     print(f"  Scored {len(leads)} leads (rejected rest)", file=sys.stderr)
 
-    # Step 4.5: Enriquecer SOLO leads calientes con clasific.ar (CAMBIO QWEN v2.7)
-    # Quirurgico: solo score >= 70 Y PATENTE_DETECTED → ahorra las 200 consultas/mes
-    # para los leads realmente calientes con patente valida.
+    # Step 4.5: Tunel de Auditoria clasific.ar (FIX GEMINI Tunel Automatico)
+    # Antes: solo score >= 70 con patente → VentaFe preventivos (score 40) nunca se consultaban
+    # Ahora: consultar si (score >= 70 con patente) OR (VentaFe con patente, sin importar score)
+    # Esto permite auditar deuda real de leads preventivos que arrancan con score 40.
     try:
         worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
         ingest_secret = os.environ.get("INGEST_SECRET", "")
         if ingest_secret:
             enriched_count = 0
+            deuda_comprobada_count = 0
             import urllib.request as _urq3
             for lead in leads:
-                # CAMBIO QWEN v2.7: solo enriquecer leads calientes con patente
-                if lead.score < 70:
-                    continue
-                if "PATENTE_DETECTED" not in (lead.detected_signals or []):
+                # FIX GEMINI TUNEL: abrir compuerta para VentaFe con patente (sin importar score)
+                is_vf_lead = ("ventafe" in (lead.platform or "").lower()
+                              or "ventafe" in (lead.source_url or "").lower())
+                has_patente = "PATENTE_DETECTED" in (lead.detected_signals or [])
+                should_enrich = has_patente and (lead.score >= 70 or is_vf_lead)
+                if not should_enrich:
                     continue
 
                 # Buscar patente en el texto
@@ -2061,14 +2065,25 @@ def run_pipeline() -> Dict[str, Any]:
                             v = veh_data["data"]["data"]
                             lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
                             lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
-                            # CAMBIO QWEN v2.7: agregar campo deuda_clasificar para mostrar en modal
                             lead.deuda_clasificar = v.get("deuda", 0)
+
+                            # FIX GEMINI TUNEL — BOOST DINAMICO POR DEUDA COMPROBADA
+                            # Si clasific.ar encuentra deuda > 0:
+                            #   - score sube a 95 (caliente maximo)
+                            #   - label reclasifica como real_lead
+                            #   - signal DEUDA_COMPROBADA inyectada
+                            if lead.deuda_clasificar > 0:
+                                lead.score = 95
+                                lead.label = "real_lead"
+                                if "DEUDA_COMPROBADA" not in (lead.detected_signals or []):
+                                    lead.detected_signals.append("DEUDA_COMPROBADA")
+                                deuda_comprobada_count += 1
                             enriched_count += 1
                     except Exception:
                         pass
-                    time.sleep(1)  # CAMBIO QWEN v2.7: rate limit clasific.ar (200/mes)
+                    time.sleep(1)  # rate limit clasific.ar (200/mes)
             if enriched_count:
-                print(f"  [clasific.ar] {enriched_count} leads calientes enriquecidos", file=sys.stderr)
+                print(f"  [clasific.ar] {enriched_count} leads enriquecidos, {deuda_comprobada_count} con deuda comprobada", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
@@ -2084,14 +2099,22 @@ def run_pipeline() -> Dict[str, Any]:
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
             text_lower_out = (lead.quoted_text or "").lower()
+            # FIX GEMINI TUNEL: misma lista de keywords que filtro de admision (Fase 2)
             has_explicit_pain_text = any(kw in text_lower_out for kw in [
                 "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "bloqueada", "bloqueado",
-                "sin 08", "no puedo transferir", "papeles al dia", "papeles al día",
-                "listo para transferir", "libre deuda", "libre de multas"
+                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
+                "bloqueada", "bloqueado",
+                "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
+                "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
+                "sin deudas", "sin multas", "libre de multas",
+                "patente paga", "patentes pagas", "patente al dia", "patente al día",
+                "listo para transferir", "transferencia inmediata",
+                "se transfiere si o si", "se transfiere sí o sí",
             ])
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
-            if has_explicit_pain_text or has_validated_debt:
+            has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
+            # Pasa si: dolor textual OR deuda comprobada por clasific.ar
+            if has_explicit_pain_text or has_validated_debt or has_deuda_signal:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
