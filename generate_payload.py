@@ -556,10 +556,15 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
     for block in blocks:
         # Limpiar HTML
         text = _re.sub(r'<[^>]+>', ' ', block)
-        text = _re.sub(r'&[a-z]+;', ' ', text)
+        # FIX ENCODING: usar html.unescape() para decodificar entidades HTML correctamente.
+        # Antes se hacia _re.sub(r'&[a-z]+;', ' ', text) que reemplazaba TODAS las entidades
+        # con un espacio, rompiendo palabras como "transferencia" → "tran ferencia".
+        import html as _html_mod
+        text = _html_mod.unescape(text)
+        text = _re.sub(r'&[a-z]+;', ' ', text)  # Limpiar entidades residuales no decodificables
         text = _re.sub(r'googletag[^;]+;', '', text)
         text = _re.sub(r'\s+', ' ', text).strip()
-        
+
         if len(text) < 50:
             continue
         
@@ -608,6 +613,12 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
                 unique_url = f"https://www.ventafe.com.ar/automoviles#tel-{phone_slug}"
                 aviso_id = phone_slug
 
+        # FIX PERSONA: cada lead VentaFe tiene un identificador unico (aviso_id o telefono)
+        # para que no aparezcan todos como "u/Vendedor VentaFe" en el dashboard.
+        # Formato: "Vendedor #{aviso_id}" o "Vendedor tel XXXX"
+        phone_display = valid_phones[0][-4:] if valid_phones else "????"
+        persona_label = f"Vendedor #{aviso_id}" if aviso_id and aviso_id.isdigit() else f"Vendedor tel …{phone_display}"
+
         lead = {
             "name": f"[VentaFe] {title}",
             "url": unique_url,
@@ -615,8 +626,8 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
             "snippet": text[:500],
             "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
             "host_name": "ventafe.com.ar",
-            "username": "Vendedor VentaFe",
-            "author": "Vendedor VentaFe",
+            "username": persona_label,
+            "author": persona_label,
             "source": "ventafe",
             "_query": "ventafe_automoviles",
             "telefonos": valid_phones,
