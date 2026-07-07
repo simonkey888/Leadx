@@ -619,6 +619,42 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         phone_display = valid_phones[0][-4:] if valid_phones else "????"
         persona_label = f"Vendedor #{aviso_id}" if aviso_id and aviso_id.isdigit() else f"Vendedor tel …{phone_display}"
 
+        # FIX GEMINI TUNEL DETALLE: Scrapear pagina de detalle del aviso para extraer patente.
+        # VentaFe NO muestra patentes en el listado, solo en la pagina de detalle.
+        # Sin esto, el tunel de clasific.ar nunca se activa porque PATENTE_DETECTED=False.
+        # Solo se consulta si unique_url apunta a /automoviles/{id}-{slug} (no anchor).
+        patentes_detectadas = []
+        if unique_url and "/automoviles/" in unique_url and "#" not in unique_url:
+            try:
+                detail_req = _urq.Request(unique_url, headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml',
+                    'Accept-Language': 'es-AR,es;q=0.9',
+                })
+                with _urq.urlopen(detail_req, timeout=8) as detail_resp:
+                    detail_html = detail_resp.read().decode('utf-8', errors='replace')
+
+                # Limpiar HTML del detalle
+                detail_clean = _re.sub(r'<[^>]+>', ' ', detail_html)
+                detail_clean = _html_mod.unescape(detail_clean)
+                detail_clean = _re.sub(r'\s+', ' ', detail_clean)
+
+                # Regex patentes AR: SOLO formato Mercosur (AA111AA) — 2 letras + 3 digitos + 2 letras.
+                # El formato viejo (AAA111) causa falsos positivos (CEL342, CON270, DIR342, etc.)
+                # que son abreviaciones seguidas de codigos de area.
+                patentes_raw = _re.findall(r'\b([a-zA-Z]{2}\s?\d{3}\s?[a-zA-Z]{2})\b', detail_clean)
+                patentes_detectadas = list(set(p.replace(" ", "").upper() for p in patentes_raw if len(p.replace(" ", "")) == 7))
+
+                if patentes_detectadas:
+                    print(f"  [VentaFe Detail] Aviso #{aviso_id}: patentes={patentes_detectadas[:3]}", file=sys.stderr)
+
+                time.sleep(0.7)  # Cortesia entre requests (evitar bloqueo IP)
+            except Exception as detail_err:
+                print(f"  [VentaFe Detail] Error aviso #{aviso_id}: {detail_err}", file=sys.stderr)
+
+        # Patentes finales: las del detalle (prioridad) + las del listado (fallback)
+        patentes_finales = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+
         lead = {
             "name": f"[VentaFe] {title}",
             "url": unique_url,
@@ -631,7 +667,7 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
             "source": "ventafe",
             "_query": "ventafe_automoviles",
             "telefonos": valid_phones,
-            "patentes": _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text),
+            "patentes": patentes_finales,
             "problemas": pain_points,
             "zona": "Santa Fe",
             "aviso_id": aviso_id,
