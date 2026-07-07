@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 19:02 UTC  
+**Generado:** 2026-07-07 19:23 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 483cfab3-fb36-4ebc-a5c9-a9f453251348  
-**Estado:** Producción activa · cron cada 1h · rediseño Twenty.com aplicado (black & zinc + sliding drawer) · KPI=bandeja (alineados) · ortografía restaurada (bug de las 's' arreglado)
-**Timestamp generación:** 2026-07-07 19:02 UTC (hora UTC) · Argentina: 2026-07-07 16:02:21 ART
+**Worker Version:** fa73c363-d2f1-4ae4-8285-91a6c995c3ef  
+**Estado:** Producción activa · cron cada 1h · 7 leads VentaFe limpios (solo Python pipeline) · rediseño Twenty.com · KPI=bandeja · ortografía restaurada · Edge Cron sin scraper VentaFe
+**Timestamp generación:** 2026-07-07 19:23 UTC (hora UTC) · Argentina: 2026-07-07 16:23:00 ART
 
 ---
 
@@ -14,7 +14,7 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,391 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 1 | `worker.js` | 3,327 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
 | 2 | `generate_payload.py` | 2,205 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
@@ -437,26 +437,43 @@
 - Doble escape \\s y \\d (Gemini Sabueso v3)
 - Filtro Sabueso Fase 1 + Fase 2 (solo en Python pipeline)
 
-### ⚠️ PROBLEMA PENDIENTE DETECTADO (Edge Cron sin Sabueso)
+### ✅ FIX ARQUITECTÓNICO GEMINI — Eliminar scraper VentaFe del Edge Cron → DONE
 
-**Síntoma:** El dashboard muestra 83 leads (no 6) con muchos avisos comunes basura (Peugeot 308, Jeep Compass, Chevrolet Agile, etc.)
+**Problema resuelto:** El dashboard mostraba 92 leads (no 6) con avisos comunes basura (Peugeot 308, Jeep Compass, Chevrolet Agile, etc.)
 
 **Causa raíz:**
 - El filtro Sabueso Fase 1 + Fase 2 está en `classify_and_score()` del **Python pipeline** (generate_payload.py)
-- Pero el **Edge Cron del Worker** (`runPipelineCron` en worker.js) tiene su PROPIO scraper VentaFe que NO pasa por `classify_and_score`
-- Resultado: el Python genera 6 leads limpios, pero el Edge Cron del Worker suma ~77 leads basura al KV
-- Total en KV: 83 leads (6 limpios + 77 basura del Edge Cron)
+- Pero el **Edge Cron del Worker** (`runPipelineCron` en worker.js) tenía su PROPIO scraper VentaFe que NO pasaba por `classify_and_score`
+- Resultado: el Python generaba 6 leads limpios, pero el Edge Cron sumaba ~86 leads basura al KV
 
-**Fix pendiente (próxima iteración):**
-- Portar el filtro Sabueso al Edge Cron del Worker (runPipelineCron)
-- O desactivar el scraper VentaFe del Edge Cron y dejar solo el Python pipeline
-- O agregar el mismo filtro de dolor preventivo en el scraper VentaFe del Worker
+**Filosofía arquitectónica restaurada:**
+> "Python es el ÚNICO cerebro. El Worker es un proxy puro."
+- Python (generate_payload.py): scoring, OSINT, mining, filtros Sabueso, classify_and_score completo
+- Worker (worker.js): solo lee/escribe KV, NO genera leads propios de VentaFe
+
+**Fix aplicado:**
+- Eliminado por completo el bloque `try/catch` del scraper VentaFe en `runPipelineCron` (~70 líneas eliminadas)
+- Variables colgantes eliminadas: `vfPhoneRegex`, `vfPatenteRegex`, `vfHtml`, `vfBlocks`, `vfPhoneCount`
+- El Edge Cron ahora solo trae leads Reddit (con filtro AR estricto + painKwStrict + junkKw)
+- VentaFe queda exclusivamente a cargo del Python pipeline que tiene:
+  - Filtro Sabueso Fase 1 (Pain o Patente)
+  - Filtro Sabueso Fase 2 (afinación fina transferir)
+  - classify_and_score completo
+  - Filtro de Salida post-clasific.ar
+
+**Resultado verificado:**
+- KV purgado y regenerado con workflow Python run #96
+- **7 leads VentaFe limpios** (todos con persona `Vendedor #ID`)
+- **0 leads basura** del Edge Cron (antes ~86)
+- Todos con teléfono y WhatsApp link directo
 
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+11ca114 radar: auto-update 2026-07-07 19:12 UTC
+87ce6b7 fix(gemini arquitectura): eliminar scraper VentaFe del Edge Cron
 4d8986f feat(redesign twenty): paleta black & zinc + sliding drawer + badges desaturados
 2cb34b2 radar: auto-update 2026-07-07 17:10 UTC
 cade23e fix(gemini sabueso v3): doble escape \\s y \\d en DASHBOARD_HTML
@@ -475,8 +492,6 @@ ea80709 radar: auto-update 2026-07-07 11:44 UTC
 8e07861 radar: auto-update 2026-07-07 05:42 UTC
 30f42be fix(gemini audit v3): sourceFilter case-insensitive + PLATFORM_MAP VentaFe
 7ff9db0 radar: auto-update 2026-07-07 05:36 UTC
-1fe44cb fix(gemini audit v2): Edge Cron requiere pain keyword strict + junk filter
-cbdad73 fix(gemini audit): Edge Cron Reddit SOLO AR + fix TDZ VentaFe
 ```
 
 ---
@@ -3760,75 +3775,11 @@ async function runPipelineCron(env) {
     }
   }
 
-  // VentaFe Scraper (desde edge IP)
-  console.log('[CRON] VentaFe start...');
-  try {
-    const vfPhoneRegex = /\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}/g;
-    const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
-    
-    for (let page = 1; page <= 2; page++) {  // Qwen fix: 2 paginas para evitar timeout
-      // FIX GEMINI AUDIT: usar ?p= (NO ?page= que no pagina en VentaFe) + declarar vfHtml antes de usarlo (TDZ fix)
-      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?p=' + page;
-      const vfRes = await fetch(vfUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
-      });
-      if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
-      const vfHtml = await vfRes.text();  // Declarar ANTES de usar (fix TDZ)
-      const vfBlocks = vfHtml.split('class="row item tipo-').slice(1);
-      let vfPhoneCount = 0;
-      for (const block of vfBlocks) {
-        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
-        if (text.length < 100) continue;
-        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
-        if (phones.length > 0) vfPhoneCount++;
-      }
-      console.log('[CRON] VentaFe page ' + page + ': ' + vfBlocks.length + ' blocks, ' + vfPhoneCount + ' with phones');
-      const blocks = vfBlocks;  // Reusar la variable ya parseada
-      
-      for (const block of blocks) {
-        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
-        if (text.length < 100) continue;
-        
-        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
-        const patenteM = text.match(vfPatenteRegex);
-        if (!phones.length && !patenteM) continue;
-        
-        const textLower = text.toLowerCase();
-        const problemas = [];
-        if (/no\s+puedo\s+transferir|transferencia\s+bloqueada/.test(textLower)) problemas.push('TRANSFERENCIA');
-        if (/multa|fotomulta|infraccion/.test(textLower)) problemas.push('MULTA');
-        if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
-        if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
-        if (!problemas.length && !patenteM && !phones.length) continue;
-
-        // FIX GEMINI AUDIT v6 (TDZ): declarar `let score = 40` ANTES de usar `score +=`
-        // Antes: línea 3289 hacía `score += 10` antes de `let score = 40` (línea 3291) → crash TDZ
-        let score = 40;
-        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
-        if (patenteM) score += 15;
-        if (problemas.includes('TRANSFERENCIA')) score += 30;
-        if (problemas.includes('MULTA')) score += 25;
-        if (problemas.includes('DEUDA')) score += 25;
-        if (phones.length) score += 30;
-
-        newLeads.push({
-          id: 'ventafe_' + (phones[0] || '').replace(/[^0-9]/g, '') + '_' + text.substring(0, 10).replace(/[^a-zA-Z0-9]/g, ''),
-          source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
-          author: 'Vendedor VentaFe', persona: 'Vendedor VentaFe',
-          title: text.slice(0, 200), snippet: text.slice(0, 3000),
-          url: 'https://www.ventafe.com.ar/automoviles',
-          fecha_iso: new Date().toISOString().slice(0, 10),
-          score: Math.min(100, score),
-          whatsapp_publico: phones[0] || '', telefono_publico: phones[0] || '',
-          has_contact: phones.length > 0, contacto_publico: phones.length > 0,
-          patente: patenteM ? patenteM[1].toUpperCase() : '',
-          timestamp: new Date().toISOString(),
-        });
-      }
-    }
-    // FIX GEMINI AUDIT v6 (ReferenceError): `ventafeLeads` no existe en este scope, usar `newLeads`
-    console.log('[CRON] VentaFe done: ' + newLeads.length + ' leads found');
-  } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
+  // FIX GEMINI ARQUITECTURA: Scraper VentaFe del Edge Cron ELIMINADO.
+  // El Edge Cron del Worker ya NO scrapea VentaFe. Solo trae leads Reddit.
+  // VentaFe queda exclusivamente a cargo del Python pipeline (generate_payload.py)
+  // que tiene el filtro Sabueso (Fase 1 + Fase 2) y classify_and_score completo.
+  // El Worker es ahora un proxy puro: lee/escribe KV, no genera leads propios de VentaFe.
 
   const raw = await env.LEADX_KV.get('leads:live');
   let existing = { leads_all: [], leads_hot: [], meta: {} };
@@ -10273,7 +10224,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 19:02 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 19:23 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
