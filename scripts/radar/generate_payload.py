@@ -1143,25 +1143,52 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if is_vf:
         text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
         text_lower_vf = text_for_pain.lower()
-        # FIX GEMINI SABUESO FASE 2: Solo frases compuestas de alto valor preventivo.
-        # NO admitir 'transferencia' o 'transferir' sueltas (95% de avisos comunes las usan).
-        has_explicit_pain_text = any(kw in text_lower_vf for kw in [
-            # Dolor explicito
-            "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
-            "bloqueada", "bloqueado",
-            # Dolor documental especifico
-            "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-            # Preventivo de alta calidad (frases compuestas, no palabras sueltas)
-            "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
-            "sin deudas", "sin multas", "libre de multas",
-            "patente paga", "patentes pagas", "patente al dia", "patente al día",
-            "listo para transferir", "transferencia inmediata",
-            "se transfiere si o si", "se transfiere sí o sí",
-        ])
+        # FIX GEMINI SABUESO FASE 3: SOLO dolor textual real y explicito.
+        # Eliminadas keywords preventivas ('sin deuda', 'sin multas', 'papeles al dia',
+        # 'patente paga', 'listo para transferir') porque sin patente no podemos
+        # auditar si el vendedor miente. Evita falsos positivos como Mercedes A200.
+        # FIX FASE 3.1: usar regex con word boundaries para evitar que 'traba' matchee
+        # 'trabajo/trabajar' o que 'deuda' matchee 'sin deuda, multas' (contexto negativo).
+        import re as _re_vf
+        # Keywords de dolor real (regex con \\b para word boundary)
+        pain_patterns = [
+            r"\bmultas?\b", r"\bfotomultas?\b", r"\binfracciones?\b", r"\binfracción\b",
+            r"\bdebo\b", r"\bdebe\b", r"\badeuda\b", r"\bdeudas?\b", r"\bembargo\b",
+            r"\binhibicion\b", r"\binhibición\b", r"\bbloqueada\b", r"\bbloqueado\b",
+            r"\bsin 08\b", r"\b08 vencido\b", r"\btitular fallecido\b", r"\bno tengo el 08\b",
+            r"\bno puedo transferir\b", r"\btraba(?:da|o|os|as)?\b(?!jo|jando|jar)",
+            r"\bbloqueo\b", r"\bimpedimento\b", r"\btitular no firma\b",
+        ]
+        has_explicit_pain_text = any(_re_vf.search(p, text_lower_vf) for p in pain_patterns)
+
+        # FIX FASE 3.1: excluir contexto negativo ('sin deuda', 'sin multas', 'sin infracciones').
+        # Si la unica razon por la que matchea es porque dice 'sin deuda' o 'sin multas',
+        # no es dolor real, es declaracion de estar limpio.
+        # FIX FASE 3.2: remover tambien la lista de items que sigue al 'sin' (ej: "sin deuda, multas, etc."
+        # deja ", multas, etc." que matchea 'multas'). Remover patron completo con regex.
+        negative_contexts = ["sin deuda", "sin deudas", "sin multa", "sin multas",
+                             "sin infraccion", "sin infracciones", "libre deuda",
+                             "libre de deuda", "libre de multas", "no debe", "no adeuda"]
+        has_negative_context = any(nc in text_lower_vf for nc in negative_contexts)
+
+        # Si solo matchea por contexto negativo, no es dolor real
+        if has_explicit_pain_text and has_negative_context:
+            # Remover frases negativas Y la lista de items que las sigue (hasta punto o fin de linea)
+            # Ej: "sin deuda, multas, etc." → "sin deuda, multas, etc." se remueve completo
+            text_without_negative = text_lower_vf
+            # Primero remover patrones como "sin deuda, multas, etc." completos
+            text_without_negative = _re_vf.sub(
+                r"sin\s+(?:deuda|multas?|infracciones?|deudas)[^.]*(?:etc\.|\.|$)",
+                " ", text_without_negative
+            )
+            # Luego remover frases negativas sueltas
+            for nc in negative_contexts:
+                text_without_negative = text_without_negative.replace(nc, " ")
+            has_explicit_pain_text = any(_re_vf.search(p, text_without_negative) for p in pain_patterns)
+
         has_patente = bool(record.get("patente"))
         if not (has_explicit_pain_text or has_patente):
-            return None  # VentaFe sin dolor ni patente → aviso comun, descartar
+            return None  # VentaFe sin dolor real ni patente → descartar
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -1381,15 +1408,20 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["generic_penalty"]
         breakdown["generic_penalty"] = SCORE_RULES["generic_penalty"]
 
-    # --- PATENTE DETECTION (H.AI insight + GPT filter) ---
-    # Detectar patente AR en texto y boost +15
-    patente_match = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", record.get("combined_text", ""), re.IGNORECASE)
+    # --- PATENTE DETECTION (FIX GEMINI: regex federal con soporte para espacios) ---
+    # Soporta: AA111AA, AA 111 AA, AAA111, AAA 111 (mayusculas y minusculas).
+    # Comun en ML Q&A y Reddit donde usuarios escriben "AA 111 AA" con espacios.
+    patente_clean_text = record.get("combined_text", "")
+    patente_match = re.search(r"\b([A-Za-z]{2}\s?\d{3}\s?[A-Za-z]{2}|[A-Za-z]{3}\s?\d{3})\b", patente_clean_text)
     if patente_match:
+        # Limpiar espacios y normalizar a mayusculas
+        norm_plate = re.sub(r"\s+", "", patente_match.group(1)).upper()
+        record["patente"] = norm_plate
         score += 15
         breakdown["patente_detected"] = 15
-        signals.append("PATENTE_DETECTED")
+        if "PATENTE_DETECTED" not in signals:
+            signals.append("PATENTE_DETECTED")
         # Marcar para enriquecimiento automatico con clasific.ar
-        # (se hace en run_pipeline despues de classify_and_score)
 
     # --- INTENCION EXTREMA BOOST (GPT insight: filtrar ruido) ---
     # Solo leads con dolor MUY explicito merecen boost
@@ -2135,26 +2167,39 @@ def run_pipeline() -> Dict[str, Any]:
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
             text_lower_out = (lead.quoted_text or "").lower()
-            # FIX GEMINI TUNEL: misma lista de keywords que filtro de admision (Fase 2)
-            has_explicit_pain_text = any(kw in text_lower_out for kw in [
-                "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
-                "bloqueada", "bloqueado",
-                "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-                "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
-                "sin deudas", "sin multas", "libre de multas",
-                "patente paga", "patentes pagas", "patente al dia", "patente al día",
-                "listo para transferir", "transferencia inmediata",
-                "se transfiere si o si", "se transfiere sí o sí",
-            ])
+            # FIX GEMINI SABUESO FASE 3.1+3.2: misma logica que admision con contexto negativo
+            import re as _re_out
+            pain_patterns_out = [
+                r"\bmultas?\b", r"\bfotomultas?\b", r"\binfracciones?\b", r"\binfracción\b",
+                r"\bdebo\b", r"\bdebe\b", r"\badeuda\b", r"\bdeudas?\b", r"\bembargo\b",
+                r"\binhibicion\b", r"\binhibición\b", r"\bbloqueada\b", r"\bbloqueado\b",
+                r"\bsin 08\b", r"\b08 vencido\b", r"\btitular fallecido\b", r"\bno tengo el 08\b",
+                r"\bno puedo transferir\b", r"\btraba(?:da|o|os|as)?\b(?!jo|jando|jar)",
+                r"\bbloqueo\b", r"\bimpedimento\b", r"\btitular no firma\b",
+            ]
+            has_explicit_pain_text = any(_re_out.search(p, text_lower_out) for p in pain_patterns_out)
+
+            # Excluir contexto negativo
+            negative_contexts_out = ["sin deuda", "sin deudas", "sin multa", "sin multas",
+                                      "sin infraccion", "sin infracciones", "libre deuda",
+                                      "libre de deuda", "libre de multas", "no debe", "no adeuda"]
+            has_negative_context = any(nc in text_lower_out for nc in negative_contexts_out)
+            if has_explicit_pain_text and has_negative_context:
+                text_wo_neg = _re_out.sub(
+                    r"sin\s+(?:deuda|multas?|infracciones?|deudas)[^.]*(?:etc\.|\.|$)",
+                    " ", text_lower_out
+                )
+                for nc in negative_contexts_out:
+                    text_wo_neg = text_wo_neg.replace(nc, " ")
+                has_explicit_pain_text = any(_re_out.search(p, text_wo_neg) for p in pain_patterns_out)
+
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
             has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
-            # Pasa si: dolor textual OR deuda comprobada por clasific.ar
             if has_explicit_pain_text or has_validated_debt or has_deuda_signal:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor textual y deuda=0",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado por falta de dolor real comprobado",
                       file=sys.stderr)
         else:
             filtered_leads.append(lead)
