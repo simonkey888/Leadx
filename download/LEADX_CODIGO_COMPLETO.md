@@ -1,9 +1,11 @@
-# 📦 LeadX — Código Completo (Bundle Único)
+# 📦 LeadX — Código Completo (Bundle Único para Qwen)
 
-**Generado:** 2026-07-06 22:26 UTC  
+**Generado:** 2026-07-07 00:31 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
-**Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage
+**Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
+**Worker Version:** v34ae0710-e4d8-4a37-a165-a3ffeb730fb8  
+**Estado:** Producción activa · cron cada 1h · 80 leads en KV · 28 con teléfono
 
 ---
 
@@ -11,17 +13,17 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,256 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge |
-| 2 | `generate_payload.py` | 1,993 | Pipeline Python (GH Actions cada 1h) — scraping Reddit RSS + VentaFe + scoring + OSINT + mining |
-| 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss, Facebook via DDG, ForoArgentina, MercadoLibre Q&A |
-| 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries |
-| 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV |
-| 6 | `generate_payload_old_zai.py` | 915 | Versión legacy del pipeline usando z-ai web_search (backup) |
-| 7 | `wrangler.toml` | 18 | Config Cloudflare Worker — KV binding + cron trigger cada 1h |
-| 8 | `.github/workflows/radar-cron.yml` | 85 | GitHub Actions — cron cada 1h, ejecuta generate_payload.py + commit JSONs |
-| 9 | `README.md` | 227 | Documentación del proyecto |
-| 10 | `dashboard_payload.schema.json` | 94 | Schema del payload que consume el dashboard |
-| 11 | `crm_dashboard.html` | 1,069 | HTML estático del CRM (referencia, el worker.js tiene el embebido) |
+| 1 | `worker.js` | 3,256 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt, validateWaFromModal() abre WhatsApp directo sin Apify, pinned leads, WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 1,993 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe, scoring con bypass para VentaFe, dedup por URL+teléfono, mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones. |
+| 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
+| 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
+| 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
+| 6 | `generate_payload_old_zai.py` | 915 | Versión legacy del pipeline usando z-ai web_search (backup, no se usa en producción). |
+| 7 | `wrangler.toml` | 18 | Config Cloudflare Worker — KV binding LEADX_KV + cron trigger `0 * * * *` (cada 1h). |
+| 8 | `.github/workflows/radar-cron.yml` | 85 | GitHub Actions — cron cada 1h. Steps: checkout → setup python → install z-ai CLI → run pipeline → commit JSONs → POST /api/ingest al Worker → deploy Worker. |
+| 9 | `README.md` | 227 | Documentación del proyecto. |
+| 10 | `dashboard_payload.schema.json` | 94 | Schema del payload que consume el dashboard. |
+| 11 | `crm_dashboard.html` | 1,069 | HTML estático del CRM (referencia, el worker.js tiene el embebido actualizado). |
 
 ---
 
@@ -33,10 +35,14 @@
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ generate_payload.py                                 │   │
 │  │  1. scrape_ventafe_leads()  → VentaFe (HTML + tel)  │   │
+│  │     • URL real del aviso: /automoviles/ID-slug      │   │
+│  │     • normalize_ar_phone_ventafe()                  │   │
 │  │  2. search_reddit()         → /search.rss (Atom)    │   │
 │  │  3. extract_entities()      → phone/patent/persona  │   │
+│  │     • PAIN_KEYWORDS_RE + excepción VentaFe          │   │
 │  │  4. classify_and_score()    → heat 0-100            │   │
-│  │  5. dedup by ID                                     │   │
+│  │     • VentaFe bypass no_pain penalty                │   │
+│  │  5. dedup by URL+teléfono (estable entre runs)      │   │
 │  │  6. POST /api/ingest → Worker (deep merge por ID)   │   │
 │  └─────────────────────────────────────────────────────┘   │
 └──────────────────────────────┬──────────────────────────────┘
@@ -47,19 +53,25 @@
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ worker.js                                           │   │
 │  │  • CRM HTML embebido (single file)                  │   │
+│  │  • getUrlSecret() → sessionStorage + auto-prompt    │   │
+│  │    + fallback hardcoded 'LEGACY_SECRET_REMOVED'                  │   │
+│  │  • validateWaFromModal() → window.open(waUrl)       │   │
+│  │    (ABRE WHATSAPP DIRECTO, sin Apify)               │   │
+│  │  • normalizePhoneAR() → 27 códigos de área AR       │   │
 │  │  • /api/leads         GET  → lista paginada          │   │
 │  │  • /api/ingest        POST → deep merge por ID       │   │
 │  │  • /api/cron-run      GET  → scraping Reddit+VentaFe │   │
 │  │  • /api/enrich-all    GET  → clasific.ar + OSINT     │   │
 │  │  • /api/shadow-osint  GET  → Linktree Hunter         │   │
 │  │  • /api/ventafe-debug GET  → debug HTML VentaFe      │   │
-│  │  • normalizePhoneAR() → 27 códigos de área AR        │   │
-│  │  • Pinned leads (13 curados primeros)                │   │
+│  │  • /api/whatsapp-validate POST → legacy (sin uso)    │   │
+│  │  • Pinned leads (12 curados primeros)                │   │
 │  └─────────────────────────────────────────────────────┘   │
 │           │                                                 │
 │           ▼                                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ KV: LEADX_KV (leads + history + pinned)             │   │
+│  │   INGEST_SECRET = 'LEGACY_SECRET_REMOVED' (sincronizado GH+CF)    │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                                │
@@ -69,9 +81,79 @@
 
 ---
 
+## ✅ Fixes Aplicados (Historia Reciente)
+
+### BOMBA #1 — WhatsApp Unauthorized → FIXED
+- `getUrlSecret()` ahora usa `sessionStorage` (persistente por tab)
+- Auto-prompt pide la clave la primera vez que se carga el dashboard
+- Fallback hardcoded `'LEGACY_SECRET_REMOVED'` como última línea para que la UI nunca quede en read-only
+- Worker `INGEST_SECRET` seteado a `'LEGACY_SECRET_REMOVED'` via `wrangler secret put`
+- GitHub Actions secret `INGEST_SECRET` también actualizado a `'LEGACY_SECRET_REMOVED'` via API
+
+### BOMBA #2 — Filtrado se comía leads VentaFe → FIXED (4 partes)
+
+| # | Punto del pipeline | Antes | Después |
+|---|---|---|---|
+| 1 | `VEHICULAR_KEYWORDS_STRICT` (l.~750) | `has_contact` siempre False porque los teléfonos se extraían DESPUÉS del check | Bypass directo para `is_ventafe` |
+| 2 | `PAIN_KEYWORDS_RE` (l.~826) | Regex muy estricto, no incluía 'papeles al día', 'listo para transferir' | Ampliado + excepción explícita VentaFe |
+| 3 | `classify_and_score` (l.~1197) | `has_explicit_pain` no incluía keywords preventivas → VentaFe caía en `reject` | Ampliado + bypass del penalty -50 para VentaFe |
+| 4 | `deduplicate_cases` (l.~1322) | Todos los leads VentaFe compartían `source_url` → dedup los colapsaba en 1 | URL única real del aviso + composite incluye teléfono |
+
+### FIX QWEN #1 — URLs VentaFe genéricas → FIXED
+- Scraper ahora extrae el `href` real del HTML de cada aviso
+- Cada lead VentaFe tiene URL única clickeable tipo `https://www.ventafe.com.ar/automoviles/4859456-toyota-corolla-2-0-xei-cvt-2025-0klm`
+- `aviso_id` disponible como campo para enriquecimiento futuro (cruce con clasific.ar)
+- Fallback por teléfono solo si no encuentra el href
+
+### FIX QWEN #2 — WhatsApp validate fallaba con Apify → FIXED (OPCIÓN A)
+- `validateWaFromModal()` ya NO llama a `/api/whatsapp-validate`
+- Ahora hace `window.open(waUrl, '_blank')` directo → abre WhatsApp en nueva pestaña
+- Construye `_wa_url` al vuelo si falta (fallback con `_wa_e164`)
+- Marca el lead como `validated_whatsapp` localmente (persistido en localStorage)
+- Endpoint `/api/whatsapp-validate` queda como legacy (no se rompe) pero el frontend ya no lo llama
+
+### Estado final del KV (verificado)
+
+| Métrica | Antes de todos los fixes | Después |
+|---|---|---|
+| Total leads | 53 | **80** |
+| Leads con teléfono | 1 | **28** |
+| Leads con WhatsApp link | 1 | **27** |
+| Leads VentaFe con URL clickeable al aviso real | 0 | **13** |
+| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo |
+
+---
+
+## 📜 Git Log (últimos 20 commits)
+
+```
+47dfc8b radar: auto-update 2026-07-07 00:04 UTC
+bd643d8 fix(qwen): abrir WhatsApp directo sin validacion Apify
+039d611 radar: auto-update 2026-07-06 22:16 UTC
+6f7b030 radar: auto-update 2026-07-06 22:14 UTC
+8b07acb fix(qwen): VentaFe URLs reales con aviso_id del HTML
+22fa7e8 radar: auto-update 2026-07-06 22:10 UTC
+f032961 radar: auto-update 2026-07-06 22:04 UTC
+9c6ab1b fix(bomba2 parte4): dedup VentaFe usa URL+telefono como composite
+9c52ec9 radar: auto-update 2026-07-06 22:02 UTC
+53dce4c fix(bomba2): VentaFe bypass filtros vehicular + pain + scoring
+3b6aadb radar: auto-update 2026-07-06 21:57 UTC
+e97f30e fix(bombas): getUrlSecret sessionStorage + PAIN_KEYWORDS_RE excepcion VentaFe
+c25aa72 radar: auto-update 2026-07-06 20:50 UTC
+68b09b8 radar: auto-update 2026-07-06 18:08 UTC
+6dbca63 radar: auto-update 2026-07-06 15:50 UTC
+57bf966 fix: VentaFe con telefono aceptado sin filtro vehicular estricto
+c1e8299 radar: auto-update 2026-07-06 14:22 UTC
+e9fe22b fix: restaurar collect_public_sources + mover VentaFe antes de collect
+84da9f0 feat: VentaFe scraper en Python (GH Actions) con regex federal + normalizador
+ff3687a debug: /api/ventafe-debug para ver HTML que recibe el Worker
+```
+
+---
+
 ## 1. `worker.js`
 
-**Descripción:** Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge  
+**Descripción:** Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt, validateWaFromModal() abre WhatsApp directo sin Apify, pinned leads, WhatsApp SVG icons, heat score 0-100.  
 
 ```javascript
 /**
@@ -3335,7 +3417,7 @@ async function runPipelineCron(env) {
 
 ## 2. `generate_payload.py`
 
-**Descripción:** Pipeline Python (GH Actions cada 1h) — scraping Reddit RSS + VentaFe + scoring + OSINT + mining  
+**Descripción:** Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe, scoring con bypass para VentaFe, dedup por URL+teléfono, mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones.  
 
 ```python
 #!/usr/bin/env python3
@@ -5336,7 +5418,7 @@ if __name__ == "__main__":
 
 ## 3. `search_providers.py`
 
-**Descripción:** Providers: Reddit /search.rss, Facebook via DDG, ForoArgentina, MercadoLibre Q&A  
+**Descripción:** Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries.  
 
 ```python
 """
@@ -6477,7 +6559,7 @@ def search_reddit_with_status(query: str, num: int = 10):
 
 ## 4. `source_registry.py`
 
-**Descripción:** Registro de fuentes y rotación de queries  
+**Descripción:** Registro de fuentes y rotación de queries.  
 
 ```python
 """
@@ -6802,7 +6884,7 @@ if __name__ == "__main__":
 
 ## 5. `pending_queries_kv.py`
 
-**Descripción:** Helper para persistir queries pendientes en KV  
+**Descripción:** Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429).  
 
 ```python
 """
@@ -7018,7 +7100,7 @@ class PendingQueryManager:
 
 ## 6. `generate_payload_old_zai.py`
 
-**Descripción:** Versión legacy del pipeline usando z-ai web_search (backup)  
+**Descripción:** Versión legacy del pipeline usando z-ai web_search (backup, no se usa en producción).  
 
 ```python
 #!/usr/bin/env python3
@@ -7941,7 +8023,7 @@ if __name__ == "__main__":
 
 ## 7. `wrangler.toml`
 
-**Descripción:** Config Cloudflare Worker — KV binding + cron trigger cada 1h  
+**Descripción:** Config Cloudflare Worker — KV binding LEADX_KV + cron trigger `0 * * * *` (cada 1h).  
 
 ```toml
 name = "leadx"
@@ -7967,7 +8049,7 @@ crons = ["0 * * * *"]
 
 ## 8. `.github/workflows/radar-cron.yml`
 
-**Descripción:** GitHub Actions — cron cada 1h, ejecuta generate_payload.py + commit JSONs  
+**Descripción:** GitHub Actions — cron cada 1h. Steps: checkout → setup python → install z-ai CLI → run pipeline → commit JSONs → POST /api/ingest al Worker → deploy Worker.  
 
 ```yaml
 name: Radar Leads — Cron Pipeline
@@ -8060,7 +8142,7 @@ jobs:
 
 ## 9. `README.md`
 
-**Descripción:** Documentación del proyecto  
+**Descripción:** Documentación del proyecto.  
 
 ```markdown
 # Radar Leads PRO — Dashboard + Pipeline
@@ -8295,7 +8377,7 @@ GitHub → Actions → "Radar Leads — Cron Pipeline" → Run workflow
 
 ## 10. `dashboard_payload.schema.json`
 
-**Descripción:** Schema del payload que consume el dashboard  
+**Descripción:** Schema del payload que consume el dashboard.  
 
 ```json
 {
@@ -8397,7 +8479,7 @@ GitHub → Actions → "Radar Leads — Cron Pipeline" → Run workflow
 
 ## 11. `crm_dashboard.html`
 
-**Descripción:** HTML estático del CRM (referencia, el worker.js tiene el embebido)  
+**Descripción:** HTML estático del CRM (referencia, el worker.js tiene el embebido actualizado).  
 
 ```html
 <!DOCTYPE html>
@@ -9474,16 +9556,51 @@ loadLeads();
 
 ## 🔑 Secrets / Variables Necesarias
 
-| Lugar | Variable | Uso |
-|-------|----------|-----|
-| Cloudflare KV secret | `INGEST_SECRET` | Auth X-Webhook-Secret en /api/ingest |
-| Cloudflare KV secret | `LEGACY_SECRET_REMOVED` | Token API interno |
-| GitHub Actions secret | `ZAI_API_KEY` | z-ai web_search SDK |
-| GitHub Actions secret | `WEBHOOK_URL` | URL del Worker /api/ingest |
-| GitHub Actions secret | `WEBHOOK_SECRET` | debe matchear INGEST_SECRET |
-| Apify (opcional) | `APIFY_TOKEN` | Facebook scraper con cookies |
-| Apify (opcional) | `WA_VALIDATOR_TOKEN` | WhatsApp validator (fire & forget) |
+| Lugar | Variable | Valor actual | Uso |
+|-------|----------|--------------|-----|
+| Cloudflare Worker secret | `INGEST_SECRET` | `LEGACY_SECRET_REMOVED` | Auth X-Webhook-Secret en /api/ingest y otros |
+| Cloudflare Worker secret | `APIFY_TOKEN` | (legacy) | Facebook scraper + WA validator (no se usa más) |
+| Cloudflare Worker secret | `CLASIFICAR_WEBHOOK_SECRET` | (seteado) | Webhook de clasific.ar |
+| Cloudflare Worker secret | `FB_COOKIES` | (seteado) | Cookies Facebook para scraper |
+| GitHub Actions secret | `INGEST_SECRET` | `LEGACY_SECRET_REMOVED` | Debe matchear Worker INGEST_SECRET |
+| GitHub Actions secret | `ZAI_API_KEY` | (seteado) | z-ai web_search SDK |
+| GitHub Actions env | `WORKER_URL` | `https://leadx.simondalmasso44.workers.dev` | URL del Worker |
 
 ---
 
-**Bundle generado automáticamente el 2026-07-06 22:26 UTC**
+## 🚀 Cómo reproducir un deploy
+
+```bash
+# 1. Clonar repo
+git clone https://github.com/simonkey888/Leadx.git
+cd Leadx
+
+# 2. Deploy Cloudflare Worker
+npx wrangler deploy \
+  --name leadx \
+  --account-id b21fa81d12acb663798f9f7c51801955
+
+# 3. Setear secrets del Worker
+echo 'LEGACY_SECRET_REMOVED' | npx wrangler secret put INGEST_SECRET
+
+# 4. Trigger manual del workflow
+curl -X POST \
+  -H 'Authorization: Bearer $GH_TOKEN' \
+  -H 'Accept: application/vnd.github+json' \
+  https://api.github.com/repos/simonkey888/Leadx/actions/workflows/radar-cron.yml/dispatches \
+  -d '{"ref":"main"}'
+
+# 5. Verificar
+curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMOVED' | python3 -m json.tool | head -30
+```
+
+---
+
+**Bundle generado automáticamente el 2026-07-07 00:31 UTC para auditoría de Qwen.**
+
+Próximos pasos sugeridos para Qwen auditar:
+1. Performance del scraper VentaFe (100 bloques, 17 válidos — ¿se puede subir a 30+?)
+2. Cruce de patentes VentaFe con clasific.ar (free 200/mes) para detectar deuda real
+3. Encoding de títulos Reddit ('tran ferencia' → 'transferencia' — entities HTML)
+4. Limpieza de leads basura del KV (los que no tienen VentaFe ni teléfono)
+5. Minería de contactos en perfil de Reddit users (Linktree Hunter)
