@@ -1,11 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 18:07 UTC  
+**Generado:** 2026-07-07 19:02 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 3ea82ce8-5f1d-41ea-90ba-7c288282a9f4  
-**Estado:** Producción activa · cron cada 1h · 6 leads VentaFe de alta calidad (preventivos reales) · todos con teléfono · todos con WhatsApp link · KPI=bandeja (alineados) · ortografía restaurada (bug de las 's' arreglado)
+**Worker Version:** 483cfab3-fb36-4ebc-a5c9-a9f453251348  
+**Estado:** Producción activa · cron cada 1h · rediseño Twenty.com aplicado (black & zinc + sliding drawer) · KPI=bandeja (alineados) · ortografía restaurada (bug de las 's' arreglado)
+**Timestamp generación:** 2026-07-07 19:02 UTC (hora UTC) · Argentina: 2026-07-07 16:02:21 ART
 
 ---
 
@@ -13,7 +14,7 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,371 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 1 | `worker.js` | 3,391 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
 | 2 | `generate_payload.py` | 2,205 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
@@ -413,11 +414,50 @@
 
 **Nota importante:** Las regex en `runPipelineCron` (líneas 3059, 3290, etc.) NO requieren doble escape porque están fuera del template literal `DASHBOARD_HTML` — son código JS normal del Worker.
 
+### FIX REDISEÑO TWENTY.COM — Black & Zinc + Sliding Drawer + Badges desaturados → DONE
+
+**Rediseño visual sin tocar lógica JS:**
+- **Paleta Black & Zinc:** fondo `#000000`, surfaces `#09090b`, bordes `#27272a`, accent `#6366f1` (índigo premium)
+- **Sliding Drawer:** modal central → panel lateral derecho con animación `slideIn` 0.25s + backdrop blur(4px)
+- **Badges desaturados:** pill redondeados → cuadrados (4px radius) con fondo rgba sutil + border fino
+- **Heat rows:** tintes rgba sutiles sobre negro (no fondos sólidos claros)
+- **Topbar dark:** negro puro + border-bottom zinc (no azul con sombra)
+- **Sidebar dark:** hover surface2, active rgba indigo .1
+- **Tabla dark:** thead surface2, hover surface2, texto blanco
+- **Inputs/textarea dark:** background negro, texto blanco, options dark
+
+**Lógica JS intacta (sin cambios):**
+- Filtros Contacto + Temperatura (Qwen v2.8)
+- Bypass WhatsApp con window.open (Qwen OPCIÓN A)
+- Marca automática 'Contactado' (Qwen v3.1)
+- getUrlSecret() sin prompt (Qwen v2.9)
+- Defaults en 'todos' (Gemini audit v4)
+- sourceFilter case-insensitive (Gemini audit v3)
+- KPI = bandeja (Gemini audit v5)
+- Doble escape \\s y \\d (Gemini Sabueso v3)
+- Filtro Sabueso Fase 1 + Fase 2 (solo en Python pipeline)
+
+### ⚠️ PROBLEMA PENDIENTE DETECTADO (Edge Cron sin Sabueso)
+
+**Síntoma:** El dashboard muestra 83 leads (no 6) con muchos avisos comunes basura (Peugeot 308, Jeep Compass, Chevrolet Agile, etc.)
+
+**Causa raíz:**
+- El filtro Sabueso Fase 1 + Fase 2 está en `classify_and_score()` del **Python pipeline** (generate_payload.py)
+- Pero el **Edge Cron del Worker** (`runPipelineCron` en worker.js) tiene su PROPIO scraper VentaFe que NO pasa por `classify_and_score`
+- Resultado: el Python genera 6 leads limpios, pero el Edge Cron del Worker suma ~77 leads basura al KV
+- Total en KV: 83 leads (6 limpios + 77 basura del Edge Cron)
+
+**Fix pendiente (próxima iteración):**
+- Portar el filtro Sabueso al Edge Cron del Worker (runPipelineCron)
+- O desactivar el scraper VentaFe del Edge Cron y dejar solo el Python pipeline
+- O agregar el mismo filtro de dolor preventivo en el scraper VentaFe del Worker
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+4d8986f feat(redesign twenty): paleta black & zinc + sliding drawer + badges desaturados
 2cb34b2 radar: auto-update 2026-07-07 17:10 UTC
 cade23e fix(gemini sabueso v3): doble escape \\s y \\d en DASHBOARD_HTML
 d11d976 radar: auto-update 2026-07-07 16:18 UTC
@@ -437,7 +477,6 @@ ea80709 radar: auto-update 2026-07-07 11:44 UTC
 7ff9db0 radar: auto-update 2026-07-07 05:36 UTC
 1fe44cb fix(gemini audit v2): Edge Cron requiere pain keyword strict + junk filter
 cbdad73 fix(gemini audit): Edge Cron Reddit SOLO AR + fix TDZ VentaFe
-4872e25 radar: auto-update 2026-07-07 05:29 UTC
 ```
 
 ---
@@ -472,22 +511,28 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LeadX CRM — Gestión de Casos</title>
 <style>
+  /* ═════════════════════════════════════════════════════════════════════
+     LEADX CRM — Rediseño estilo Twenty.com (Black & Zinc)
+     Solo cambios visuales. Toda la lógica JS permanece intacta.
+     ═════════════════════════════════════════════════════════════════════ */
   :root {
-    --bg:       #F4F6F9;
-    --surface:  #FFFFFF;
-    --border:   #E1E8ED;
-    --text:     #1A2332;
-    --muted:    #6B7A8D;
-    --primary:  #1B4FBB;
-    --primary-h:#1640A0;
-    --green:    #00875A;
-    --green-h:  #006644;
-    --orange:   #FF8B00;
-    --red:      #DE350B;
-    --purple:   #6554C0;
+    --bg:       #000000;   /* Negro absoluto (Twenty fondo) */
+    --surface:  #09090b;   /* Gris carbón (Twenty cards) */
+    --surface2: #18181b;   /* Gris zinc elevado */
+    --border:   #27272a;   /* Bordes sutiles zinc */
+    --text:     #fafafa;   /* Texto principal blanco */
+    --muted:    #71717a;   /* Texto secundario zinc-400 */
+    --muted2:   #52525b;   /* Texto terciario zinc-500 */
+    --primary:  #6366f1;   /* Índigo premium (accent) */
+    --primary-h:#818cf8;   /* Índigo claro hover */
+    --green:    #22c55e;   /* Verde WhatsApp */
+    --green-h:  #16a34a;
+    --orange:   #f59e0b;   /* Amber para tibios */
+    --red:      #ef4444;   /* Rojo para calientes */
+    --purple:   #a855f7;
     --radius:   8px;
-    --shadow:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-    --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+    --shadow:   0 1px 2px rgba(0,0,0,.4);
+    --shadow-lg:0 4px 24px rgba(0,0,0,.6);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -497,12 +542,13 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     font-size: 14px;
     line-height: 1.5;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* ── TOP BAR ── */
+  /* ── TOP BAR (Twenty: negro puro con brand sutil) ── */
   .topbar {
-    background: var(--primary);
-    color: #fff;
+    background: #000000;
+    color: #fafafa;
     padding: 0 24px;
     height: 52px;
     display: flex;
@@ -511,35 +557,37 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
   }
   .topbar-brand {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 600;
     letter-spacing: -.3px;
     display: flex;
     align-items: center;
     gap: 10px;
+    color: #fafafa;
   }
-  .topbar-brand span { opacity: .7; font-weight: 400; font-size: 13px; }
+  .topbar-brand span { opacity: .5; font-weight: 400; font-size: 12px; color: var(--muted2); }
   .topbar-right {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 13px;
-    opacity: .9;
+    font-size: 12px;
+    color: var(--muted);
   }
   .sync-btn {
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.3);
-    color: #fff;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 13px;
-    transition: background .15s;
+    font-size: 12px;
+    transition: background .15s, border-color .15s;
   }
-  .sync-btn:hover { background: rgba(255,255,255,.25); }
+  .sync-btn:hover { background: var(--surface2); border-color: var(--muted2); }
 
   /* ── LAYOUT ── */
   .layout {
@@ -579,11 +627,11 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     color: var(--muted);
     font-size: 13px;
   }
-  .filter-item:hover { background: #F0F4FF; color: var(--text); }
+  .filter-item:hover { background: var(--surface2); color: var(--text); }
   .filter-item.active {
-    background: #EEF2FF;
+    background: rgba(99, 102, 241, 0.1);
     border-left-color: var(--primary);
-    color: var(--primary);
+    color: var(--primary-h);
     font-weight: 600;
   }
   .filter-count {
@@ -668,6 +716,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     outline: none;
     cursor: pointer;
   }
+  select option { background: var(--surface); color: var(--text); }
+  .search-wrap input::placeholder { color: var(--muted2); }
   .btn-primary {
     background: var(--primary);
     color: #fff;
@@ -692,8 +742,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   }
   table { width: 100%; border-collapse: collapse; }
   thead th {
-    background: #F8FAFC;
-    border-bottom: 2px solid var(--border);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
     padding: 10px 14px;
     text-align: left;
     font-size: 11px;
@@ -711,7 +761,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     transition: background .1s;
   }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: #F8FAFC; }
+  tbody tr:hover { background: var(--surface2); }
   td { padding: 12px 14px; vertical-align: middle; }
   .td-nombre { font-weight: 600; font-size: 13px; max-width: 160px; }
   .td-nombre small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 2px; }
@@ -720,34 +770,35 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2;
     -webkit-box-orient: vertical; }
 
-  /* ── STATUS BADGE ── */
+  /* ── STATUS BADGE (desaturados, estilo Twenty) ── */
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 3px 9px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
+    border: 1px solid transparent;
   }
-  .badge-nuevo    { background: #EEF2FF; color: #3730A3; }
-  .badge-contactado  { background: #FFF7E6; color: #92400E; }
-  .badge-gestion  { background: #F0FDF4; color: #166534; }
-  .badge-cerrado  { background: #ECFDF5; color: var(--green); }
-  .badge-descartado { background: #FEF2F2; color: var(--red); }
+  .badge-nuevo    { background: rgba(99,102,241,.08); color: #818cf8; border-color: rgba(99,102,241,.2); }
+  .badge-contactado  { background: rgba(245,158,11,.08); color: #fbbf24; border-color: rgba(245,158,11,.2); }
+  .badge-gestion  { background: rgba(34,197,94,.08); color: #4ade80; border-color: rgba(34,197,94,.2); }
+  .badge-cerrado  { background: rgba(34,197,94,.12); color: var(--green); border-color: rgba(34,197,94,.3); }
+  .badge-descartado { background: rgba(239,68,68,.08); color: #f87171; border-color: rgba(239,68,68,.2); }
   .kpi-value.purple { color: var(--purple); }
-  .badge-hot { background: #FEF3C7; color: #92400E; margin-left: 4px; }
-  .badge-warm { background: #DBEAFE; color: #1E40AF; margin-left: 4px; }
+  .badge-hot { background: rgba(239,68,68,.1); color: #f87171; margin-left: 4px; border:1px solid rgba(239,68,68,.2); }
+  .badge-warm { background: rgba(245,158,11,.1); color: #fbbf24; margin-left: 4px; border:1px solid rgba(245,158,11,.2); }
 
-  /* Heat score row colors (GPT: 3 estados visuales) */
-  tr.heat-hot { background: #FEF2F2 !important; }
-  tr.heat-hot:hover { background: #FEE2E2 !important; }
-  tr.heat-warm { background: #FFFBEB !important; }
-  tr.heat-warm:hover { background: #FEF3C7 !important; }
-  tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
-  tr.pinned-row { border-left: 3px solid #fbbf24 !important; background: #FFFbeb !important; }
-  tr.pinned-row:hover { background: #FEF3C7 !important; }
+  /* Heat score row colors (Twenty: tintes sutiles sobre negro) */
+  tr.heat-hot { background: rgba(239,68,68,.04) !important; }
+  tr.heat-hot:hover { background: rgba(239,68,68,.1) !important; }
+  tr.heat-warm { background: rgba(245,158,11,.03) !important; }
+  tr.heat-warm:hover { background: rgba(245,158,11,.08) !important; }
+  tr.heat-cold { background: var(--surface) !important; opacity: 0.5; }
+  tr.pinned-row { border-left: 3px solid var(--orange) !important; background: rgba(245,158,11,.05) !important; }
+  tr.pinned-row:hover { background: rgba(245,158,11,.1) !important; }
 
   /* Boton WhatsApp grande verde (GPT: para tu viejo) */
   .btn-wa-big {
@@ -847,28 +898,34 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   .empty h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
   .empty p { font-size: 13px; }
 
-  /* ── MODAL ── */
+  /* ── SLIDING DRAWER (estilo Twenty: panel lateral derecho) ── */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.4);
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(4px);
     z-index: 200;
-    align-items: center;
-    justify-content: center;
+    justify-content: flex-end;  /* Drawer pegado a la derecha */
   }
   .modal-overlay.open { display: flex; }
   .modal {
     background: var(--surface);
-    border-radius: 12px;
-    width: 540px;
-    max-width: 95vw;
-    max-height: 85vh;
+    border-radius: 0;
+    border-left: 1px solid var(--border);
+    width: 520px;
+    max-width: 100vw;
+    max-height: 100vh;
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
     padding: 28px;
+    animation: slideIn .25s cubic-bezier(.4,0,.2,1);
   }
-  .modal h2 { font-size: 18px; margin-bottom: 20px; }
+  @keyframes slideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 20px; color: var(--text); }
   .modal-field { margin-bottom: 16px; }
   .modal-field label { display: block; font-size: 12px; font-weight: 600;
     color: var(--muted); margin-bottom: 5px; text-transform: uppercase;
@@ -884,11 +941,13 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     resize: vertical;
     min-height: 80px;
     outline: none;
+    background: var(--bg);
+    color: var(--text);
   }
   .modal-field textarea:focus { border-color: var(--primary); }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
   .btn-secondary {
-    background: var(--surface);
+    background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--text);
     padding: 8px 16px;
@@ -896,7 +955,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     font-size: 13px;
     cursor: pointer;
   }
-  .btn-secondary:hover { background: #F1F5F9; }
+  .btn-secondary:hover { background: var(--border); }
   .modal-close {
     float: right;
     background: none;
@@ -909,8 +968,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   }
   .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
   .contact-box {
-    background: #F0FDF4;
-    border: 1px solid #BBF7D0;
+    background: rgba(34,197,94,.06);
+    border: 1px solid rgba(34,197,94,.2);
     border-radius: 8px;
     padding: 14px;
     display: flex;
@@ -918,8 +977,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     justify-content: space-between;
   }
   .contact-box.no-contact {
-    background: #FEF9C3;
-    border-color: #FDE68A;
+    background: rgba(245,158,11,.06);
+    border-color: rgba(245,158,11,.2);
   }
 
   /* ── LOADING ── */
@@ -10214,7 +10273,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 18:07 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 19:02 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
