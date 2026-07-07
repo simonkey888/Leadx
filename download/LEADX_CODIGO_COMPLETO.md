@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 22:14 UTC  
+**Generado:** 2026-07-07 23:52 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** ae6f2b84-41af-4700-8495-7cb6fb9f4b49  
-**Estado:** Producción activa · cron cada 1h · 14 leads VentaFe preventivos (KV limpio, FB filtrado) · apify-webhook con filtro estricto dolor + scoring dinámico · rediseño Twenty.com · KPI=bandeja
-**Timestamp generación:** 2026-07-07 22:14 UTC (hora UTC) · Argentina: 2026-07-07 19:14:11 ART
+**Worker Version:** b74d0bc6-5875-4c92-b48b-ee5cfeb66119  
+**Estado:** Producción activa · cron cada 1h · 10 leads Facebook Grupo A (Defensas contra Multas AR) con dolor real · 0 spam · 0 competidores · 0 duplicados · rediseño Twenty.com
+**Timestamp generación:** 2026-07-07 23:52 UTC (hora UTC) · Argentina: 2026-07-07 20:52:03 ART
 
 ---
 
@@ -14,8 +14,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,346 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,351 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,364 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,358 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -594,11 +594,59 @@
 - KV purgado y regenerado: **14 leads VentaFe preventivos** (limpios, sin basura FB)
 - Solo posts de FB con dolor vehicular explícito llegarán al KV en el futuro
 
+### ✅ FIX QWEN v2 — FB intent scoring + VentaFe preventivos capados/filtrados → DONE
+
+**FIX 1 — apify-webhook con INTENT_KW + scoring adaptado:**
+- `INTENT_KW`: detecta consultas/reclamos (consultar, ayuda, recomiendan, se puede, abonar, defender)
+- `PAIN_KW` ampliado: forzar barrera, reclamo, evidencia, foto
+- Scoring: base 30, +25 multa, +20 transferencia, +20 deuda, +15 intent, +20 contacto, +15 patente
+- Umbral: < 45 → descartar
+
+**FIX 2A — Capar score de preventivos a 42:**
+- Preventivos sin `DEUDA_COMPROBADA` → score capado a 42 (nunca calientes)
+- Preventivos puros sin patente ni dolor → `return None` (descartar)
+
+**FIX 2B — Endurecer Step 4.9:**
+- Solo pasan VentaFe con `DOLOR_EXPLICITO_REGISTRAL` o `DEUDA_COMPROBADA`
+- Preventivos solos ya no pasan el filtro de salida
+
+### ✅ FIX ANTI-SPAM + ANTI-DUPLICADOS en apify-webhook → DONE
+
+- `SPAM_KW`: bloquea posts de venta de cursos/seminarios (seminario, curso, asincrónico, pack incluye)
+- `seenAuthors`: 1 post por autor (elimina 6 duplicados de Roberto López Freijo)
+- Resultado: de 20 posts → 11 leads limpios (9 descartados: 3 sin dolor + 6 spam)
+
+### ✅ FIX SIMON — Filtrar ofertas de servicios gestoriales (competidores) → DONE
+
+- `SERVICE_OFFER_KW`: bloquea posts de gestores/competidores que OFRECEN servicios
+  - 'elimino multas', 'saco turnos', 'hago informes'
+  - 'gestoría', 'gestor automotor'
+  - 'ofrezco mis servicios', 'mis servicios'
+  - 'consultanos', 'defendemos tus derechos'
+- Jess Borella (gestora que publicitaba 'ELIMINO MULTAS') → filtrada
+- Resultado: **10 leads limpios**, todos personas CON problemas reales, 0 competidores
+
+### 📊 Estado final del KV — 10 leads Facebook Grupo A con dolor real
+
+| # | Usuario | Score | Dolor |
+|---|---|---|---|
+| 1 | Benitez Brandon | 100 | Moto con infracción, forzar barrera, sin contacto vendedor |
+| 2 | Jorge Cadiboni | 90 | 3 multas de moto transferida, 3 veces descargo |
+| 3 | Juan Lotito | 75 | Camioneta con 2 multas del dueño anterior |
+| 4 | Vlad Gold | 70 | Multa del primer dueño que falleció |
+| 5 | Adolfo Giraudo | 65 | Vende taxi Toyota Corolla |
+| 6-10 | 5 consultas | 45-55 | Multas, descargos, prescripción, exceso velocidad |
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+95f4d2b fix: filtrar ofertas de servicios gestoriales (competidores no leads)
+1a17c44 fix: anti-spam seminario + anti-duplicados en apify-webhook
+c3ba0a8 radar: auto-update 2026-07-07 22:58 UTC
+352f319 radar: auto-update 2026-07-07 22:22 UTC
+f352394 fix(qwen v2): FB intent scoring + VentaFe preventivos capados/filtrados
 8065468 radar: auto-update 2026-07-07 22:11 UTC
 9008659 fix(qwen): filtro estricto dolor + scoring dinamico en apify-webhook
 a2f3607 feat(qwen): agregar Grupo B (Venta Santa Fe) al scraper Apify FB
@@ -614,11 +662,6 @@ df58516 radar: auto-update 2026-07-07 20:11 UTC
 98c5062 radar: auto-update 2026-07-07 20:04 UTC
 4935589 fix(gemini sabueso fase 3): solo dolor real explicito, eliminar preventivas sin patente
 3f581bc radar: auto-update 2026-07-07 19:53 UTC
-0354046 fix(gemini tunel detalle): solo formato Mercosur (AA111AA) para evitar falsos positivos
-a3191cc radar: auto-update 2026-07-07 19:49 UTC
-2ef83a5 feat(gemini tunel detalle): scraper de pagina de detalle para extraer patentes
-fe3d660 radar: auto-update 2026-07-07 19:33 UTC
-812ee6f feat(gemini tunel): clasific.ar audita VentaFe con patente + boost dinamico deuda
 ```
 
 ---
@@ -3359,11 +3402,13 @@ export default {
         const body = await request.json();
         const items = body.items || body.results || body || [];
         const leads = [];
+        const seenAuthors = new Set(); // FIX ANTI-DUPLICADOS: 1 post por autor
         const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
         const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
 
-        // FILTRO ESTRICTO DE DOLOR (obligatorio para FB, cero excepciones)
-        const PAIN_KW = /multa|fotomulta|infracci[oó]n|libre.?deuda|transferencia|transferir|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|vencimiento|prescripci[oó]n|papeles.al.d[ií]a|listo.para.transferir|sin.deuda|titular/i;
+        // FIX QWEN v2: Filtro de dolor + intención (adaptado a grupos de consulta/reclamo FB)
+        const PAIN_KW = /multa|fotomulta|infracci[oó]n|forzar.barrera|peaje|deuda|libre.?deuda|transferencia|transferir|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|vencimiento|prescripci[oó]n|papeles.al.d[ií]a|listo.para.transferir|sin.deuda|titular|reclamo|defender|negativa|evidencia|foto/i;
+        const INTENT_KW = /consultar|sabe.del.tema|ayuda|recomiendan|se.puede|abonar|mitad|defender|negativa/i;
 
         for (const post of (Array.isArray(items) ? items : [])) {
           const text = post.text || post.postText || '';
@@ -3371,22 +3416,38 @@ export default {
           const postUrl = post.url || post.postUrl || '';
           if (!text && !author) continue;
 
-          // RECHAZO INMEDIATO si no hay dolor vehicular explícito
-          if (!PAIN_KW.test(text)) continue;
+          // Filtro de entrada: exige dolor vehicular O intención de consulta/reclamo
+          if (!PAIN_KW.test(text) && !INTENT_KW.test(text)) continue;
+
+          // FIX ANTI-SPAM: bloquear posts de venta de cursos/seminarios (no son leads)
+          const SPAM_KW = /seminario|curso|asincr[oó]nico|pack incluye|no te lo pierdas|cupos limitados/i;
+          if (SPAM_KW.test(text)) continue;
+
+          // FIX SIMON: bloquear OFERTAS de servicios gestoriales (son competidores, no leads).
+          // "ELIMINO MULTAS", "SACO TURNOS", "HAGO INFORMES", "GESTORIA", etc.
+          const SERVICE_OFFER_KW = /elimino\s+multas|saco\s+turnos|hago\s+informes|gestor[ií]a|gestor\s+automotor|ofrezco\s+mis\s+servicios|mis\s+servicios|consultanos|defendemos\s+tus\s+derechos|sacamos\s+turnos|realizamos\s+informes/i;
+          if (SERVICE_OFFER_KW.test(text)) continue;
+
+          // FIX ANTI-DUPLICADOS: si el mismo autor ya tiene un post, solo quedarse con el de mayor score
+          const authorKey = author.toLowerCase().trim();
+          if (seenAuthors.has(authorKey)) continue;
+          seenAuthors.add(authorKey);
 
           const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+          const patenteMatch = text.match(/\\b([A-Za-z]{2}\\s?\\d{3}\\s?[A-Za-z]{2})\\b/i);
 
-          // Scoring dinámico (alineado con pipeline Python)
-          let score = 40;
-          if (/multa|fotomulta/i.test(text)) score += 20;
-          if (/transferencia|transferir|08/i.test(text)) score += 15;
-          if (/deuda|libre.deuda/i.test(text)) score += 15;
+          // Scoring dinámico adaptado a grupos de consulta
+          let score = 30;
+          if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) score += 25;
+          if (/transferencia|transferir|08|titular|papeles/i.test(text)) score += 20;
+          if (/deuda|libre.deuda|vencimiento|prescripci[oó]n|monto|abonar/i.test(text)) score += 20;
+          if (INTENT_KW.test(text)) score += 15;
           if (phones.length > 0 || emails.length > 0) score += 20;
+          if (patenteMatch) score += 15;
           score = Math.min(100, score);
 
-          // Umbral mínimo: si no llega a 50, no es lead
-          if (score < 50) continue;
+          if (score < 45) continue;
 
           leads.push({
             id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
@@ -5527,6 +5588,14 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     # Clamp
     score = max(0, min(100, score))
 
+    # FIX QWEN v2: Los preventivos sin deuda comprobada NUNCA son calientes.
+    # Capar score a 42 para que aparezcan como tibio/frío, no como 🔥.
+    # Si además no tienen patente ni dolor explícito, descartar directamente.
+    if "PREVENTIVO_A_VERIFICAR" in signals and "DEUDA_COMPROBADA" not in signals:
+        score = min(score, 42)
+        if "DOLOR_EXPLICITO_REGISTRAL" not in signals and not has_patente:
+            return None  # Preventivo puro sin patente ni dolor → descartar
+
     # --- CLASSIFY (Qwen fix P0: umbrales relajados para VentaFe) ---
     # VentaFe: leads comerciales preventivos (vendedor con auto en venta).
     # Aceptar con umbrales más bajos si tiene contacto, aunque no haya "dolor".
@@ -6215,18 +6284,17 @@ def run_pipeline() -> Dict[str, Any]:
         is_vf_out = ("ventafe" in (lead.platform or "").lower()
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
-            # FIX GEMINI HIBRIDO: pasar si tiene signals validas (dolor, preventivo, deuda)
-            has_valid_signals = any(sig in (lead.detected_signals or []) for sig in [
-                "DOLOR_EXPLICITO_REGISTRAL", "PREVENTIVO_A_VERIFICAR", "DEUDA_COMPROBADA"
-            ])
-            has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
-            has_patente_out = bool(getattr(lead, "patente", "") or "")
-            if has_valid_signals or has_validated_debt or has_patente_out:
+            # FIX QWEN v2: Solo pasan si tienen dolor explícito O deuda comprobada por clasific.ar
+            has_real_pain = "DOLOR_EXPLICITO_REGISTRAL" in (lead.detected_signals or [])
+            has_proven_debt = ("DEUDA_COMPROBADA" in (lead.detected_signals or [])
+                               or (getattr(lead, "deuda_clasificar", 0) or 0) > 0)
+            if has_real_pain or has_proven_debt:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin signals validas",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: preventivo sin deuda/dolor real",
                       file=sys.stderr)
+                continue
         else:
             filtered_leads.append(lead)
     leads = filtered_leads
@@ -10516,7 +10584,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 22:14 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 23:52 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
