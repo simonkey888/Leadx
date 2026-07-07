@@ -1107,11 +1107,21 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if is_vf:
         text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
         text_lower_vf = text_for_pain.lower()
+        # FIX GEMINI SABUESO FASE 2: Solo frases compuestas de alto valor preventivo.
+        # NO admitir 'transferencia' o 'transferir' sueltas (95% de avisos comunes las usan).
         has_explicit_pain_text = any(kw in text_lower_vf for kw in [
+            # Dolor explicito
             "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "bloqueada", "bloqueado",
-            "sin 08", "no puedo transferir", "papeles al dia", "papeles al día",
-            "listo para transferir", "libre deuda", "libre de multas"
+            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
+            "bloqueada", "bloqueado",
+            # Dolor documental especifico
+            "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
+            # Preventivo de alta calidad (frases compuestas, no palabras sueltas)
+            "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
+            "sin deudas", "sin multas", "libre de multas",
+            "patente paga", "patentes pagas", "patente al dia", "patente al día",
+            "listo para transferir", "transferencia inmediata",
+            "se transfiere si o si", "se transfiere sí o sí",
         ])
         has_patente = bool(record.get("patente"))
         if not (has_explicit_pain_text or has_patente):
@@ -1212,7 +1222,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         signals.append("multa_fotomulta")
 
     # transfer_problem: +45
-    if "transferencia" in text or "transferir" in text or "08 firmado" in text:
+    # FIX GEMINI SABUESO FASE 2: Evitar inflacion de score por mencion comercial comun.
+    # En VentaFe, 95% de avisos dicen "transferencia" o "transferir" sin tener dolor real.
+    # Solo sumar +45 si hay palabras de traba/bloqueo (no puedo, problema, traba, etc.)
+    # o si NO es VentaFe (Reddit/FB/ML si pueden mencionarlo sin contexto comercial).
+    is_generic_transfer_mention = is_vf and not any(
+        neg in text for neg in ["no puedo", "problema", "traba", "bloqueo", "demora",
+                                 "embargo", "no se puede", "impedimento", "inhibicion"]
+    )
+    has_transfer_context = ("transferencia" in text or "transferir" in text
+                            or "08 firmado" in text or re.search(r"\b08\b", text))
+    if has_transfer_context and not is_generic_transfer_mention:
         score += SCORE_RULES["transfer_problem"]
         breakdown["transfer_problem"] = SCORE_RULES["transfer_problem"]
         signals.append("transfer_problem")
