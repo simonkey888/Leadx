@@ -639,9 +639,11 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
                 detail_clean = _html_mod.unescape(detail_clean)
                 detail_clean = _re.sub(r'\s+', ' ', detail_clean)
 
-                # Regex patentes AR: Mercosur (AA111AA) + viejo (AAA111), case-insensitive
-                patentes_raw = _re.findall(r'\b([a-zA-Z]{2}\s?\d{3}\s?[a-zA-Z]{2}|[a-zA-Z]{3}\s?\d{3})\b', detail_clean)
-                patentes_detectadas = list(set(p.replace(" ", "").upper() for p in patentes_raw if len(p.replace(" ", "")) >= 6))
+                # Regex patentes AR: SOLO formato Mercosur (AA111AA) — 2 letras + 3 digitos + 2 letras.
+                # El formato viejo (AAA111) causa falsos positivos (CEL342, CON270, DIR342, etc.)
+                # que son abreviaciones seguidas de codigos de area.
+                patentes_raw = _re.findall(r'\b([a-zA-Z]{2}\s?\d{3}\s?[a-zA-Z]{2})\b', detail_clean)
+                patentes_detectadas = list(set(p.replace(" ", "").upper() for p in patentes_raw if len(p.replace(" ", "")) == 7))
 
                 if patentes_detectadas:
                     print(f"  [VentaFe Detail] Aviso #{aviso_id}: patentes={patentes_detectadas[:3]}", file=sys.stderr)
