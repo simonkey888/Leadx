@@ -1,11 +1,11 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 16:25 UTC  
+**Generado:** 2026-07-07 18:07 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 11737a8f-aa23-41f1-a81e-7abb3ef46a7c  
-**Estado:** Producción activa · cron cada 1h · 6 leads VentaFe de alta calidad (preventivos reales) · todos con teléfono · todos con WhatsApp link · KPI=bandeja (alineados)
+**Worker Version:** 3ea82ce8-5f1d-41ea-90ba-7c288282a9f4  
+**Estado:** Producción activa · cron cada 1h · 6 leads VentaFe de alta calidad (preventivos reales) · todos con teléfono · todos con WhatsApp link · KPI=bandeja (alineados) · ortografía restaurada (bug de las 's' arreglado)
 
 ---
 
@@ -13,7 +13,7 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,365 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 1 | `worker.js` | 3,371 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
 | 2 | `generate_payload.py` | 2,205 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
@@ -379,11 +379,47 @@
 - Peugeot 208 2021 — 'papeles al dia'
 - Peugeot 206 — 'Listo para transferir'
 
+### FIX GEMINI SABUESO v3 — Bug masivo de ortografía 's' desaparecidas → DONE
+
+**Problema crítico — La letra 's' desapareció del CRM:**
+- 'Disputa' → 'Di puta'
+- 'transferencia' → 'tran ferencia'
+- 'Mercedes' → 'Mercede '
+- 'hasta' → 'ha ta'
+- 'pesos' → 'pe o '
+- 'usado' → 'u ado'
+- 'estado' → 'e tado'
+
+**Causa raíz:**
+- El template literal `DASHBOARD_HTML` en worker.js (líneas 19-1632) usa backticks
+- Dentro de un template literal, `\` se interpreta como carácter de escape
+- Cuando el código fuente tenía `/\s+/g`, JavaScript lo compilaba como `/s+/g` (sin la barra)
+- El navegador del usuario final recibía `/s+/g` que reemplazaba TODAS las letras 's' con espacio
+
+**Fix aplicado — Doble escape de `\s` y `\d` dentro de DASHBOARD_HTML:**
+
+| # | Función | Línea | Antes | Ahora |
+|---|---|---|---|---|
+| 1 | `cleanSnippet` | 997 | `/\s+/g` (escape simple) | `/\\s+/g` (doble escape) ✅ |
+| 2 | `normalizePhoneAR` | 946 | `/^\d{3,4}15\d{6,7}$/` | `/^\\d{3,4}15\\d{6,7}$/` ✅ |
+
+`cleanText` (línea 1005) ya tenía el doble escape correcto desde antes.
+
+**Verificación del deploy:**
+- Código fuente del repo: `/\\s+/g` (doble escape, lo que wrangler sube al Worker)
+- HTML servido al navegador: `/\s+/g` (escape simple, regex correcta que el navegador interpreta)
+- Bug `/s+/g` (sin escape) en código servido: 0 ocurrencias reales (solo en comentarios explicativos)
+- VLM confirmó en screenshot: 'Disputa', 'transferencia', 'Mercedes', 'estado' — todas con 's' visibles ✅
+
+**Nota importante:** Las regex en `runPipelineCron` (líneas 3059, 3290, etc.) NO requieren doble escape porque están fuera del template literal `DASHBOARD_HTML` — son código JS normal del Worker.
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+2cb34b2 radar: auto-update 2026-07-07 17:10 UTC
+cade23e fix(gemini sabueso v3): doble escape \\s y \\d en DASHBOARD_HTML
 d11d976 radar: auto-update 2026-07-07 16:18 UTC
 4be3caa fix(gemini sabueso fase 2): afinacion fina eliminar falsos positivos transferir
 d21043f radar: auto-update 2026-07-07 16:09 UTC
@@ -402,8 +438,6 @@ ea80709 radar: auto-update 2026-07-07 11:44 UTC
 1fe44cb fix(gemini audit v2): Edge Cron requiere pain keyword strict + junk filter
 cbdad73 fix(gemini audit): Edge Cron Reddit SOLO AR + fix TDZ VentaFe
 4872e25 radar: auto-update 2026-07-07 05:29 UTC
-aedf2e1 feat(gemini): decay temporal + validacion cruzada geo + fix duplicado
-7a1c2fd radar: auto-update 2026-07-07 05:20 UTC
 ```
 
 ---
@@ -1355,7 +1389,10 @@ function normalizePhoneAR(raw) {
   if (!digits) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
   if (digits.startsWith('54')) digits = digits.slice(2);
   if (digits.startsWith('0')) digits = digits.slice(1);
-  if (digits.length === 12 && /^\d{3,4}15\d{6,7}$/.test(digits)) {
+  // FIX GEMINI SABUESO v3: doble escape \\d dentro de template literal DASHBOARD_HTML.
+  // Sin esto, /^\d{3,4}15\d{6,7}$/ se convierte en /^d{3,4}15d{6,7}$/ que matchea
+  // el literal 'd' (no dígito) y rompe la normalización de teléfonos AR.
+  if (digits.length === 12 && /^\\d{3,4}15\\d{6,7}$/.test(digits)) {
     digits = digits.replace(/15/, '');
   }
   if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
@@ -1406,7 +1443,10 @@ function cleanSnippet(text) {
   t = t.replace(/&#8211;/g, '-').replace(/&#8212;/g, '--').replace(/&#8216;/g, "'");
   t = t.replace(/&#8242;/g, "'").replace(/&#8243;/g, '"').replace(/&nbsp;/g, ' ');
   // Colapsar espacios
-  t = t.replace(/\s+/g, ' ').trim();
+  // FIX GEMINI SABUESO v3: doble escape \\s dentro de template literal DASHBOARD_HTML.
+  // Sin esto, el motor JS come la barra invertida y deja /s+/g que destruye todas las 's'
+  // del CRM ("Disputa" → "Di puta", "transferencia" → "tran ferencia", etc.)
+  t = t.replace(/\\s+/g, ' ').trim();
   return t;
 }
 
@@ -10174,7 +10214,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 16:25 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 18:07 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
