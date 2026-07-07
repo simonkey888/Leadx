@@ -1034,7 +1034,14 @@ function applyFilters() {
   S.filtered = S.crmLeads.filter(l => {
     if (S.statusFilter !== 'todos' && l._status !== S.statusFilter) return false;
     if (pv !== 'todos' && (l.provincia || '') !== pv) return false;
-    if (sf !== 'todos' && (l.source_label || l.source || '') !== sf) return false;
+    // FIX GEMINI: sourceFilter case-insensitive + substring match.
+    // Antes: comparacion estricta fallaba porque Python hacia .title() → "Ventafe.Com.Ar"
+    // Ahora: matchea si el source del lead contiene el filtro (case-insensitive)
+    if (sf !== 'todos') {
+      const leadSrc = (l.source_label || l.source || l.platform || '').toLowerCase();
+      const filterSrc = sf.toLowerCase();
+      if (!leadSrc.includes(filterSrc) && !filterSrc.includes(leadSrc)) return false;
+    }
     // FIX QWEN v2.8: filtro Contacto
     if (cf === 'whatsapp' && !l._wa_url) return false;
     if (cf === 'email' && !(l.email || l.email_publico)) return false;
