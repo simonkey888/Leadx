@@ -2729,6 +2729,7 @@ export default {
         const body = await request.json();
         const items = body.items || body.results || body || [];
         const leads = [];
+        const seenAuthors = new Set(); // FIX ANTI-DUPLICADOS: 1 post por autor
         const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
         const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
 
@@ -2744,6 +2745,15 @@ export default {
 
           // Filtro de entrada: exige dolor vehicular O intención de consulta/reclamo
           if (!PAIN_KW.test(text) && !INTENT_KW.test(text)) continue;
+
+          // FIX ANTI-SPAM: bloquear posts de venta de cursos/seminarios (no son leads)
+          const SPAM_KW = /seminario|curso|asincr[oó]nico|pack incluye|no te lo pierdas|cupos limitados/i;
+          if (SPAM_KW.test(text)) continue;
+
+          // FIX ANTI-DUPLICADOS: si el mismo autor ya tiene un post, solo quedarse con el de mayor score
+          const authorKey = author.toLowerCase().trim();
+          if (seenAuthors.has(authorKey)) continue;
+          seenAuthors.add(authorKey);
 
           const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
