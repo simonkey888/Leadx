@@ -1086,9 +1086,16 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- Scoring ---
 
-    # Boost ML Questions Radar (alta calidad - Sakana+Claude)
+    # FIX QWEN v3.0: Rechazar VentaFe sin provincia o sin teléfono real (datos truchos)
     platform_str = (record.get("platform", "") or "").lower()
     source_str = (record.get("source", "") or "").lower()
+    if "ventafe" in source_str or "ventafe" in platform_str or "ventafe.com.ar" in (record.get("source_url", "") or ""):
+        if not record.get("provincia") and not record.get("zona"):
+            return None
+        if not record.get("telefono_publico") and not record.get("phone") and not record.get("whatsapp_publico"):
+            return None
+
+    # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
         score += 25
         breakdown["ml_questions"] = 25
