@@ -1,41 +1,12 @@
 {
-  "total_runs": 76,
-  "last_run": "2026-07-07T04:54:40.151762+00:00",
-  "last_run_id": "8dabe6e94a83",
-  "total_leads_all_time": 775,
-  "total_hot_leads_all_time": 674,
-  "avg_hot_per_run": 8.9,
-  "runs_today": 7,
+  "total_runs": 77,
+  "last_run": "2026-07-07T05:14:20.093813+00:00",
+  "last_run_id": "f2f8ca3e3264",
+  "total_leads_all_time": 778,
+  "total_hot_leads_all_time": 677,
+  "avg_hot_per_run": 8.8,
+  "runs_today": 8,
   "last_7_days": [
-    {
-      "run_id": "7099359b4955",
-      "generated_at": "2026-07-07T00:04:07.985219+00:00",
-      "summary": {
-        "total_leads": 13,
-        "hot_leads": 13,
-        "warm_leads": 0,
-        "contactable": 13,
-        "with_whatsapp": 5,
-        "with_phone": 13,
-        "with_email": 0,
-        "avg_score": 84.6,
-        "avg_score_hot": 84.6,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "OTHER": 6,
-          "TRANSFER_PROBLEM": 4,
-          "OWNERSHIP_ISSUE": 2,
-          "FINE_DISPUTE": 1
-        },
-        "by_platform": {
-          "Ventafe.Com.Ar": 13
-        },
-        "by_province": {
-          "CABA": 1,
-          "Paraná": 1
-        }
-      }
-    },
     {
       "run_id": "80651e3b1693",
       "generated_at": "2026-07-07T00:52:56.132517+00:00",
@@ -205,6 +176,33 @@
         },
         "by_platform": {
           "Ventafe.Com.Ar": 30
+        },
+        "by_province": {
+          "CABA": 2,
+          "Paraná": 1
+        }
+      }
+    },
+    {
+      "run_id": "f2f8ca3e3264",
+      "generated_at": "2026-07-07T05:14:20.093813+00:00",
+      "summary": {
+        "total_leads": 3,
+        "hot_leads": 3,
+        "warm_leads": 0,
+        "contactable": 3,
+        "with_whatsapp": 3,
+        "with_phone": 3,
+        "with_email": 0,
+        "avg_score": 96.7,
+        "avg_score_hot": 96.7,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "TRANSFER_PROBLEM": 2,
+          "OTHER": 1
+        },
+        "by_platform": {
+          "Ventafe.Com.Ar": 3
         },
         "by_province": {
           "CABA": 2,
