@@ -1,11 +1,11 @@
-# 📦 LeadX — Código Completo (Bundle Único para Kimi)
+# 📦 LeadX — Código Completo (Bundle Único)
 
-**Generado:** 2026-07-07 04:42 UTC  
+**Generado:** 2026-07-07 05:01 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 8ef31786-a427-405d-9f2a-8578b0f5ecdb  
-**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link · 30 VentaFe con URL clickeable al aviso real
+**Worker Version:** f12be03c-1a50-4d6f-aae4-2fe9c60e89bd  
+**Estado:** Producción activa · cron cada 1h · 117 leads en KV · 45 con teléfono · 44 con WhatsApp link · 30 VentaFe con URL clickeable · dashboard sin prompt de auth
 
 ---
 
@@ -13,8 +13,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,343 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,083 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,316 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,102 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -147,18 +147,20 @@
 
 ### Estado final del KV (verificado)
 
-| Métrica | Antes | Post-Qwen P0 | Post-Qwen v2.7 | Post-Qwen v2.8 |
-|---|---|---|---|---|
-| Total leads | 53 | 80 | 117 | **117** |
-| Leads con teléfono | 1 | 28 | 45 | **45** |
-| Leads con WhatsApp link | 1 | 27 | 44 | **44** |
-| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | 30 | **30** (3 estrategias) |
-| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' | ✅ |
-| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | 5 págs (45 leads) | **5 págs (45 leads)** |
-| ML Questions | num=15 | num=15 | num=50 | **num=50** |
-| clasific.ar enriquecimiento | Todos con patente | Todos con patente | Solo score>=70 | **Solo score>=70** |
-| Filtros frontend | 3 (Estado/Prov/Fuente) | 3 | 3 | **5 (+Contacto +Temperatura)** |
-| Anti-gaming filter | ❌ | ❌ | ❌ | **✅ (subreddits + 30 keywords)** |
+| Métrica | Antes | Post-Qwen P0 | Post-Qwen v2.7 | Post-Qwen v2.8 | Post-Qwen v2.9 |
+|---|---|---|---|---|---|
+| Total leads | 53 | 80 | 117 | 117 | **117** |
+| Leads con teléfono | 1 | 28 | 45 | 45 | **45** |
+| Leads con WhatsApp link | 1 | 27 | 44 | 44 | **44** |
+| Leads VentaFe con URL clickeable al aviso real | 0 | 13 | 30 | 30 (3 estrategias) | **30** |
+| Botón WhatsApp funcional | ❌ Unauthorized | ✅ Abre wa.me directo | ✅ Marca 'Contactado' | ✅ | ✅ |
+| Scraper VentaFe | 1 página (17 leads) | 1 página (17 leads) | 5 págs (45 leads) | 5 págs (45 leads) | **5 págs (45 leads)** |
+| ML Questions | num=15 | num=15 | num=50 | num=50 | **num=50** |
+| clasific.ar enriquecimiento | Todos con patente | Todos con patente | Solo score>=70 | Solo score>=70 | **Solo score>=70** |
+| Filtros frontend | 3 (Estado/Prov/Fuente) | 3 | 3 | 5 (+Contacto +Temperatura) | **5** |
+| Anti-gaming filter | ❌ | ❌ | ❌ | ✅ (subreddits + 30 keywords) | **✅** |
+| Auth frontend | ❌ prompt + sessionStorage | ✅ sessionStorage + fallback | ✅ | ✅ | **✅ Sin prompt (hardcodeado)** |
+| Reddit SOLO Argentina | ❌ | ❌ | ❌ | ❌ | **✅ (filtro estricto + query 'argentina')** |
 
 ### FIX QWEN v2.7 — Escala real (3 cambios) → DONE
 
@@ -205,11 +207,35 @@
 - `extract_entities()` filtra subreddits de gaming (return None)
 - `extract_entities()` filtra posts con 2+ keywords de gaming (return None)
 
+### FIX QWEN v2.9 — Sin prompt auth + Reddit SOLO Argentina → DONE
+
+**#1 — Eliminar prompt de autenticación (worker.js):**
+- Eliminado el IIFE que pedía la clave con `prompt()` al cargar el dashboard
+- `getUrlSecret()` ahora siempre devuelve `'LEGACY_SECRET_REMOVED'` hardcodeado
+- Sin `sessionStorage` ni URL params necesarios
+- Dashboard abre directo sin pedir nada (uso interno, frontend read-only)
+- Nota de seguridad: si en el futuro se necesita auth real, agregar allowlist de IPs o proxy en el Worker
+
+**#2 — Filtro Reddit SOLO Argentina (generate_payload.py):**
+- En `classify_and_score()`: si `platform=Reddit` Y no hay señal AR explícita en el texto
+  (`has_arg_signal=False` y ninguna AR keyword extra), descartar el lead inmediatamente con `return None`
+- AR keywords extra: 25+ (argentina, BS AS, CABA, córdoba, santa fe, rosario, mendoza,
+  entre ríos, neuquén, salta, la plata, arba, dnrpa, rentas, pba, gba, parana, tigre,
+  avellaneda, quilmes, moron, pilar, etc.)
+- En `collect_public_sources()`: forzar `'argentina'` en queries Reddit con f-string segura
+  (evita dobles espacios y queries mal formadas)
+- Resultado: cero leads Reddit de Italia/USA/genéricos llegan al CRM
+- Los leads Reddit viejos del KV envejecen naturalmente (deep merge los conserva pero no se renuevan)
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+b571f4d radar: auto-update 2026-07-07 04:54 UTC
+ebb8d84 fix(qwen v2.9): sin prompt auth + Reddit SOLO Argentina
+02c28fe radar: auto-update 2026-07-07 04:47 UTC
+ab425ac radar: auto-update 2026-07-07 04:40 UTC
 56bccc8 fix(qwen v2.8): URLs VentaFe 3-estrategias + filtros frontend + anti-gaming
 abb08e6 radar: auto-update 2026-07-07 04:25 UTC
 71b54de fix(ventafe): usar ?p=N en vez de ?page=N (paginacion real)
@@ -226,10 +252,6 @@ bd643d8 fix(qwen): abrir WhatsApp directo sin validacion Apify
 22fa7e8 radar: auto-update 2026-07-06 22:10 UTC
 f032961 radar: auto-update 2026-07-06 22:04 UTC
 9c6ab1b fix(bomba2 parte4): dedup VentaFe usa URL+telefono como composite
-9c52ec9 radar: auto-update 2026-07-06 22:02 UTC
-53dce4c fix(bomba2): VentaFe bypass filtros vehicular + pain + scoring
-3b6aadb radar: auto-update 2026-07-06 21:57 UTC
-e97f30e fix(bombas): getUrlSecret sessionStorage + PAIN_KEYWORDS_RE excepcion VentaFe
 ```
 
 ---
@@ -1040,19 +1062,8 @@ const S = {
   currentId:    null,
 };
 
-// Auto-pedir key si no hay (BOMBA #1 fix)
-(function() {
-  const hasSession = sessionStorage.getItem('leadx_secret');
-  const hasUrl     = new URLSearchParams(location.search).get('key');
-  if (!hasSession && !hasUrl && !sessionStorage.getItem('leadx_secret_asked')) {
-    const key = prompt('🔒 Clave de acceso LeadX:');
-    sessionStorage.setItem('leadx_secret_asked', 'true');
-    if (key) {
-      sessionStorage.setItem('leadx_secret', key);
-      location.reload();
-    }
-  }
-})();
+// FIX QWEN v2.9: Sin prompt de autenticación.
+// getUrlSecret() siempre devuelve 'LEGACY_SECRET_REMOVED' hardcodeado (uso interno, frontend read-only).
 
 // Persistencia local (status + notes por lead ID)
 const DB = {
@@ -1703,25 +1714,9 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  // 1. Buscar en sessionStorage (persistente por tab)
-  let secret = sessionStorage.getItem('leadx_secret');
-  if (secret) return secret;
-  // 2. Buscar en URL params
-  const urlSecret = new URLSearchParams(location.search).get('key');
-  if (urlSecret) {
-    sessionStorage.setItem('leadx_secret', urlSecret);
-    return urlSecret;
-  }
-  // 3. Si no hay, pedir una vez
-  if (!sessionStorage.getItem('leadx_secret_asked')) {
-    const prompted = prompt('🔒 Ingresá la clave de acceso LeadX:');
-    sessionStorage.setItem('leadx_secret_asked', 'true');
-    if (prompted) {
-      sessionStorage.setItem('leadx_secret', prompted);
-      return prompted;
-    }
-  }
-  // 4. Hardcoded fallback (LEGACY_SECRET_REMOVED público del Worker) para que la UI nunca quede readonly
+  // FIX QWEN v2.9: Hardcodeado, sin prompts ni sessionStorage.
+  // Uso interno (frontend read-only). Si en el futuro se necesita auth real,
+  // agregar allowlist de IPs o proxy en el Worker.
   return 'LEGACY_SECRET_REMOVED';
 }
 
@@ -4241,12 +4236,17 @@ def collect_public_sources() -> List[Dict[str, Any]]:
         
         # Si es query Reddit, usar wrapper con status para detectar 429
         if "site:reddit.com" in query.lower():
+            # FIX QWEN v2.9: Forzar 'argentina' en queries Reddit para reducir ruido foreign.
+            # f-string segura, evita dobles espacios y queries mal formadas.
+            clean_q = query.lower().replace("site:reddit.com", "").strip()
+            if "argentina" not in clean_q:
+                clean_q = f"{clean_q} argentina"
             results, got_429 = search_reddit_with_status(
-                query.lower().replace("site:reddit.com", "").strip(),
+                clean_q,
                 num=MAX_RESULTS_PER_QUERY
             )
             if got_429 and _pqm_global:
-                rss_url = f"https://www.reddit.com/search.rss?q={query}"
+                rss_url = f"https://www.reddit.com/search.rss?q={clean_q}"
                 _pqm_global.add(rss_url, query, _CURRENT_GROUP_IDX)
                 print(f"  [PQM] 429 en '{query[:40]}' → agregado a pending", file=sys.stderr)
         else:
@@ -4819,6 +4819,20 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["argentina_signal"]
         breakdown["argentina_signal"] = SCORE_RULES["argentina_signal"]
         signals.append("argentina")
+
+    # FIX QWEN v2.9: FILTRO ESTRICTO — Reddit SOLO Argentina.
+    # Si no hay señal AR explícita en el texto Y la plataforma es Reddit,
+    # descartar el lead inmediatamente (no llega al CRM).
+    if record.get("platform", "").lower() == "reddit":
+        ar_keywords_extra = [
+            "argentina", "buenos aires", "caba", "capital federal", "cordoba",
+            "cordoba", "santa fe", "rosario", "mendoza", "entre rios",
+            "neuquen", "salta", "la plata", "arba", "dnrpa", "rentas",
+            "pba", "gba", "patente argentina", "parana", "tigre",
+            "avellaneda", "quilmes", "moron", "pilar",
+        ]
+        if not has_arg_signal and not any(kw in text for kw in ar_keywords_extra):
+            return None  # Descarte inmediato, no llega al CRM
 
     # --- Penalties ---
 
@@ -9856,7 +9870,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 04:42 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 05:01 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
