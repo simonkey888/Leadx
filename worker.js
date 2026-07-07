@@ -551,10 +551,10 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 
     <div class="sidebar-section">
       <div class="sidebar-label">Contacto</div>
-      <div class="filter-item" onclick="filterContact('todos', this)" id="fc-todos">
+      <div class="filter-item active" onclick="filterContact('todos', this)" id="fc-todos">
         Todos <span class="filter-count" id="cnt-contact-todos">0</span>
       </div>
-      <div class="filter-item active" onclick="filterContact('whatsapp', this)" id="fc-whatsapp">
+      <div class="filter-item" onclick="filterContact('whatsapp', this)" id="fc-whatsapp">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" style="vertical-align:middle"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
         Con WhatsApp <span class="filter-count" id="cnt-whatsapp">0</span>
       </div>
@@ -568,10 +568,10 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 
     <div class="sidebar-section">
       <div class="sidebar-label">Temperatura</div>
-      <div class="filter-item" onclick="filterHeat('todos', this)" id="fh-todos">
+      <div class="filter-item active" onclick="filterHeat('todos', this)" id="fh-todos">
         Todos <span class="filter-count" id="cnt-heat-todos">0</span>
       </div>
-      <div class="filter-item active" onclick="filterHeat('hot', this)" id="fh-hot">
+      <div class="filter-item" onclick="filterHeat('hot', this)" id="fh-hot">
         🔥 Calientes <span class="filter-count" id="cnt-hot">0</span>
       </div>
       <div class="filter-item" onclick="filterHeat('warm', this)" id="fh-warm">
@@ -793,9 +793,9 @@ const S = {
   filtered:   [],
   statusFilter: 'todos',
   provFilter:   'todos',
-  sourceFilter: 'VentaFe',     // FIX QWEN v3.0: default a VentaFe (era 'todos')
-  contactFilter: 'whatsapp',  // FIX QWEN v3.0: default a con WhatsApp (era 'todos')
-  heatFilter:    'hot',        // FIX QWEN v3.0: default a calientes (era 'todos')
+  sourceFilter: 'todos',     // FIX GEMINI AUDIT v4: volver a 'todos' (era 'VentaFe')
+  contactFilter: 'todos',   // FIX GEMINI AUDIT v4: volver a 'todos' (era 'whatsapp')
+  heatFilter:    'todos',   // FIX GEMINI AUDIT v4: volver a 'todos' (era 'hot')
   currentId:    null,
 };
 
