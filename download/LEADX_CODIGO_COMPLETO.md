@@ -1,11 +1,11 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 15:33 UTC  
+**Generado:** 2026-07-07 16:25 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 75f407e5-0900-4fd4-b227-ce6922acdfd2  
-**Estado:** Producción activa · cron cada 1h · 32 leads en KV · 32 con teléfono · 32 con WhatsApp link · KPI=bandeja (alineados)
+**Worker Version:** 11737a8f-aa23-41f1-a81e-7abb3ef46a7c  
+**Estado:** Producción activa · cron cada 1h · 6 leads VentaFe de alta calidad (preventivos reales) · todos con teléfono · todos con WhatsApp link · KPI=bandeja (alineados)
 
 ---
 
@@ -13,8 +13,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,362 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,138 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,365 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,205 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -147,25 +147,26 @@
 
 ### Estado final del KV (verificado)
 
-| Métrica | Antes | Post-Qwen P0 | v2.7 | v2.8 | v2.9 | v3.0 | v3.0.1 | Audit v5 |
-|---|---|---|---|---|---|---|---|---|
-| Total leads | 53 | 80 | 117 | 117 | 117 | 30 (purged) | 30 | **32** |
-| Leads con teléfono | 1 | 28 | 45 | 45 | 45 | 30 | 30 | **32** |
-| Leads con WhatsApp link | 1 | 27 | 44 | 44 | 44 | 30 | 30 | **32** |
-| Botón WhatsApp funcional | ❌ Unauthorized | ✅ wa.me directo | ✅ | ✅ | ✅ | ✅ | ✅ | **✅** |
-| Scraper VentaFe | 1 pág (17) | 1 pág (17) | 5 págs (45) | 5 págs (45) | 5 págs (45) | 5 págs (45) | 5 págs (45) | **5 págs (45)** |
-| ML Questions | num=15 | num=15 | num=50 | num=50 | num=50 | num=50 | num=50 | **num=50** |
-| clasific.ar enriquecimiento | Todos | Todos | Solo score≥70 | Solo score≥70 | Solo score≥70 | Solo score≥70 | Solo score≥70 | **Solo score≥70** |
-| Filtros frontend | 3 | 3 | 3 | 5 | 5 | 5 (defaults VentaFe/WA/hot) | 5 (defaults todos) | **5 (defaults todos)** |
-| Anti-gaming filter | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | **✅** |
-| Auth frontend | ❌ prompt | ✅ sessionStorage | ✅ | ✅ | ✅ Sin prompt | ✅ Sin prompt | ✅ Sin prompt | **✅ Sin prompt** |
-| Reddit SOLO Argentina | ❌ | ❌ | ❌ | ❌ | ✅ Python | ✅ Python | ✅ Python | **✅ Python + Edge Cron** |
-| Edge Cron TDZ fix | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
-| Decay temporal (>7d) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
-| Validación cruzada área↔prov | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ (-10 pts mismatch)** |
-| Encoding 'transferencia' | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ html.unescape()** |
-| Persona única VentaFe | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Vendedor #{aviso_id}** |
-| KPI Total casos = bandeja | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Alineados** |
+| Métrica | Antes | Qwen P0 | v2.7 | v2.9 | Audit v5 | Sabueso F1+F2 |
+|---|---|---|---|---|---|---|
+| Total leads en KV | 53 | 80 | 117 | 117 | 32 | **6** |
+| Calidad de leads | ❌ Basura | 🟡 Mixta | 🟡 Mixta | 🟡 Mixta | 🟡 Mixta | **🟢 Todos preventivos reales** |
+| Leads con teléfono | 1 | 28 | 45 | 45 | 32 | **6 (100%)** |
+| Leads con WhatsApp link | 1 | 27 | 44 | 44 | 32 | **6 (100%)** |
+| Botón WhatsApp funcional | ❌ Unauthorized | ✅ wa.me | ✅ | ✅ | ✅ | **✅** |
+| Scraper VentaFe | 1 pág | 1 pág | 5 págs (45) | 5 págs (45) | 5 págs (45) | **5 págs (44)** |
+| Filtro VentaFe 'Pain o Patente' | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Admisión + Salida** |
+| Bug '08' → '308' falso positivo | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ \b08\b** |
+| Score inflado por 'transferir' suelto | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Traba/bloqueo requerido** |
+| Filtros frontend defaults | 3 | 3 | 3 | 5 | 5 (todos) | **5 (todos)** |
+| Auth frontend | ❌ prompt | ✅ | ✅ | ✅ Sin prompt | ✅ Sin prompt | **✅ Sin prompt** |
+| Reddit SOLO Argentina | ❌ | ❌ | ❌ | ✅ Python | ✅ Python+Edge | **✅** |
+| Edge Cron TDZ fix | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Decay temporal (>7d) | ❌ | ❌ | ❌ | ❌ | ✅ | **✅** |
+| Validación cruzada área↔prov | ❌ | ❌ | ❌ | ❌ | ✅ | **✅ (-10 pts)** |
+| Encoding 'transferencia' | ❌ | ❌ | ❌ | ❌ | ✅ html.unescape | **✅** |
+| Persona única VentaFe | ❌ | ❌ | ❌ | ❌ | ✅ Vendedor #ID | **✅** |
+| KPI Total casos = bandeja | ❌ | ❌ | ❌ | ❌ | ✅ Alineados | **✅** |
 
 ### FIX QWEN v2.7 — Escala real (3 cambios) → DONE
 
@@ -309,11 +310,85 @@
 - Cada llamada scrapea 5 páginas con `sleep(3)` = 15s extra perdido
 - Ahora se llama 1 sola vez. Pipeline 15s más rápido.
 
+### FIX GEMINI AUDIT v6 — TDZ score + ReferenceError ventafeLeads → DONE
+
+**#1 — TDZ (Temporal Dead Zone) en runPipelineCron (worker.js):**
+- Línea 3289 (vieja): `score += 10` → usaba `score` ANTES de declararlo
+- Línea 3291 (vieja): `let score = 40` → declaración después del uso
+- Causaba `ReferenceError: Cannot access 'score' before initialization` cada vez que el Edge Cron procesaba un aviso VentaFe
+- Fix: mover `let score = 40` ANTES del primer uso de `score`
+
+**#2 — ReferenceError `ventafeLeads` (worker.js):**
+- Línea 3313 (vieja): `console.log('[CRON] VentaFe done: ' + ventafeLeads.length + ...)`
+- La variable `ventafeLeads` no existe en ese scope (solo se usa `newLeads`)
+- Causaba crash al final del scraper VentaFe del Edge Cron
+- Fix: reemplazar `ventafeLeads` por `newLeads`
+
+### FIX GEMINI SABUESO Fase 1 — Filtro de Calidad de Dos Vías VentaFe → DONE
+
+**Problema:** El CRM mostraba avisos comunes de VentaFe (Peugeot 308 limpio) como leads con dolor.
+
+**Causa raíz — Bug del 'Peugeot 308':**
+- El filtro `MUST_INCLUDE_ONE` tenía `'08'` suelto, y el regex matcheaba `'08'` dentro de `'308'`, `'2016'`, `'110.000km'`
+- Regalaba +40 pts falsos por `document_08` a avisos que no mencionaban formulario 08
+
+**3 parches quirúrgicos:**
+
+**Paso 1 — Matar bug '08' (3 puntos):**
+- Removido `'08'` de `MUST_INCLUDE_ONE` (ahora solo palabras reales)
+- `extract_entities`: `has_must_match` usa `re.search(r'\b08\b', text)`
+- `classify_and_score`: `'08' in text` → `re.search(r'\b08\b', text)`
+- `problem_category`: mismo fix
+
+**Paso 2 — Filtro de Admisión VentaFe (Pain o Patente):**
+- Al inicio de `classify_and_score`: si es VentaFe, solo pasa si tiene dolor textual explícito (multa/deuda/infraccion/etc) O patente declarada
+- Avisos comunes sin dolor ni patente → `return None`
+
+**Paso 3 — Filtro de Salida en `run_pipeline` (post-clasific.ar):**
+- Después del Step 4.5 (enriquecimiento clasific.ar), si un lead VentaFe no tiene dolor textual Y `deuda_clasificar=0`, se descarta
+- Log: `[Sabueso Descarte] Lead X eliminado: sin dolor textual y deuda=0`
+
+**Resultado Fase 1:** bajó de 44 a 6 leads (86% de ruido eliminado). Pero 4 de los 6 eran falsos positivos por `'transferir'` suelto.
+
+### FIX GEMINI SABUESO Fase 2 — Afinación fina eliminar falsos positivos → DONE
+
+**Problema Fase 1:** 4 de 6 leads eran falsos positivos porque el scoring daba +45 pts a cualquier aviso que mencionara `'transferir'` o `'transferencia'` (95% de avisos comunes de VentaFe usan esas palabras en contexto comercial, no de dolor).
+
+**2 parches quirúrgicos:**
+
+**Punto A — Refinar filtro de admisión VentaFe:**
+- Lista de keywords expandida con términos compuestos de alto valor preventivo:
+  - `patente paga`, `patentes pagas`, `patente al dia`
+  - `sin deudas`, `sin multas`, `libre de multas`
+  - `08 vencido`, `titular fallecido`, `no tengo el 08`
+  - `transferencia inmediata`, `se transfiere si o si`, `se transfiere sí o sí`
+- Confirmado: NO se admiten `'transferencia'` o `'transferir'` sueltas (solo frases compuestas)
+
+**Punto B — Evitar inflación de score por transferencia común:**
+- Antes: cualquier mención de `'transferir/transferencia'` daba +45 pts
+- Ahora: si es VentaFe Y no hay palabras de traba/bloqueo
+  (`no puedo`, `problema`, `traba`, `bloqueo`, `demora`, `embargo`, `no se puede`, `impedimento`, `inhibicion`)
+  NO se suman los +45 pts
+- Para Reddit/FB/ML sigue sumando normal (no tienen contexto comercial)
+
+**Resultado Fase 2:** 6 leads en CRM, **TODOS preventivos reales**:
+- Mercedes A200 — 'sin deuda, multas, etc.'
+- Peugeot 208 2022 — 'Listo para transferir. Patente paga 2026, sin multas' ⭐
+- Grand Vitara — 'PAPELES AL DIA' ⭐
+- Ford Ka 2007 — 'listo para transferir'
+- Peugeot 208 2021 — 'papeles al dia'
+- Peugeot 206 — 'Listo para transferir'
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+d11d976 radar: auto-update 2026-07-07 16:18 UTC
+4be3caa fix(gemini sabueso fase 2): afinacion fina eliminar falsos positivos transferir
+d21043f radar: auto-update 2026-07-07 16:09 UTC
+4be67b8 fix(gemini sabueso): Filtro de Calidad de Dos Vias VentaFe
+6530641 fix(gemini audit v6): TDZ score + ReferenceError ventafeLeads
 d5e5cae fix(gemini audit v5): KPI Total casos = bandeja (quitar filtros extras)
 296fff4 radar: auto-update 2026-07-07 14:46 UTC
 b989c0a fix(visual): encoding transferencia + persona unico por lead VentaFe
@@ -329,11 +404,6 @@ cbdad73 fix(gemini audit): Edge Cron Reddit SOLO AR + fix TDZ VentaFe
 4872e25 radar: auto-update 2026-07-07 05:29 UTC
 aedf2e1 feat(gemini): decay temporal + validacion cruzada geo + fix duplicado
 7a1c2fd radar: auto-update 2026-07-07 05:20 UTC
-f23ab77 fix(v3.0.1): relajar filtro VentaFe (OR en vez de AND)
-e883bb0 radar: auto-update 2026-07-07 05:14 UTC
-04329ca fix(qwen v3.0): purgar KV + defaults filtros + bloquear genericos
-b571f4d radar: auto-update 2026-07-07 04:54 UTC
-ebb8d84 fix(qwen v2.9): sin prompt auth + Reddit SOLO Argentina
 ```
 
 ---
@@ -3631,15 +3701,17 @@ async function runPipelineCron(env) {
         if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
         if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
         if (!problemas.length && !patenteM && !phones.length) continue;
-        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
-        
+
+        // FIX GEMINI AUDIT v6 (TDZ): declarar `let score = 40` ANTES de usar `score +=`
+        // Antes: línea 3289 hacía `score += 10` antes de `let score = 40` (línea 3291) → crash TDZ
         let score = 40;
+        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
         if (patenteM) score += 15;
         if (problemas.includes('TRANSFERENCIA')) score += 30;
         if (problemas.includes('MULTA')) score += 25;
         if (problemas.includes('DEUDA')) score += 25;
         if (phones.length) score += 30;
-        
+
         newLeads.push({
           id: 'ventafe_' + (phones[0] || '').replace(/[^0-9]/g, '') + '_' + text.substring(0, 10).replace(/[^a-zA-Z0-9]/g, ''),
           source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
@@ -3655,7 +3727,8 @@ async function runPipelineCron(env) {
         });
       }
     }
-    console.log('[CRON] VentaFe done: ' + ventafeLeads.length + ' leads found');
+    // FIX GEMINI AUDIT v6 (ReferenceError): `ventafeLeads` no existe en este scope, usar `newLeads`
+    console.log('[CRON] VentaFe done: ' + newLeads.length + ' leads found');
   } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
 
   const raw = await env.LEADX_KV.get('leads:live');
@@ -3874,7 +3947,7 @@ WHATSAPP_HINT_REGEX = re.compile(
 # ===========================================================================
 
 MUST_INCLUDE_ONE = ["auto", "transferencia", "vehiculo", "vehículo", "multa", "patente",
-                    "moto", "camioneta", "libre deuda", "08"]
+                    "moto", "camioneta", "libre deuda"]  # FIX GEMINI Sabueso: removido '08' suelto (matcheaba '308', '2016', etc.)
 
 REJECT_IF_CONTAINS = [
     "publicado por", "leer más", "última actualización",
@@ -4506,7 +4579,10 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
     # Content filter
     combined_lower = combined.lower()
-    if not any(kw in combined_lower for kw in MUST_INCLUDE_ONE):
+    # FIX GEMINI Sabueso: verificar 08 con word boundary (no matchear '308', '2016', etc.)
+    is_ventafe = "ventafe.com.ar" in url or result.get("source") == "ventafe" or result.get("host_name") == "ventafe.com.ar"
+    has_must_match = any(kw in combined_lower for kw in MUST_INCLUDE_ONE) or bool(re.search(r"\b08\b", combined_lower))
+    if not is_ventafe and not has_must_match:
         return None
     for reject in REJECT_IF_CONTAINS:
         if reject in combined_lower:
@@ -4806,17 +4882,38 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- Scoring ---
 
-    # FIX QWEN v3.0 (corregido v3.0.1): Rechazar VentaFe SOLO si no tiene NINGUN dato real.
-    # Antes requería AMBOS (provincia AND telefono) y mataba 27 de 30 leads validos.
-    # Ahora: rechazar solo si no tiene provincia/zona Y no tiene telefono/whatsapp.
+    # FIX GEMINI SABUESO (Paso 2): Filtro de Admisión VentaFe (Pain o Patente).
+    # Si el lead viene de VentaFe, solo ingresa al pipeline si:
+    #   (a) menciona dolor vehicular explicito en el texto, O
+    #   (b) tiene patente declarada (para auditar contra clasific.ar luego)
+    # Avisos comunes sin dolor ni patente (ej: Peugeot 308 limpio) se descartan.
     platform_str = (record.get("platform", "") or "").lower()
     source_str = (record.get("source", "") or "").lower()
-    if "ventafe" in source_str or "ventafe" in platform_str or "ventafe.com.ar" in (record.get("source_url", "") or ""):
-        has_provincia = bool(record.get("provincia") or record.get("zona"))
-        has_contacto = bool(record.get("telefono_publico") or record.get("phone")
-                            or record.get("whatsapp_publico") or record.get("whatsapp"))
-        if not has_provincia and not has_contacto:
-            return None  # Sin provincia Y sin contacto → dato trucho, descartar
+    is_vf = ("ventafe" in source_str or "ventafe" in platform_str
+             or "ventafe.com.ar" in (record.get("source_url", "") or ""))
+
+    if is_vf:
+        text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
+        text_lower_vf = text_for_pain.lower()
+        # FIX GEMINI SABUESO FASE 2: Solo frases compuestas de alto valor preventivo.
+        # NO admitir 'transferencia' o 'transferir' sueltas (95% de avisos comunes las usan).
+        has_explicit_pain_text = any(kw in text_lower_vf for kw in [
+            # Dolor explicito
+            "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
+            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
+            "bloqueada", "bloqueado",
+            # Dolor documental especifico
+            "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
+            # Preventivo de alta calidad (frases compuestas, no palabras sueltas)
+            "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
+            "sin deudas", "sin multas", "libre de multas",
+            "patente paga", "patentes pagas", "patente al dia", "patente al día",
+            "listo para transferir", "transferencia inmediata",
+            "se transfiere si o si", "se transfiere sí o sí",
+        ])
+        has_patente = bool(record.get("patente"))
+        if not (has_explicit_pain_text or has_patente):
+            return None  # VentaFe sin dolor ni patente → aviso comun, descartar
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -4913,7 +5010,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         signals.append("multa_fotomulta")
 
     # transfer_problem: +45
-    if "transferencia" in text or "transferir" in text or "08 firmado" in text:
+    # FIX GEMINI SABUESO FASE 2: Evitar inflacion de score por mencion comercial comun.
+    # En VentaFe, 95% de avisos dicen "transferencia" o "transferir" sin tener dolor real.
+    # Solo sumar +45 si hay palabras de traba/bloqueo (no puedo, problema, traba, etc.)
+    # o si NO es VentaFe (Reddit/FB/ML si pueden mencionarlo sin contexto comercial).
+    is_generic_transfer_mention = is_vf and not any(
+        neg in text for neg in ["no puedo", "problema", "traba", "bloqueo", "demora",
+                                 "embargo", "no se puede", "impedimento", "inhibicion"]
+    )
+    has_transfer_context = ("transferencia" in text or "transferir" in text
+                            or "08 firmado" in text or re.search(r"\b08\b", text))
+    if has_transfer_context and not is_generic_transfer_mention:
         score += SCORE_RULES["transfer_problem"]
         breakdown["transfer_problem"] = SCORE_RULES["transfer_problem"]
         signals.append("transfer_problem")
@@ -4925,7 +5032,8 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         signals.append("libre_deuda")
 
     # 08_or_document_problem: +40 (no sumar doble con transfer)
-    if "08" in text and "libre deuda" not in text:
+    # FIX GEMINI Sabueso: usar \b08\b (word boundary) para no matchear '308', '2016', '110.000km'
+    if re.search(r"\b08\b", text) and "libre deuda" not in text:
         score += SCORE_RULES["08_or_document_problem"]
         breakdown["08_or_document_problem"] = SCORE_RULES["08_or_document_problem"]
         signals.append("document_08")
@@ -5120,7 +5228,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         return None
 
     # Problem category
-    if "transferencia" in text or "transferir" in text or "08" in text:
+    if "transferencia" in text or "transferir" in text or re.search(r"\b08\b", text):
         problem_cat = "TRANSFER_PROBLEM"
         problem_sum = "Problema de transferencia"
     elif "multa" in text or "fotomulta" in text:
@@ -5751,6 +5859,38 @@ def run_pipeline() -> Dict[str, Any]:
                 print(f"  [clasific.ar] {enriched_count} leads calientes enriquecidos", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
+
+    # FIX GEMINI SABUESO (Paso 3): Filtro de Salida VentaFe.
+    # Si un lead VentaFe paso el filtro de admision (Paso 2) pero:
+    #   - su texto NO mencionaba dolor explicito, Y
+    #   - clasific.ar respondio deuda=0 (o no se enriquecio),
+    # entonces se descarta antes de llegar al CRM de Sergio.
+    filtered_leads = []
+    sabueso_descartes = 0
+    for lead in leads:
+        is_vf_out = ("ventafe" in (lead.platform or "").lower()
+                     or "ventafe" in (lead.source_url or "").lower())
+        if is_vf_out:
+            text_lower_out = (lead.quoted_text or "").lower()
+            has_explicit_pain_text = any(kw in text_lower_out for kw in [
+                "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
+                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "bloqueada", "bloqueado",
+                "sin 08", "no puedo transferir", "papeles al dia", "papeles al día",
+                "listo para transferir", "libre deuda", "libre de multas"
+            ])
+            has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
+            if has_explicit_pain_text or has_validated_debt:
+                filtered_leads.append(lead)
+            else:
+                sabueso_descartes += 1
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor textual y deuda=0",
+                      file=sys.stderr)
+        else:
+            filtered_leads.append(lead)
+    leads = filtered_leads
+    if sabueso_descartes:
+        print(f"  [Sabueso] {sabueso_descartes} leads VentaFe descartados por falta de dolor/deuda",
+              file=sys.stderr)
 
     # Step 4.6: Comment Mining (DeepSeek+Qwen insight)
     mine_comments_for_contacts(leads)
@@ -10034,7 +10174,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 15:33 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 16:25 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
