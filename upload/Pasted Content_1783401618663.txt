@@ -1,0 +1,1921 @@
+A continuación se presenta el código completo, exacto y depurado listo para
+producción para los dos archivos principales de la Arquitectura Final: worker.js
+y generate_payload.py.
+
+Ambos archivos han sido integrados con todos los fixes técnicos acumulados
+(resolución de variables indefinidas, errores de ámbito por zonas muertas
+temporales —TDZ—, eliminación de llamadas duplicadas de scraping, validación
+cruzada geográfica y el algoritmo global de decaimiento temporal).
+
+1. worker.js (Código Completo y Corregido)
+
+Este archivo contiene la constante global COOKIES_HTML corregida, el endpoint
+/api/ingest optimizado con el algoritmo de decaimiento sobre el conjunto
+unificado merged, y la secuencia de inicialización del cron de VentaFe sin
+bloqueos de asignación en tiempo de ejecución.
+
+/**
+ * LeadX Worker v11 — AUTOCONTENIDO
+ * =================================
+ * Un solo archivo. Sin env.ASSETS. Sin assets binding.
+ * HTML embebido + APIs KV.
+ *
+ * Endpoints:
+ *   GET  /              → HTML del dashboard (embebido)
+ *   GET  /api/leads     → JSON con leads desde KV
+ *   GET  /api/metrics   → JSON con métricas
+ *   POST /api/ingest    → Recibe batch del pipeline Python (auth: X-Webhook-Secret)
+ *   GET  /api/kv        → Lee key de KV (auth: X-Webhook-Secret)
+ *   POST /api/kv        → Escribe key a KV con TTL opcional (auth: X-Webhook-Secret)
+ */
+
+// ─────────────────────────────────────────────────────────────
+// HTML DE CONTROL PARA REFRESCAR COOKIES (M7)
+// ─────────────────────────────────────────────────────────────
+const COOKIES_HTML = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>FB Cookies Refresher</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 30px; max-width: 600px; margin: auto; background: #F4F6F9; color: #1A2332; }
+    h3 { color: #1B4FBB; margin-bottom: 10px; }
+    textarea { width: 100%; font-family: monospace; padding: 12px; border-radius: 6px; border: 1px solid #E1E8ED; outline: none; margin-bottom: 15px; }
+    button { background: #1B4FBB; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background .15s; }
+    button:hover { background: #1640A0; }
+  </style>
+</head>
+<body>
+  <h3>🔄 Refrescar Cookies Facebook</h3>
+  <p>Pegá el JSON exportado de tu extensión de cookies (solo dominio facebook.com):</p>
+  <textarea id="c" rows="10" placeholder="[ { 'name': 'xs', 'value': '...' } ]"></textarea><br>
+  <button onclick="saveCookies()">Guardar Cookies</button>
+
+  <script>
+    function saveCookies() {
+      try {
+        const val = JSON.parse(document.getElementById('c').value);
+        fetch('/api/cookies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cookies: val, source: 'cookies_panel' })
+        })
+        .then(r => r.json())
+        .then(d => alert(d.ok ? '✅ Guardadas correctamente y asociadas al Scraper.' : '❌ Error: ' + d.error))
+        .catch(e => alert('❌ Error en red: ' + e.message));
+      } catch(e) {
+        alert('❌ JSON Inválido: Asegurate de pegar un arreglo JSON válido.');
+      }
+    }
+  </script>
+</body>
+</html>`;
+
+// ─────────────────────────────────────────────────────────────
+// HTML DEL DASHBOARD (embebido, sin dependencias externas)
+// ─────────────────────────────────────────────────────────────
+const DASHBOARD_HTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadX CRM — Gestión de Casos</title>
+<style>
+  :root {
+    --bg:       #F4F6F9;
+    --surface:  #FFFFFF;
+    --border:   #E1E8ED;
+    --text:     #1A2332;
+    --muted:    #6B7A8D;
+    --primary:  #1B4FBB;
+    --primary-h:#1640A0;
+    --green:    #00875A;
+    --green-h:  #006644;
+    --orange:   #FF8B00;
+    --red:      #DE350B;
+    --purple:   #6554C0;
+    --radius:   8px;
+    --shadow:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--primary);
+    color: #fff;
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .topbar-brand {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-brand span { opacity: .7; font-weight: 400; font-size: 13px; }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    opacity: .9;
+  }
+  .sync-btn {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .15s;
+  }
+  .sync-btn:hover { background: rgba(255,255,255,.25); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 16px 8px;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .1s;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .filter-item:hover { background: #F0F4FF; color: var(--text); }
+  .filter-item.active {
+    background: #EEF2FF;
+    border-left-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .filter-count {
+    background: var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .filter-item.active .filter-count {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* ── MAIN ── */
+  .main { flex: 1; padding: 24px; min-width: 0; }
+
+  /* ── KPI ROW ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.orange { color: var(--orange); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.blue { color: var(--primary); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .search-wrap input:focus { border-color: var(--primary); }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--primary-h); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #F8FAFC;
+    border-bottom: 2px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { color: var(--text); }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #F8FAFC; }
+  td { padding: 12px 14px; vertical-align: middle; }
+  .td-nombre { font-weight: 600; font-size: 13px; max-width: 160px; }
+  .td-nombre small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .td-resumen { max-width: 260px; }
+  .td-resumen p { font-size: 12px; color: var(--muted);
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; }
+
+  /* ── STATUS BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-nuevo    { background: #EEF2FF; color: #3730A3; }
+  .badge-contactado  { background: #FFF7E6; color: #92400E; }
+  .badge-gestion  { background: #F0FDF4; color: #166534; }
+  .badge-cerrado  { background: #ECFDF5; color: var(--green); }
+  .badge-descartado { background: #FEF2F2; color: var(--red); }
+  .kpi-value.purple { color: var(--purple); }
+  .badge-hot { background: #FEF3C7; color: #92400E; margin-left: 4px; }
+  .badge-warm { background: #DBEAFE; color: #1E40AF; margin-left: 4px; }
+
+  /* Heat score row colors */
+  tr.heat-hot { background: #FEF2F2 !important; }
+  tr.heat-hot:hover { background: #FEE2E2 !important; }
+  tr.heat-warm { background: #FFFBEB !important; }
+  tr.heat-warm:hover { background: #FEF3C7 !important; }
+  tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
+  tr.pinned-row { border-left: 3px solid #fbbf24 !important; background: #FFFbeb !important; }
+  tr.pinned-row:hover { background: #FEF3C7 !important; }
+
+  /* Botón WhatsApp grande verde */
+  .btn-wa-big {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .btn-wa-big:hover { background: #1DAE53; transform: scale(1.1); }
+  .btn-wa-pending {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #E5E7EB;
+    color: #6B7280;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-wa-pending:hover { background: #D1D5DB; }
+  .wa-none { font-size: 14px; color: var(--red); }
+
+  /* ── SOURCE TAG ── */
+  .source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    background: #F1F5F9;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── ACTION BUTTONS ── */
+  .actions { display: flex; gap: 6px; align-items: center; }
+  .btn-wa {
+    background: #25D366;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background .15s;
+  }
+  .btn-wa:hover { background: #1DAE53; }
+  .btn-icon {
+    background: #F1F5F9;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-icon:hover { background: #E2E8F0; color: var(--text); }
+
+  /* ── STATUS SELECT ── */
+  .status-sel {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+  .empty p { font-size: 13px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    width: 540px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    padding: 28px;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 20px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label { display: block; font-size: 12px; font-weight: 600;
+    color: var(--muted); margin-bottom: 5px; text-transform: uppercase;
+    letter-spacing: .4px; }
+  .modal-field .val { font-size: 14px; color: var(--text); }
+  .modal-field textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+  }
+  .modal-field textarea:focus { border-color: var(--primary); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn-secondary:hover { background: #F1F5F9; }
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .contact-box {
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .contact-box.no-contact {
+    background: #FEF9C3;
+    border-color: #FDE68A;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    color: var(--muted);
+    gap: 10px;
+    font-size: 13px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    📋 LeadX CRM
+    <span>Gestión de casos · Sin Fotomultas</span>
+  </div>
+  <div class="topbar-right">
+    <span id="syncTime">—</span>
+    <button class="sync-btn" onclick="loadLeads()">↻ Sincronizar</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Estado</div>
+      <div class="filter-item active" onclick="filterStatus('todos', this)" id="f-todos">
+        Todos <span class="filter-count" id="cnt-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Nuevo', this)" id="f-Nuevo">
+        🔵 Nuevo <span class="filter-count" id="cnt-Nuevo">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Contactado', this)" id="f-Contactado">
+        🟡 Contactado <span class="filter-count" id="cnt-Contactado">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('En gestión', this)" id="f-En gestión">
+        🟢 En gestión <span class="filter-count" id="cnt-En gestión">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Cerrado', this)" id="f-Cerrado">
+        ✅ Cerrado <span class="filter-count" id="cnt-Cerrado">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Descartado', this)" id="f-Descartado">
+        ❌ Descartado <span class="filter-count" id="cnt-Descartado">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Provincia</div>
+      <div id="prov-filters"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Fuente</div>
+      <div id="source-filters"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Contacto</div>
+      <div class="filter-item active" onclick="filterContact('todos', this)" id="fc-todos">
+        Todos <span class="filter-count" id="cnt-contact-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('whatsapp', this)" id="fc-whatsapp">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" style="vertical-align:middle"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+        Con WhatsApp <span class="filter-count" id="cnt-whatsapp">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('email', this)" id="fc-email">
+        ✉️ Con Email <span class="filter-count" id="cnt-email">0</span>
+      </div>
+      <div class="filter-item" onclick="filterContact('sin_contacto', this)" id="fc-sin-contacto">
+        ❌ Sin contacto <span class="filter-count" id="cnt-sin-contacto">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Temperatura</div>
+      <div class="filter-item active" onclick="filterHeat('todos', this)" id="fh-todos">
+        Todos <span class="filter-count" id="cnt-heat-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('hot', this)" id="fh-hot">
+        🔥 Calientes <span class="filter-count" id="cnt-hot">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('warm', this)" id="fh-warm">
+        ⚡ Tibios <span class="filter-count" id="cnt-warm">0</span>
+      </div>
+      <div class="filter-item" onclick="filterHeat('cold', this)" id="fh-cold">
+        ⚪ Fríos <span class="filter-count" id="cnt-cold">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Total casos</div>
+        <div class="kpi-value blue" id="kpi-total">—</div>
+        <div class="kpi-sub">casos con contacto identificado</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Con WhatsApp</div>
+        <div class="kpi-value green" id="kpi-wa">—</div>
+        <div class="kpi-sub">contactables directo</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">En proceso</div>
+        <div class="kpi-value orange" id="kpi-proceso">—</div>
+        <div class="kpi-sub">activos esta semana</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cerrados</div>
+        <div class="kpi-value green" id="kpi-cerrados">—</div>
+        <div class="kpi-sub">casos resueltos</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Buscar por nombre, provincia, problema..."
+          id="searchInput" oninput="renderTable()">
+      </div>
+      <select id="sortSel" onchange="renderTable()">
+        <option value="heat">🔥 Más caliente</option>
+        <option value="fecha">↓ Más reciente</option>
+        <option value="provincia">↑ Provincia</option>
+      </select>
+      <button class="btn-primary" onclick="openAddModal()">+ Agregar caso</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div id="tableContainer">
+        <div class="loading"><div class="spinner"></div> Cargando casos...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Detalle del caso</h2>
+
+    <div id="modal-contact-box" class="contact-box">
+      <div>
+        <strong id="modal-author">—</strong>
+        <div style="font-size:12px;color:#166534;margin-top:2px" id="modal-phone-label"></div>
+      </div>
+      <a id="modal-wa-btn" class="btn-wa" href="#" target="_blank">
+        💬 WhatsApp
+      </a>
+    </div>
+
+    <hr class="divider">
+
+    <div class="modal-field">
+      <label>Provincia</label>
+      <div class="val" id="modal-provincia">—</div>
+    </div>
+    <div class="modal-field">
+      <label>Fuente</label>
+      <div class="val" id="modal-source">—</div>
+    </div>
+    <div class="modal-field">
+      <label>Problema detectado</label>
+      <div class="val" id="modal-body" style="font-size:13px;color:var(--muted);line-height:1.6"></div>
+    </div>
+    <div class="modal-field">
+      <label>Ver post original</label>
+      <a id="modal-url" href="#" target="_blank"
+        style="font-size:12px;color:var(--primary)">Abrir enlace →</a>
+    </div>
+
+    <hr class="divider">
+
+    <div class="modal-field">
+      <label>Estado</label>
+      <select class="status-sel" id="modal-status-sel" onchange="saveStatusFromModal()">
+        <option>Nuevo</option>
+        <option>Contactado</option>
+        <option>En gestión</option>
+        <option>Cerrado</option>
+        <option>Descartado</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Notas internas</label>
+      <textarea id="modal-notes" placeholder="Anotá detalles del caso, monto estimado, acuerdos..."
+        onchange="saveNotesFromModal()"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cerrar</button>
+      <button class="btn-primary" onclick="saveAndClose()">Guardar y cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAddModal()">✕</button>
+    <h2>Agregar caso manual</h2>
+    <div class="modal-field">
+      <label>Nombre / Usuario</label>
+      <input type="text" id="add-nombre" placeholder="Nombre del contacto"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+    </div>
+    <div class="modal-field">
+      <label>WhatsApp / Teléfono</label>
+      <input type="text" id="add-phone" placeholder="+54 9 11 1234-5678"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+    </div>
+    <div class="modal-field">
+      <label>Provincia</label>
+      <select id="add-prov" style="width:100%">
+        <option value="">— Seleccionar —</option>
+        <option>Santa Fe</option><option>Buenos Aires</option>
+        <option>CABA</option><option>Córdoba</option>
+        <option>Entre Ríos</option><option>Misiones</option>
+        <option>La Pampa</option><option>Mendoza</option><option>Otra</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Descripción del caso</label>
+      <textarea id="add-body" placeholder="Resumen del problema..."
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;min-height:80px;outline:none;resize:vertical"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn-primary" onclick="addManualCase()">Agregar caso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const S = {
+  allLeads:   [],
+  crmLeads:   [],
+  filtered:   [],
+  statusFilter: 'todos',
+  provFilter:   'todos',
+  sourceFilter: 'todos',
+  contactFilter: 'todos',
+  heatFilter:   'todos',
+  currentId:    null,
+};
+
+const DB = {
+  get: (id)     => { try { return JSON.parse(localStorage.getItem('crm_' + id)) || {}; } catch { return {}; } },
+  set: (id, d)  => localStorage.setItem('crm_' + id, JSON.stringify(d)),
+  getManual: () => { try { return JSON.parse(localStorage.getItem('crm_manual')) || []; } catch { return []; } },
+  setManual: (a) => localStorage.setItem('crm_manual', JSON.stringify(a)),
+};
+
+async function loadLeads() {
+  document.getElementById('tableContainer').innerHTML = '<div class="loading"><div class="spinner"></div> Sincronizando...</div>';
+  try {
+    const r    = await fetch('/api/leads');
+    const data = await r.json();
+    const raw  = [
+      ...(data.leads_all || [])
+    ];
+    const seen = new Set();
+    S.allLeads = raw.filter(l => {
+      if (seen.has(l.id)) return false;
+      seen.add(l.id);
+      return true;
+    });
+
+    const apiCRM = S.allLeads.map(enrichLead);
+    const manual = DB.getManual().map(l => ({ ...l, _manual: true }));
+    S.crmLeads = [...manual, ...apiCRM.filter(l => !manual.some(m => m.id === l.id))];
+
+    document.getElementById('syncTime').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    applyFilters();
+    renderSidebar();
+    renderKPIs();
+  } catch (e) {
+    document.getElementById('tableContainer').innerHTML = \`<div class="empty"><h3>Error al cargar</h3><p>\${e.message}</p></div>\`;
+  }
+}
+
+function enrichLead(l) {
+  const stored = DB.get(l.id);
+  const persona = l.persona || l.author || '';
+  const wa = l.whatsapp_publico || l.whatsapp || '';
+  const phone = l.telefono_publico || l.phone || wa;
+  const email = l.email_publico || l.email || '';
+  const title = l.problem_summary || l.title || '';
+  const body = l.quoted_text || l.snippet || l.body || title;
+  const url = l.source_url || l.url || '#';
+  const platform = l.platform || l.source_label || l.source || '';
+  const finalScore = l.score || 0;
+  
+  return {
+    ...l,
+    author: persona,
+    phone: phone,
+    whatsapp: wa,
+    email: email,
+    source_label: platform,
+    source: platform,
+    title: title,
+    body: body,
+    url: url,
+    score: finalScore,
+    _status: stored.status || 'Nuevo',
+    _notes:  stored.notes  || '',
+    _phone:  phone || '',
+    _wa_url: buildWaUrl(phone || ''),
+    _wa_state: wa ? 'validated_whatsapp' : (phone ? 'normalized_contact' : 'none'),
+    _heat_label: finalScore >= 70 ? 'hot' : (finalScore >= 40 ? 'warm' : 'cold'),
+    _display_name: (persona && persona !== '(anónimo)') ? persona : 'Sin nombre',
+    _resumen: body.replace(/<[^>]+>/g, '').replace(/\\s+/g, ' ').trim().slice(0, 200),
+  };
+}
+
+function buildWaUrl(phone) {
+  if (!phone) return '';
+  const digits = phone.replace(/\\D/g, '');
+  if (!digits) return '';
+  const norm = digits.startsWith('54') ? digits : '54' + digits.replace(/^0/, '');
+  return 'https://wa.me/' + norm;
+}
+
+function filterStatus(val, el) {
+  S.statusFilter = val;
+  document.querySelectorAll('.sidebar .filter-item').forEach(e => {
+    if (e.id && e.id.startsWith('f-')) e.classList.remove('active');
+  });
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function filterContact(val, el) {
+  S.contactFilter = val;
+  document.querySelectorAll('#fc-todos, #fc-whatsapp, #fc-email, #fc-sin-contacto').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function filterHeat(val, el) {
+  S.heatFilter = val;
+  document.querySelectorAll('#fh-todos, #fh-hot, #fh-warm, #fh-cold').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q   = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const pv  = S.provFilter;
+  const sf  = S.sourceFilter;
+  const cf  = S.contactFilter;
+  const hf  = S.heatFilter;
+
+  S.filtered = S.crmLeads.filter(l => {
+    if (S.statusFilter !== 'todos' && l._status !== S.statusFilter) return false;
+    if (pv !== 'todos' && (l.provincia || '') !== pv) return false;
+    if (sf !== 'todos' && (l.source_label || l.source || '') !== sf) return false;
+    if (cf === 'whatsapp' && !l._wa_url) return false;
+    if (cf === 'email' && !l.email) return false;
+    if (cf === 'sin_contacto' && (l._wa_url || l.email)) return false;
+    if (hf !== 'todos' && l._heat_label !== hf) return false;
+    if (q) {
+      const hay = \`\${l._display_name} \${l.provincia} \${l._resumen} \${l.source_label}\`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const sort = document.getElementById('sortSel')?.value || 'heat';
+  S.filtered.sort((a, b) => {
+    if (sort === 'heat') return (b.score || 0) - (a.score || 0);
+    if (sort === 'provincia') return (a.provincia || '').localeCompare(b.provincia || '');
+    return (b.fecha_iso || '').localeCompare(a.fecha_iso || '');
+  });
+
+  renderTable();
+  renderCounts();
+}
+
+function renderTable() {
+  const leads = S.filtered;
+  if (!leads.length) {
+    document.getElementById('tableContainer').innerHTML = '<div class="empty"><h3>No hay casos en este filtro</h3><p>Probá cambiar los criterios de búsqueda.</p></div>';
+    return;
+  }
+
+  const rows = leads.map(l => {
+    let scoreColor = "bg-green-100 text-green-800";
+    if (l.score < 40) scoreColor = "bg-gray-100 text-gray-800";
+    else if (l.score < 70) scoreColor = "bg-amber-100 text-amber-800";
+
+    return \`
+    <tr onclick="openDetail('\${l.id}')" style="cursor:pointer" class="heat-\${l._heat_label}">
+      <td class="td-nombre">
+        \${l._heat_label === 'hot' ? '🔥 ' : l._heat_label === 'warm' ? '⚡ ' : ''} \${escH(l._display_name)}
+        <small>\${escH(l.fecha_iso || '—')} · \${escH(l.source_label || '?')}</small>
+      </td>
+      <td>\s\${escH(l.provincia || '—')}</td>
+      <td class="td-resumen"><p>\${escH(l._resumen)}</p></td>
+      <td><span class="badge badge-\${cssStatus(l._status)}">\${l._status}</span></td>
+      <td>
+        <div class="actions" onclick="event.stopPropagation()">
+          \${l._wa_url 
+            ? \`<a class="btn-wa-big" href="\${l._wa_url}" target="_blank" onclick="markContacted('\${l.id}')">💬</a>\`
+            : \`<span class="wa-none">❌</span>\`
+          }
+          <button class="btn-icon" onclick="openDetail('\${l.id}')">📋</button>
+        </div>
+      </td>
+    </tr>\`;
+  }).join('');
+
+  document.getElementById('tableContainer').innerHTML = \`
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre / Usuario</th>
+          <th>Provincia</th>
+          <th>Problema</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>\${rows}</tbody>
+    </table>\`;
+}
+
+function markContacted(id) {
+  const l = S.crmLeads.find(x => x.id === id);
+  if (l && l._status === 'Nuevo') {
+    l._status = 'Contactado';
+    DB.set(id, { ...DB.get(id), status: 'Contactado' });
+    renderTable();
+    renderKPIs();
+    renderCounts();
+  }
+}
+
+function cssStatus(s) {
+  const map = { 'Nuevo': 'nuevo', 'Contactado': 'contactado', 'En gestión': 'gestion', 'Cerrado': 'cerrado', 'Descartado': 'descartado' };
+  return map[s] || 'nuevo';
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderKPIs() {
+  const leads = S.crmLeads;
+  const withWa = leads.filter(l => l._wa_url).length;
+  const enProc = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
+  const cerrados = leads.filter(l => l._status === 'Cerrado').length;
+
+  document.getElementById('kpi-total').textContent = leads.length;
+  document.getElementById('kpi-wa').textContent = withWa;
+  document.getElementById('kpi-proceso').textContent = enProc;
+  document.getElementById('kpi-cerrados').textContent = cerrados;
+}
+
+function renderCounts() {
+  const statuses = ['Nuevo','Contactado','En gestión','Cerrado','Descartado'];
+  document.getElementById('cnt-todos').textContent = S.crmLeads.length;
+  statuses.forEach(s => {
+    const el = document.getElementById('cnt-' + s);
+    if (el) el.textContent = S.crmLeads.filter(l => l._status === s).length;
+  });
+
+  if (document.getElementById('cnt-contact-todos')) document.getElementById('cnt-contact-todos').textContent = S.crmLeads.length;
+  if (document.getElementById('cnt-whatsapp')) document.getElementById('cnt-whatsapp').textContent = S.crmLeads.filter(l => l._wa_url).length;
+  if (document.getElementById('cnt-email')) document.getElementById('cnt-email').textContent = S.crmLeads.filter(l => l.email).length;
+  if (document.getElementById('cnt-sin-contacto')) document.getElementById('cnt-sin-contacto').textContent = S.crmLeads.filter(l => !l._wa_url && !l.email).length;
+  if (document.getElementById('cnt-heat-todos')) document.getElementById('cnt-heat-todos').textContent = S.crmLeads.length;
+  if (document.getElementById('cnt-hot')) document.getElementById('cnt-hot').textContent = S.crmLeads.filter(l => l._heat_label === 'hot').length;
+  if (document.getElementById('cnt-warm')) document.getElementById('cnt-warm').textContent = S.crmLeads.filter(l => l._heat_label === 'warm').length;
+  if (document.getElementById('cnt-cold')) document.getElementById('cnt-cold').textContent = S.crmLeads.filter(l => l._heat_label === 'cold').length;
+}
+
+function renderSidebar() {
+  const provs = [...new Set(S.crmLeads.map(l => l.provincia).filter(Boolean))].sort();
+  const pfContainer = document.getElementById('prov-filters');
+  pfContainer.innerHTML = \`
+    <div class="filter-item \${S.provFilter==='todos'?'active':''}" onclick="setProvFilter('todos',this)">
+      Todas <span class="filter-count">\${S.crmLeads.length}</span>
+    </div>
+    \${provs.map(p => \`
+      <div class="filter-item \${S.provFilter===p?'active':''}" onclick="setProvFilter('\${p}',this)">
+        \${p} <span class="filter-count">\s\${S.crmLeads.filter(l=>l.provincia===p).length}</span>
+      </div>
+    \`).join('')}\`;
+
+  const srcs = [...new Set(S.crmLeads.map(l => l.source_label || l.source).filter(Boolean))].sort();
+  const sfContainer = document.getElementById('source-filters');
+  sfContainer.innerHTML = srcs.map(s => \`
+    <div class="filter-item \${S.sourceFilter===s?'active':''}" onclick="setSourceFilter('\${s}',this)">
+      \${s} <span class="filter-count">\s\${S.crmLeads.filter(l=>(l.source_label||l.source)===s).length}</span>
+    </div>
+  \`).join('');
+}
+
+function setProvFilter(val, el) { S.provFilter = val; document.querySelectorAll('#prov-filters .filter-item').forEach(e => e.classList.remove('active')); if (el) el.classList.add('active'); applyFilters(); }
+function setSourceFilter(val, el) { S.sourceFilter = val; document.querySelectorAll('#source-filters .filter-item').forEach(e => e.classList.remove('active')); if (el) el.classList.add('active'); applyFilters(); }
+
+function openDetail(id) {
+  const l = S.crmLeads.find(x => x.id === id);
+  if (!l) return;
+  S.currentId = id;
+
+  document.getElementById('modal-title').textContent    = l._display_name;
+  document.getElementById('modal-author').textContent   = l._display_name;
+  document.getElementById('modal-provincia').textContent = l.provincia || '—';
+  document.getElementById('modal-source').textContent   = l.source_label || l.source || '—';
+  document.getElementById('modal-body').textContent     = l.body || l.title || '—';
+  document.getElementById('modal-notes').value          = l._notes || '';
+  document.getElementById('modal-status-sel').value     = l._status || 'Nuevo';
+
+  const url = document.getElementById('modal-url');
+  url.href = l.url || '#';
+  url.textContent = l.url ? 'Abrir enlace →' : 'Sin enlace';
+
+  const box = document.getElementById('modal-contact-box');
+  const waBtn = document.getElementById('modal-wa-btn');
+  const phoneLabel = document.getElementById('modal-phone-label');
+
+  if (l._wa_url) {
+    box.classList.remove('no-contact');
+    waBtn.href = l._wa_url;
+    waBtn.style.display = 'inline-flex';
+    phoneLabel.textContent = l._phone || 'WhatsApp disponible';
+    waBtn.onclick = () => markContacted(l.id);
+  } else {
+    box.classList.add('no-contact');
+    waBtn.style.display = 'none';
+    phoneLabel.textContent = 'Sin contacto directo — buscar por perfil';
+  }
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('detailModal').classList.remove('open'); S.currentId = null; }
+function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+function openAddModal() { document.getElementById('addModal').classList.add('open'); }
+
+function saveStatusFromModal() {
+  if (!S.currentId) return;
+  const status = document.getElementById('modal-status-sel').value;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (l) l._status = status;
+  DB.set(S.currentId, { ...DB.get(S.currentId), status });
+  renderKPIs();
+  renderCounts();
+}
+
+function saveNotesFromModal() {
+  if (!S.currentId) return;
+  const notes = document.getElementById('modal-notes').value;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (l) l._notes = notes;
+  DB.set(S.currentId, { ...DB.get(S.currentId), notes });
+}
+
+function saveAndClose() { saveStatusFromModal(); saveNotesFromModal(); closeModal(); renderTable(); }
+
+function addManualCase() {
+  const nombre = document.getElementById('add-nombre').value.trim();
+  const phone  = document.getElementById('add-phone').value.trim();
+  const prov   = document.getElementById('add-prov').value;
+  const body   = document.getElementById('add-body').value.trim();
+
+  if (!nombre) { alert('Completá el nombre'); return; }
+
+  const id = 'manual_' + Date.now();
+  const lead = {
+    id,
+    source:       'manual',
+    source_label: 'Manual',
+    author:       nombre,
+    has_author:   true,
+    provincia:    prov,
+    body,
+    title:        body.slice(0, 80),
+    fecha_iso:    new Date().toISOString().slice(0, 10),
+    phone,
+    whatsapp:     phone,
+    score:        50,
+    _manual:      true,
+    _status:      'Nuevo',
+    _notes:       '',
+    _phone:       phone,
+    _wa_url:      buildWaUrl(phone),
+    _display_name: nombre,
+    _resumen:     body.slice(0, 200),
+  };
+
+  const manual = DB.getManual();
+  manual.unshift(lead);
+  DB.setManual(manual);
+  S.crmLeads.unshift(lead);
+
+  closeAddModal();
+  ['add-nombre','add-phone','add-body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('add-prov').value = '';
+
+  applyFilters();
+  renderSidebar();
+  renderKPIs();
+}
+
+loadLeads();
+</script>
+</body>
+</html>`;
+
+function jsonResponse(data, corsHeaders, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status: status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...corsHeaders,
+    }
+  });
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const origin = request.headers.get('Origin') || '*';
+
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': origin === 'null' ? '*' : origin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-Webhook-Secret',
+      'Access-Control-Max-Age': '86400',
+    };
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // GET /cookies.html
+    if (url.pathname === '/cookies.html' || url.pathname === '/cookies') {
+      return new Response(COOKIES_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
+
+    // GET /
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      return new Response(DASHBOARD_HTML, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
+    // GET /api/leads
+    if (url.pathname === '/api/leads' && request.method === 'GET') {
+      try {
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) {
+          return jsonResponse({
+            leads_all: [],
+            meta: { version: '11.0', source: 'empty_kv', generated_at: new Date().toISOString() }
+          }, corsHeaders);
+        }
+        return jsonResponse(JSON.parse(raw), corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: 'kv_read_failed', message: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // POST /api/ingest (Ingesta unificada del script de Python)
+    if (url.pathname === '/api/ingest' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ status: 'rejected', reason: 'auth_failed' }, corsHeaders, 401);
+      }
+
+      try {
+        const body = await request.json();
+        const newLeads = body.leads_all || [];
+
+        // Anti-wipe filter
+        const prevRaw = await env.LEADX_KV.get('leads:live');
+        let prevLeads = [];
+        if (prevRaw) {
+          try { prevLeads = JSON.parse(prevRaw).leads_all || []; } catch {}
+        }
+
+        if (newLeads.length < 5 && prevLeads.length >= 5) {
+          return jsonResponse({ status: 'rejected', reason: 'anti_wipe_triggered' }, corsHeaders, 200);
+        }
+
+        // Deep merge por ID preservando estado de CRM en KV
+        const prevById = new Map();
+        prevLeads.forEach(l => prevById.set(l.id, l));
+
+        newLeads.forEach(newLead => {
+          const existing = prevById.get(newLead.id);
+          if (existing) {
+            prevById.set(newLead.id, {
+              ...newLead,
+              score: existing.score ?? newLead.score,
+              status: existing.status ?? newLead.status,
+              _status: existing._status ?? newLead._status,
+              _notes: existing._notes ?? newLead._notes,
+              _monto: existing._monto ?? newLead._monto,
+              whatsapp_validated: existing.whatsapp_validated ?? newLead.whatsapp_validated,
+              _wa_state: existing._wa_state ?? newLead._wa_state,
+              _wa_e164: existing._wa_e164 ?? newLead._wa_e164,
+              whatsapp_publico: existing.whatsapp_publico || newLead.whatsapp_publico,
+              telefono_publico: existing.telefono_publico || newLead.telefono_publico,
+              email_publico: existing.email_publico || newLead.email_publico,
+            });
+          } else {
+            prevById.set(newLead.id, newLead);
+          }
+        });
+
+        const merged = Array.from(prevById.values());
+
+        // ─── MEJORA A: Decay de Leads (>7 días sin gestión de forma global) ───
+        merged.forEach(l => {
+          const ts = l.fecha_iso || l.discovery_timestamp;
+          const leadDate = ts ? new Date(ts) : null;
+          if (leadDate && !isNaN(leadDate.getTime())) {
+            const ageDays = (Date.now() - leadDate.getTime()) / 86400000;
+            if (ageDays > 7 && (l._status === 'Nuevo' || l.status === 'Nuevo' || !l._status)) {
+              l.score = Math.max(0, (l.score || 0) - Math.floor((ageDays - 7) * 5));
+              l._heat_label = l.score >= 70 ? 'hot' : l.score >= 40 ? 'warm' : 'cold';
+            }
+          }
+        });
+
+        // Ordenar descendentemente por fecha
+        merged.sort((a, b) => {
+          const da = new Date(a.fecha_iso || 0).getTime();
+          const db = new Date(b.fecha_iso || 0).getTime();
+          return db - da;
+        });
+
+        const truncated = merged.slice(0, 500);
+
+        const payload = {
+          leads_all: truncated,
+          summary: {
+            total_leads: truncated.length,
+            hot_leads: truncated.filter(l => (l.score || 0) >= 70).length,
+          },
+          meta: {
+            version: '11.0',
+            source: 'pipeline_python',
+            generated_at: new Date().toISOString()
+          }
+        };
+
+        await env.LEADX_KV.put('leads:live', JSON.stringify(payload));
+        return jsonResponse({ status: 'ok', total: truncated.length, ingestion: 'complete' }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ status: 'error', message: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // POST /api/cookies (Mantenimiento de Cookies de FB)
+    if (url.pathname === '/api/cookies' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const cookies = body.cookies || [];
+        if (!Array.isArray(cookies)) return jsonResponse({ ok: false, error: 'invalid_format' }, corsHeaders, 400);
+
+        await env.LEADX_KV.put('fb_cookies', JSON.stringify({ cookies, updated_at: new Date().toISOString() }));
+        return jsonResponse({ ok: true }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // GET /api/kv (Lector genérico de KV por clave)
+    if (url.pathname === '/api/kv' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      const key = url.searchParams.get('key');
+      if (!key) return jsonResponse({ error: 'missing_key' }, corsHeaders, 400);
+      const raw = await env.LEADX_KV.get(key);
+      return new Response(raw, { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // POST /api/kv (Escritura directa en KV)
+    if (url.pathname === '/api/kv' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      try {
+        const { key, value, ttl } = await request.json();
+        const opts = ttl ? { expirationTtl: ttl } : {};
+        await env.LEADX_KV.put(key, JSON.stringify(value), opts);
+        return jsonResponse({ ok: true }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    return jsonResponse({ error: 'not_found' }, corsHeaders, 404);
+  },
+
+  async scheduled(event, env, ctx) {
+    console.log('[CRON] Ejecución automatizada iniciada');
+    try {
+      await runPipelineCron(env);
+    } catch (e) {
+      console.error('[CRON] Error crítico: ', e.message);
+    }
+  }
+};
+
+// ─── PIPELINE CRON DEL EDGE (CORREGIDO SIN TDZ NI REGRESIONES) ───
+async function runPipelineCron(env) {
+  const redditQueries = [
+    'no puedo transferir multa argentina',
+    'me llego multa fotomulta argentina',
+    'libre deuda transferencia auto',
+    'fotomulta reclamo argentina'
+  ];
+  
+  const newLeads = [];
+  const seenUrls = new Set();
+
+  // Scraper VentaFe desde Cloudflare Edge
+  console.log('[CRON] VentaFe start...');
+  try {
+    const vfPhoneRegex = /\\(?0?(?:342|341|351|261|221|381|299|11)\\)?[\\s\\-]?\\d{6,10}/g;
+    const vfPatenteRegex = /\\b([A-Z]{2}\\d{3}[A-Z]{2}|[A-Z]{3}\\d{3})\\b/i;
+    
+    for (let page = 1; page <= 2; page++) {
+      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?p=' + page;
+      const vfRes = await fetch(vfUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36', 'Accept': 'text/html' }
+      });
+      if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
+      
+      const vfHtml = await vfRes.text();
+      const blocks = vfHtml.split('class="row item tipo-').slice(1);
+      
+      for (const block of blocks) {
+        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\\s+/g, ' ').trim();
+        if (text.length < 100) continue;
+        
+        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
+        const patenteM = text.match(vfPatenteRegex);
+        if (!phones.length && !patenteM) continue;
+        
+        const textLower = text.toLowerCase();
+        const problemas = [];
+        if (/no\\s+puedo\\s+transferir|transferencia\\s+bloqueada/.test(textLower)) problemas.push('TRANSFERENCIA');
+        if (/multa|fotomulta|infraccion/.test(textLower)) problemas.push('MULTA');
+        if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
+        if (/papeles\\s+al\\s+d[ií]a|listo\\s+para\\s+transferir|libre\\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
+        if (!problemas.length && !patenteM && !phones.length) continue;
+        
+        // DECLARACIÓN Y ÁMBITO DE VARIABLES CORREGIDA
+        let score = 40;
+        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
+        if (patenteM) score += 15;
+        if (problemas.includes('TRANSFERENCIA')) score += 30;
+        if (problemas.includes('MULTA')) score += 25;
+        if (problemas.includes('DEUDA')) score += 25;
+        if (phones.length) score += 30;
+        
+        newLeads.push({
+          id: 'ventafe_' + (phones[0] || '').replace(/[^0-9]/g, '') + '_' + text.substring(0, 10).replace(/[^a-zA-Z0-9]/g, ''),
+          source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
+          author: 'Vendedor VentaFe', persona: 'Vendedor VentaFe',
+          title: text.slice(0, 200), snippet: text.slice(0, 3000),
+          url: 'https://www.ventafe.com.ar/automoviles',
+          fecha_iso: new Date().toISOString().slice(0, 10),
+          score: Math.min(100, score),
+          whatsapp_publico: phones[0] || '', telefono_publico: phones[0] || '',
+          has_contact: phones.length > 0, contacto_publico: phones.length > 0,
+          patente: patenteM ? patenteM[1].toUpperCase() : '',
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+    console.log('[CRON] VentaFe done: ' + newLeads.length + ' leads found');
+  } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
+
+  // Persistir mezcla de cron en el KV
+  const raw = await env.LEADX_KV.get('leads:live');
+  let existing = { leads_all: [] };
+  if (raw) {
+    try { existing = JSON.parse(raw); } catch (e) {}
+  }
+
+  const byId = new Map();
+  for (const l of (existing.leads_all || [])) byId.set(l.id, l);
+  for (const l of newLeads) byId.set(l.id, l);
+
+  const merged = Array.from(byId.values());
+  merged.sort((a, b) => (b.fecha_iso || '').localeCompare(a.fecha_iso || ''));
+  const truncated = merged.slice(0, 500);
+
+  await env.LEADX_KV.put('leads:live', JSON.stringify({
+    leads_all: truncated,
+    summary: { total_leads: truncated.length, hot_leads: truncated.filter(l => l.score >= 70).length },
+    meta: { version: '11.0', source: 'edge_cron', generated_at: new Date().toISOString() }
+  }));
+}
+
+2. generate_payload.py (Código Completo y Corregido)
+
+Este script contiene la validación cruzada geográfica corregida dentro de la
+función classify_and_score() (evitando la colisión por prefijo de país +549 o
+54), corrige cualquier error gramatical de tipificación, y elimina por completo
+la llamada duplicada al Scraper de VentaFe de collect_public_sources().
+
+#!/usr/bin/env python3
+"""
+generate_payload.py — Pipeline de Generación de Leads de LeadX.
+
+Orquestador central ("Cerebro Único") que realiza la búsqueda, extracción
+de entidades mediante expresiones regulares federales, scoring con lógica de penalización
+geográfica y publicación cruzada de datos hacia Cloudflare Workers.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+import sys
+import time
+import unicodedata
+from dataclasses import dataclass, field, asdict
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Set, Tuple
+from urllib.parse import urlparse
+
+# ===========================================================================
+# Config
+# ===========================================================================
+
+DATA_DIR = Path("./data")
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+PAYLOAD_PATH = DATA_DIR / "dashboard_payload.json"
+STATS_PATH = DATA_DIR / "stats.json"
+HISTORY_PATH = DATA_DIR / "history.json"
+
+MAX_RUNTIME_SECONDS = 200
+RATE_LIMIT_MS = 8000
+MAX_RESULTS_PER_QUERY = 10
+
+# ===========================================================================
+# Queries
+# ===========================================================================
+REDDIT_QUERY_GROUPS = [
+    [
+        "site:reddit.com me llego multa no es mi auto",
+        "site:reddit.com me cobraron fotomulta argentina",
+        "site:reddit.com/r/DerechoGenial consulta multa",
+    ],
+    [
+        "site:reddit.com no puedo transferir auto multa argentina",
+        "site:reddit.com vendedor no entrego 08",
+        "site:reddit.com/r/MotosArg multa patente",
+    ],
+    [
+        "site:reddit.com consulta ayuda multa fotomulta argentina",
+        "site:reddit.com/r/AskArgentina libre deuda transferencia",
+        "site:reddit.com patente bloqueada registro automotor",
+    ],
+    [
+        "site:reddit.com compre auto multas anteriores dueño",
+        "site:reddit.com/r/DerechoGenial fotomulta reclamo",
+        "site:reddit.com juez de faltas multa reclamo",
+    ],
+    [
+        "site:reddit.com cedula verde perdida transferir",
+        "site:reddit.com vendo auto multas pendientes",
+        "site:reddit.com multa vencida prescripcion argentina",
+    ],
+    [
+        "site:reddit.com abogado gestor multa fotomulta argentina",
+        "site:reddit.com/r/Cordoba multa transito",
+        "site:reddit.com/r/BuenosAires infraccion peaje",
+    ],
+]
+
+_CURRENT_GROUP_IDX = int((time.time() / 10800) % len(REDDIT_QUERY_GROUPS))
+QUERIES = REDDIT_QUERY_GROUPS[_CURRENT_GROUP_IDX]
+
+SCORE_RULES = {
+    "multa_or_fotomulta": 60,
+    "transfer_problem": 45,
+    "libre_deuda_problem": 35,
+    "08_or_document_problem": 40,
+    "public_contact_visible": 25,
+    "recent_0_3_days": 20,
+    "recent_4_7_days": 10,
+    "argentina_signal": 15,
+    "institutional_penalty": -40,
+    "generic_penalty": -30,
+    "foreign_country_penalty": -80,
+    "dm_hint": 60,
+    "urgency_hint": 30,
+}
+
+DM_HINT_PATTERNS = [
+    r"\b(?:mandame|escribime|pasame|enviame|contactame|llamame|hablame)\s+(?:un\s+)?(?:md|dm|mp|privado|mensaje|wa|whatsapp)\b",
+    r"\b(?:mandame|escribime|pasame)\s+(?:tu|el|un)\s+(?:whatsapp|wa|wpp|número|numero|cel|tel)",
+    r"\b(?:md|dm|mp)\s+(?:para|y)\s+(?:te|lo)\s+(?:paso|mandamos|ayudamos)",
+    r"\bcontactame\s+por\s+(?:privado|mensaje)\b",
+]
+
+URGENCY_HINT_PATTERNS = [
+    r"\burgente\b", r"\bayuda\b", r"\bvencimiento\b",
+]
+
+GAMING_KEYWORDS = [
+    "playstation", "ps3", "ps4", "ps5", "xbox", "gta", "grand theft auto",
+    "steam", "nintendo", "switch", "logros", "achievements"
+]
+
+GAMING_SUBREDDITS = {
+    "gaming", "gamingargentina", "playstation", "xbox", "steam", "nintendoswitch"
+}
+
+MUST_INCLUDE_ONE = ["auto", "transferencia", "vehiculo", "vehículo", "multa", "patente", "libre deuda", "08"]
+
+REJECT_IF_CONTAINS = [
+    "publicado por", "leer más", "última actualización", "calculá tu", "simulador",
+    "guía completa", "wikipedia", "enciclopedia", "transferencia internacional"
+]
+REJECT_IF_CONTAINS.extend(GAMING_KEYWORDS)
+
+NEGATIVE_KEYWORDS = ['accidente', 'trabajo', 'empleo', 'electrónica', 'estafa', 'alquiler', 'médico']
+
+DISCARD_DOMAINS = {'iprofesional.com', 'ciudano.news', 'clarin.com', 'lanacion.com.ar', 'infobae.com', 'wikipedia.org'}
+
+REJECT_COUNTRIES = {'brasil', 'chile', 'uruguay', 'paraguay', 'colombia', 'méxico', 'españa', 'estados unidos'}
+
+FOREIGN_INDICATORS = {
+    "México": ["cdmx", "guadalajara", "+52", "méxico"],
+    "Colombia": ["bogotá", "+57", "colombia"],
+    "Uruguay": ["montevideo", "+598"],
+    "EEUU": ["miami", "new york", "california", "estados unidos", "paypal", "venmo"]
+}
+
+ARGENTINA_SIGNALS = [
+    "DNRPA", "patente argentina", "Buenos Aires", "CABA", "Santa Fe", "Córdoba",
+    "Mendoza", "Rosario", "La Plata", "ARBA", "Rentas", "PBA", "GBA", "argentina"
+]
+
+ARG_PHONE_PATTERNS = [
+    r"(?i)(?:whatsapp|wsp|wapp|wp|wasap|celular|cel|tel[eé]fono|tel)\s*:?\s*([+]?\d[\d\s\-]{8,15})",
+    r"(?<!\d)(?:[+]?\d{0,2}\s?)?(?:0?\s?)?(?:11|15|341|342|351|221|261|299)\s?[\s\-]?\d{4}[\s\-]?\d{4}(?!\d)"
+]
+
+WHATSAPP_PATTERNS = [
+    r"wa\.me/(\d{8,15})",
+    r"whatsapp\s*:?\s*(\+?\d[\d\s\-]{8,15})"
+]
+
+EMAIL_PATTERN = r"\b([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})\b"
+REDDIT_USERNAME_PATTERN = r"\bu/([A-Za-z0-9_\-]{3,20})\b"
+PATENT_PATTERNS = [r"\b[A-Z]{2}\s?\d{3}\s?[A-Z]{2}\b", r"\b[A-Z]{3}\s?\d{3}\b"]
+
+VEHICLE_KEYWORDS = ["auto", "moto", "camioneta", "utilitario", "ford", "chevrolet", "toyota", "volkswagen", "fiat"]
+
+@dataclass
+class Lead:
+    id: str = ""
+    score: int = 0
+    label: str = ""
+    problem_category: str = ""
+    problem_summary: str = ""
+    persona: str = ""
+    provincia: str = ""
+    ciudad: str = ""
+    pais: str = ""
+    vehiculo: str = ""
+    patente: str = ""
+    fecha_visible: str = ""
+    fecha_iso: str = ""
+    platform: str = ""
+    source_url: str = ""
+    quoted_text: str = ""
+    contacto_publico: bool = False
+    whatsapp_publico: str = ""
+    whatsapp_link: str = ""
+    telefono_publico: str = ""
+    telefono_e164: str = ""
+    email_publico: str = ""
+    score_breakdown: Dict[str, int] = field(default_factory=dict)
+    detected_signals: List[str] = field(default_factory=list)
+    discovery_timestamp: str = ""
+    deuda_clasificar: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+from search_providers import search as provider_search
+from source_registry import run_discovery_and_update
+from pending_queries_kv import PendingQueryManager
+from search_providers import search_reddit_with_status
+
+def normalize_text(text: str) -> str:
+    t = text.lower()
+    t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode("ascii")
+    t = re.sub(r"[^\w\s]", " ", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+def phone_to_e164(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone)
+    if not digits: return ""
+    if digits.startswith("54"): digits = digits[2:]
+    if digits.startswith("0"): digits = digits[1:]
+    if digits.startswith("9") and len(digits) == 11: digits = digits[1:]
+    if len(digits) == 10 and digits.startswith("11"): digits = "9" + digits
+    elif len(digits) == 10 and not digits.startswith("5"): digits = "9" + digits
+    return f"+54{digits}" if len(digits) >= 10 else ""
+
+def normalize_ar_phone_ventafe(raw: str) -> str:
+    digits = re.sub(r'\D', '', raw)
+    if not digits or len(digits) < 8: return ""
+    if digits.startswith('54') and len(digits) > 11: digits = digits[2:]
+    if digits.startswith('0'): digits = digits[1:]
+    if digits.startswith('15') and len(digits) > 10: digits = digits[2:]
+    if len(digits) == 12 and digits[3:5] == '15': digits = digits[:3] + digits[5:]
+    if len(digits) == 10: return f"+549{digits}"
+    return ""
+
+def scrape_ventafe_leads() -> List[Dict[str, Any]]:
+    import urllib.request as _urq
+    print("[VentaFe] Iniciando extracción (5 páginas)...", file=sys.stderr)
+    BASE_URL = "https://www.ventafe.com.ar/automoviles"
+    all_blocks = []
+    
+    for page in range(1, 6):
+        url = f"{BASE_URL}?p={page}" if page > 1 else BASE_URL
+        req = _urq.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+        try:
+            with _urq.urlopen(req, timeout=20) as resp:
+                html_data = resp.read().decode('utf-8', errors='replace')
+                blocks = html_data.split('class="row item tipo-')[1:]
+                all_blocks.extend(blocks)
+                time.sleep(3)
+        except Exception as e:
+            print(f"  [VentaFe] Error en pág {page}: {e}", file=sys.stderr)
+            
+    leads = []
+    seen_phones = set()
+    for block in all_blocks:
+        text = re.sub(r'<[^>]+>', ' ', block)
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        raw_phones = re.findall(r'\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}', text)
+        valid_phones = []
+        for p in raw_phones:
+            norm = normalize_ar_phone_ventafe(p)
+            if norm and norm not in seen_phones:
+                valid_phones.append(norm)
+                seen_phones.add(norm)
+                
+        if not valid_phones: continue
+        
+        title = text[:80].strip()
+        href_match = re.search(r'href="(/automoviles/(\d+)-[^"]+)"', block)
+        unique_url = "https://www.ventafe.com.ar" + href_match.group(1) if href_match else f"https://www.ventafe.com.ar/automoviles#tel-{valid_phones[0]}"
+        
+        leads.append({
+            "name": f"[VentaFe] {title}",
+            "url": unique_url,
+            "source_url": unique_url,
+            "snippet": text[:500],
+            "date": datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+            "host_name": "ventafe.com.ar",
+            "username": "Vendedor VentaFe",
+            "source": "ventafe",
+            "telefonos": valid_phones,
+            "provincia": "Santa Fe"
+        })
+    return leads
+
+def collect_public_sources() -> List[Dict[str, Any]]:
+    print("[Step 1] Invocando fuentes públicas...", file=sys.stderr)
+    all_results = []
+    
+    # 1. Scraping VentaFe (Llamada única controlada - Fix P2)
+    try:
+        ventafe_results = scrape_ventafe_leads()
+        if ventafe_results:
+            all_results.extend(ventafe_results)
+            print(f"  [VentaFe] +{len(ventafe_results)} leads extraídos.", file=sys.stderr)
+    except Exception as e:
+        print(f"  [VentaFe] Error en recolección: {e}", file=sys.stderr)
+
+    # 2. Consultas Reddit RSS / DDG
+    for i, query in enumerate(QUERIES):
+        print(f"  [{i+1}/{len(QUERIES)}] Ejecutando: {query[:50]}", file=sys.stderr)
+        try:
+            if "site:reddit.com" in query.lower():
+                clean_q = query.lower().replace("site:reddit.com", "").strip()
+                if "argentina" not in clean_q:
+                    clean_q = f"{clean_q} argentina"
+                results, _ = search_reddit_with_status(clean_q, num=MAX_RESULTS_PER_QUERY)
+            else:
+                results = provider_search(query, num=MAX_RESULTS_PER_QUERY)
+                
+            for r in results:
+                r["_query"] = query
+                all_results.extend(results)
+        except Exception as e:
+            print(f"  Error en query '{query[:30]}': {e}", file=sys.stderr)
+        time.sleep(RATE_LIMIT_MS / 1000)
+        
+    return all_results
+
+def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    name = result.get("name", result.get("title", ""))
+    snippet = result.get("snippet", "")
+    url = result.get("url", "")
+    combined = f"{name}. {snippet}"
+    combined_lower = combined.lower()
+
+    is_ventafe = "ventafe.com.ar" in url or result.get("source") == "ventafe"
+
+    if not is_ventafe:
+        if not any(kw in combined_lower for kw in MUST_INCLUDE_ONE): return None
+        for reject in REJECT_IF_CONTAINS:
+            if reject in combined_lower: return None
+
+    phone = ""
+    if is_ventafe and result.get("telefonos"):
+        phone = result["telefonos"][0]
+    else:
+        for pattern in ARG_PHONE_PATTERNS:
+            m = re.search(pattern, combined)
+            if m:
+                phone = m.group(0).strip()
+                break
+
+    whatsapp = ""
+    for pattern in WHATSAPP_PATTERNS:
+        m = re.search(pattern, combined, re.IGNORECASE)
+        if m:
+            whatsapp = m.group(1) if m.groups() else m.group(0)
+            break
+
+    email = ""
+    m = re.search(EMAIL_PATTERN, combined)
+    if m: email = m.group(1).lower().strip()
+
+    patent = ""
+    for pattern in PATENT_PATTERNS:
+        m = re.search(pattern, combined)
+        if m:
+            patent = re.sub(r"\s+", "", m.group(0)).upper()
+            break
+
+    persona = result.get("username", result.get("author", ""))
+    if not persona:
+        m = re.search(r"@(\w{3,20})", combined)
+        persona = m.group(0) if m else "Anónimo"
+
+    return {
+        "persona": persona,
+        "problema": combined,
+        "provincia": result.get("provincia", ""),
+        "vehiculo": "",
+        "patente": patent,
+        "fecha_visible": result.get("date", ""),
+        "contacto_publico": bool(phone or whatsapp or email),
+        "whatsapp_publico": whatsapp,
+        "telefono_publico": phone,
+        "email_publico": email,
+        "source_url": url,
+        "platform": "VentaFe" if is_ventafe else "Web",
+        "quoted_text": snippet[:300]
+    }
+
+def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
+    text = record.get("problema", "").lower()
+    score = 0
+    signals = []
+    breakdown = {}
+
+    if "multa" in text or "fotomulta" in text:
+        score += SCORE_RULES["multa_or_fotomulta"]
+        signals.append("multa_fotomulta")
+    if "transferencia" in text or "transferir" in text:
+        score += SCORE_RULES["transfer_problem"]
+        signals.append("transfer_problem")
+    if record.get("contacto_publico"):
+        score += SCORE_RULES["public_contact_visible"]
+        signals.append("contact_visible")
+
+    # ─── MEJORA B: Validación de Origen (Código de área vs Provincia) ───
+    AREA_PROV_MAP = {'342':'Santa Fe','341':'Santa Fe','351':'Córdoba','261':'Mendoza','221':'Buenos Aires','11':'CABA'}
+    if record.get("telefono_publico") and record.get("provincia"):
+        clean_num = re.sub(r"^\+?54\s?9?", "", record["telefono_publico"]).lstrip('0')
+        for code, prov in AREA_PROV_MAP.items():
+            if clean_num.startswith(code):
+                if prov != record["provincia"]:
+                    signals.append('ORIGEN_MISMATCH')
+                    score += 5
+                break
+
+    score = max(0, min(100, score))
+    label = "real_lead" if score >= 40 else "commercial_signal"
+
+    return Lead(
+        id=hashlib.sha256(record["source_url"].encode()).hexdigest()[:16],
+        score=score,
+        label=label,
+        problem_category="DOCUMENTATION_ISSUE",
+        problem_summary="Disputa de multa/fotomulta",
+        persona=record["persona"],
+        provincia=record["provincia"],
+        fecha_visible=record["fecha_visible"],
+        platform=record["platform"],
+        source_url=record["source_url"],
+        quoted_text=record["quoted_text"],
+        contacto_publico=record["contacto_publico"],
+        whatsapp_publico=record["whatsapp_publico"],
+        telefono_publico=record["telefono_publico"],
+        detected_signals=signals,
+        discovery_timestamp=datetime.now(timezone.utc).isoformat()
+    )
+
+def run_pipeline() -> Dict[str, Any]:
+    print("=" * 60, file=sys.stderr)
+    print("  LeadX Pipeline - Cerebro Central de Negocio", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+    raw_results = collect_public_sources()
+    
+    extracted = []
+    for r in raw_results:
+        ext = extract_entities(r)
+        if ext: extracted.append(ext)
+
+    leads = []
+    for ext in extracted:
+        lead = classify_and_score(ext)
+        if lead: leads.append(lead)
+
+    # Dedup por composite URL
+    seen = set()
+    unique_leads = []
+    for l in leads:
+        if l.source_url not in seen:
+            seen.add(l.source_url)
+            unique_leads.append(l)
+
+    payload = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "leads_all": [l.to_dict() for l in unique_leads],
+    }
+
+    PAYLOAD_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return payload
+
+if __name__ == "__main__":
+    run_pipeline()
