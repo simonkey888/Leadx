@@ -2599,5 +2599,30 @@
         "CABA": 1
       }
     }
+  },
+  {
+    "run_id": "3a787717e47e",
+    "generated_at": "2026-07-07T21:20:57.690578+00:00",
+    "summary": {
+      "total_leads": 14,
+      "hot_leads": 14,
+      "warm_leads": 0,
+      "contactable": 14,
+      "with_whatsapp": 9,
+      "with_phone": 14,
+      "with_email": 0,
+      "avg_score": 91.4,
+      "avg_score_hot": 91.4,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 14
+      },
+      "by_platform": {
+        "VentaFe": 14
+      },
+      "by_province": {
+        "CABA": 1
+      }
+    }
   }
 ]
