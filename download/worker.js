@@ -940,7 +940,10 @@ function normalizePhoneAR(raw) {
   if (!digits) return { state: 'invalid_format', e164: '', display: '', waUrl: '' };
   if (digits.startsWith('54')) digits = digits.slice(2);
   if (digits.startsWith('0')) digits = digits.slice(1);
-  if (digits.length === 12 && /^\d{3,4}15\d{6,7}$/.test(digits)) {
+  // FIX GEMINI SABUESO v3: doble escape \\d dentro de template literal DASHBOARD_HTML.
+  // Sin esto, /^\d{3,4}15\d{6,7}$/ se convierte en /^d{3,4}15d{6,7}$/ que matchea
+  // el literal 'd' (no dígito) y rompe la normalización de teléfonos AR.
+  if (digits.length === 12 && /^\\d{3,4}15\\d{6,7}$/.test(digits)) {
     digits = digits.replace(/15/, '');
   }
   if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
@@ -991,7 +994,10 @@ function cleanSnippet(text) {
   t = t.replace(/&#8211;/g, '-').replace(/&#8212;/g, '--').replace(/&#8216;/g, "'");
   t = t.replace(/&#8242;/g, "'").replace(/&#8243;/g, '"').replace(/&nbsp;/g, ' ');
   // Colapsar espacios
-  t = t.replace(/\s+/g, ' ').trim();
+  // FIX GEMINI SABUESO v3: doble escape \\s dentro de template literal DASHBOARD_HTML.
+  // Sin esto, el motor JS come la barra invertida y deja /s+/g que destruye todas las 's'
+  // del CRM ("Disputa" → "Di puta", "transferencia" → "tran ferencia", etc.)
+  t = t.replace(/\\s+/g, ' ').trim();
   return t;
 }
 
