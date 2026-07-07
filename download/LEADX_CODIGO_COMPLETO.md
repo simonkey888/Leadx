@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 19:38 UTC  
+**Generado:** 2026-07-07 22:03 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** cdc02840-2419-4042-9533-d20bd8e172bb  
-**Estado:** Producción activa · cron cada 1h · 7 leads VentaFe limpios · túnel clasific.ar implementado (pendiente scraper detalle) · rediseño Twenty.com · KPI=bandeja
-**Timestamp generación:** 2026-07-07 19:38 UTC (hora UTC) · Argentina: 2026-07-07 16:38:02 ART
+**Worker Version:** 6a69fcb6-3bc6-4a21-80d1-75be2313c708  
+**Estado:** Producción activa · cron cada 1h · 36 leads en KV (14 VentaFe + 20 Facebook + 2 Reddit) · APIFY_TOKEN refrescado · 2 grupos FB activos · rediseño Twenty.com · KPI=bandeja
+**Timestamp generación:** 2026-07-07 22:03 UTC (hora UTC) · Argentina: 2026-07-07 19:03:59 ART
 
 ---
 
@@ -14,8 +14,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,327 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,228 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,328 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,351 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -506,31 +506,93 @@
 - Pasar esa patente al túnel de clasific.ar
 - Implica ~45 requests extra por run (uno por aviso)
 
+### ✅ FIX GEMINI TÚNEL DETALLE — Scraper de página de detalle para extraer patentes → DONE
+
+- Por cada lead VentaFe con teléfono válido, scrapea la página de detalle del aviso
+- Regex SOLO formato Mercosur (AA111AA) — 7 caracteres exactos, sin falsos positivos
+- `time.sleep(0.7)` entre requests (cortesía, evitar bloqueo IP)
+- `timeout=8s` por request (no cuelga el pipeline)
+- ~45 leads × 0.7s = ~30s extra al pipeline (dentro del límite de 10min)
+- **Hallazgo:** VentaFe NO muestra patentes NI en el detalle del aviso. Scraper funciona pero no encuentra patentes.
+
+### ✅ FIX GEMINI SABUESO Fase 3 — Solo dolor real explícito, eliminar preventivas sin patente → DONE
+
+- Eliminadas keywords preventivas del filtro de admisión ('sin deuda', 'sin multas', 'papeles al día')
+- Solo se admite VentaFe si tiene dolor REAL explícito (multa, deuda, sin 08, titular fallecido, etc.) o patente
+- Regex con word boundaries para evitar que 'traba' matchee 'trabajo/trabajar'
+- Exclusión de contexto negativo: 'sin deuda, multas' no matchea como dolor
+- **Resultado:** 0 leads (VentaFe no tiene avisos con dolor real explícito)
+
+### ✅ FIX GEMINI VÍA A+B — Dolor registral + Triangulación cross-platform ML → DONE
+
+**Vía A — Filtro de Dolor Registral:**
+- Cambio de dolor genérico (multa/deuda) a dolor REGISTRAL específico:
+  - 'sin 08', '08 vencido', '08 firmado en blanco'
+  - 'titular fallecido', 'titular inubicable', 'titular no firma'
+  - 'sucesión', 'poseedor', 'denuncia de compra', 'tarjeta rosa'
+  - 'embargo', 'inhibición', 'bloqueado'
+- **Resultado:** 0 leads (vendedores de VentaFe no declaran problemas registrales)
+
+**Vía B — Triangulación Cross-Platform Matcher:**
+- Nueva función `try_triangulate_plate(brand, model, mileage, location)`
+- Busca publicación espejo en MercadoLibre por marca+modelo+kilometraje
+- Extrae patente de Q&A donde compradores preguntan y vendedores responden
+- Solo se ejecuta si VentaFe no tiene patente (no gastar cuota innecesaria)
+
+### ✅ FIX GEMINI HÍBRIDO — VentaFe preventivo + FB dorking + etiquetado claro → DONE
+
+**Mejora 1 — VentaFe Híbrido (clasify_and_score):**
+- Caso 1: Dolor registral explícito → score +40, signal `DOLOR_EXPLICITO_REGISTRAL`
+- Caso 2: Preventivo ('papeles al día', 'listo para transferir') → score +15, signal `PREVENTIVO_A_VERIFICAR`
+- Caso 3: No menciona nada → descartar (ruido)
+- Sergio sabe cómo abordar cada lead según la etiqueta
+
+**Mejora 2 — Dorking Facebook grupos A+B sin cookies:**
+- Grupo A: `site:facebook.com/groups/276074287942602` multa/fotomulta + teléfonos
+- Grupo B: `site:facebook.com/groups/1314803566577708` debe/deuda/08 + teléfonos
+- Los buscadores indexan posts de grupos públicos → extraer sin cookies
+
+**Mejora 3 — Etiquetado problem_sum claro:**
+- `DOLOR_EXPLICITO_REGISTRAL` → 'Trámite registral complejo detectado'
+- `PREVENTIVO_A_VERIFICAR` → 'Preventivo — Verificación de deuda sugerida'
+- Step 4.9 sincronizado: pasa si tiene signal válida OR deuda OR patente
+
+**Resultado:** 14 leads VentaFe preventivos con teléfono + WhatsApp directo
+
+### ✅ FIX QWEN — Apify FB scraper con 2 grupos + APIFY_TOKEN refrescado → DONE
+
+- **APIFY_TOKEN refrescado** con token nuevo del user `zYZdh5dNA6AhMa7GO`
+- **Grupo A** (`276074287942602` — Defensas contra Multas AR): ya estaba
+- **Grupo B** (`1314803566577708` — Venta Santa Fe y Alrededores): NUEVO
+- Apify run `lwk3PTxMozPIBqsNi` → SUCCEEDED, 20 posts extraídos del Grupo B
+- Posts enviados al KV via `/api/apify-webhook` → 20 leads Facebook mergeados
+- **Total KV:** 36 leads (14 VentaFe con WhatsApp + 20 Facebook + 2 Reddit)
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+a2f3607 feat(qwen): agregar Grupo B (Venta Santa Fe) al scraper Apify FB
+e7d966c radar: auto-update 2026-07-07 21:20 UTC
+913b2de radar: auto-update 2026-07-07 20:27 UTC
+f0bebdc feat(gemini hibrido): VentaFe preventivo + FB dorking + etiquetado claro
+c036244 radar: auto-update 2026-07-07 20:18 UTC
+4b2b284 feat(gemini via A+B): dolor registral + triangulacion cross-platform ML
+df58516 radar: auto-update 2026-07-07 20:11 UTC
+7c0c1b0 fix(gemini sabueso fase 3.2): remover lista completa tras 'sin deuda/multas'
+91a6586 radar: auto-update 2026-07-07 20:07 UTC
+9aa4795 fix(gemini sabueso fase 3.1): word boundaries + excluir contexto negativo
+98c5062 radar: auto-update 2026-07-07 20:04 UTC
+4935589 fix(gemini sabueso fase 3): solo dolor real explicito, eliminar preventivas sin patente
+3f581bc radar: auto-update 2026-07-07 19:53 UTC
+0354046 fix(gemini tunel detalle): solo formato Mercosur (AA111AA) para evitar falsos positivos
+a3191cc radar: auto-update 2026-07-07 19:49 UTC
+2ef83a5 feat(gemini tunel detalle): scraper de pagina de detalle para extraer patentes
 fe3d660 radar: auto-update 2026-07-07 19:33 UTC
 812ee6f feat(gemini tunel): clasific.ar audita VentaFe con patente + boost dinamico deuda
 11ca114 radar: auto-update 2026-07-07 19:12 UTC
 87ce6b7 fix(gemini arquitectura): eliminar scraper VentaFe del Edge Cron
-4d8986f feat(redesign twenty): paleta black & zinc + sliding drawer + badges desaturados
-2cb34b2 radar: auto-update 2026-07-07 17:10 UTC
-cade23e fix(gemini sabueso v3): doble escape \\s y \\d en DASHBOARD_HTML
-d11d976 radar: auto-update 2026-07-07 16:18 UTC
-4be3caa fix(gemini sabueso fase 2): afinacion fina eliminar falsos positivos transferir
-d21043f radar: auto-update 2026-07-07 16:09 UTC
-4be67b8 fix(gemini sabueso): Filtro de Calidad de Dos Vias VentaFe
-6530641 fix(gemini audit v6): TDZ score + ReferenceError ventafeLeads
-d5e5cae fix(gemini audit v5): KPI Total casos = bandeja (quitar filtros extras)
-296fff4 radar: auto-update 2026-07-07 14:46 UTC
-b989c0a fix(visual): encoding transferencia + persona unico por lead VentaFe
-3c4b520 radar: auto-update 2026-07-07 14:21 UTC
-ea80709 radar: auto-update 2026-07-07 11:44 UTC
-7bb10fd radar: auto-update 2026-07-07 08:19 UTC
-95647a0 fix(gemini audit v4): defaults filtros a 'todos' (tabla vacia con 2 de 33)
-8e07861 radar: auto-update 2026-07-07 05:42 UTC
 ```
 
 ---
@@ -3033,6 +3095,7 @@ export default {
         const body = await request.json();
         const groupUrls = body.groupUrls || [
           'https://www.facebook.com/groups/276074287942602', // Defensas contra Multas AR
+          'https://www.facebook.com/groups/1314803566577708', // Venta Santa Fe y Alrededores
         ];
         const maxPosts = body.maxPosts || 20;
         const fetchComments = body.fetchComments !== false;
@@ -4386,6 +4449,38 @@ def normalize_ar_phone_ventafe(raw: str) -> str:
     return ""
 
 
+def try_triangulate_plate(brand: str, model: str, mileage: str, location: str) -> str:
+    """
+    FIX GEMINI VIA B: Cross-Platform Matcher.
+    Busca publicaciones duplicadas en MercadoLibre usando marca+modelo+kilometraje exacto
+    para extraer la patente de las Q&A (donde compradores preguntan y vendedores responden).
+    Retorna la patente en formato AA111AA o string vacio si no encuentra.
+    """
+    if not brand or not mileage or mileage == "0":
+        return ""
+    try:
+        from search_providers import search as _osint_search
+        # Query altamente especifica: marca + modelo + kilometraje exacto en ML
+        query_parts = [f'site:mercadolibre.com.ar "{brand}"']
+        if model:
+            query_parts.append(f'"{model}"')
+        query_parts.append(f'"{mileage}"')
+        query = " ".join(query_parts)
+        results = _osint_search(query, num=3)
+        for r in results:
+            text_to_analyze = (r.get("snippet", "") + " " + r.get("title", "") + " " + r.get("name", ""))
+            # Buscar patente en formato Mercosur (AA111AA) con espacios opcionales
+            patente_m = re.search(r"\b([A-Za-z]{2}\s?\d{3}\s?[A-Za-z]{2})\b", text_to_analyze)
+            if patente_m:
+                plate = re.sub(r"\s+", "", patente_m.group(1)).upper()
+                if len(plate) == 7:  # Validar longitud exacta
+                    print(f"      [Triangulacion OSINT] Patente {plate} recuperada de ML espejo", file=sys.stderr)
+                    return plate
+    except Exception:
+        pass
+    return ""
+
+
 def scrape_ventafe_leads() -> List[Dict[str, Any]]:
     """Scrapea VentaFe.com.ar/automoviles (5 paginas) y extrae telefonos visibles."""
     import urllib.request as _urq
@@ -4496,6 +4591,57 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
         phone_display = valid_phones[0][-4:] if valid_phones else "????"
         persona_label = f"Vendedor #{aviso_id}" if aviso_id and aviso_id.isdigit() else f"Vendedor tel …{phone_display}"
 
+        # FIX GEMINI TUNEL DETALLE: Scrapear pagina de detalle del aviso para extraer patente.
+        # VentaFe NO muestra patentes en el listado, solo en la pagina de detalle.
+        # Sin esto, el tunel de clasific.ar nunca se activa porque PATENTE_DETECTED=False.
+        # Solo se consulta si unique_url apunta a /automoviles/{id}-{slug} (no anchor).
+        patentes_detectadas = []
+        if unique_url and "/automoviles/" in unique_url and "#" not in unique_url:
+            try:
+                detail_req = _urq.Request(unique_url, headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml',
+                    'Accept-Language': 'es-AR,es;q=0.9',
+                })
+                with _urq.urlopen(detail_req, timeout=8) as detail_resp:
+                    detail_html = detail_resp.read().decode('utf-8', errors='replace')
+
+                # Limpiar HTML del detalle
+                detail_clean = _re.sub(r'<[^>]+>', ' ', detail_html)
+                detail_clean = _html_mod.unescape(detail_clean)
+                detail_clean = _re.sub(r'\s+', ' ', detail_clean)
+
+                # Regex patentes AR: SOLO formato Mercosur (AA111AA) — 2 letras + 3 digitos + 2 letras.
+                # El formato viejo (AAA111) causa falsos positivos (CEL342, CON270, DIR342, etc.)
+                # que son abreviaciones seguidas de codigos de area.
+                patentes_raw = _re.findall(r'\b([a-zA-Z]{2}\s?\d{3}\s?[a-zA-Z]{2})\b', detail_clean)
+                patentes_detectadas = list(set(p.replace(" ", "").upper() for p in patentes_raw if len(p.replace(" ", "")) == 7))
+
+                if patentes_detectadas:
+                    print(f"  [VentaFe Detail] Aviso #{aviso_id}: patentes={patentes_detectadas[:3]}", file=sys.stderr)
+
+                time.sleep(0.7)  # Cortesia entre requests (evitar bloqueo IP)
+            except Exception as detail_err:
+                print(f"  [VentaFe Detail] Error aviso #{aviso_id}: {detail_err}", file=sys.stderr)
+
+        # Patentes finales: las del detalle (prioridad) + las del listado (fallback)
+        patentes_finales = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+
+        # FIX GEMINI VIA B: Triangulación Cross-Platform Matcher.
+        # Si no se encontró patente en VentaFe (listado ni detalle), intentar
+        # buscar la publicación espejo en MercadoLibre por marca+modelo+kilometraje.
+        # Solo se hace si no hay patentes todavía (para no gastar cuota innecesariamente).
+        if not patentes_finales:
+            mileage_match = _re.search(r"\b(\d{2,3}\.\d{3})\s*(?:km|kms)\b", text, _re.IGNORECASE)
+            if mileage_match:
+                mileage_val = mileage_match.group(1)
+                title_words = title.split()
+                brand_guess = title_words[0] if title_words else ""
+                model_guess = title_words[1] if len(title_words) > 1 else ""
+                triangulated_plate = try_triangulate_plate(brand_guess, model_guess, mileage_val, "Santa Fe")
+                if triangulated_plate:
+                    patentes_finales = [triangulated_plate]
+
         lead = {
             "name": f"[VentaFe] {title}",
             "url": unique_url,
@@ -4508,7 +4654,7 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
             "source": "ventafe",
             "_query": "ventafe_automoviles",
             "telefonos": valid_phones,
-            "patentes": _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text),
+            "patentes": patentes_finales,
             "problemas": pain_points,
             "zona": "Santa Fe",
             "aviso_id": aviso_id,
@@ -4651,6 +4797,31 @@ def collect_public_sources() -> List[Dict[str, Any]]:
             print(f"  [VentaFe] +{len(ventafe_results)} leads inyectados", file=sys.stderr)
     except Exception as e:
         print(f"  [VentaFe] ERROR: {e}", file=sys.stderr)
+
+    # FIX GEMINI MEJORA 2: Dorking Facebook grupos A+B sin cookies.
+    # Los buscadores indexan posts de grupos públicos de Facebook, permitiendo
+    # extraer fragmentos con teléfonos sin necesidad de sesión/cookies.
+    fb_dorks = [
+        # Grupo A: Defensa contra multas de tránsito
+        'site:facebook.com/groups/276074287942602 "multa" OR "fotomulta" "11" OR "342" OR "341"',
+        # Grupo B: Venta de Autos Santa Fe y Alrededores
+        'site:facebook.com/groups/1314803566577708 "debe" OR "deuda" OR "08" OR "fallecido" "342" OR "15"',
+    ]
+    print("[OSINT] Dorking grupos Facebook (sin cookies)...", file=sys.stderr)
+    for dork in fb_dorks:
+        try:
+            print(f"  [FB Dork] {dork[:70]}", file=sys.stderr)
+            fb_results = web_search(dork, num=8)
+            for r in fb_results:
+                r["_query"] = "facebook_group_direct_dork"
+                r["source"] = "facebook_groups"
+                r["host_name"] = "facebook.com"
+            all_results.extend(fb_results)
+            if fb_results:
+                print(f"  [FB Dork] +{len(fb_results)} resultados", file=sys.stderr)
+            time.sleep(2.0)
+        except Exception as e:
+            print(f"  [FB Dork] Error: {e}", file=sys.stderr)
 
     return all_results
 
@@ -4984,25 +5155,39 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if is_vf:
         text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
         text_lower_vf = text_for_pain.lower()
-        # FIX GEMINI SABUESO FASE 2: Solo frases compuestas de alto valor preventivo.
-        # NO admitir 'transferencia' o 'transferir' sueltas (95% de avisos comunes las usan).
-        has_explicit_pain_text = any(kw in text_lower_vf for kw in [
-            # Dolor explicito
-            "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
-            "bloqueada", "bloqueado",
-            # Dolor documental especifico
-            "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-            # Preventivo de alta calidad (frases compuestas, no palabras sueltas)
-            "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
-            "sin deudas", "sin multas", "libre de multas",
-            "patente paga", "patentes pagas", "patente al dia", "patente al día",
-            "listo para transferir", "transferencia inmediata",
-            "se transfiere si o si", "se transfiere sí o sí",
+        # FIX GEMINI HIBRIDO: Enfoque preventivo + dolor real.
+        # Caso 1: Vendedor admite problemas reales → Score Alto (caliente)
+        # Caso 2: Vendedor dice estar al día → Score medio (tibio, preventivo)
+        # Caso 3: No menciona nada → descartar (ruido)
+        has_explicit_pain = any(kw in text_lower_vf for kw in [
+            "debo patente", "debe patente", "adeuda", "embargo", "inhibicion", "inhibición",
+            "bloqueado", "sin 08", "08 vencido", "08 firmado en blanco",
+            "titular fallecido", "no tengo el 08", "titular inubicable",
+            "sucesion", "sucesión", "titular no firma", "poseedor", "denuncia de compra",
+            "tarjeta rosa", "solo poseedores", "problema de papeles", "faltan papeles",
+            "debo multa", "debe multa", "multas impagas", "multa pendiente",
+            "me llego multa", "tengo multa", "con multas", "con deuda",
+            "no puedo transferir", "transferencia bloqueada",
+        ])
+        is_preventive = any(kw in text_lower_vf for kw in [
+            "papeles al dia", "papeles al día", "listo para transferir",
+            "sin deudas", "sin multas", "libre de multas", "al dia", "al día",
+            "patente paga", "patente al dia", "patente al día",
         ])
         has_patente = bool(record.get("patente"))
-        if not (has_explicit_pain_text or has_patente):
-            return None  # VentaFe sin dolor ni patente → aviso comun, descartar
+
+        if has_explicit_pain:
+            score += 40
+            if "DOLOR_EXPLICITO_REGISTRAL" not in signals:
+                signals.append("DOLOR_EXPLICITO_REGISTRAL")
+        elif is_preventive or has_patente:
+            # Preventivo: score base moderado, etiqueta clara para Sergio
+            score += 15
+            if "PREVENTIVO_A_VERIFICAR" not in signals:
+                signals.append("PREVENTIVO_A_VERIFICAR")
+        else:
+            # No menciona dolor ni papeles al día → descartar (ruido)
+            return None
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -5222,15 +5407,20 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["generic_penalty"]
         breakdown["generic_penalty"] = SCORE_RULES["generic_penalty"]
 
-    # --- PATENTE DETECTION (H.AI insight + GPT filter) ---
-    # Detectar patente AR en texto y boost +15
-    patente_match = re.search(r"\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b", record.get("combined_text", ""), re.IGNORECASE)
+    # --- PATENTE DETECTION (FIX GEMINI: regex federal con soporte para espacios) ---
+    # Soporta: AA111AA, AA 111 AA, AAA111, AAA 111 (mayusculas y minusculas).
+    # Comun en ML Q&A y Reddit donde usuarios escriben "AA 111 AA" con espacios.
+    patente_clean_text = record.get("combined_text", "")
+    patente_match = re.search(r"\b([A-Za-z]{2}\s?\d{3}\s?[A-Za-z]{2}|[A-Za-z]{3}\s?\d{3})\b", patente_clean_text)
     if patente_match:
+        # Limpiar espacios y normalizar a mayusculas
+        norm_plate = re.sub(r"\s+", "", patente_match.group(1)).upper()
+        record["patente"] = norm_plate
         score += 15
         breakdown["patente_detected"] = 15
-        signals.append("PATENTE_DETECTED")
+        if "PATENTE_DETECTED" not in signals:
+            signals.append("PATENTE_DETECTED")
         # Marcar para enriquecimiento automatico con clasific.ar
-        # (se hace en run_pipeline despues de classify_and_score)
 
     # --- INTENCION EXTREMA BOOST (GPT insight: filtrar ruido) ---
     # Solo leads con dolor MUY explicito merecen boost
@@ -5316,8 +5506,14 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
     if label == "reject":
         return None
 
-    # Problem category
-    if "transferencia" in text or "transferir" in text or re.search(r"\b08\b", text):
+    # Problem category (FIX GEMINI HIBRIDO: etiquetado preventivo)
+    if "DOLOR_EXPLICITO_REGISTRAL" in signals:
+        problem_cat = "DOCUMENTATION_ISSUE"
+        problem_sum = "Trámite registral complejo detectado"
+    elif "PREVENTIVO_A_VERIFICAR" in signals:
+        problem_cat = "PREVENTIVE_SCAN"
+        problem_sum = "Preventivo — Verificación de deuda sugerida"
+    elif "transferencia" in text or "transferir" in text or re.search(r"\b08\b", text):
         problem_cat = "TRANSFER_PROBLEM"
         problem_sum = "Problema de transferencia"
     elif "multa" in text or "fotomulta" in text:
@@ -5331,7 +5527,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         problem_sum = "Problema de titularidad"
     else:
         problem_cat = "OTHER"
-        problem_sum = "Lead vehicular"
+        problem_sum = "Lead vehicular calificado"
 
     # WhatsApp link (Qwen fix: normalizar a E.164)
     wa_link = ""
@@ -5975,27 +6171,17 @@ def run_pipeline() -> Dict[str, Any]:
         is_vf_out = ("ventafe" in (lead.platform or "").lower()
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
-            text_lower_out = (lead.quoted_text or "").lower()
-            # FIX GEMINI TUNEL: misma lista de keywords que filtro de admision (Fase 2)
-            has_explicit_pain_text = any(kw in text_lower_out for kw in [
-                "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
-                "bloqueada", "bloqueado",
-                "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
-                "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
-                "sin deudas", "sin multas", "libre de multas",
-                "patente paga", "patentes pagas", "patente al dia", "patente al día",
-                "listo para transferir", "transferencia inmediata",
-                "se transfiere si o si", "se transfiere sí o sí",
+            # FIX GEMINI HIBRIDO: pasar si tiene signals validas (dolor, preventivo, deuda)
+            has_valid_signals = any(sig in (lead.detected_signals or []) for sig in [
+                "DOLOR_EXPLICITO_REGISTRAL", "PREVENTIVO_A_VERIFICAR", "DEUDA_COMPROBADA"
             ])
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
-            has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
-            # Pasa si: dolor textual OR deuda comprobada por clasific.ar
-            if has_explicit_pain_text or has_validated_debt or has_deuda_signal:
+            has_patente_out = bool(getattr(lead, "patente", "") or "")
+            if has_valid_signals or has_validated_debt or has_patente_out:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor textual y deuda=0",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin signals validas",
                       file=sys.stderr)
         else:
             filtered_leads.append(lead)
@@ -10286,7 +10472,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 19:38 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 22:03 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
