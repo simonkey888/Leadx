@@ -159,7 +159,7 @@ WHATSAPP_HINT_REGEX = re.compile(
 # ===========================================================================
 
 MUST_INCLUDE_ONE = ["auto", "transferencia", "vehiculo", "vehículo", "multa", "patente",
-                    "moto", "camioneta", "libre deuda", "08"]
+                    "moto", "camioneta", "libre deuda"]  # FIX GEMINI Sabueso: removido '08' suelto (matcheaba '308', '2016', etc.)
 
 REJECT_IF_CONTAINS = [
     "publicado por", "leer más", "última actualización",
@@ -791,7 +791,10 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
     # Content filter
     combined_lower = combined.lower()
-    if not any(kw in combined_lower for kw in MUST_INCLUDE_ONE):
+    # FIX GEMINI Sabueso: verificar 08 con word boundary (no matchear '308', '2016', etc.)
+    is_ventafe = "ventafe.com.ar" in url or result.get("source") == "ventafe" or result.get("host_name") == "ventafe.com.ar"
+    has_must_match = any(kw in combined_lower for kw in MUST_INCLUDE_ONE) or bool(re.search(r"\b08\b", combined_lower))
+    if not is_ventafe and not has_must_match:
         return None
     for reject in REJECT_IF_CONTAINS:
         if reject in combined_lower:
@@ -1091,17 +1094,28 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- Scoring ---
 
-    # FIX QWEN v3.0 (corregido v3.0.1): Rechazar VentaFe SOLO si no tiene NINGUN dato real.
-    # Antes requería AMBOS (provincia AND telefono) y mataba 27 de 30 leads validos.
-    # Ahora: rechazar solo si no tiene provincia/zona Y no tiene telefono/whatsapp.
+    # FIX GEMINI SABUESO (Paso 2): Filtro de Admisión VentaFe (Pain o Patente).
+    # Si el lead viene de VentaFe, solo ingresa al pipeline si:
+    #   (a) menciona dolor vehicular explicito en el texto, O
+    #   (b) tiene patente declarada (para auditar contra clasific.ar luego)
+    # Avisos comunes sin dolor ni patente (ej: Peugeot 308 limpio) se descartan.
     platform_str = (record.get("platform", "") or "").lower()
     source_str = (record.get("source", "") or "").lower()
-    if "ventafe" in source_str or "ventafe" in platform_str or "ventafe.com.ar" in (record.get("source_url", "") or ""):
-        has_provincia = bool(record.get("provincia") or record.get("zona"))
-        has_contacto = bool(record.get("telefono_publico") or record.get("phone")
-                            or record.get("whatsapp_publico") or record.get("whatsapp"))
-        if not has_provincia and not has_contacto:
-            return None  # Sin provincia Y sin contacto → dato trucho, descartar
+    is_vf = ("ventafe" in source_str or "ventafe" in platform_str
+             or "ventafe.com.ar" in (record.get("source_url", "") or ""))
+
+    if is_vf:
+        text_for_pain = record.get("combined_text", "") or record.get("problema", "") or ""
+        text_lower_vf = text_for_pain.lower()
+        has_explicit_pain_text = any(kw in text_lower_vf for kw in [
+            "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
+            "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "bloqueada", "bloqueado",
+            "sin 08", "no puedo transferir", "papeles al dia", "papeles al día",
+            "listo para transferir", "libre deuda", "libre de multas"
+        ])
+        has_patente = bool(record.get("patente"))
+        if not (has_explicit_pain_text or has_patente):
+            return None  # VentaFe sin dolor ni patente → aviso comun, descartar
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
@@ -1210,7 +1224,8 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         signals.append("libre_deuda")
 
     # 08_or_document_problem: +40 (no sumar doble con transfer)
-    if "08" in text and "libre deuda" not in text:
+    # FIX GEMINI Sabueso: usar \b08\b (word boundary) para no matchear '308', '2016', '110.000km'
+    if re.search(r"\b08\b", text) and "libre deuda" not in text:
         score += SCORE_RULES["08_or_document_problem"]
         breakdown["08_or_document_problem"] = SCORE_RULES["08_or_document_problem"]
         signals.append("document_08")
@@ -1405,7 +1420,7 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         return None
 
     # Problem category
-    if "transferencia" in text or "transferir" in text or "08" in text:
+    if "transferencia" in text or "transferir" in text or re.search(r"\b08\b", text):
         problem_cat = "TRANSFER_PROBLEM"
         problem_sum = "Problema de transferencia"
     elif "multa" in text or "fotomulta" in text:
@@ -2036,6 +2051,38 @@ def run_pipeline() -> Dict[str, Any]:
                 print(f"  [clasific.ar] {enriched_count} leads calientes enriquecidos", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
+
+    # FIX GEMINI SABUESO (Paso 3): Filtro de Salida VentaFe.
+    # Si un lead VentaFe paso el filtro de admision (Paso 2) pero:
+    #   - su texto NO mencionaba dolor explicito, Y
+    #   - clasific.ar respondio deuda=0 (o no se enriquecio),
+    # entonces se descarta antes de llegar al CRM de Sergio.
+    filtered_leads = []
+    sabueso_descartes = 0
+    for lead in leads:
+        is_vf_out = ("ventafe" in (lead.platform or "").lower()
+                     or "ventafe" in (lead.source_url or "").lower())
+        if is_vf_out:
+            text_lower_out = (lead.quoted_text or "").lower()
+            has_explicit_pain_text = any(kw in text_lower_out for kw in [
+                "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
+                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "bloqueada", "bloqueado",
+                "sin 08", "no puedo transferir", "papeles al dia", "papeles al día",
+                "listo para transferir", "libre deuda", "libre de multas"
+            ])
+            has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
+            if has_explicit_pain_text or has_validated_debt:
+                filtered_leads.append(lead)
+            else:
+                sabueso_descartes += 1
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: sin dolor textual y deuda=0",
+                      file=sys.stderr)
+        else:
+            filtered_leads.append(lead)
+    leads = filtered_leads
+    if sabueso_descartes:
+        print(f"  [Sabueso] {sabueso_descartes} leads VentaFe descartados por falta de dolor/deuda",
+              file=sys.stderr)
 
     # Step 4.6: Comment Mining (DeepSeek+Qwen insight)
     mine_comments_for_contacts(leads)
