@@ -1086,14 +1086,17 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # --- Scoring ---
 
-    # FIX QWEN v3.0: Rechazar VentaFe sin provincia o sin teléfono real (datos truchos)
+    # FIX QWEN v3.0 (corregido v3.0.1): Rechazar VentaFe SOLO si no tiene NINGUN dato real.
+    # Antes requería AMBOS (provincia AND telefono) y mataba 27 de 30 leads validos.
+    # Ahora: rechazar solo si no tiene provincia/zona Y no tiene telefono/whatsapp.
     platform_str = (record.get("platform", "") or "").lower()
     source_str = (record.get("source", "") or "").lower()
     if "ventafe" in source_str or "ventafe" in platform_str or "ventafe.com.ar" in (record.get("source_url", "") or ""):
-        if not record.get("provincia") and not record.get("zona"):
-            return None
-        if not record.get("telefono_publico") and not record.get("phone") and not record.get("whatsapp_publico"):
-            return None
+        has_provincia = bool(record.get("provincia") or record.get("zona"))
+        has_contacto = bool(record.get("telefono_publico") or record.get("phone")
+                            or record.get("whatsapp_publico") or record.get("whatsapp"))
+        if not has_provincia and not has_contacto:
+            return None  # Sin provincia Y sin contacto → dato trucho, descartar
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
     if "mercadolibre" in platform_str or "mercadolibre" in source_str:
