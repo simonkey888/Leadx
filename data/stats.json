@@ -1,41 +1,12 @@
 {
-  "total_runs": 86,
-  "last_run": "2026-07-07T16:09:04.055823+00:00",
-  "last_run_id": "6b91cf7c75bd",
-  "total_leads_all_time": 1025,
-  "total_hot_leads_all_time": 924,
+  "total_runs": 87,
+  "last_run": "2026-07-07T16:18:50.882981+00:00",
+  "last_run_id": "00b0057da623",
+  "total_leads_all_time": 1031,
+  "total_hot_leads_all_time": 930,
   "avg_hot_per_run": 10.7,
-  "runs_today": 17,
+  "runs_today": 18,
   "last_7_days": [
-    {
-      "run_id": "bdf6cd652847",
-      "generated_at": "2026-07-07T05:36:44.966107+00:00",
-      "summary": {
-        "total_leads": 30,
-        "hot_leads": 30,
-        "warm_leads": 0,
-        "contactable": 30,
-        "with_whatsapp": 17,
-        "with_phone": 30,
-        "with_email": 0,
-        "avg_score": 87.7,
-        "avg_score_hot": 87.7,
-        "conversion_probability": 100.0,
-        "by_category": {
-          "OTHER": 14,
-          "TRANSFER_PROBLEM": 13,
-          "OWNERSHIP_ISSUE": 2,
-          "FINE_DISPUTE": 1
-        },
-        "by_platform": {
-          "Ventafe.Com.Ar": 30
-        },
-        "by_province": {
-          "CABA": 2,
-          "Paraná": 1
-        }
-      }
-    },
     {
       "run_id": "e96ccd71cd53",
       "generated_at": "2026-07-07T05:42:13.231287+00:00",
@@ -194,6 +165,31 @@
         "with_email": 0,
         "avg_score": 91.7,
         "avg_score_hot": 91.7,
+        "conversion_probability": 100.0,
+        "by_category": {
+          "FINE_DISPUTE": 1,
+          "OTHER": 2,
+          "TRANSFER_PROBLEM": 3
+        },
+        "by_platform": {
+          "VentaFe": 6
+        },
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "00b0057da623",
+      "generated_at": "2026-07-07T16:18:50.882981+00:00",
+      "summary": {
+        "total_leads": 6,
+        "hot_leads": 6,
+        "warm_leads": 0,
+        "contactable": 6,
+        "with_whatsapp": 4,
+        "with_phone": 6,
+        "with_email": 0,
+        "avg_score": 83.3,
+        "avg_score_hot": 83.3,
         "conversion_probability": 100.0,
         "by_category": {
           "FINE_DISPUTE": 1,
