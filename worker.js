@@ -3160,7 +3160,15 @@ async function runPipelineCron(env) {
           '08 firmado','cedula','veraz','registro automotor','juez de faltas','peaje','deuda','vencimiento',
           'auto','moto','vehiculo','vendo','compro','permuta'];
         if (!painKw.some(k => fullText.includes(k))) continue;
-        
+
+        // FIX GEMINI AUDIT: Filtro Reddit SOLO Argentina (mismo criterio que classify_and_score del Python).
+        // Si no hay señal AR explícita en el texto, descartar el lead.
+        const arKw = ['argentina','buenos aires','caba','capital federal','cordoba','cordoba',
+          'santa fe','rosario','mendoza','entre rios','neuquen','salta','la plata','arba',
+          'dnrpa','rentas','pba','gba','patente argentina','parana','tigre','avellaneda',
+          'quilmes','moron','pilar'];
+        if (!arKw.some(g => fullText.includes(g))) continue;
+
         // Anti-junk
         const junkKw = ['renunciar','empleo','galaxy','tablet','licitacion','falsa competencia',
           'guardia roja','gracia inmerecida','euphoria','depre','ajuste de equilibrio','probabilit'];
@@ -3229,11 +3237,13 @@ async function runPipelineCron(env) {
     const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
     
     for (let page = 1; page <= 2; page++) {  // Qwen fix: 2 paginas para evitar timeout
-      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?page=' + page;
+      // FIX GEMINI AUDIT: usar ?p= (NO ?page= que no pagina en VentaFe) + declarar vfHtml antes de usarlo (TDZ fix)
+      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?p=' + page;
       const vfRes = await fetch(vfUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
       });
       if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
+      const vfHtml = await vfRes.text();  // Declarar ANTES de usar (fix TDZ)
       const vfBlocks = vfHtml.split('class="row item tipo-').slice(1);
       let vfPhoneCount = 0;
       for (const block of vfBlocks) {
@@ -3243,8 +3253,7 @@ async function runPipelineCron(env) {
         if (phones.length > 0) vfPhoneCount++;
       }
       console.log('[CRON] VentaFe page ' + page + ': ' + vfBlocks.length + ' blocks, ' + vfPhoneCount + ' with phones');
-      const vfHtml = await vfRes.text();
-      const blocks = vfHtml.split('class="row item tipo-').slice(1);
+      const blocks = vfBlocks;  // Reusar la variable ya parseada
       
       for (const block of blocks) {
         let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
