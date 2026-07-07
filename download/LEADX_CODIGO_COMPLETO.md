@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único para Gemini)
 
-**Generado:** 2026-07-07 19:23 UTC  
+**Generado:** 2026-07-07 19:38 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** fa73c363-d2f1-4ae4-8285-91a6c995c3ef  
-**Estado:** Producción activa · cron cada 1h · 7 leads VentaFe limpios (solo Python pipeline) · rediseño Twenty.com · KPI=bandeja · ortografía restaurada · Edge Cron sin scraper VentaFe
-**Timestamp generación:** 2026-07-07 19:23 UTC (hora UTC) · Argentina: 2026-07-07 16:23:00 ART
+**Worker Version:** cdc02840-2419-4042-9533-d20bd8e172bb  
+**Estado:** Producción activa · cron cada 1h · 7 leads VentaFe limpios · túnel clasific.ar implementado (pendiente scraper detalle) · rediseño Twenty.com · KPI=bandeja
+**Timestamp generación:** 2026-07-07 19:38 UTC (hora UTC) · Argentina: 2026-07-07 16:38:02 ART
 
 ---
 
@@ -15,7 +15,7 @@
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
 | 1 | `worker.js` | 3,327 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,205 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 2 | `generate_payload.py` | 2,228 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -467,11 +467,52 @@
 - **0 leads basura** del Edge Cron (antes ~86)
 - Todos con teléfono y WhatsApp link directo
 
+### ✅ FIX GEMINI TÚNEL — clasific.ar audita VentaFe con patente + boost dinámico → DONE
+
+**Problema resuelto:** Cuello de botella lógico en el pipeline
+- Step 4.5 solo consultaba clasific.ar si `score >= 70`
+- Pero VentaFe preventivos arrancan con `score 40` (Sabueso Fase 2)
+- Como nunca se consultaban, `deuda_clasificar` quedaba en 0
+- Step 4.9 los descartaba por 'sin dolor textual y deuda=0'
+
+**3 parches del Túnel Automático:**
+
+**Parche 1 — Abrir compuerta clasific.ar (Step 4.5):**
+- Antes: `should_enrich = has_patente and score >= 70`
+- Ahora: `should_enrich = has_patente and (score >= 70 or is_vf_lead)`
+- VentaFe con patente se consulta sin importar score
+
+**Parche 2 — Boost dinámico por deuda comprobada:**
+- Si clasific.ar responde `deuda > 0`:
+  - `lead.score = 95` (caliente máximo)
+  - `lead.label = 'real_lead'`
+  - signal `DEUDA_COMPROBADA` inyectada
+  - contador `deuda_comprobada_count` para logging
+
+**Parche 3 — Step 4.9 Filtro de Salida consistente:**
+- Lista de keywords expandida (misma que filtro de admisión Fase 2)
+- Agregada verificación `has_deuda_signal` ('DEUDA_COMPROBADA')
+- Pasa si: dolor textual OR deuda comprobada OR signal DEUDA_COMPROBADA
+
+**⚠️ Hallazgo importante — VentaFe NO muestra patentes en el listado:**
+- Verifiqué el HTML de `ventafe.com.ar/automoviles` → 0 patentes en el listado
+- Las patentes aparecen en la **página de detalle** de cada aviso (ej: `/automoviles/5011468-peugeot-308-allure`)
+- Por eso los 7 leads en KV tienen `patente=''` y `PATENTE_DETECTED=False`
+- El túnel está implementado correctamente pero no se activa porque no hay patentes
+
+**Próxima iteración para activar el túnel al 100%:**
+- Scrapear la página de detalle de cada aviso VentaFe (no solo el listado)
+- Extraer la patente del detalle (campo 'Dominio' o 'Patente')
+- Pasar esa patente al túnel de clasific.ar
+- Implica ~45 requests extra por run (uno por aviso)
+
 ---
 
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+fe3d660 radar: auto-update 2026-07-07 19:33 UTC
+812ee6f feat(gemini tunel): clasific.ar audita VentaFe con patente + boost dinamico deuda
 11ca114 radar: auto-update 2026-07-07 19:12 UTC
 87ce6b7 fix(gemini arquitectura): eliminar scraper VentaFe del Edge Cron
 4d8986f feat(redesign twenty): paleta black & zinc + sliding drawer + badges desaturados
@@ -490,8 +531,6 @@ ea80709 radar: auto-update 2026-07-07 11:44 UTC
 7bb10fd radar: auto-update 2026-07-07 08:19 UTC
 95647a0 fix(gemini audit v4): defaults filtros a 'todos' (tabla vacia con 2 de 33)
 8e07861 radar: auto-update 2026-07-07 05:42 UTC
-30f42be fix(gemini audit v3): sourceFilter case-insensitive + PLATFORM_MAP VentaFe
-7ff9db0 radar: auto-update 2026-07-07 05:36 UTC
 ```
 
 ---
@@ -5868,20 +5907,24 @@ def run_pipeline() -> Dict[str, Any]:
             leads.append(lead)
     print(f"  Scored {len(leads)} leads (rejected rest)", file=sys.stderr)
 
-    # Step 4.5: Enriquecer SOLO leads calientes con clasific.ar (CAMBIO QWEN v2.7)
-    # Quirurgico: solo score >= 70 Y PATENTE_DETECTED → ahorra las 200 consultas/mes
-    # para los leads realmente calientes con patente valida.
+    # Step 4.5: Tunel de Auditoria clasific.ar (FIX GEMINI Tunel Automatico)
+    # Antes: solo score >= 70 con patente → VentaFe preventivos (score 40) nunca se consultaban
+    # Ahora: consultar si (score >= 70 con patente) OR (VentaFe con patente, sin importar score)
+    # Esto permite auditar deuda real de leads preventivos que arrancan con score 40.
     try:
         worker_url = os.environ.get("WORKER_URL", "https://leadx.simondalmasso44.workers.dev")
         ingest_secret = os.environ.get("INGEST_SECRET", "")
         if ingest_secret:
             enriched_count = 0
+            deuda_comprobada_count = 0
             import urllib.request as _urq3
             for lead in leads:
-                # CAMBIO QWEN v2.7: solo enriquecer leads calientes con patente
-                if lead.score < 70:
-                    continue
-                if "PATENTE_DETECTED" not in (lead.detected_signals or []):
+                # FIX GEMINI TUNEL: abrir compuerta para VentaFe con patente (sin importar score)
+                is_vf_lead = ("ventafe" in (lead.platform or "").lower()
+                              or "ventafe" in (lead.source_url or "").lower())
+                has_patente = "PATENTE_DETECTED" in (lead.detected_signals or [])
+                should_enrich = has_patente and (lead.score >= 70 or is_vf_lead)
+                if not should_enrich:
                     continue
 
                 # Buscar patente en el texto
@@ -5899,14 +5942,25 @@ def run_pipeline() -> Dict[str, Any]:
                             v = veh_data["data"]["data"]
                             lead.vehiculo = f"{v.get('make','')} {v.get('model','')} {v.get('year','')}".strip()
                             lead.provincia = v.get("currentLocation", {}).get("province", "") or lead.provincia
-                            # CAMBIO QWEN v2.7: agregar campo deuda_clasificar para mostrar en modal
                             lead.deuda_clasificar = v.get("deuda", 0)
+
+                            # FIX GEMINI TUNEL — BOOST DINAMICO POR DEUDA COMPROBADA
+                            # Si clasific.ar encuentra deuda > 0:
+                            #   - score sube a 95 (caliente maximo)
+                            #   - label reclasifica como real_lead
+                            #   - signal DEUDA_COMPROBADA inyectada
+                            if lead.deuda_clasificar > 0:
+                                lead.score = 95
+                                lead.label = "real_lead"
+                                if "DEUDA_COMPROBADA" not in (lead.detected_signals or []):
+                                    lead.detected_signals.append("DEUDA_COMPROBADA")
+                                deuda_comprobada_count += 1
                             enriched_count += 1
                     except Exception:
                         pass
-                    time.sleep(1)  # CAMBIO QWEN v2.7: rate limit clasific.ar (200/mes)
+                    time.sleep(1)  # rate limit clasific.ar (200/mes)
             if enriched_count:
-                print(f"  [clasific.ar] {enriched_count} leads calientes enriquecidos", file=sys.stderr)
+                print(f"  [clasific.ar] {enriched_count} leads enriquecidos, {deuda_comprobada_count} con deuda comprobada", file=sys.stderr)
     except Exception as e:
         print(f"  [clasific.ar] ERROR: {e}", file=sys.stderr)
 
@@ -5922,14 +5976,22 @@ def run_pipeline() -> Dict[str, Any]:
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
             text_lower_out = (lead.quoted_text or "").lower()
+            # FIX GEMINI TUNEL: misma lista de keywords que filtro de admision (Fase 2)
             has_explicit_pain_text = any(kw in text_lower_out for kw in [
                 "multa", "multas", "fotomulta", "fotomultas", "infraccion", "infracciones", "infracción",
-                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "bloqueada", "bloqueado",
-                "sin 08", "no puedo transferir", "papeles al dia", "papeles al día",
-                "listo para transferir", "libre deuda", "libre de multas"
+                "deuda", "debe", "adeuda", "debo", "embargo", "inhibicion", "inhibición",
+                "bloqueada", "bloqueado",
+                "sin 08", "08 vencido", "titular fallecido", "no tengo el 08",
+                "papeles al dia", "papeles al día", "libre deuda", "libre de deuda",
+                "sin deudas", "sin multas", "libre de multas",
+                "patente paga", "patentes pagas", "patente al dia", "patente al día",
+                "listo para transferir", "transferencia inmediata",
+                "se transfiere si o si", "se transfiere sí o sí",
             ])
             has_validated_debt = (getattr(lead, "deuda_clasificar", 0) or 0) > 0
-            if has_explicit_pain_text or has_validated_debt:
+            has_deuda_signal = "DEUDA_COMPROBADA" in (lead.detected_signals or [])
+            # Pasa si: dolor textual OR deuda comprobada por clasific.ar
+            if has_explicit_pain_text or has_validated_debt or has_deuda_signal:
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
@@ -10224,7 +10286,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 19:23 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-07 19:38 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
