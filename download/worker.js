@@ -23,22 +23,28 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LeadX CRM — Gestión de Casos</title>
 <style>
+  /* ═════════════════════════════════════════════════════════════════════
+     LEADX CRM — Rediseño estilo Twenty.com (Black & Zinc)
+     Solo cambios visuales. Toda la lógica JS permanece intacta.
+     ═════════════════════════════════════════════════════════════════════ */
   :root {
-    --bg:       #F4F6F9;
-    --surface:  #FFFFFF;
-    --border:   #E1E8ED;
-    --text:     #1A2332;
-    --muted:    #6B7A8D;
-    --primary:  #1B4FBB;
-    --primary-h:#1640A0;
-    --green:    #00875A;
-    --green-h:  #006644;
-    --orange:   #FF8B00;
-    --red:      #DE350B;
-    --purple:   #6554C0;
+    --bg:       #000000;   /* Negro absoluto (Twenty fondo) */
+    --surface:  #09090b;   /* Gris carbón (Twenty cards) */
+    --surface2: #18181b;   /* Gris zinc elevado */
+    --border:   #27272a;   /* Bordes sutiles zinc */
+    --text:     #fafafa;   /* Texto principal blanco */
+    --muted:    #71717a;   /* Texto secundario zinc-400 */
+    --muted2:   #52525b;   /* Texto terciario zinc-500 */
+    --primary:  #6366f1;   /* Índigo premium (accent) */
+    --primary-h:#818cf8;   /* Índigo claro hover */
+    --green:    #22c55e;   /* Verde WhatsApp */
+    --green-h:  #16a34a;
+    --orange:   #f59e0b;   /* Amber para tibios */
+    --red:      #ef4444;   /* Rojo para calientes */
+    --purple:   #a855f7;
     --radius:   8px;
-    --shadow:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-    --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+    --shadow:   0 1px 2px rgba(0,0,0,.4);
+    --shadow-lg:0 4px 24px rgba(0,0,0,.6);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -48,12 +54,13 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     font-size: 14px;
     line-height: 1.5;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* ── TOP BAR ── */
+  /* ── TOP BAR (Twenty: negro puro con brand sutil) ── */
   .topbar {
-    background: var(--primary);
-    color: #fff;
+    background: #000000;
+    color: #fafafa;
     padding: 0 24px;
     height: 52px;
     display: flex;
@@ -62,35 +69,37 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
   }
   .topbar-brand {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 600;
     letter-spacing: -.3px;
     display: flex;
     align-items: center;
     gap: 10px;
+    color: #fafafa;
   }
-  .topbar-brand span { opacity: .7; font-weight: 400; font-size: 13px; }
+  .topbar-brand span { opacity: .5; font-weight: 400; font-size: 12px; color: var(--muted2); }
   .topbar-right {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 13px;
-    opacity: .9;
+    font-size: 12px;
+    color: var(--muted);
   }
   .sync-btn {
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.3);
-    color: #fff;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 13px;
-    transition: background .15s;
+    font-size: 12px;
+    transition: background .15s, border-color .15s;
   }
-  .sync-btn:hover { background: rgba(255,255,255,.25); }
+  .sync-btn:hover { background: var(--surface2); border-color: var(--muted2); }
 
   /* ── LAYOUT ── */
   .layout {
@@ -130,11 +139,11 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     color: var(--muted);
     font-size: 13px;
   }
-  .filter-item:hover { background: #F0F4FF; color: var(--text); }
+  .filter-item:hover { background: var(--surface2); color: var(--text); }
   .filter-item.active {
-    background: #EEF2FF;
+    background: rgba(99, 102, 241, 0.1);
     border-left-color: var(--primary);
-    color: var(--primary);
+    color: var(--primary-h);
     font-weight: 600;
   }
   .filter-count {
@@ -219,6 +228,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     outline: none;
     cursor: pointer;
   }
+  select option { background: var(--surface); color: var(--text); }
+  .search-wrap input::placeholder { color: var(--muted2); }
   .btn-primary {
     background: var(--primary);
     color: #fff;
@@ -243,8 +254,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   }
   table { width: 100%; border-collapse: collapse; }
   thead th {
-    background: #F8FAFC;
-    border-bottom: 2px solid var(--border);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
     padding: 10px 14px;
     text-align: left;
     font-size: 11px;
@@ -262,7 +273,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     transition: background .1s;
   }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: #F8FAFC; }
+  tbody tr:hover { background: var(--surface2); }
   td { padding: 12px 14px; vertical-align: middle; }
   .td-nombre { font-weight: 600; font-size: 13px; max-width: 160px; }
   .td-nombre small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 2px; }
@@ -271,34 +282,35 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2;
     -webkit-box-orient: vertical; }
 
-  /* ── STATUS BADGE ── */
+  /* ── STATUS BADGE (desaturados, estilo Twenty) ── */
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 3px 9px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
+    border: 1px solid transparent;
   }
-  .badge-nuevo    { background: #EEF2FF; color: #3730A3; }
-  .badge-contactado  { background: #FFF7E6; color: #92400E; }
-  .badge-gestion  { background: #F0FDF4; color: #166534; }
-  .badge-cerrado  { background: #ECFDF5; color: var(--green); }
-  .badge-descartado { background: #FEF2F2; color: var(--red); }
+  .badge-nuevo    { background: rgba(99,102,241,.08); color: #818cf8; border-color: rgba(99,102,241,.2); }
+  .badge-contactado  { background: rgba(245,158,11,.08); color: #fbbf24; border-color: rgba(245,158,11,.2); }
+  .badge-gestion  { background: rgba(34,197,94,.08); color: #4ade80; border-color: rgba(34,197,94,.2); }
+  .badge-cerrado  { background: rgba(34,197,94,.12); color: var(--green); border-color: rgba(34,197,94,.3); }
+  .badge-descartado { background: rgba(239,68,68,.08); color: #f87171; border-color: rgba(239,68,68,.2); }
   .kpi-value.purple { color: var(--purple); }
-  .badge-hot { background: #FEF3C7; color: #92400E; margin-left: 4px; }
-  .badge-warm { background: #DBEAFE; color: #1E40AF; margin-left: 4px; }
+  .badge-hot { background: rgba(239,68,68,.1); color: #f87171; margin-left: 4px; border:1px solid rgba(239,68,68,.2); }
+  .badge-warm { background: rgba(245,158,11,.1); color: #fbbf24; margin-left: 4px; border:1px solid rgba(245,158,11,.2); }
 
-  /* Heat score row colors (GPT: 3 estados visuales) */
-  tr.heat-hot { background: #FEF2F2 !important; }
-  tr.heat-hot:hover { background: #FEE2E2 !important; }
-  tr.heat-warm { background: #FFFBEB !important; }
-  tr.heat-warm:hover { background: #FEF3C7 !important; }
-  tr.heat-cold { background: var(--surface) !important; opacity: 0.6; }
-  tr.pinned-row { border-left: 3px solid #fbbf24 !important; background: #FFFbeb !important; }
-  tr.pinned-row:hover { background: #FEF3C7 !important; }
+  /* Heat score row colors (Twenty: tintes sutiles sobre negro) */
+  tr.heat-hot { background: rgba(239,68,68,.04) !important; }
+  tr.heat-hot:hover { background: rgba(239,68,68,.1) !important; }
+  tr.heat-warm { background: rgba(245,158,11,.03) !important; }
+  tr.heat-warm:hover { background: rgba(245,158,11,.08) !important; }
+  tr.heat-cold { background: var(--surface) !important; opacity: 0.5; }
+  tr.pinned-row { border-left: 3px solid var(--orange) !important; background: rgba(245,158,11,.05) !important; }
+  tr.pinned-row:hover { background: rgba(245,158,11,.1) !important; }
 
   /* Boton WhatsApp grande verde (GPT: para tu viejo) */
   .btn-wa-big {
@@ -398,28 +410,34 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   .empty h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
   .empty p { font-size: 13px; }
 
-  /* ── MODAL ── */
+  /* ── SLIDING DRAWER (estilo Twenty: panel lateral derecho) ── */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.4);
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(4px);
     z-index: 200;
-    align-items: center;
-    justify-content: center;
+    justify-content: flex-end;  /* Drawer pegado a la derecha */
   }
   .modal-overlay.open { display: flex; }
   .modal {
     background: var(--surface);
-    border-radius: 12px;
-    width: 540px;
-    max-width: 95vw;
-    max-height: 85vh;
+    border-radius: 0;
+    border-left: 1px solid var(--border);
+    width: 520px;
+    max-width: 100vw;
+    max-height: 100vh;
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
     padding: 28px;
+    animation: slideIn .25s cubic-bezier(.4,0,.2,1);
   }
-  .modal h2 { font-size: 18px; margin-bottom: 20px; }
+  @keyframes slideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 20px; color: var(--text); }
   .modal-field { margin-bottom: 16px; }
   .modal-field label { display: block; font-size: 12px; font-weight: 600;
     color: var(--muted); margin-bottom: 5px; text-transform: uppercase;
@@ -435,11 +453,13 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     resize: vertical;
     min-height: 80px;
     outline: none;
+    background: var(--bg);
+    color: var(--text);
   }
   .modal-field textarea:focus { border-color: var(--primary); }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
   .btn-secondary {
-    background: var(--surface);
+    background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--text);
     padding: 8px 16px;
@@ -447,7 +467,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     font-size: 13px;
     cursor: pointer;
   }
-  .btn-secondary:hover { background: #F1F5F9; }
+  .btn-secondary:hover { background: var(--border); }
   .modal-close {
     float: right;
     background: none;
@@ -460,8 +480,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   }
   .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
   .contact-box {
-    background: #F0FDF4;
-    border: 1px solid #BBF7D0;
+    background: rgba(34,197,94,.06);
+    border: 1px solid rgba(34,197,94,.2);
     border-radius: 8px;
     padding: 14px;
     display: flex;
@@ -469,8 +489,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     justify-content: space-between;
   }
   .contact-box.no-contact {
-    background: #FEF9C3;
-    border-color: #FDE68A;
+    background: rgba(245,158,11,.06);
+    border-color: rgba(245,158,11,.2);
   }
 
   /* ── LOADING ── */
