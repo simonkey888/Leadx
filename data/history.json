@@ -2512,5 +2512,29 @@
       },
       "by_province": {}
     }
+  },
+  {
+    "run_id": "f42e2b14d2ec",
+    "generated_at": "2026-07-07T20:07:31.081591+00:00",
+    "summary": {
+      "total_leads": 2,
+      "hot_leads": 2,
+      "warm_leads": 0,
+      "contactable": 2,
+      "with_whatsapp": 1,
+      "with_phone": 2,
+      "with_email": 0,
+      "avg_score": 100.0,
+      "avg_score_hot": 100.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "FINE_DISPUTE": 1,
+        "TRANSFER_PROBLEM": 1
+      },
+      "by_platform": {
+        "VentaFe": 2
+      },
+      "by_province": {}
+    }
   }
 ]

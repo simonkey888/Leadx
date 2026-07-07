@@ -1,25 +1,23 @@
 {
-  "generated_at": "2026-07-07T20:04:03.596599+00:00",
-  "run_id": "cb0b8fca868c",
+  "generated_at": "2026-07-07T20:07:31.081591+00:00",
+  "run_id": "f42e2b14d2ec",
   "summary": {
-    "total_leads": 5,
-    "hot_leads": 5,
+    "total_leads": 2,
+    "hot_leads": 2,
     "warm_leads": 0,
-    "contactable": 5,
-    "with_whatsapp": 3,
-    "with_phone": 5,
+    "contactable": 2,
+    "with_whatsapp": 1,
+    "with_phone": 2,
     "with_email": 0,
-    "avg_score": 90.0,
-    "avg_score_hot": 90.0,
+    "avg_score": 100.0,
+    "avg_score_hot": 100.0,
     "conversion_probability": 100.0,
     "by_category": {
       "FINE_DISPUTE": 1,
-      "OWNERSHIP_ISSUE": 1,
-      "OTHER": 2,
       "TRANSFER_PROBLEM": 1
     },
     "by_platform": {
-      "VentaFe": 5
+      "VentaFe": 2
     },
     "by_province": {}
   },
@@ -60,7 +58,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T20:04:03.594373+00:00",
+      "discovery_timestamp": "2026-07-07T20:07:31.074921+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -99,122 +97,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T20:04:03.595494+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "cc0b80f79c6b676e",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor #5007646",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "CON270",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5007646-camioneta-berlingo-furgon-1-6-hdi-8v-2012",
-      "quoted_text": "> Camioneta berlingo furgon 1.6 HDI 8v- 2012 VENDO !!!! Citroën Berlingo Furgón 1.6 HDi 2012 , con 270.000 km- Es un utilitario de trabajo sumamente popular en Argentina por su mecánica noble y bajo costo operativo. Equipado con un motor turbo-diésel de 92 CV y caja manual de 5 marchas, destaca por",
-      "contacto_publico": true,
-      "whatsapp_publico": "543425497050",
-      "whatsapp_link": "https://wa.me/5493425497050",
-      "telefono_publico": "3425497050",
-      "telefono_e164": "+5493425497050",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "argentina_signal": 15,
-        "patente_detected": 15,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "argentina",
-        "PATENTE_DETECTED",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:04:03.595774+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3cf2a229d7e884be",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OWNERSHIP_ISSUE",
-      "problem_summary": "Problema de titularidad",
-      "persona": "u/Vendedor #5009812",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5009812-vendo-chevrolet-d20-mod-96",
-      "quoted_text": "> Vendo Chevrolet D20 mod. 96 D20 mod 96. Motor maxion 4.0 turbo Diesel. Muy buen estado en general, hermosa para trabajar. La camioneta anda muy bien, se le realizó el cambio del turbo,(nuevo, no reparacion), arranque, se reparo tapa de cilindro completa, radiador, batería NUEVA,, cubiertas a 50%.",
-      "contacto_publico": true,
-      "whatsapp_publico": "543424274167",
-      "whatsapp_link": "https://wa.me/5493424274167",
-      "telefono_publico": "3424274167",
-      "telefono_e164": "+5493424274167",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:04:03.594816+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "cf9529af14f361e2",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor #5008096",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5008096-kangoo-autentique-plus-1-6-2plc",
-      "quoted_text": "> KANGOO AUTENTIQUE PLUS 1.6, 2PLC Muy práctica y cómoda, con fila de asientos para uso familiar o sacando la fila de asientos queda para trabajo. Tiene agregado GNC, tiene todos los servicios al dia, y la correa de distribución cambiada hace 300 km. Muy práctica y cómoda, con fila de asientos para",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426145217",
-      "telefono_publico": "+5493426145217",
-      "telefono_e164": "+5493426145217",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:04:03.595249+00:00",
+      "discovery_timestamp": "2026-07-07T20:07:31.078719+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -255,7 +138,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T20:04:03.594373+00:00",
+      "discovery_timestamp": "2026-07-07T20:07:31.074921+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -294,129 +177,14 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T20:04:03.595494+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "cc0b80f79c6b676e",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor #5007646",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "auto",
-      "patente": "CON270",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5007646-camioneta-berlingo-furgon-1-6-hdi-8v-2012",
-      "quoted_text": "> Camioneta berlingo furgon 1.6 HDI 8v- 2012 VENDO !!!! Citroën Berlingo Furgón 1.6 HDi 2012 , con 270.000 km- Es un utilitario de trabajo sumamente popular en Argentina por su mecánica noble y bajo costo operativo. Equipado con un motor turbo-diésel de 92 CV y caja manual de 5 marchas, destaca por",
-      "contacto_publico": true,
-      "whatsapp_publico": "543425497050",
-      "whatsapp_link": "https://wa.me/5493425497050",
-      "telefono_publico": "3425497050",
-      "telefono_e164": "+5493425497050",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "argentina_signal": 15,
-        "patente_detected": 15,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "argentina",
-        "PATENTE_DETECTED",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:04:03.595774+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3cf2a229d7e884be",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OWNERSHIP_ISSUE",
-      "problem_summary": "Problema de titularidad",
-      "persona": "u/Vendedor #5009812",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "moto",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5009812-vendo-chevrolet-d20-mod-96",
-      "quoted_text": "> Vendo Chevrolet D20 mod. 96 D20 mod 96. Motor maxion 4.0 turbo Diesel. Muy buen estado en general, hermosa para trabajar. La camioneta anda muy bien, se le realizó el cambio del turbo,(nuevo, no reparacion), arranque, se reparo tapa de cilindro completa, radiador, batería NUEVA,, cubiertas a 50%.",
-      "contacto_publico": true,
-      "whatsapp_publico": "543424274167",
-      "whatsapp_link": "https://wa.me/5493424274167",
-      "telefono_publico": "3424274167",
-      "telefono_e164": "+5493424274167",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:04:03.594816+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "cf9529af14f361e2",
-      "score": 75,
-      "label": "real_lead",
-      "problem_category": "OTHER",
-      "problem_summary": "Lead vehicular",
-      "persona": "u/Vendedor #5008096",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-07",
-      "fecha_iso": "2026-07-07T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5008096-kangoo-autentique-plus-1-6-2plc",
-      "quoted_text": "> KANGOO AUTENTIQUE PLUS 1.6, 2PLC Muy práctica y cómoda, con fila de asientos para uso familiar o sacando la fila de asientos queda para trabajo. Tiene agregado GNC, tiene todos los servicios al dia, y la correa de distribución cambiada hace 300 km. Muy práctica y cómoda, con fila de asientos para",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426145217",
-      "telefono_publico": "+5493426145217",
-      "telefono_e164": "+5493426145217",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-07T20:04:03.595249+00:00",
+      "discovery_timestamp": "2026-07-07T20:07:31.078719+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de VentaFe.",
-    "El problema más frecuente es: Lead vehicular.",
+    "El problema más frecuente es: Disputa de multa/fotomulta.",
     "100% de los leads calientes tienen contacto público visible."
   ],
   "meta": {
@@ -445,7 +213,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 100.46,
-    "queries_executed": 3
+    "runtime_seconds": 109.24,
+    "queries_executed": 2
   }
 }
