@@ -2491,6 +2491,7 @@ export default {
         const body = await request.json();
         const groupUrls = body.groupUrls || [
           'https://www.facebook.com/groups/276074287942602', // Defensas contra Multas AR
+          'https://www.facebook.com/groups/1314803566577708', // Venta Santa Fe y Alrededores
         ];
         const maxPosts = body.maxPosts || 20;
         const fetchComments = body.fetchComments !== false;
