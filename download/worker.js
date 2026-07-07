@@ -2732,8 +2732,9 @@ export default {
         const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}/g;
         const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
 
-        // FILTRO ESTRICTO DE DOLOR (obligatorio para FB, cero excepciones)
-        const PAIN_KW = /multa|fotomulta|infracci[oó]n|libre.?deuda|transferencia|transferir|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|deuda|vencimiento|prescripci[oó]n|papeles.al.d[ií]a|listo.para.transferir|sin.deuda|titular/i;
+        // FIX QWEN v2: Filtro de dolor + intención (adaptado a grupos de consulta/reclamo FB)
+        const PAIN_KW = /multa|fotomulta|infracci[oó]n|forzar.barrera|peaje|deuda|libre.?deuda|transferencia|transferir|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|vencimiento|prescripci[oó]n|papeles.al.d[ií]a|listo.para.transferir|sin.deuda|titular|reclamo|defender|negativa|evidencia|foto/i;
+        const INTENT_KW = /consultar|sabe.del.tema|ayuda|recomiendan|se.puede|abonar|mitad|defender|negativa/i;
 
         for (const post of (Array.isArray(items) ? items : [])) {
           const text = post.text || post.postText || '';
@@ -2741,22 +2742,24 @@ export default {
           const postUrl = post.url || post.postUrl || '';
           if (!text && !author) continue;
 
-          // RECHAZO INMEDIATO si no hay dolor vehicular explícito
-          if (!PAIN_KW.test(text)) continue;
+          // Filtro de entrada: exige dolor vehicular O intención de consulta/reclamo
+          if (!PAIN_KW.test(text) && !INTENT_KW.test(text)) continue;
 
           const phones = [...new Set((text.match(AR_PHONE) || []).map(p => p.trim()))];
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+          const patenteMatch = text.match(/\\b([A-Za-z]{2}\\s?\\d{3}\\s?[A-Za-z]{2})\\b/i);
 
-          // Scoring dinámico (alineado con pipeline Python)
-          let score = 40;
-          if (/multa|fotomulta/i.test(text)) score += 20;
-          if (/transferencia|transferir|08/i.test(text)) score += 15;
-          if (/deuda|libre.deuda/i.test(text)) score += 15;
+          // Scoring dinámico adaptado a grupos de consulta
+          let score = 30;
+          if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) score += 25;
+          if (/transferencia|transferir|08|titular|papeles/i.test(text)) score += 20;
+          if (/deuda|libre.deuda|vencimiento|prescripci[oó]n|monto|abonar/i.test(text)) score += 20;
+          if (INTENT_KW.test(text)) score += 15;
           if (phones.length > 0 || emails.length > 0) score += 20;
+          if (patenteMatch) score += 15;
           score = Math.min(100, score);
 
-          // Umbral mínimo: si no llega a 50, no es lead
-          if (score < 50) continue;
+          if (score < 45) continue;
 
           leads.push({
             id: 'fb_' + (post.id || postUrl.split('/').slice(-2)[0] || Math.random().toString(36).slice(2)),
