@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-07T19:49:48.745940+00:00",
-  "run_id": "615df5a21df5",
+  "generated_at": "2026-07-07T19:53:26.386572+00:00",
+  "run_id": "a11ebeb405a3",
   "summary": {
     "total_leads": 6,
     "hot_leads": 6,
@@ -59,7 +59,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.743668+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.384177+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -98,7 +98,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.745214+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.385821+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -135,7 +135,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.744330+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.384892+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -172,7 +172,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.744648+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.385208+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -209,7 +209,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.744930+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.385500+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -246,7 +246,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.745592+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.386195+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -287,7 +287,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.743668+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.384177+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -326,7 +326,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.745214+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.385821+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -363,7 +363,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.744330+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.384892+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -400,7 +400,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.744648+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.385208+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -437,7 +437,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.744930+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.385500+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -474,7 +474,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-07T19:49:48.745592+00:00",
+      "discovery_timestamp": "2026-07-07T19:53:26.386195+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -510,7 +510,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 119.54,
+    "runtime_seconds": 110.56,
     "queries_executed": 2
   }
 }
