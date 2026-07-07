@@ -649,12 +649,17 @@ def collect_public_sources() -> List[Dict[str, Any]]:
         
         # Si es query Reddit, usar wrapper con status para detectar 429
         if "site:reddit.com" in query.lower():
+            # FIX QWEN v2.9: Forzar 'argentina' en queries Reddit para reducir ruido foreign.
+            # f-string segura, evita dobles espacios y queries mal formadas.
+            clean_q = query.lower().replace("site:reddit.com", "").strip()
+            if "argentina" not in clean_q:
+                clean_q = f"{clean_q} argentina"
             results, got_429 = search_reddit_with_status(
-                query.lower().replace("site:reddit.com", "").strip(),
+                clean_q,
                 num=MAX_RESULTS_PER_QUERY
             )
             if got_429 and _pqm_global:
-                rss_url = f"https://www.reddit.com/search.rss?q={query}"
+                rss_url = f"https://www.reddit.com/search.rss?q={clean_q}"
                 _pqm_global.add(rss_url, query, _CURRENT_GROUP_IDX)
                 print(f"  [PQM] 429 en '{query[:40]}' → agregado a pending", file=sys.stderr)
         else:
@@ -1227,6 +1232,20 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
         score += SCORE_RULES["argentina_signal"]
         breakdown["argentina_signal"] = SCORE_RULES["argentina_signal"]
         signals.append("argentina")
+
+    # FIX QWEN v2.9: FILTRO ESTRICTO — Reddit SOLO Argentina.
+    # Si no hay señal AR explícita en el texto Y la plataforma es Reddit,
+    # descartar el lead inmediatamente (no llega al CRM).
+    if record.get("platform", "").lower() == "reddit":
+        ar_keywords_extra = [
+            "argentina", "buenos aires", "caba", "capital federal", "cordoba",
+            "cordoba", "santa fe", "rosario", "mendoza", "entre rios",
+            "neuquen", "salta", "la plata", "arba", "dnrpa", "rentas",
+            "pba", "gba", "patente argentina", "parana", "tigre",
+            "avellaneda", "quilmes", "moron", "pilar",
+        ]
+        if not has_arg_signal and not any(kw in text for kw in ar_keywords_extra):
+            return None  # Descarte inmediato, no llega al CRM
 
     # --- Penalties ---
 

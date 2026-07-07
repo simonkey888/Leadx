@@ -799,19 +799,8 @@ const S = {
   currentId:    null,
 };
 
-// Auto-pedir key si no hay (BOMBA #1 fix)
-(function() {
-  const hasSession = sessionStorage.getItem('leadx_secret');
-  const hasUrl     = new URLSearchParams(location.search).get('key');
-  if (!hasSession && !hasUrl && !sessionStorage.getItem('leadx_secret_asked')) {
-    const key = prompt('🔒 Clave de acceso LeadX:');
-    sessionStorage.setItem('leadx_secret_asked', 'true');
-    if (key) {
-      sessionStorage.setItem('leadx_secret', key);
-      location.reload();
-    }
-  }
-})();
+// FIX QWEN v2.9: Sin prompt de autenticación.
+// getUrlSecret() siempre devuelve 'LEGACY_SECRET_REMOVED' hardcodeado (uso interno, frontend read-only).
 
 // Persistencia local (status + notes por lead ID)
 const DB = {
@@ -1462,25 +1451,9 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  // 1. Buscar en sessionStorage (persistente por tab)
-  let secret = sessionStorage.getItem('leadx_secret');
-  if (secret) return secret;
-  // 2. Buscar en URL params
-  const urlSecret = new URLSearchParams(location.search).get('key');
-  if (urlSecret) {
-    sessionStorage.setItem('leadx_secret', urlSecret);
-    return urlSecret;
-  }
-  // 3. Si no hay, pedir una vez
-  if (!sessionStorage.getItem('leadx_secret_asked')) {
-    const prompted = prompt('🔒 Ingresá la clave de acceso LeadX:');
-    sessionStorage.setItem('leadx_secret_asked', 'true');
-    if (prompted) {
-      sessionStorage.setItem('leadx_secret', prompted);
-      return prompted;
-    }
-  }
-  // 4. Hardcoded fallback (LEGACY_SECRET_REMOVED público del Worker) para que la UI nunca quede readonly
+  // FIX QWEN v2.9: Hardcodeado, sin prompts ni sessionStorage.
+  // Uso interno (frontend read-only). Si en el futuro se necesita auth real,
+  // agregar allowlist de IPs o proxy en el Worker.
   return 'LEGACY_SECRET_REMOVED';
 }
 
