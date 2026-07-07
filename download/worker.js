@@ -3286,15 +3286,17 @@ async function runPipelineCron(env) {
         if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
         if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
         if (!problemas.length && !patenteM && !phones.length) continue;
-        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
-        
+
+        // FIX GEMINI AUDIT v6 (TDZ): declarar `let score = 40` ANTES de usar `score +=`
+        // Antes: línea 3289 hacía `score += 10` antes de `let score = 40` (línea 3291) → crash TDZ
         let score = 40;
+        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
         if (patenteM) score += 15;
         if (problemas.includes('TRANSFERENCIA')) score += 30;
         if (problemas.includes('MULTA')) score += 25;
         if (problemas.includes('DEUDA')) score += 25;
         if (phones.length) score += 30;
-        
+
         newLeads.push({
           id: 'ventafe_' + (phones[0] || '').replace(/[^0-9]/g, '') + '_' + text.substring(0, 10).replace(/[^a-zA-Z0-9]/g, ''),
           source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
@@ -3310,7 +3312,8 @@ async function runPipelineCron(env) {
         });
       }
     }
-    console.log('[CRON] VentaFe done: ' + ventafeLeads.length + ' leads found');
+    // FIX GEMINI AUDIT v6 (ReferenceError): `ventafeLeads` no existe en este scope, usar `newLeads`
+    console.log('[CRON] VentaFe done: ' + newLeads.length + ' leads found');
   } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
 
   const raw = await env.LEADX_KV.get('leads:live');
