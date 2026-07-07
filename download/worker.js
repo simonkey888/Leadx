@@ -3272,75 +3272,11 @@ async function runPipelineCron(env) {
     }
   }
 
-  // VentaFe Scraper (desde edge IP)
-  console.log('[CRON] VentaFe start...');
-  try {
-    const vfPhoneRegex = /\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}/g;
-    const vfPatenteRegex = /\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b/i;
-    
-    for (let page = 1; page <= 2; page++) {  // Qwen fix: 2 paginas para evitar timeout
-      // FIX GEMINI AUDIT: usar ?p= (NO ?page= que no pagina en VentaFe) + declarar vfHtml antes de usarlo (TDZ fix)
-      const vfUrl = page === 1 ? 'https://www.ventafe.com.ar/automoviles' : 'https://www.ventafe.com.ar/automoviles?p=' + page;
-      const vfRes = await fetch(vfUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html' }
-      });
-      if (!vfRes.ok) { console.log('[CRON] VentaFe page ' + page + ' HTTP ' + vfRes.status); continue; }
-      const vfHtml = await vfRes.text();  // Declarar ANTES de usar (fix TDZ)
-      const vfBlocks = vfHtml.split('class="row item tipo-').slice(1);
-      let vfPhoneCount = 0;
-      for (const block of vfBlocks) {
-        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
-        if (text.length < 100) continue;
-        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
-        if (phones.length > 0) vfPhoneCount++;
-      }
-      console.log('[CRON] VentaFe page ' + page + ': ' + vfBlocks.length + ' blocks, ' + vfPhoneCount + ' with phones');
-      const blocks = vfBlocks;  // Reusar la variable ya parseada
-      
-      for (const block of blocks) {
-        let text = block.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
-        if (text.length < 100) continue;
-        
-        const phones = [...new Set((text.match(vfPhoneRegex) || []).map(p => p.trim()))];
-        const patenteM = text.match(vfPatenteRegex);
-        if (!phones.length && !patenteM) continue;
-        
-        const textLower = text.toLowerCase();
-        const problemas = [];
-        if (/no\s+puedo\s+transferir|transferencia\s+bloqueada/.test(textLower)) problemas.push('TRANSFERENCIA');
-        if (/multa|fotomulta|infraccion/.test(textLower)) problemas.push('MULTA');
-        if (/deuda|adeuda|debo/.test(textLower)) problemas.push('DEUDA');
-        if (/papeles\s+al\s+d[ií]a|listo\s+para\s+transferir|libre\s+deuda/.test(textLower)) problemas.push('PAPELES_OK');
-        if (!problemas.length && !patenteM && !phones.length) continue;
-
-        // FIX GEMINI AUDIT v6 (TDZ): declarar `let score = 40` ANTES de usar `score +=`
-        // Antes: línea 3289 hacía `score += 10` antes de `let score = 40` (línea 3291) → crash TDZ
-        let score = 40;
-        if (phones.length > 0 && !problemas.length && !patenteM) score += 10;
-        if (patenteM) score += 15;
-        if (problemas.includes('TRANSFERENCIA')) score += 30;
-        if (problemas.includes('MULTA')) score += 25;
-        if (problemas.includes('DEUDA')) score += 25;
-        if (phones.length) score += 30;
-
-        newLeads.push({
-          id: 'ventafe_' + (phones[0] || '').replace(/[^0-9]/g, '') + '_' + text.substring(0, 10).replace(/[^a-zA-Z0-9]/g, ''),
-          source: 'ventafe', source_label: 'VentaFe', platform: 'VentaFe',
-          author: 'Vendedor VentaFe', persona: 'Vendedor VentaFe',
-          title: text.slice(0, 200), snippet: text.slice(0, 3000),
-          url: 'https://www.ventafe.com.ar/automoviles',
-          fecha_iso: new Date().toISOString().slice(0, 10),
-          score: Math.min(100, score),
-          whatsapp_publico: phones[0] || '', telefono_publico: phones[0] || '',
-          has_contact: phones.length > 0, contacto_publico: phones.length > 0,
-          patente: patenteM ? patenteM[1].toUpperCase() : '',
-          timestamp: new Date().toISOString(),
-        });
-      }
-    }
-    // FIX GEMINI AUDIT v6 (ReferenceError): `ventafeLeads` no existe en este scope, usar `newLeads`
-    console.log('[CRON] VentaFe done: ' + newLeads.length + ' leads found');
-  } catch (e) { console.log('[CRON] VentaFe error: ' + e.message); }
+  // FIX GEMINI ARQUITECTURA: Scraper VentaFe del Edge Cron ELIMINADO.
+  // El Edge Cron del Worker ya NO scrapea VentaFe. Solo trae leads Reddit.
+  // VentaFe queda exclusivamente a cargo del Python pipeline (generate_payload.py)
+  // que tiene el filtro Sabueso (Fase 1 + Fase 2) y classify_and_score completo.
+  // El Worker es ahora un proxy puro: lee/escribe KV, no genera leads propios de VentaFe.
 
   const raw = await env.LEADX_KV.get('leads:live');
   let existing = { leads_all: [], leads_hot: [], meta: {} };
