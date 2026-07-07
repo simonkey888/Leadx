@@ -2750,6 +2750,11 @@ export default {
           const SPAM_KW = /seminario|curso|asincr[oó]nico|pack incluye|no te lo pierdas|cupos limitados/i;
           if (SPAM_KW.test(text)) continue;
 
+          // FIX SIMON: bloquear OFERTAS de servicios gestoriales (son competidores, no leads).
+          // "ELIMINO MULTAS", "SACO TURNOS", "HAGO INFORMES", "GESTORIA", etc.
+          const SERVICE_OFFER_KW = /elimino\s+multas|saco\s+turnos|hago\s+informes|gestor[ií]a|gestor\s+automotor|ofrezco\s+mis\s+servicios|mis\s+servicios|consultanos|defendemos\s+tus\s+derechos|sacamos\s+turnos|realizamos\s+informes/i;
+          if (SERVICE_OFFER_KW.test(text)) continue;
+
           // FIX ANTI-DUPLICADOS: si el mismo autor ya tiene un post, solo quedarse con el de mayor score
           const authorKey = author.toLowerCase().trim();
           if (seenAuthors.has(authorKey)) continue;
