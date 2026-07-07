@@ -1905,5 +1905,35 @@
         "Paraná": 1
       }
     }
+  },
+  {
+    "run_id": "268b06858904",
+    "generated_at": "2026-07-07T04:21:11.982965+00:00",
+    "summary": {
+      "total_leads": 13,
+      "hot_leads": 13,
+      "warm_leads": 0,
+      "contactable": 12,
+      "with_whatsapp": 4,
+      "with_phone": 12,
+      "with_email": 0,
+      "avg_score": 85.4,
+      "avg_score_hot": 85.4,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "TRANSFER_PROBLEM": 5,
+        "OTHER": 6,
+        "OWNERSHIP_ISSUE": 1,
+        "FINE_DISPUTE": 1
+      },
+      "by_platform": {
+        "Reddit": 1,
+        "Ventafe.Com.Ar": 12
+      },
+      "by_province": {
+        "CABA": 1,
+        "Paraná": 1
+      }
+    }
   }
 ]
