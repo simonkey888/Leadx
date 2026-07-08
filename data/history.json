@@ -1,39 +1,5 @@
 [
   {
-    "run_id": "7e61f5aac609",
-    "generated_at": "2026-07-03T19:59:34.526222+00:00",
-    "summary": {
-      "total_leads": 35,
-      "hot_leads": 29,
-      "warm_leads": 6,
-      "contactable": 1,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 1,
-      "avg_score": 67.9,
-      "avg_score_hot": 72.6,
-      "conversion_probability": 82.9,
-      "by_category": {
-        "TRANSFER_PROBLEM": 9,
-        "FINE_DISPUTE": 23,
-        "DOCUMENTATION_ISSUE": 3
-      },
-      "by_platform": {
-        "Reddit": 30,
-        "Multas.Ar": 1,
-        "Estudiojuridicomogliani.Com.Ar": 1,
-        "Multasonline.Com.Ar": 1,
-        "Licenciaconducir.Com.Ar": 2
-      },
-      "by_province": {
-        "Córdoba": 1,
-        "Salta": 2,
-        "CABA": 2,
-        "Buenos Aires": 3
-      }
-    }
-  },
-  {
     "run_id": "61a8bf0abbbf",
     "generated_at": "2026-07-03T20:06:07.485231+00:00",
     "summary": {
@@ -2523,6 +2489,31 @@
   {
     "run_id": "87fe8b1464bf",
     "generated_at": "2026-07-08T19:19:09.663933+00:00",
+    "summary": {
+      "total_leads": 14,
+      "hot_leads": 14,
+      "warm_leads": 0,
+      "contactable": 14,
+      "with_whatsapp": 2,
+      "with_phone": 14,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 14
+      },
+      "by_platform": {
+        "VentaFe": 14
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "badcc4a8cb4b",
+    "generated_at": "2026-07-08T21:03:31.849257+00:00",
     "summary": {
       "total_leads": 14,
       "hot_leads": 14,
