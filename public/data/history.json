@@ -1,53 +1,5 @@
 [
   {
-    "run_id": "8cbb920fea17",
-    "generated_at": "2026-07-03T19:51:49.810808+00:00",
-    "summary": {
-      "total_leads": 42,
-      "hot_leads": 35,
-      "warm_leads": 7,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 76.9,
-      "avg_score_hot": 83.6,
-      "conversion_probability": 83.3,
-      "by_category": {
-        "FINE_DISPUTE": 20,
-        "TRANSFER_PROBLEM": 22
-      },
-      "by_platform": {
-        "Duckduckgo.Com": 1,
-        "Facebook": 20,
-        "Carchecking.Com.Ar": 2,
-        "Dotor.Com.Ar": 1,
-        "Portaldeabogados.Com": 2,
-        "Argentina.Gob.Ar": 1,
-        "Reddit": 1,
-        "Autos0Km.Org": 1,
-        "Infobue.Com.Ar": 1,
-        "Informes.Vip": 1,
-        "Tn.Com.Ar": 1,
-        "Patente.Ar": 1,
-        "Globe.Blogconect.Com": 1,
-        "2.Jus.Gov.Ar": 1,
-        "Iprofesional.Com": 1,
-        "Multas.Ar": 2,
-        "Estudiojuridicomogliani.Com.Ar": 1,
-        "Multasonline.Com.Ar": 1,
-        "Licenciaconducir.Com.Ar": 1,
-        "Multabot.Com.Ar": 1
-      },
-      "by_province": {
-        "CABA": 2,
-        "La Plata": 1,
-        "Avellaneda": 1,
-        "Salta": 1
-      }
-    }
-  },
-  {
     "run_id": "fcb23ae45d0f",
     "generated_at": "2026-07-03T19:55:44.808282+00:00",
     "summary": {
@@ -2549,6 +2501,31 @@
   {
     "run_id": "82dd0f077847",
     "generated_at": "2026-07-08T16:01:07.423897+00:00",
+    "summary": {
+      "total_leads": 14,
+      "hot_leads": 14,
+      "warm_leads": 0,
+      "contactable": 14,
+      "with_whatsapp": 2,
+      "with_phone": 14,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 14
+      },
+      "by_platform": {
+        "VentaFe": 14
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "660310ece8d5",
+    "generated_at": "2026-07-08T17:47:23.912662+00:00",
     "summary": {
       "total_leads": 14,
       "hot_leads": 14,
