@@ -2807,12 +2807,13 @@ export default {
 
           // Scoring dinámico adaptado a grupos de consulta
           let score = 30;
-          if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) score += 25;
-          if (/transferencia|transferir|08|titular|papeles/i.test(text)) score += 20;
-          if (/deuda|libre.deuda|vencimiento|prescripci[oó]n|monto|abonar/i.test(text)) score += 20;
-          if (INTENT_KW.test(text)) score += 15;
-          if (phones.length > 0 || emails.length > 0) score += 20;
-          if (patenteMatch) score += 15;
+          const scoreExplain = ['+30 base'];
+          if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) { score += 25; scoreExplain.push('+25 multa/fotomulta'); }
+          if (/transferencia|transferir|08|titular|papeles/i.test(text)) { score += 20; scoreExplain.push('+20 transferencia/08'); }
+          if (/deuda|libre.deuda|vencimiento|prescripci[oó]n|monto|abonar/i.test(text)) { score += 20; scoreExplain.push('+20 deuda/prescripción'); }
+          if (INTENT_KW.test(text)) { score += 15; scoreExplain.push('+15 intención de consulta'); }
+          if (phones.length > 0 || emails.length > 0) { score += 20; scoreExplain.push('+20 tiene contacto'); }
+          if (patenteMatch) { score += 15; scoreExplain.push('+15 patente detectada'); }
           score = Math.min(100, score);
 
           if (score < 45) continue;
@@ -2829,13 +2830,13 @@ export default {
             url: postUrl,
             fecha_iso: (post.timestamp || '').slice(0, 10),
             score: score,
+            score_explain: scoreExplain,
             whatsapp_publico: phones[0] || '',
             telefono_publico: phones[0] || '',
             email_publico: emails[0] || '',
             has_contact: phones.length > 0 || emails.length > 0,
-            // FIX GPT adaptado: contact_confidence para que Sergio sepa si vale la pena contactar.
-            // 90 = tiene teléfono/email explícito, 30 = solo username, 0 = sin datos.
             contact_confidence: (phones.length > 0 || emails.length > 0) ? 90 : (author ? 30 : 0),
+            pipeline_version: '4.0',
           });
         }
 
