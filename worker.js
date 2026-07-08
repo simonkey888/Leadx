@@ -1373,7 +1373,10 @@ function copyContactTemplate() {
 async function fetchRedditBio(username) {
   if (!username) return null;
   try {
-    const r = await fetch('/api/reddit-bio?user=' + encodeURIComponent(username));
+    // FIX GEMINI Bug #2: enviar X-Webhook-Secret para que el endpoint no devuelva 401
+    const r = await fetch('/api/reddit-bio?user=' + encodeURIComponent(username), {
+      headers: { 'X-Webhook-Secret': getUrlSecret() }
+    });
     if (!r.ok) return null;
     const data = await r.json();
     return data;
@@ -2848,7 +2851,29 @@ export default {
         }
         const prevById = new Map();
         prevLeads.forEach(l => prevById.set(l.id, l));
-        leads.forEach(l => prevById.set(l.id, l));
+        // FIX GEMINI Bug #1: Deep merge preservando estado del CRM de Sergio.
+        // Antes: leads.forEach(l => prevById.set(l.id, l)); // sobrescribía todo
+        // Ahora: preserva _status, _notes, _monto, _wa_state, etc.
+        leads.forEach(newLead => {
+          const existing = prevById.get(newLead.id);
+          if (existing) {
+            prevById.set(newLead.id, {
+              ...newLead,
+              score: existing.score ?? newLead.score,
+              status: existing.status ?? newLead.status,
+              _status: existing._status ?? newLead._status,
+              _notes: existing._notes ?? newLead._notes,
+              _monto: existing._monto ?? newLead._monto,
+              _wa_state: existing._wa_state ?? newLead._wa_state,
+              _wa_e164: existing._wa_e164 ?? newLead._wa_e164,
+              whatsapp_publico: existing.whatsapp_publico || newLead.whatsapp_publico,
+              telefono_publico: existing.telefono_publico || newLead.telefono_publico,
+              email_publico: existing.email_publico || newLead.email_publico,
+            });
+          } else {
+            prevById.set(newLead.id, newLead);
+          }
+        });
         const merged = Array.from(prevById.values());
         merged.sort((a, b) => new Date(b.fecha_iso || 0).getTime() - new Date(a.fecha_iso || 0).getTime());
         const truncated = merged.slice(0, 500);
