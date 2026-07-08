@@ -614,6 +614,10 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" style="vertical-align:middle"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
         Con WhatsApp <span class="filter-count" id="cnt-whatsapp">0</span>
       </div>
+      <div class="filter-item" onclick="filterContact('messenger', this)" id="fc-messenger">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#0084FF" style="vertical-align:middle"><path d="M12 2C6.5 2 2 6.5 2 12c0 5.5 4.5 10 10 10s10-4.5 10-10S17.5 2 12 2zm5.5 6.5l-2 5c-.1.2-.3.4-.5.5l-5 2c-.5.2-1-.3-.8-.8l2-5c.1-.2.3-.4.5-.5l5-2c.5-.2 1 .3.8.8z"/></svg>
+        Con Messenger <span class="filter-count" id="cnt-messenger">0</span>
+      </div>
       <div class="filter-item" onclick="filterContact('email', this)" id="fc-email">
         ✉️ Con Email <span class="filter-count" id="cnt-email">0</span>
       </div>
@@ -652,7 +656,12 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="kpi">
         <div class="kpi-label">Con WhatsApp</div>
         <div class="kpi-value green" id="kpi-wa">—</div>
-        <div class="kpi-sub">contactables directo</div>
+        <div class="kpi-sub">teléfono directo verificado</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Con Messenger</div>
+        <div class="kpi-value blue" id="kpi-messenger">—</div>
+        <div class="kpi-sub">botón m.me (Facebook)</div>
       </div>
       <div class="kpi">
         <div class="kpi-label">En proceso</div>
@@ -1127,7 +1136,7 @@ function filterStatus(val, el) {
 // FIX QWEN v2.8: Nuevos filtros Contacto y Temperatura
 function filterContact(val, el) {
   S.contactFilter = val;
-  document.querySelectorAll('#fc-todos, #fc-whatsapp, #fc-email, #fc-sin-contacto').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('#fc-todos, #fc-whatsapp, #fc-messenger, #fc-email, #fc-sin-contacto').forEach(e => e.classList.remove('active'));
   if (el) el.classList.add('active');
   applyFilters();
 }
@@ -1157,10 +1166,11 @@ function applyFilters() {
       const filterSrc = sf.toLowerCase();
       if (!leadSrc.includes(filterSrc) && !filterSrc.includes(leadSrc)) return false;
     }
-    // FIX QWEN v2.8: filtro Contacto
+    // FIX QWEN v2.8: filtro Contacto (SIMON FIX 2026-07-09: separar WA real de Messenger)
     if (cf === 'whatsapp' && !l._wa_url) return false;
+    if (cf === 'messenger' && !(l.fb_username || l.fb_author_id)) return false;
     if (cf === 'email' && !(l.email || l.email_publico)) return false;
-    if (cf === 'sin_contacto' && (l._wa_url || l.email || l.email_publico)) return false;
+    if (cf === 'sin_contacto' && (l._wa_url || l.fb_username || l.fb_author_id || l.email || l.email_publico)) return false;
     // FIX QWEN v2.8: filtro Temperatura
     if (hf !== 'todos' && l._heat_label !== hf) return false;
     if (q) {
@@ -1267,7 +1277,9 @@ function escH(s) {
 // ── KPIs ──────────────────────────────────────────────────────────────────
 function renderKPIs() {
   const leads    = S.crmLeads;
-  const withWa   = leads.filter(l => l._wa_url || l._wa_state === 'validated_whatsapp' || l._wa_state === 'normalized_contact' || (l.fb_username && (l.source_label === 'Facebook' || l.platform === 'Facebook'))).length;
+  // SIMON FIX 2026-07-09: KPI honesto — WhatsApp solo si hay teléfono real, Messenger separado.
+  const withWa   = leads.filter(l => l._wa_url || l._wa_state === 'validated_whatsapp' || l._wa_state === 'normalized_contact').length;
+  const withMsg  = leads.filter(l => (l.fb_username || l.fb_author_id) && (l.source_label === 'Facebook' || l.platform === 'Facebook' || l.source === 'facebook_apify')).length;
   const enProc   = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
   const cerrados = leads.filter(l => l._status === 'Cerrado');
   const pct = getComisionPct() / 100;
@@ -1278,6 +1290,8 @@ function renderKPIs() {
 
   document.getElementById('kpi-total').textContent    = leads.length;
   document.getElementById('kpi-wa').textContent       = withWa;
+  const kpiMsgEl = document.getElementById('kpi-messenger');
+  if (kpiMsgEl) kpiMsgEl.textContent = withMsg;
   document.getElementById('kpi-proceso').textContent  = enProc;
   document.getElementById('kpi-cerrados').textContent = cerrados.length;
   const comEl = document.getElementById('kpi-comision');
@@ -1305,8 +1319,10 @@ function renderCounts() {
 
   if (cntContactTodos) cntContactTodos.textContent = S.crmLeads.length;
   if (cntWhatsapp)     cntWhatsapp.textContent     = S.crmLeads.filter(l => l._wa_url).length;
+  const cntMessenger = document.getElementById('cnt-messenger');
+  if (cntMessenger)    cntMessenger.textContent    = S.crmLeads.filter(l => l.fb_username || l.fb_author_id).length;
   if (cntEmail)        cntEmail.textContent        = S.crmLeads.filter(l => l.email || l.email_publico).length;
-  if (cntSinContacto)  cntSinContacto.textContent  = S.crmLeads.filter(l => !l._wa_url && !(l.email || l.email_publico)).length;
+  if (cntSinContacto)  cntSinContacto.textContent  = S.crmLeads.filter(l => !l._wa_url && !(l.fb_username || l.fb_author_id) && !(l.email || l.email_publico)).length;
   if (cntHeatTodos)    cntHeatTodos.textContent    = S.crmLeads.length;
   if (cntHot)          cntHot.textContent          = S.crmLeads.filter(l => l._heat_label === 'hot').length;
   if (cntWarm)         cntWarm.textContent         = S.crmLeads.filter(l => l._heat_label === 'warm').length;
@@ -1901,16 +1917,27 @@ export default {
           return jsonResponse({
             leads_all: [],
             leads_hot: [],
-            summary: { total_leads: 0, hot_leads: 0 },
-            meta: { version: '10.0', source: 'empty_kv', generated_at: new Date().toISOString() }
+            summary: { total_leads: 0, hot_leads: 0, with_whatsapp: 0, with_messenger: 0, with_email: 0 },
+            meta: { version: '11.3', source: 'empty_kv', generated_at: new Date().toISOString() }
           }, corsHeaders);
         }
         const data = JSON.parse(raw);
         // Asegurar estructura mínima
         if (!data.leads_all) data.leads_all = [];
         if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.score || 0) >= 50);
-        if (!data.summary) data.summary = { total_leads: data.leads_all.length, hot_leads: data.leads_hot.length };
-        if (!data.meta) data.meta = { version: '10.0', source: 'kv', generated_at: new Date().toISOString() };
+        // SIMON FIX 2026-07-09: KPI honesto — separar WhatsApp real (teléfono) de Messenger (fb_username)
+        const _all = data.leads_all;
+        const _hasTel = l => !!(l.telefono_publico || l.whatsapp_publico || l.telefono || l.phone);
+        const _hasFb  = l => !!(l.fb_username || l.fb_author_id);
+        const _hasEm  = l => !!(l.email || l.email_publico);
+        data.summary = {
+          total_leads: _all.length,
+          hot_leads: data.leads_hot.length,
+          with_whatsapp: _all.filter(_hasTel).length,
+          with_messenger: _all.filter(_hasFb).length,
+          with_email: _all.filter(_hasEm).length,
+        };
+        if (!data.meta) data.meta = { version: '11.3', source: 'kv', generated_at: new Date().toISOString() };
         return jsonResponse(data, corsHeaders);
       } catch (e) {
         return jsonResponse({
@@ -3642,7 +3669,7 @@ async function runPipelineCron(env) {
       const rssRes = await fetch(rssUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'application/atom+xml,application/xml,text/xml,*/*',
+          'Accept': 'application/atom+xml,application/xml,text/xml',
           'Accept-Language': 'es-AR,es;q=0.9',
         },
       });
