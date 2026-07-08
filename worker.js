@@ -2833,6 +2833,9 @@ export default {
             telefono_publico: phones[0] || '',
             email_publico: emails[0] || '',
             has_contact: phones.length > 0 || emails.length > 0,
+            // FIX GPT adaptado: contact_confidence para que Sergio sepa si vale la pena contactar.
+            // 90 = tiene teléfono/email explícito, 30 = solo username, 0 = sin datos.
+            contact_confidence: (phones.length > 0 || emails.length > 0) ? 90 : (author ? 30 : 0),
           });
         }
 
