@@ -2761,14 +2761,12 @@ export default {
           const text = post.text || post.postText || '';
           const author = post.authorName || post.author || '';
           const postUrl = post.url || post.postUrl || '';
-          // FIX GEMINI Estrategia A: capturar authorUrl para botón de Messenger.
-          // Si el lead no tiene teléfono, Sergio puede contactarlo via m.me/{id}
-          const authorUrl = post.authorUrl || post.author || '';
+          // FIX GEMINI Estrategia A: capturar authorId para botón de Messenger.
+          // Apify trae authorId (numérico o pfbid...). m.me/{authorId} abre chat directo.
+          const authorIdRaw = post.authorId || (post.user && post.user.id) || '';
           let fbUserId = '';
-          if (authorUrl.includes('id=')) {
-            fbUserId = authorUrl.split('id=')[1].split('&')[0];
-          } else if (authorUrl.includes('facebook.com/')) {
-            fbUserId = authorUrl.split('facebook.com/')[1].split('/')[0].split('?')[0];
+          if (authorIdRaw) {
+            fbUserId = String(authorIdRaw).trim();
           }
           if (!text && !author) continue;
 
