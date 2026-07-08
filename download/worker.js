@@ -3586,18 +3586,41 @@ export default {
   },
 
   // Cron nativo cada 1h - scraping Reddit RSS desde edge IP (no bloqueada)
+  // FIX SIMON 2026-07-09: Cron DESACTIVADO. Reddit scraper traía 100% basura.
+  // Python pipeline (GH Actions cada 1h) es el único cerebro. Worker = proxy puro KV.
+  // Para reactivar: descomentar el try/catch de abajo Y borrar early-return de runPipelineCron.
   async scheduled(event, env, ctx) {
-    console.log('[CRON] Pipeline iniciado:', new Date().toISOString());
-    try {
-      await runPipelineCron(env);
-    } catch (e) {
-      console.error('[CRON] ERROR:', e.message);
-    }
+    console.log('[CRON] DESACTIVADO 2026-07-09 (Reddit 0/11 utiles). Worker = proxy puro.');
+    // try {
+    //   await runPipelineCron(env);
+    // } catch (e) {
+    //   console.error('[CRON] ERROR:', e.message);
+    // }
   }
 };
 
 // ─── Funcion standalone del pipeline (cron + /api/cron-run) ───
+// FIX SIMON 2026-07-09: Reddit scraper DESACTIVADO en edge cron.
+// MOTIVO: 0/11 leads Reddit eran accionables. Filtro AR no cortaba:
+//   MusicaBR, crossout_es, ICVNL (México), phishing Chile, ventas usadas, VTV.
+// Python pipeline (generate_payload.py) es el ÚNICO cerebro. Edge cron = proxy puro.
+// Para reactivar: borrar este early-return + mejorar filtro AR (requerir "multa"+"auto/moto"+"AR").
 async function runPipelineCron(env) {
+  console.log('[CRON] Reddit scraper DESACTIVADO por Simon (0/11 utiles). Worker = proxy puro.');
+  // Early-return: no scrapear nada. Solo preserva KV existente.
+  const rawPreserve = await env.LEADX_KV.get('leads:live');
+  let existingPreserve = { leads_all: [], leads_hot: [], meta: {} };
+  if (rawPreserve) {
+    try { existingPreserve = JSON.parse(rawPreserve); } catch (e) {}
+  }
+  return {
+    ok: true,
+    skipped: 'reddit_disabled_simon',
+    existing: (existingPreserve.leads_all || []).length,
+    note: 'Reddit scraper disabled 2026-07-09. Python pipeline is the only brain.'
+  };
+
+  /* ─── REDDIT SCRAPER — DESACTIVADO 2026-07-09 (código preservado) ───
   const redditQueries = [
     'no puedo transferir multa argentina',
     'me llego multa fotomulta argentina',
@@ -3823,4 +3846,5 @@ async function runPipelineCron(env) {
     total: truncated.length,
     hot: payload.summary.hot_leads,
   };
+  // --- FIN REDDIT SCRAPER DESACTIVADO --- */
 }
