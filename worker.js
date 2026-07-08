@@ -807,6 +807,26 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
         onchange="saveNotesFromModal()"></textarea>
     </div>
 
+    <!-- FORENSIC LOG: registrar caso resuelto (solo visible cuando estado=Cerrado) -->
+    <div id="forensic-log-card" style="display:none;background:rgba(34,197,94,.03);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:16px;margin-top:16px">
+      <h5 style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px;text-transform:uppercase">🎯 Registrar Descargo en Base Forense</h5>
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Resultado</label>
+      <select id="log-result" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;margin-bottom:12px;outline:none">
+        <option value="ganado">🟢 Ganado (Multa Anulada)</option>
+        <option value="perdido">🔴 Perdido (Multa Sostenida)</option>
+      </select>
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Argumento</label>
+      <select id="log-argument" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;margin-bottom:12px;outline:none">
+        <option value="Falta de Homologación APSV (Ley 12.217)">Falta de Homologación APSV (Ley 12.217)</option>
+        <option value="Falta de Notificación Fehaciente">Falta de Notificación Fehaciente</option>
+        <option value="Margen de Tolerancia Técnica Excedido">Margen de Tolerancia Técnica Excedido</option>
+        <option value="Falta de Señalización de Radar (1km antes)">Falta de Señalización de Radar (1km antes)</option>
+      </select>
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Honorario (ARS)</label>
+      <input type="number" id="log-fee" placeholder="Ej: 15000" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;margin-bottom:12px;outline:none">
+      <button class="btn-primary" style="background:var(--green);width:100%;justify-content:center" onclick="submitForensicCase()">💾 Guardar Caso</button>
+    </div>
+
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal()">Cerrar</button>
       <button class="btn-primary" onclick="saveAndClose()">Guardar y cerrar</button>
@@ -1356,6 +1376,12 @@ function openDetail(id) {
     montoField.style.display = 'none';
   }
 
+  // FORENSIC LOG: mostrar card de registro solo si estado=Cerrado
+  const logCard = document.getElementById('forensic-log-card');
+  if (logCard) {
+    logCard.style.display = (l._status === 'Cerrado') ? 'block' : 'none';
+  }
+
   // N1: Fetch Reddit bio async (busca contacto en bio del user)
   loadBioIfReddit(l);
 
@@ -1638,6 +1664,34 @@ function saveAndClose() {
   saveNotesFromModal();
   closeModal();
   renderTable();
+}
+
+// FORENSIC INTELLIGENCE: registrar caso resuelto
+async function submitForensicCase() {
+  if (!S.currentId) return;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  const payload = {
+    lead_id: S.currentId,
+    patente: l.patente || prompt('Confirmá la patente:'),
+    ubicacion: l.ubicacion_infraccion || '',
+    result: document.getElementById('log-result').value,
+    argument_used: document.getElementById('log-argument').value,
+    fee_charged: parseFloat(document.getElementById('log-fee').value) || 0
+  };
+  if (!payload.patente) return alert('Se requiere patente.');
+  try {
+    const r = await fetch('/api/forensic-case', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': getUrlSecret() },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.ok) {
+      alert('✅ Caso registrado en base forense de LeadX!');
+      document.getElementById('forensic-log-card').style.display = 'none';
+    } else { alert('Error: ' + d.error); }
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 // ── ADD MANUAL ─────────────────────────────────────────────────────────────
@@ -3138,10 +3192,32 @@ export default {
         let analysis;
         try { analysis = JSON.parse(vlmText); } catch(e) { analysis = { patente: vlmText.substring(0, 50), ubicacion: '', provincia: '', legal_warning: '' }; }
 
+        // CRUCE FORENSE: buscar historial de Sergio en esta ubicación
+        let forensicText = 'Sin historial previo. Sergio debe documentar este caso para construir la base forense.';
+        if (analysis.ubicacion) {
+          const _cleanLoc = analysis.ubicacion.toLowerCase().replace(/\\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+          const _radarRaw = await env.LEADX_KV.get('forensic:radar:' + _cleanLoc);
+          if (_radarRaw) {
+            try {
+              const _radar = JSON.parse(_radarRaw);
+              if (_radar.cases && _radar.cases.length > 0) {
+                const _rate = Math.round((_radar.stats.win_rate || 0) * 100);
+                forensicText = '📊 HISTORIAL EN ESTE RADAR (' + _radar.stats.total_cases + ' casos):\\n' +
+                  '• Tasa de éxito: ' + _rate + '% de descargos ganados.\\n' +
+                  '• Honorario promedio: $' + Math.round(_radar.stats.avg_fee || 0).toLocaleString('es-AR') + '\\n' +
+                  '• Argumento sugerido: "' + (_radar.cases[0].argument_used || 'Ley 12.217') + '"';
+                analysis.confidence = 'alta';
+              }
+            } catch(e) {}
+          }
+        }
+        analysis.legal_warning = forensicText;
+
         // Actualizar lead en KV
         leads[idx] = {
           ...existingLead,
           patente: analysis.patente || existingLead.patente,
+          ubicacion_infraccion: analysis.ubicacion || existingLead.ubicacion_infraccion,
           score: Math.min(100, (existingLead.score || 0) + 15),
           score_explain: [...(existingLead.score_explain || []), '[VLM On-Demand] Acta analizada (+15)'],
         };
@@ -3152,6 +3228,44 @@ export default {
         return jsonResponse({ ok: true, analysis, lead_phone: existingLead.telefono_publico || existingLead.whatsapp_publico || existingLead.fb_username || '' }, corsHeaders);
       } catch (e) {
         return jsonResponse({ error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/forensic-case ─── Registrador de Casos Resueltos (Forensic Intelligence)
+    if (url.pathname === '/api/forensic-case' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret') || request.headers.get('X-Ingest-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const body = await request.json();
+        const { lead_id, patente, ubicacion, result, argument_used, fee_charged } = body;
+        if (!patente || !result) {
+          return jsonResponse({ ok: false, error: 'missing_patente_or_result' }, corsHeaders, 400);
+        }
+        const cleanLoc = (ubicacion || 'desconocida').toLowerCase().replace(/\\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        const radarKey = 'forensic:radar:' + cleanLoc;
+        let radarData = { cases: [], stats: {} };
+        const existing = await env.LEADX_KV.get(radarKey);
+        if (existing) { try { radarData = JSON.parse(existing); } catch(e) {} }
+        radarData.cases.unshift({
+          lead_id: lead_id || '', patente: patente.toUpperCase(),
+          result, argument_used: argument_used || 'No especificado',
+          fee_charged: parseFloat(fee_charged) || 0, date: new Date().toISOString()
+        });
+        const total = radarData.cases.length;
+        const won = radarData.cases.filter(c => c.result === 'ganado').length;
+        const fees = radarData.cases.map(c => c.fee_charged).filter(f => f > 0);
+        radarData.stats = {
+          total_cases: total,
+          win_rate: total > 0 ? (won / total) : 0,
+          avg_fee: fees.length > 0 ? (fees.reduce((a, b) => a + b, 0) / fees.length) : 0,
+          last_updated: new Date().toISOString()
+        };
+        await env.LEADX_KV.put(radarKey, JSON.stringify(radarData));
+        return jsonResponse({ ok: true, stats: radarData.stats }, corsHeaders);
+      } catch (err) {
+        return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
       }
     }
 
