@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único)
 
-**Generado:** 2026-07-08 03:27 UTC  
+**Generado:** 2026-07-08 03:36 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
 **Worker Version:** a2150258-7bdc-4c23-95e7-81e8579808a7  
 **Estado:** Producción activa · 9 leads FB Grupo A · 8 con Messenger azul · VLM patentes · IDs unificados · pipeline 4.0 · rediseño Twenty.com
-**Timestamp generación:** 2026-07-08 03:27 UTC (hora UTC) · Argentina: 2026-07-08 00:27:02 ART
+**Timestamp generación:** 2026-07-08 03:36 UTC (hora UTC) · Argentina: 2026-07-08 00:36:12 ART
 **Últimos fixes:** Bug #1 IDs duplicados (sha256 unificado) + Bug #2 fallback comentarios Apify + endpoint /api/enrich-patente + script VLM patentes
 
 ---
@@ -15,8 +15,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,512 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,397 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,526 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,405 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -643,6 +643,8 @@
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+3505f5f fix: syntax error en image_urls (cerrar Set y array)
+be9281e fix(gemini audit v2): 3 bugs criticos + validacion KV
 42f04b8 fix(gemini bugs) + feat(vlm patentes): 2 bugs criticos + pipeline patentes VLM
 d377b11 radar: auto-update 2026-07-08 02:32 UTC
 54da85a feat: boton Messenger azul en tabla general (vista de lista)
@@ -661,8 +663,6 @@ c7ab3dd radar: auto-update 2026-07-07 23:58 UTC
 95f4d2b fix: filtrar ofertas de servicios gestoriales (competidores no leads)
 1a17c44 fix: anti-spam seminario + anti-duplicados en apify-webhook
 c3ba0a8 radar: auto-update 2026-07-07 22:58 UTC
-352f319 radar: auto-update 2026-07-07 22:22 UTC
-f352394 fix(qwen v2): FB intent scoring + VentaFe preventivos capados/filtrados
 ```
 
 ---
@@ -3544,6 +3544,14 @@ export default {
             contact_confidence: (phones.length > 0 || emails.length > 0) ? 90 : (author ? 30 : 0),
             pipeline_version: '4.0',
             fb_username: fbUserId || '',
+            // FIX GEMINI Bug #2: preservar URLs de imágenes para que el script VLM las descargue
+            image_urls: [...new Set([
+              ...(Array.isArray(post.imageUrls) ? post.imageUrls : []),
+              ...(Array.isArray(post.images) ? post.images : []),
+              ...(Array.isArray(post.media) ? post.media.map(m => m.url || m.thumbnail || '') : []),
+              ...(Array.isArray(post.attachments) ? post.attachments.map(a => a.url || '') : []),
+              ...(post.imageUrl ? [post.imageUrl] : []),
+            ].filter(Boolean))],
           });
         }
 
@@ -4095,10 +4103,16 @@ async function runPipelineCron(env) {
         if (score < 40) continue;
 
         // FIX GEMINI Bug #1: Unificar ID con Python pipeline (sha256 de URL + telefono).
-        // Antes: 'reddit_' + url.split('/').slice(-2).join('_') → ID diferente al de Python
-        // Ahora: sha256(url + telefono)[:16] → mismo ID que Python, evita duplicados en KV
+        // FIX GEMINI Bug #1b: Canonicalizar URL primero para asegurar paridad 100% con Python
+        let _canonicalUrl = url;
+        try {
+          const _parsed = new URL(url);
+          let _path = _parsed.pathname;
+          if (_path.endsWith('/')) _path = _path.slice(0, -1);
+          _canonicalUrl = `${_parsed.protocol}//${_parsed.hostname}${_path}`;
+        } catch(e) {}
         const _phoneForId = (phones[0] || waLinks[0] || '');
-        const _composite = _phoneForId ? url + '|' + _phoneForId : url;
+        const _composite = _phoneForId ? _canonicalUrl + '|' + _phoneForId : _canonicalUrl;
         const _hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(_composite));
         const _hashHex = Array.from(new Uint8Array(_hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
         const _leadId = _hashHex.slice(0, 16);
@@ -4903,7 +4917,15 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
                 print(f"  [VentaFe Detail] Error aviso #{aviso_id}: {detail_err}", file=sys.stderr)
 
         # Patentes finales: las del detalle (prioridad) + las del listado (fallback)
-        patentes_finales = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+        # FIX GEMINI Bug #3: filtrar falsos positivos de patentes tradicionales (CEL342, CON270, etc.)
+        _patentes_raw = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+        _BLACKLIST_PATENT = {"CEL", "CON", "DIR", "TEL", "WSP", "WPP", "CBU", "DNI", "URL", "WEB", "IMG", "JPG", "PNG", "PDF", "CP", "ID", "PIN", "NRO"}
+        patentes_finales = []
+        for p in _patentes_raw:
+            p_clean = _re.sub(r'\s+', '', p).upper()
+            if len(p_clean) == 6 and p_clean[:3] in _BLACKLIST_PATENT:
+                continue
+            patentes_finales.append(p_clean)
 
         # FIX GEMINI VIA B: Triangulación Cross-Platform Matcher.
         # Si no se encontró patente en VentaFe (listado ni detalle), intentar
@@ -10772,7 +10794,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-08 03:27 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-08 03:36 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
