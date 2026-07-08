@@ -625,7 +625,7 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
             continue
         
         # Extraer telefonos con regex federal
-        raw_phones = _re.findall(r'\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?\d{6,10}', text)
+        raw_phones = _re.findall(r'\(?0?(?:342|341|351|261|221|381|299|11)\)?[\s\-]?15?[\s\-]?\d{6,9}', text)
         valid_phones = []
         for p in raw_phones:
             norm = normalize_ar_phone_ventafe(p)
@@ -2286,15 +2286,16 @@ def run_pipeline() -> Dict[str, Any]:
         is_vf_out = ("ventafe" in (lead.platform or "").lower()
                      or "ventafe" in (lead.source_url or "").lower())
         if is_vf_out:
-            # FIX QWEN v2: Solo pasan si tienen dolor explícito O deuda comprobada por clasific.ar
+            # FIX GEMINI valvula: preventivos con teléfono pasan directo al CRM
             has_real_pain = "DOLOR_EXPLICITO_REGISTRAL" in (lead.detected_signals or [])
+            has_preventive = "PREVENTIVO_A_VERIFICAR" in (lead.detected_signals or [])
             has_proven_debt = ("DEUDA_COMPROBADA" in (lead.detected_signals or [])
                                or (getattr(lead, "deuda_clasificar", 0) or 0) > 0)
-            if has_real_pain or has_proven_debt:
+            if has_real_pain or has_proven_debt or (has_preventive and lead.contacto_publico):
                 filtered_leads.append(lead)
             else:
                 sabueso_descartes += 1
-                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: preventivo sin deuda/dolor real",
+                print(f"  [Sabueso Descarte] Lead {lead.id} ({lead.persona}) eliminado: preventivo sin deuda/dolor/contacto",
                       file=sys.stderr)
                 continue
         else:

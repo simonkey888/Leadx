@@ -1267,7 +1267,7 @@ function escH(s) {
 // ── KPIs ──────────────────────────────────────────────────────────────────
 function renderKPIs() {
   const leads    = S.crmLeads;
-  const withWa   = leads.filter(l => l._wa_url || l._wa_state === 'validated_whatsapp' || l._wa_state === 'normalized_contact').length;
+  const withWa   = leads.filter(l => l._wa_url || l._wa_state === 'validated_whatsapp' || l._wa_state === 'normalized_contact' || (l.fb_username && (l.source_label === 'Facebook' || l.platform === 'Facebook'))).length;
   const enProc   = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
   const cerrados = leads.filter(l => l._status === 'Cerrado');
   const pct = getComisionPct() / 100;
