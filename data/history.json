@@ -1,32 +1,5 @@
 [
   {
-    "run_id": "f5be5981e498",
-    "generated_at": "2026-07-03T19:26:17.341101+00:00",
-    "summary": {
-      "total_leads": 12,
-      "hot_leads": 10,
-      "warm_leads": 2,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 63.8,
-      "avg_score_hot": 66.5,
-      "conversion_probability": 83.3,
-      "by_category": {
-        "FINE_DISPUTE": 10,
-        "DOCUMENTATION_ISSUE": 2
-      },
-      "by_platform": {
-        "Reddit": 12
-      },
-      "by_province": {
-        "CABA": 1,
-        "Salta": 2
-      }
-    }
-  },
-  {
     "run_id": "492460c5b75f",
     "generated_at": "2026-07-03T19:30:59.425497+00:00",
     "summary": {
@@ -2597,6 +2570,31 @@
   {
     "run_id": "a243235170dd",
     "generated_at": "2026-07-08T05:47:51.437508+00:00",
+    "summary": {
+      "total_leads": 13,
+      "hot_leads": 13,
+      "warm_leads": 0,
+      "contactable": 13,
+      "with_whatsapp": 2,
+      "with_phone": 13,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 13
+      },
+      "by_platform": {
+        "VentaFe": 13
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "22741949808a",
+    "generated_at": "2026-07-08T08:20:24.324137+00:00",
     "summary": {
       "total_leads": 13,
       "hot_leads": 13,
