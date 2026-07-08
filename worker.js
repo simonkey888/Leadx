@@ -1145,6 +1145,10 @@ function renderTable() {
                   ? \`<span style="font-size:16px" title="\${l.email}">✉️</span>\`
                   : \`\`
           }
+          \${l.fb_username && !l._wa_url && (l.source_label === 'Facebook' || l.platform === 'Facebook')
+            ? \`<a class="btn-wa-big" href="https://m.me/\${l.fb_username}" target="_blank" title="Mensaje por Messenger" style="background:#0084FF">\${'<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.5 2 2 6.1 2 11.2c0 2.9 1.4 5.5 3.7 7.2V22l3.4-1.9c.9.3 1.9.4 2.9.4 5.5 0 10-4.1 10-9.3S17.5 2 12 2zm1 12.5l-2.5-2.7-4.9 2.7 5.4-5.7 2.6 2.7 4.8-2.7-5.4 5.7z"/></svg>'}</a>\`
+            : \`\`
+          }
           <button class="btn-icon" onclick="openDetail('\${l.id}')" title="Ver detalle">📋</button>
         </div>
       </td>
