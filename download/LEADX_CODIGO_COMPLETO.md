@@ -1,12 +1,13 @@
 # 📦 LeadX — Código Completo (Bundle Único)
 
-**Generado:** 2026-07-08 03:22 UTC  
+**Generado:** 2026-07-08 03:27 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
 **Worker Version:** a2150258-7bdc-4c23-95e7-81e8579808a7  
 **Estado:** Producción activa · 9 leads FB Grupo A · 8 con Messenger azul · VLM patentes · IDs unificados · pipeline 4.0 · rediseño Twenty.com
-**Timestamp generación:** 2026-07-08 03:22 UTC (hora UTC) · Argentina: 2026-07-08 00:22:44 ART
+**Timestamp generación:** 2026-07-08 03:27 UTC (hora UTC) · Argentina: 2026-07-08 00:27:02 ART
+**Últimos fixes:** Bug #1 IDs duplicados (sha256 unificado) + Bug #2 fallback comentarios Apify + endpoint /api/enrich-patente + script VLM patentes
 
 ---
 
@@ -10771,7 +10772,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-08 03:22 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-08 03:27 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)

@@ -74,6 +74,7 @@ def build():
     lines.append(f"**Worker Version:** a2150258-7bdc-4c23-95e7-81e8579808a7  ")
     lines.append(f"**Estado:** Producción activa · 9 leads FB Grupo A · 8 con Messenger azul · VLM patentes · IDs unificados · pipeline 4.0 · rediseño Twenty.com")
     lines.append(f"**Timestamp generación:** {now} (hora UTC) · Argentina: {datetime.now(timezone(timedelta(hours=-3))).strftime('%Y-%m-%d %H:%M:%S')} ART")
+    lines.append(f"**Últimos fixes:** Bug #1 IDs duplicados (sha256 unificado) + Bug #2 fallback comentarios Apify + endpoint /api/enrich-patente + script VLM patentes")
     lines.append("")
     lines.append("---")
     lines.append("")
