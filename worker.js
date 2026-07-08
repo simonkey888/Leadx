@@ -670,7 +670,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
         <a id="modal-wa-btn" class="btn-wa" href="#" target="_blank">
           💬 WhatsApp
         </a>
-        <a id="modal-messenger-btn" class="btn-secondary" href="#" target="_blank" style="display:none;text-decoration:none">
+        <a id="modal-messenger-btn" class="btn-wa" href="#" target="_blank" style="display:none;text-decoration:none;background:#0084FF">
           ✉️ Messenger
         </a>
         <button id="modal-copy-tpl" class="btn-secondary" onclick="copyWaTemplate()">

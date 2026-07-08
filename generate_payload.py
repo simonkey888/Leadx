@@ -302,6 +302,15 @@ WHATSAPP_PATTERNS = [
 # Email pattern
 EMAIL_PATTERN = r"\b([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})\b"
 
+# FIX GEMINI+KIMI: Regex para emails ofuscados (común en grupos FB/ML).
+# Captura: "juan arroba gmail punto com", "user [at] host [dot] com", "user at host dot com"
+EMAIL_OBFUSCATED_RE = re.compile(
+    r'\b([a-zA-Z0-9._%+\-]+)\s*(?:@|\[at\]|arroba|\(at\)|_at_)\s*'
+    r'([a-zA-Z0-9.\-]+)\s*(?:\.|\[dot\]|dot|punto)\s*'
+    r'(com|com\.ar|net|org|live|online|yahoo|gmail|hotmail)\b',
+    re.IGNORECASE
+)
+
 # Reddit username pattern (u/username)
 REDDIT_USERNAME_PATTERN = r"\bu/([A-Za-z0-9_\-]{3,20})\b"
 
@@ -1042,18 +1051,26 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 whatsapp = digits
                 break
 
-    # Extract email (FIX SAKANA: filtrar dominios desechables)
+    # Extract email (FIX SAKANA: filtrar dominios desechables + GEMINI+KIMI: ofuscados)
     email = ""
+    _DISPOSABLE = {"tempmail.com", "10minutemail.com", "guerrillamail.com",
+                   "mailinator.com", "yopmail.com", "trashmail.com",
+                   "dispostable.com", "fakeinbox.com", "temp-mail.org"}
+    # 1. Email estándar
     m = re.search(EMAIL_PATTERN, combined)
     if m:
         candidate = m.group(1).lower().strip()
-        # Validar que no sea un dominio desechable
-        _DISPOSABLE = {"tempmail.com", "10minutemail.com", "guerrillamail.com",
-                       "mailinator.com", "yopmail.com", "trashmail.com",
-                       "dispostable.com", "fakeinbox.com", "temp-mail.org"}
         domain = candidate.split("@")[-1] if "@" in candidate else ""
         if domain not in _DISPOSABLE:
             email = candidate
+    # 2. Email ofuscado (FIX GEMINI+KIMI: "juan arroba gmail punto com")
+    if not email:
+        m_obf = EMAIL_OBFUSCATED_RE.search(combined)
+        if m_obf:
+            candidate = f"{m_obf.group(1)}@{m_obf.group(2)}.{m_obf.group(3)}".lower().strip()
+            domain = candidate.split("@")[-1] if "@" in candidate else ""
+            if domain not in _DISPOSABLE:
+                email = candidate
 
     # REGEX CONTEXTUAL (GPT+H.AI consensus v2 — fix BOMBA #2):
     # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor O es de VentaFe.
