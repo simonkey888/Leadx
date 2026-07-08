@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único)
 
-**Generado:** 2026-07-08 04:37 UTC  
+**Generado:** 2026-07-08 04:54 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
 **Worker Version:** e89ca39b-33e1-4efa-bf93-8dbf8ddd786f  
 **Estado:** Producción activa · 9 leads FB Grupo A · 8 con Messenger azul · VLM patentes · IDs unificados + canonicalizados · image_urls preservadas · pipeline 4.0 · rediseño Twenty.com
-**Timestamp generación:** 2026-07-08 04:37 UTC (hora UTC) · Argentina: 2026-07-08 01:37:14 ART
+**Timestamp generación:** 2026-07-08 04:54 UTC (hora UTC) · Argentina: 2026-07-08 01:54:30 ART
 **Últimos fixes:** Bug #1b canonicalizar URL + Bug #2 image_urls en KV + Bug #3 blacklist patentes falsas + /api/enrich-patente + VLM patentes
 
 ---
@@ -16,7 +16,7 @@
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
 | 1 | `worker.js` | 3,827 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,406 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 2 | `generate_payload.py` | 2,413 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -643,6 +643,10 @@
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+576b0d4 fix: no descartar preventivos con telefono (has_contact check)
+cd11833 radar: auto-update 2026-07-08 04:49 UTC
+0a0c90b fix: VentaFe con telefono entra como preventivo (valvula completa)
+e72438b radar: auto-update 2026-07-08 04:38 UTC
 699fc37 fix(gemini valvula): abrir leads VentaFe con telefono + KPI Messenger
 573ee1e feat(forensic intelligence): base de datos de casos + cruce forense
 f1f767f feat(gemini vlm on-demand): drag & drop acta analyzer en modal
@@ -659,10 +663,6 @@ d421955 fix: usar authorId de Apify (no authorUrl) para fb_username
 ea42ef9 feat(gpt+sakana): score_explain + pipeline_version en apify-webhook
 c661200 feat(gpt): contact_confidence en apify-webhook
 712105f feat(sakana): regex contextual WhatsApp en posts y comentarios
-5707a4a feat(sakana): extraer telefonos de comentarios de FB posts
-ff8dd2f fix(sakana): phone_to_e164 robusta + email anti-desechables
-809e45d fix: filtrar avisos de venta de autos sin dolor (Adolfo Giraudo taxi)
-c7ab3dd radar: auto-update 2026-07-07 23:58 UTC
 ```
 
 ---
@@ -5801,8 +5801,14 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
             score += 15
             if "PREVENTIVO_A_VERIFICAR" not in signals:
                 signals.append("PREVENTIVO_A_VERIFICAR")
+        elif record.get("contacto_publico") or record.get("telefonos"):
+            # FIX GEMINI valvula: VentaFe con telefono pero sin keywords preventivas
+            # igual entra como preventivo (el telefono es el dato mas valioso)
+            score += 15
+            if "PREVENTIVO_A_VERIFICAR" not in signals:
+                signals.append("PREVENTIVO_A_VERIFICAR")
         else:
-            # No menciona dolor ni papeles al día → descartar (ruido)
+            # No menciona dolor ni papeles al día ni tiene telefono → descartar
             return None
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
@@ -6101,11 +6107,12 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # FIX QWEN v2: Los preventivos sin deuda comprobada NUNCA son calientes.
     # Capar score a 42 para que aparezcan como tibio/frío, no como 🔥.
-    # Si además no tienen patente ni dolor explícito, descartar directamente.
+    # FIX GEMINI valvula: NO descartar si tiene telefono (el telefono es el dato mas valioso).
     if "PREVENTIVO_A_VERIFICAR" in signals and "DEUDA_COMPROBADA" not in signals:
         score = min(score, 42)
-        if "DOLOR_EXPLICITO_REGISTRAL" not in signals and not has_patente:
-            return None  # Preventivo puro sin patente ni dolor → descartar
+        # Solo descartar si no tiene dolor, ni patente, NI telefono
+        if "DOLOR_EXPLICITO_REGISTRAL" not in signals and not has_patente and not has_contact:
+            return None  # Preventivo puro sin nada → descartar
 
     # --- CLASSIFY (Qwen fix P0: umbrales relajados para VentaFe) ---
     # VentaFe: leads comerciales preventivos (vendedor con auto en venta).
@@ -11096,7 +11103,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-08 04:37 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-08 04:54 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
