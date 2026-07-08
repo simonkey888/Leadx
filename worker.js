@@ -517,6 +517,42 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     .sidebar { display: none; }
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
   }
+
+  /* ── DROPZONE & WIZARD VLM (Twenty.com Style) ── */
+  .acta-dropzone {
+    border: 2px dashed var(--border);
+    background: rgba(24, 24, 27, 0.5);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 16px;
+  }
+  .acta-dropzone:hover, .acta-dropzone.dragover {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+  }
+  .acta-dropzone p { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .wizard-card {
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .wizard-badge {
+    background: rgba(239, 68, 68, 0.1); color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2); font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .btn-wizard-send {
+    background: #25D366; color: white; font-weight: 700; padding: 8px 14px;
+    border-radius: 6px; font-size: 12px; display: inline-flex; align-items: center;
+    gap: 6px; text-decoration: none; border: none; cursor: pointer;
+  }
+  .btn-wizard-send:hover { background: #1dae53; }
 </style>
 </head>
 <body>
@@ -714,6 +750,34 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     <div class="modal-field" id="modal-bio-field" style="display:none">
       <label>Contacto detectado en publicaciones</label>
       <div id="modal-bio-content" style="font-size:13px;color:var(--text);background:#F0FDF4;padding:8px 12px;border-radius:6px;border:1px solid #BBF7D0"></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- SECCIÓN: ON-DEMAND ACTA ANALYZER (VLM) -->
+    <div class="modal-field">
+      <label style="color: var(--primary-h); font-weight: 700;">📄 Analizar Acta (VLM)</label>
+      <div id="acta-dropzone" class="acta-dropzone" onclick="document.getElementById('acta-file-input').click()">
+        <p style="font-size:24px;margin:0">📎</p>
+        <p id="dropzone-text">Arrastrá la foto del acta aquí<br><span style="opacity:0.6;font-size:11px">o click para seleccionar</span></p>
+        <input type="file" id="acta-file-input" accept="image/*" style="display:none">
+      </div>
+      <div id="vlm-loader" style="display:none;align-items:center;gap:8px;justify-content:center;padding:15px;color:var(--muted)">
+        <div class="spinner"></div> <span style="font-size:12px">Analizando con VLM...</span>
+      </div>
+      <div id="vlm-result-card" class="wizard-card" style="display:none">
+        <div class="wizard-badge" id="wizard-geo-badge">📍 Detectando...</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px" id="wizard-patente-label">Patente: —</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px" id="wizard-ubicacion-label">Ubicación: —</p>
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px">
+          <small style="color:var(--muted);font-weight:700;display:block;margin-bottom:6px;text-transform:uppercase;font-size:9px;letter-spacing:0.5px">Análisis Legal</small>
+          <span style="font-size:12px;line-height:1.5;color:#fafafa;display:block" id="wizard-legal-analysis">—</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a id="wizard-maps-btn" class="btn-secondary" style="font-size:11px;padding:8px 12px;display:inline-flex;align-items:center;gap:4px;text-decoration:none" href="#" target="_blank">📍 Maps</a>
+          <a id="wizard-wa-btn" class="btn-wizard-send" href="#" target="_blank">💬 WhatsApp</a>
+        </div>
+      </div>
     </div>
 
     <hr class="divider">
@@ -1668,6 +1732,65 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     }
   });
 });
+
+// ─── ON-DEMAND VLM DRAG & DROP ───
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('acta-dropzone');
+  const fi = document.getElementById('acta-file-input');
+  if (!dz || !fi) return;
+  ['dragenter','dragover','dragleave','drop'].forEach(n => dz.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); }, false));
+  ['dragenter','dragover'].forEach(n => dz.addEventListener(n, () => dz.classList.add('dragover'), false));
+  ['dragleave','drop'].forEach(n => dz.addEventListener(n, () => dz.classList.remove('dragover'), false));
+  dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleActaUpload(e.dataTransfer.files[0]); });
+  fi.addEventListener('change', e => { if (fi.files.length) handleActaUpload(fi.files[0]); });
+});
+
+async function handleActaUpload(file) {
+  if (!S.currentId) return alert('Seleccioná un lead primero');
+  const loader = document.getElementById('vlm-loader');
+  const resultCard = document.getElementById('vlm-result-card');
+  const dz = document.getElementById('acta-dropzone');
+  loader.style.display = 'flex'; resultCard.style.display = 'none'; dz.style.opacity = '0.3';
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onloadend = async () => {
+    const b64 = reader.result.split(',')[1];
+    try {
+      const r = await fetch('/api/analyze-acta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': getUrlSecret() },
+        body: JSON.stringify({ lead_id: S.currentId, image_b64: b64 })
+      });
+      const d = await r.json();
+      loader.style.display = 'none'; dz.style.opacity = '1';
+      if (d.ok && d.analysis) renderVlmResult(d.analysis, d.lead_phone);
+      else alert('Error: ' + (d.error || '?'));
+    } catch(e) { loader.style.display = 'none'; dz.style.opacity = '1'; alert('Error: ' + e.message); }
+  };
+}
+
+function renderVlmResult(a, phone) {
+  const c = document.getElementById('vlm-result-card');
+  document.getElementById('wizard-patente-label').textContent = 'Patente: ' + (a.patente || 'No visible');
+  document.getElementById('wizard-ubicacion-label').textContent = 'Ubicación: ' + (a.ubicacion || 'No detectada');
+  document.getElementById('wizard-legal-analysis').textContent = a.legal_warning || 'Sin análisis legal disponible.';
+  const badge = document.getElementById('wizard-geo-badge');
+  const prov = (a.provincia || '').toLowerCase();
+  if (prov.includes('santa fe')) { badge.textContent = '📍 Santa Fe'; badge.style.background = 'rgba(99,102,241,.1)'; badge.style.color = '#818cf8'; }
+  else { badge.textContent = '📍 ' + (a.provincia || 'Nacional'); badge.style.background = 'rgba(245,158,11,.1)'; badge.style.color = '#fbbf24'; }
+  const maps = document.getElementById('wizard-maps-btn');
+  if (a.ubicacion) { maps.style.display = 'inline-flex'; maps.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a.ubicacion + ', ' + (a.provincia || 'Santa Fe') + ', Argentina'); }
+  else maps.style.display = 'none';
+  const wa = document.getElementById('wizard-wa-btn');
+  if (phone) {
+    wa.style.display = 'inline-flex';
+    const p = phone.replace(/[^0-9]/g, '');
+    const msg = 'Hola! Vi tu consulta sobre la multa de patente ' + (a.patente || '') + ' en ' + (a.ubicacion || '') + '. Podemos verificar si el acta tiene fallas de homologación. ¿Te interesa?';
+    wa.href = p.length > 8 ? 'https://wa.me/' + p + '?text=' + encodeURIComponent(msg) : 'https://m.me/' + phone + '?text=' + encodeURIComponent(msg);
+  } else wa.style.display = 'none';
+  c.style.display = 'block';
+  loadLeads();
+}
 
 loadLeads();
 </script>
@@ -2965,6 +3088,70 @@ export default {
         return jsonResponse({ ok: true, lead_id: payload.lead_id, patente: patente, new_score: leads[idx].score }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/analyze-acta ─── VLM On-Demand: Sergio arrastra foto del acta
+    if (url.pathname === '/api/analyze-acta' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret') || request.headers.get('X-Ingest-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const payload = await request.json();
+        const { lead_id, image_b64 } = payload;
+        if (!lead_id || !image_b64) {
+          return jsonResponse({ error: 'missing_params' }, corsHeaders, 400);
+        }
+        // Recuperar lead del KV
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) return jsonResponse({ error: 'kv_empty' }, corsHeaders, 404);
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        const idx = leads.findIndex(l => l.id === lead_id);
+        if (idx === -1) return jsonResponse({ error: 'lead_not_found' }, corsHeaders, 404);
+        const existingLead = leads[idx];
+
+        // Llamar a z-ai vision API
+        const zaiRes = await fetch('https://api.zai.co/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + (env.ZAI_API_KEY || ''), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'glm-4.6v',
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text', text: 'Analiza esta acta de infracción de tránsito de Argentina. Extrae: 1) patente del vehículo, 2) ubicación/localidad donde ocurrió la infracción, 3) provincia. Responde SOLO en formato JSON: {"patente":"...","ubicacion":"...","provincia":"...","legal_warning":"breve análisis de si el radar podría tener fallas de homologación o señalización"}' },
+                { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + image_b64 } }
+              ]
+            }],
+            temperature: 0.1
+          })
+        });
+        if (!zaiRes.ok) {
+          return jsonResponse({ error: 'vlm_failed', detail: await zaiRes.text() }, corsHeaders, 502);
+        }
+        const zaiData = await zaiRes.json();
+        let vlmText = zaiData.choices?.[0]?.message?.content || '';
+        // Limpiar markdown si viene envuelto
+        vlmText = vlmText.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim();
+        let analysis;
+        try { analysis = JSON.parse(vlmText); } catch(e) { analysis = { patente: vlmText.substring(0, 50), ubicacion: '', provincia: '', legal_warning: '' }; }
+
+        // Actualizar lead en KV
+        leads[idx] = {
+          ...existingLead,
+          patente: analysis.patente || existingLead.patente,
+          score: Math.min(100, (existingLead.score || 0) + 15),
+          score_explain: [...(existingLead.score_explain || []), '[VLM On-Demand] Acta analizada (+15)'],
+        };
+        data.leads_all = leads;
+        data.leads_hot = leads.filter(l => (l.score || 0) >= 50);
+        await env.LEADX_KV.put('leads:live', JSON.stringify(data));
+
+        return jsonResponse({ ok: true, analysis, lead_phone: existingLead.telefono_publico || existingLead.whatsapp_publico || existingLead.fb_username || '' }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, corsHeaders, 500);
       }
     }
 
