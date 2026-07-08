@@ -1,12 +1,12 @@
 # 📦 LeadX — Código Completo (Bundle Único)
 
-**Generado:** 2026-07-08 03:11 UTC  
+**Generado:** 2026-07-08 03:22 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** 315cea94-45cb-464a-a056-850cc52817da  
-**Estado:** Producción activa · 9 leads FB Grupo A · 8 con botón Messenger azul en tabla · score_explain + contact_confidence · pipeline 4.0 · rediseño Twenty.com
-**Timestamp generación:** 2026-07-08 03:11 UTC (hora UTC) · Argentina: 2026-07-08 00:11:19 ART
+**Worker Version:** a2150258-7bdc-4c23-95e7-81e8579808a7  
+**Estado:** Producción activa · 9 leads FB Grupo A · 8 con Messenger azul · VLM patentes · IDs unificados · pipeline 4.0 · rediseño Twenty.com
+**Timestamp generación:** 2026-07-08 03:22 UTC (hora UTC) · Argentina: 2026-07-08 00:22:44 ART
 
 ---
 
@@ -14,7 +14,7 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,463 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 1 | `worker.js` | 3,512 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
 | 2 | `generate_payload.py` | 2,397 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
@@ -642,6 +642,7 @@
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+42f04b8 fix(gemini bugs) + feat(vlm patentes): 2 bugs criticos + pipeline patentes VLM
 d377b11 radar: auto-update 2026-07-08 02:32 UTC
 54da85a feat: boton Messenger azul en tabla general (vista de lista)
 480c224 feat(gemini+kimi): boton Messenger azul + email ofuscado regex
@@ -661,7 +662,6 @@ c7ab3dd radar: auto-update 2026-07-07 23:58 UTC
 c3ba0a8 radar: auto-update 2026-07-07 22:58 UTC
 352f319 radar: auto-update 2026-07-07 22:22 UTC
 f352394 fix(qwen v2): FB intent scoring + VentaFe preventivos capados/filtrados
-8065468 radar: auto-update 2026-07-07 22:11 UTC
 ```
 
 ---
@@ -3488,7 +3488,8 @@ export default {
           // respondiendo al post original. El post text rara vez tiene teléfono.
           const comments = post.comments || [];
           for (const c of (Array.isArray(comments) ? comments : [])) {
-            const commentText = c.text || '';
+            // FIX GEMINI Bug #2: fallback de campos de comentario (Apify cambia estructura entre versiones)
+            const commentText = c.text || c.message || c.commentText || c.body || '';
             // No extraer teléfono de comentarios de gestoras/competidores
             if (SERVICE_OFFER_KW.test(commentText) || /gestor[ií]a/i.test(commentText)) continue;
             // AR_PHONE estándar
@@ -3590,6 +3591,45 @@ export default {
         return jsonResponse({ ok: true, received: leads.length, merged: truncated.length, filtered_out: (Array.isArray(items) ? items.length : 0) - leads.length }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: true, error: e.message }, corsHeaders);
+      }
+    }
+
+    // ─── POST /api/enrich-patente ─── Recibe patente extraída por VLM/OCR desde GH Actions
+    // FIX GEMINI: lee leads:live (array unificado), busca por ID, deep merge, guarda.
+    if (url.pathname === '/api/enrich-patente' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret') || request.headers.get('X-Ingest-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const payload = await request.json();
+        if (!payload.lead_id || !payload.patentes || !Array.isArray(payload.patentes)) {
+          return jsonResponse({ ok: false, error: 'invalid_payload' }, corsHeaders, 400);
+        }
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) return jsonResponse({ ok: false, error: 'kv_empty' }, corsHeaders, 404);
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        const idx = leads.findIndex(l => l.id === payload.lead_id);
+        if (idx === -1) return jsonResponse({ ok: false, error: 'lead_not_found' }, corsHeaders, 404);
+
+        const existing = leads[idx];
+        const patente = payload.patentes[0]?.patente || '';
+        leads[idx] = {
+          ...existing,
+          patente: patente || existing.patente,
+          score: Math.min(100, (existing.score || 0) + (payload.score_boost || 15)),
+          score_explain: [...(existing.score_explain || []), `[VLM/OCR] Patente: ${patente} (+${payload.score_boost || 15})`],
+          enrichment_timestamp: new Date().toISOString(),
+          enrichment_type: 'vlm_patent',
+          contacto_sugerido: (existing.telefono_publico || existing.whatsapp_publico) ? 'whatsapp' : (existing.fb_username ? 'messenger' : 'dnrpa_manual'),
+        };
+        data.leads_all = leads;
+        data.leads_hot = leads.filter(l => (l.score || 0) >= 50);
+        await env.LEADX_KV.put('leads:live', JSON.stringify(data));
+        return jsonResponse({ ok: true, lead_id: payload.lead_id, patente: patente, new_score: leads[idx].score }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
       }
     }
 
@@ -4053,8 +4093,17 @@ async function runPipelineCron(env) {
         score = Math.max(0, Math.min(100, score));
         if (score < 40) continue;
 
+        // FIX GEMINI Bug #1: Unificar ID con Python pipeline (sha256 de URL + telefono).
+        // Antes: 'reddit_' + url.split('/').slice(-2).join('_') → ID diferente al de Python
+        // Ahora: sha256(url + telefono)[:16] → mismo ID que Python, evita duplicados en KV
+        const _phoneForId = (phones[0] || waLinks[0] || '');
+        const _composite = _phoneForId ? url + '|' + _phoneForId : url;
+        const _hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(_composite));
+        const _hashHex = Array.from(new Uint8Array(_hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const _leadId = _hashHex.slice(0, 16);
+
         newLeads.push({
-          id: 'reddit_' + url.split('/').slice(-2).join('_'),
+          id: _leadId,
           source: 'reddit_rss',
           source_label: 'Reddit',
           platform: 'Reddit',
@@ -10722,7 +10771,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-08 03:11 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-08 03:22 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)

@@ -2815,7 +2815,8 @@ export default {
           // respondiendo al post original. El post text rara vez tiene teléfono.
           const comments = post.comments || [];
           for (const c of (Array.isArray(comments) ? comments : [])) {
-            const commentText = c.text || '';
+            // FIX GEMINI Bug #2: fallback de campos de comentario (Apify cambia estructura entre versiones)
+            const commentText = c.text || c.message || c.commentText || c.body || '';
             // No extraer teléfono de comentarios de gestoras/competidores
             if (SERVICE_OFFER_KW.test(commentText) || /gestor[ií]a/i.test(commentText)) continue;
             // AR_PHONE estándar
@@ -2917,6 +2918,45 @@ export default {
         return jsonResponse({ ok: true, received: leads.length, merged: truncated.length, filtered_out: (Array.isArray(items) ? items.length : 0) - leads.length }, corsHeaders);
       } catch (e) {
         return jsonResponse({ ok: true, error: e.message }, corsHeaders);
+      }
+    }
+
+    // ─── POST /api/enrich-patente ─── Recibe patente extraída por VLM/OCR desde GH Actions
+    // FIX GEMINI: lee leads:live (array unificado), busca por ID, deep merge, guarda.
+    if (url.pathname === '/api/enrich-patente' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret') || request.headers.get('X-Ingest-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const payload = await request.json();
+        if (!payload.lead_id || !payload.patentes || !Array.isArray(payload.patentes)) {
+          return jsonResponse({ ok: false, error: 'invalid_payload' }, corsHeaders, 400);
+        }
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) return jsonResponse({ ok: false, error: 'kv_empty' }, corsHeaders, 404);
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        const idx = leads.findIndex(l => l.id === payload.lead_id);
+        if (idx === -1) return jsonResponse({ ok: false, error: 'lead_not_found' }, corsHeaders, 404);
+
+        const existing = leads[idx];
+        const patente = payload.patentes[0]?.patente || '';
+        leads[idx] = {
+          ...existing,
+          patente: patente || existing.patente,
+          score: Math.min(100, (existing.score || 0) + (payload.score_boost || 15)),
+          score_explain: [...(existing.score_explain || []), `[VLM/OCR] Patente: ${patente} (+${payload.score_boost || 15})`],
+          enrichment_timestamp: new Date().toISOString(),
+          enrichment_type: 'vlm_patent',
+          contacto_sugerido: (existing.telefono_publico || existing.whatsapp_publico) ? 'whatsapp' : (existing.fb_username ? 'messenger' : 'dnrpa_manual'),
+        };
+        data.leads_all = leads;
+        data.leads_hot = leads.filter(l => (l.score || 0) >= 50);
+        await env.LEADX_KV.put('leads:live', JSON.stringify(data));
+        return jsonResponse({ ok: true, lead_id: payload.lead_id, patente: patente, new_score: leads[idx].score }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message }, corsHeaders, 500);
       }
     }
 
@@ -3380,8 +3420,17 @@ async function runPipelineCron(env) {
         score = Math.max(0, Math.min(100, score));
         if (score < 40) continue;
 
+        // FIX GEMINI Bug #1: Unificar ID con Python pipeline (sha256 de URL + telefono).
+        // Antes: 'reddit_' + url.split('/').slice(-2).join('_') → ID diferente al de Python
+        // Ahora: sha256(url + telefono)[:16] → mismo ID que Python, evita duplicados en KV
+        const _phoneForId = (phones[0] || waLinks[0] || '');
+        const _composite = _phoneForId ? url + '|' + _phoneForId : url;
+        const _hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(_composite));
+        const _hashHex = Array.from(new Uint8Array(_hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const _leadId = _hashHex.slice(0, 16);
+
         newLeads.push({
-          id: 'reddit_' + url.split('/').slice(-2).join('_'),
+          id: _leadId,
           source: 'reddit_rss',
           source_label: 'Reddit',
           platform: 'Reddit',
