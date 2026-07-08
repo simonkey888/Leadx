@@ -2877,7 +2877,7 @@ export default {
               ...(Array.isArray(post.media) ? post.media.map(m => m.url || m.thumbnail || '') : []),
               ...(Array.isArray(post.attachments) ? post.attachments.map(a => a.url || '') : []),
               ...(post.imageUrl ? [post.imageUrl] : []),
-            ].filter(Boolean)),
+            ].filter(Boolean))],
           });
         }
 
