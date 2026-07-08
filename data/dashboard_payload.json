@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-08T13:53:04.194711+00:00",
-  "run_id": "1ce4f230fca8",
+  "generated_at": "2026-07-08T16:01:07.423897+00:00",
+  "run_id": "82dd0f077847",
   "summary": {
-    "total_leads": 13,
-    "hot_leads": 13,
+    "total_leads": 14,
+    "hot_leads": 14,
     "warm_leads": 0,
-    "contactable": 13,
+    "contactable": 14,
     "with_whatsapp": 2,
-    "with_phone": 13,
+    "with_phone": 14,
     "with_email": 0,
     "avg_score": 42.0,
     "avg_score_hot": 42.0,
     "conversion_probability": 100.0,
     "by_category": {
-      "PREVENTIVE_SCAN": 13
+      "PREVENTIVE_SCAN": 14
     },
     "by_platform": {
-      "VentaFe": 13
+      "VentaFe": 14
     },
     "by_province": {
       "Paraná": 1
@@ -24,6 +24,44 @@
   },
   "leads_all": [
     {
+      "id": "1475c00a1daa84fe",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5012240",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "citroen",
+      "patente": "",
+      "fecha_visible": "2026-07-08",
+      "fecha_iso": "2026-07-08T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5012240-citroen-c3-aircroos-primera-mano",
+      "quoted_text": "> Citroen c3 aircroos primera mano Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubierta; freno ; tren delantero; solo contado consultame Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubie",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426311200",
+      "telefono_publico": "+5493426311200",
+      "telefono_e164": "+5493426311200",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-08T16:01:07.420202+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "927f4ab64911c062",
       "score": 42,
       "label": "real_lead",
@@ -58,7 +96,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.191382+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.420536+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -96,7 +134,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.191642+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.420789+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -134,7 +172,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.191840+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421006+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -174,7 +212,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192101+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421279+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -214,7 +252,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192472+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421638+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -252,7 +290,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192684+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421847+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -290,7 +328,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192980+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422175+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -328,7 +366,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.193290+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422464+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -366,7 +404,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.193584+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422751+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -404,7 +442,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.193769+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422934+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -442,7 +480,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.194060+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.423249+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -480,7 +518,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.194250+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.423418+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -518,12 +556,50 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.194554+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.423709+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "1475c00a1daa84fe",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5012240",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "citroen",
+      "patente": "",
+      "fecha_visible": "2026-07-08",
+      "fecha_iso": "2026-07-08T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5012240-citroen-c3-aircroos-primera-mano",
+      "quoted_text": "> Citroen c3 aircroos primera mano Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubierta; freno ; tren delantero; solo contado consultame Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubie",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426311200",
+      "telefono_publico": "+5493426311200",
+      "telefono_e164": "+5493426311200",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-08T16:01:07.420202+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "927f4ab64911c062",
       "score": 42,
       "label": "real_lead",
@@ -558,7 +634,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.191382+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.420536+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -596,7 +672,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.191642+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.420789+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -634,7 +710,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.191840+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421006+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -674,7 +750,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192101+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421279+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -714,7 +790,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192472+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421638+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -752,7 +828,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192684+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.421847+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -790,7 +866,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.192980+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422175+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -828,7 +904,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.193290+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422464+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -866,7 +942,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.193584+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422751+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -904,7 +980,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.193769+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.422934+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -942,7 +1018,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.194060+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.423249+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -980,7 +1056,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.194250+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.423418+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1018,14 +1094,14 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-08T13:53:04.194554+00:00",
+      "discovery_timestamp": "2026-07-08T16:01:07.423709+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
     "El 100% de los leads calientes provienen de VentaFe.",
-    "El 8% de los leads calientes son de Paraná.",
+    "El 7% de los leads calientes son de Paraná.",
     "El problema más frecuente es: Preventivo — Verificación de deuda sugerida.",
     "100% de los leads calientes tienen contacto público visible.",
     "1 leads calientes muestran señales de urgencia temporal."
@@ -1056,7 +1132,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 97.92,
-    "queries_executed": 2
+    "runtime_seconds": 91.71,
+    "queries_executed": 1
   }
 }
