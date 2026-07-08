@@ -1,39 +1,5 @@
 [
   {
-    "run_id": "61a8bf0abbbf",
-    "generated_at": "2026-07-03T20:06:07.485231+00:00",
-    "summary": {
-      "total_leads": 23,
-      "hot_leads": 17,
-      "warm_leads": 6,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 62.8,
-      "avg_score_hot": 69.1,
-      "conversion_probability": 73.9,
-      "by_category": {
-        "TRANSFER_PROBLEM": 11,
-        "OTHER": 1,
-        "FINE_DISPUTE": 11
-      },
-      "by_platform": {
-        "Reddit": 19,
-        "Portaldeabogados.Com": 1,
-        "Tn.Com.Ar": 1,
-        "2.Jus.Gov.Ar": 1,
-        "Iprofesional.Com": 1
-      },
-      "by_province": {
-        "Salta": 2,
-        "CABA": 3,
-        "Pilar": 1,
-        "Buenos Aires": 1
-      }
-    }
-  },
-  {
     "run_id": "d0e36fade5d7",
     "generated_at": "2026-07-03T20:09:41.367952+00:00",
     "summary": {
@@ -2514,6 +2480,31 @@
   {
     "run_id": "badcc4a8cb4b",
     "generated_at": "2026-07-08T21:03:31.849257+00:00",
+    "summary": {
+      "total_leads": 14,
+      "hot_leads": 14,
+      "warm_leads": 0,
+      "contactable": 14,
+      "with_whatsapp": 2,
+      "with_phone": 14,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 14
+      },
+      "by_platform": {
+        "VentaFe": 14
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "c58d9a030fff",
+    "generated_at": "2026-07-08T23:01:49.737567+00:00",
     "summary": {
       "total_leads": 14,
       "hot_leads": 14,
