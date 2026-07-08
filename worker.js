@@ -2751,9 +2751,13 @@ export default {
           if (SPAM_KW.test(text)) continue;
 
           // FIX SIMON: bloquear OFERTAS de servicios gestoriales (son competidores, no leads).
-          // "ELIMINO MULTAS", "SACO TURNOS", "HAGO INFORMES", "GESTORIA", etc.
           const SERVICE_OFFER_KW = /elimino\s+multas|saco\s+turnos|hago\s+informes|gestor[ií]a|gestor\s+automotor|ofrezco\s+mis\s+servicios|mis\s+servicios|consultanos|defendemos\s+tus\s+derechos|sacamos\s+turnos|realizamos\s+informes/i;
           if (SERVICE_OFFER_KW.test(text)) continue;
+
+          // FIX SIMON v2: bloquear avisos de venta de autos sin dolor (no son leads para gestoría).
+          // "se vende taxi", "consultar por privado" = aviso comercial, no persona con problema.
+          const SALES_AD_KW = /se\s+vende\s+(taxi|auto|moto|camioneta|veh[ií]culo)|consultar\s+por\s+privado|consultar\s+privado/i;
+          if (SALES_AD_KW.test(text)) continue;
 
           // FIX ANTI-DUPLICADOS: si el mismo autor ya tiene un post, solo quedarse con el de mayor score
           const authorKey = author.toLowerCase().trim();
