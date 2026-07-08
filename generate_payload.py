@@ -1598,11 +1598,12 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
 
     # FIX QWEN v2: Los preventivos sin deuda comprobada NUNCA son calientes.
     # Capar score a 42 para que aparezcan como tibio/frío, no como 🔥.
-    # Si además no tienen patente ni dolor explícito, descartar directamente.
+    # FIX GEMINI valvula: NO descartar si tiene telefono (el telefono es el dato mas valioso).
     if "PREVENTIVO_A_VERIFICAR" in signals and "DEUDA_COMPROBADA" not in signals:
         score = min(score, 42)
-        if "DOLOR_EXPLICITO_REGISTRAL" not in signals and not has_patente:
-            return None  # Preventivo puro sin patente ni dolor → descartar
+        # Solo descartar si no tiene dolor, ni patente, NI telefono
+        if "DOLOR_EXPLICITO_REGISTRAL" not in signals and not has_patente and not has_contact:
+            return None  # Preventivo puro sin nada → descartar
 
     # --- CLASSIFY (Qwen fix P0: umbrales relajados para VentaFe) ---
     # VentaFe: leads comerciales preventivos (vendedor con auto en venta).
