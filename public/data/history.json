@@ -1,45 +1,5 @@
 [
   {
-    "run_id": "777633133eba",
-    "generated_at": "2026-07-03T19:35:01.461544+00:00",
-    "summary": {
-      "total_leads": 32,
-      "hot_leads": 24,
-      "warm_leads": 8,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 73.4,
-      "avg_score_hot": 83.5,
-      "conversion_probability": 75.0,
-      "by_category": {
-        "FINE_DISPUTE": 10,
-        "TRANSFER_PROBLEM": 22
-      },
-      "by_platform": {
-        "Duckduckgo.Com": 1,
-        "Facebook": 17,
-        "Argentina.Gob.Ar": 1,
-        "Informes.Vip": 1,
-        "Portaldeabogados.Com": 1,
-        "Patente.Ar": 2,
-        "Tn.Com.Ar": 1,
-        "2.Jus.Gov.Ar": 1,
-        "Iprofesional.Com": 1,
-        "Multas.Ar": 2,
-        "Estudiojuridicomogliani.Com.Ar": 1,
-        "Multasonline.Com.Ar": 1,
-        "Multabot.Com.Ar": 1,
-        "Reclamosonline.Com.Ar": 1
-      },
-      "by_province": {
-        "CABA": 1,
-        "La Plata": 1
-      }
-    }
-  },
-  {
     "run_id": "69e955b6d06a",
     "generated_at": "2026-07-03T19:38:57.859676+00:00",
     "summary": {
@@ -2592,6 +2552,31 @@
   {
     "run_id": "158424a4d3c6",
     "generated_at": "2026-07-08T11:03:28.260835+00:00",
+    "summary": {
+      "total_leads": 13,
+      "hot_leads": 13,
+      "warm_leads": 0,
+      "contactable": 13,
+      "with_whatsapp": 2,
+      "with_phone": 13,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 13
+      },
+      "by_platform": {
+        "VentaFe": 13
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "1ce4f230fca8",
+    "generated_at": "2026-07-08T13:53:04.194711+00:00",
     "summary": {
       "total_leads": 13,
       "hot_leads": 13,
