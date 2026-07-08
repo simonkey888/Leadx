@@ -1,0 +1,27 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# LeadX Patent Extractor - Dependencias
+# Roboflow Detection + DocTR/Tesseract OCR + OpenCV
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core
+requests>=2.31.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# OpenCV para preprocesamiento de imágenes
+opencv-python-headless>=4.8.0
+
+# Tesseract OCR (wrapper Python)
+pytesseract>=0.3.10
+
+# DocTR OCR (opcional, motor ML más preciso)
+# Descomentar si se quiere usar DocTR en lugar de Tesseract
+# python-doctr>=0.7.0
+# torch>=2.0.0
+# torchvision>=0.15.0
+
+# Roboflow API
+roboflow>=1.1.0
+
+# Utilidades
+python-dateutil>=2.8.0

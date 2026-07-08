@@ -1,0 +1,134 @@
+name: LeadX Patent Extraction - Roboflow Pipeline
+
+on:
+  schedule:
+    # Ejecutar cada 6 horas (ajustar según volumen de leads)
+    - cron: '0 */6 * * *'
+
+  # Permitir ejecución manual desde GitHub UI
+  workflow_dispatch:
+    inputs:
+      lead_batch:
+        description: 'ID de batch de leads a procesar (opcional)'
+        required: false
+        default: ''
+
+env:
+  ROBOFLOW_API_KEY: ${{ secrets.ROBOFLOW_API_KEY }}
+  LEADX_WORKER_URL: ${{ secrets.LEADX_WORKER_URL }}
+  LEADX_INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  extract-patentes:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 1: Checkout del código
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 2: Setup Python
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 3: Instalar dependencias del sistema (Tesseract + OpenCV)
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Install system dependencies
+        run: |
+          echo "🔧 Instalando Tesseract OCR y dependencias del sistema..."
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            tesseract-ocr \
+            tesseract-ocr-spa \
+            libtesseract-dev \
+            libgl1-mesa-glx \
+            libglib2.0-0 \
+            libsm6 \
+            libxext6 \
+            libxrender-dev \
+            libgomp1 \
+            wget \
+            curl
+          echo "✅ Dependencias del sistema instaladas"
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 4: Instalar dependencias Python
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Install Python dependencies
+        run: |
+          echo "📦 Instalando dependencias Python..."
+          pip install --upgrade pip
+          pip install -r requirements-patentes.txt
+          echo "✅ Dependencias Python instaladas"
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 5: Descargar imágenes de leads desde KV/Storage
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Download lead images from Cloudflare KV
+        run: |
+          echo "📥 Descargando imágenes de leads..."
+          python scripts/download_lead_images.py \
+            --worker-url "${{ secrets.LEADX_WORKER_URL }}" \
+            --secret "${{ secrets.INGEST_SECRET }}" \
+            --output-dir "./data/lead_images" \
+            --max-leads 50 \
+            --batch-id "${{ github.event.inputs.lead_batch }}"
+          echo "✅ Imágenes descargadas"
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 6: Ejecutar pipeline de extracción de patentes
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Run patent extraction pipeline
+        run: |
+          echo "🚀 Ejecutando pipeline de extracción de patentes..."
+          python scripts/extract_patentes_roboflow.py
+          echo "✅ Pipeline completado"
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 7: Enviar resultados enriquecidos al Worker
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Send enrichment results to LeadX Worker
+        run: |
+          echo "📤 Enviando resultados de enriquecimiento..."
+          python scripts/send_enrichment.py \
+            --worker-url "${{ secrets.LEADX_WORKER_URL }}" \
+            --secret "${{ secrets.INGEST_SECRET }}" \
+            --results-dir "./data/patentes_extracted"
+          echo "✅ Resultados enviados"
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 8: Subir artefactos de debug (crops, logs)
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Upload debug artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: patente-extraction-debug
+          path: |
+            ./tmp/
+            ./patente_extraction.log
+            ./data/patentes_extracted/*.json
+          retention-days: 7
+
+      # ═══════════════════════════════════════════════════════════════════
+      # PASO 9: Notificar resultado (opcional - Discord/Slack)
+      # ═══════════════════════════════════════════════════════════════════
+      - name: Notify results
+        if: always()
+        run: |
+          if [ -f "./data/patentes_extracted/last_run_stats.json" ]; then
+            STATS=$(cat ./data/patentes_extracted/last_run_stats.json)
+            echo "📊 Estadísticas del run:"
+            echo "$STATS" | jq .
+          fi
