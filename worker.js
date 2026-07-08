@@ -2870,6 +2870,14 @@ export default {
             contact_confidence: (phones.length > 0 || emails.length > 0) ? 90 : (author ? 30 : 0),
             pipeline_version: '4.0',
             fb_username: fbUserId || '',
+            // FIX GEMINI Bug #2: preservar URLs de imágenes para que el script VLM las descargue
+            image_urls: [...new Set([
+              ...(Array.isArray(post.imageUrls) ? post.imageUrls : []),
+              ...(Array.isArray(post.images) ? post.images : []),
+              ...(Array.isArray(post.media) ? post.media.map(m => m.url || m.thumbnail || '') : []),
+              ...(Array.isArray(post.attachments) ? post.attachments.map(a => a.url || '') : []),
+              ...(post.imageUrl ? [post.imageUrl] : []),
+            ].filter(Boolean)),
           });
         }
 
@@ -3421,10 +3429,16 @@ async function runPipelineCron(env) {
         if (score < 40) continue;
 
         // FIX GEMINI Bug #1: Unificar ID con Python pipeline (sha256 de URL + telefono).
-        // Antes: 'reddit_' + url.split('/').slice(-2).join('_') → ID diferente al de Python
-        // Ahora: sha256(url + telefono)[:16] → mismo ID que Python, evita duplicados en KV
+        // FIX GEMINI Bug #1b: Canonicalizar URL primero para asegurar paridad 100% con Python
+        let _canonicalUrl = url;
+        try {
+          const _parsed = new URL(url);
+          let _path = _parsed.pathname;
+          if (_path.endsWith('/')) _path = _path.slice(0, -1);
+          _canonicalUrl = `${_parsed.protocol}//${_parsed.hostname}${_path}`;
+        } catch(e) {}
         const _phoneForId = (phones[0] || waLinks[0] || '');
-        const _composite = _phoneForId ? url + '|' + _phoneForId : url;
+        const _composite = _phoneForId ? _canonicalUrl + '|' + _phoneForId : _canonicalUrl;
         const _hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(_composite));
         const _hashHex = Array.from(new Uint8Array(_hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
         const _leadId = _hashHex.slice(0, 16);

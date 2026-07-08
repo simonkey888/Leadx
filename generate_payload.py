@@ -709,7 +709,15 @@ def scrape_ventafe_leads() -> List[Dict[str, Any]]:
                 print(f"  [VentaFe Detail] Error aviso #{aviso_id}: {detail_err}", file=sys.stderr)
 
         # Patentes finales: las del detalle (prioridad) + las del listado (fallback)
-        patentes_finales = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+        # FIX GEMINI Bug #3: filtrar falsos positivos de patentes tradicionales (CEL342, CON270, etc.)
+        _patentes_raw = patentes_detectadas if patentes_detectadas else _re.findall(r'\b([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})\b', text)
+        _BLACKLIST_PATENT = {"CEL", "CON", "DIR", "TEL", "WSP", "WPP", "CBU", "DNI", "URL", "WEB", "IMG", "JPG", "PNG", "PDF", "CP", "ID", "PIN", "NRO"}
+        patentes_finales = []
+        for p in _patentes_raw:
+            p_clean = _re.sub(r'\s+', '', p).upper()
+            if len(p_clean) == 6 and p_clean[:3] in _BLACKLIST_PATENT:
+                continue
+            patentes_finales.append(p_clean)
 
         # FIX GEMINI VIA B: Triangulación Cross-Platform Matcher.
         # Si no se encontró patente en VentaFe (listado ni detalle), intentar
