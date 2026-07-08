@@ -461,26 +461,41 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
-    """Qwen+Kimi v2: Normaliza cualquier formato AR a E.164: +549112345678"""
+    """
+    Sakana+GLM: Normaliza cualquier formato AR a E.164: +549112345678
+    - Evita duplicar el 9 cuando ya viene con +549
+    - Valida códigos de área argentinos conocidos
+    """
+    if not phone:
+        return ""
     digits = re.sub(r"\D", "", phone)
     if not digits:
         return ""
-    # Quitar prefijo pais si existe
-    if digits.startswith("54"):
-        digits = digits[2:]
-    # Quitar 0 inicial (interurbano)
-    if digits.startswith("0"):
-        digits = digits[1:]
-    # Quitar 9 inicial (mobile prefix viejo)
-    if digits.startswith("9") and len(digits) == 11:
-        digits = digits[1:]
-    # Si tiene 10 digitos y empieza con 11 (CABA), agregar 9
-    if len(digits) == 10 and digits.startswith("11"):
-        digits = "9" + digits
-    # Si tiene 10 digitos y NO empieza con 5, agregar 549
-    elif len(digits) == 10 and not digits.startswith("5"):
-        digits = "9" + digits
-    return f"+54{digits}" if len(digits) >= 10 else ""
+
+    # Caso 1: Ya viene con 549 (formato correcto, 12 dígitos)
+    if digits.startswith("549") and len(digits) == 12:
+        return f"+{digits}"
+
+    # Caso 2: Viene con 54 pero sin 9 (formato internacional incompleto)
+    if digits.startswith("54") and len(digits) == 11:
+        return f"+549{digits[2:]}"
+
+    # Caso 3: Número local de 10 dígitos (ej: 1123456789, 3421234567)
+    valid_ac_2 = ("11", "15")
+    valid_ac_3 = ("341", "342", "343", "351", "353", "358", "362", "364",
+                  "370", "376", "379", "380", "381", "383", "385", "387", "388",
+                  "221", "223", "249", "261", "264", "291", "294", "297", "299")
+    if len(digits) == 10:
+        if digits[:2] in valid_ac_2 or digits[:3] in valid_ac_3:
+            return f"+549{digits}"
+
+    # Caso 4: Número de más de 10 dígitos (tomar últimos 10)
+    if len(digits) > 10:
+        last_10 = digits[-10:]
+        if last_10[:2] in valid_ac_2 or last_10[:3] in valid_ac_3:
+            return f"+549{last_10}"
+
+    return ""
 
 def normalize_phone_ar(raw: str) -> str:
     """Alias de phone_to_e164 para compatibilidad."""
@@ -1027,11 +1042,18 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 whatsapp = digits
                 break
 
-    # Extract email
+    # Extract email (FIX SAKANA: filtrar dominios desechables)
     email = ""
     m = re.search(EMAIL_PATTERN, combined)
     if m:
-        email = m.group(1).lower().strip()
+        candidate = m.group(1).lower().strip()
+        # Validar que no sea un dominio desechable
+        _DISPOSABLE = {"tempmail.com", "10minutemail.com", "guerrillamail.com",
+                       "mailinator.com", "yopmail.com", "trashmail.com",
+                       "dispostable.com", "fakeinbox.com", "temp-mail.org"}
+        domain = candidate.split("@")[-1] if "@" in candidate else ""
+        if domain not in _DISPOSABLE:
+            email = candidate
 
     # REGEX CONTEXTUAL (GPT+H.AI consensus v2 — fix BOMBA #2):
     # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor O es de VentaFe.
