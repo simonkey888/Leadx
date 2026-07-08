@@ -666,12 +666,17 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
         <strong id="modal-author">—</strong>
         <div style="font-size:12px;color:#166534;margin-top:2px" id="modal-phone-label"></div>
       </div>
-      <a id="modal-wa-btn" class="btn-wa" href="#" target="_blank">
-        💬 WhatsApp
-      </a>
-      <button id="modal-copy-tpl" class="btn-secondary" onclick="copyWaTemplate()" style="margin-left:8px">
-        📋 Copiar mensaje
-      </button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="modal-wa-btn" class="btn-wa" href="#" target="_blank">
+          💬 WhatsApp
+        </a>
+        <a id="modal-messenger-btn" class="btn-secondary" href="#" target="_blank" style="display:none;text-decoration:none">
+          ✉️ Messenger
+        </a>
+        <button id="modal-copy-tpl" class="btn-secondary" onclick="copyWaTemplate()">
+          📋 Copiar
+        </button>
+      </div>
     </div>
 
     <hr class="divider">
@@ -1329,6 +1334,18 @@ function openDetail(id) {
     waBtn.style.display = 'none';
     phoneLabel.textContent = l._phone ? 'Teléfono inválido: ' + l._phone : 'Sin contacto directo — buscar por perfil';
     if (!l._phone) document.getElementById('modal-author').textContent = l._display_name + ' (sin contacto)';
+  }
+
+  // FIX GEMINI Estrategia A: Mostrar botón de Messenger si el lead es de FB y tiene fb_username.
+  // Si no hay WhatsApp, Sergio puede contactar directo por Messenger con un click.
+  const messengerBtn = document.getElementById('modal-messenger-btn');
+  if (messengerBtn) {
+    if (l.fb_username && (l.source_label === 'Facebook' || l.platform === 'Facebook')) {
+      messengerBtn.href = 'https://m.me/' + l.fb_username;
+      messengerBtn.style.display = 'inline-flex';
+    } else {
+      messengerBtn.style.display = 'none';
+    }
   }
 
   document.getElementById('detailModal').classList.add('open');
@@ -2744,6 +2761,15 @@ export default {
           const text = post.text || post.postText || '';
           const author = post.authorName || post.author || '';
           const postUrl = post.url || post.postUrl || '';
+          // FIX GEMINI Estrategia A: capturar authorUrl para botón de Messenger.
+          // Si el lead no tiene teléfono, Sergio puede contactarlo via m.me/{id}
+          const authorUrl = post.authorUrl || post.author || '';
+          let fbUserId = '';
+          if (authorUrl.includes('id=')) {
+            fbUserId = authorUrl.split('id=')[1].split('&')[0];
+          } else if (authorUrl.includes('facebook.com/')) {
+            fbUserId = authorUrl.split('facebook.com/')[1].split('/')[0].split('?')[0];
+          }
           if (!text && !author) continue;
 
           // Filtro de entrada: exige dolor vehicular O intención de consulta/reclamo
@@ -2840,6 +2866,7 @@ export default {
             has_contact: phones.length > 0 || emails.length > 0,
             contact_confidence: (phones.length > 0 || emails.length > 0) ? 90 : (author ? 30 : 0),
             pipeline_version: '4.0',
+            fb_username: fbUserId || '',
           });
         }
 
