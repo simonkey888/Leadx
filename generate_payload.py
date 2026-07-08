@@ -1292,8 +1292,14 @@ def classify_and_score(record: Dict[str, Any]) -> Optional[Lead]:
             score += 15
             if "PREVENTIVO_A_VERIFICAR" not in signals:
                 signals.append("PREVENTIVO_A_VERIFICAR")
+        elif record.get("contacto_publico") or record.get("telefonos"):
+            # FIX GEMINI valvula: VentaFe con telefono pero sin keywords preventivas
+            # igual entra como preventivo (el telefono es el dato mas valioso)
+            score += 15
+            if "PREVENTIVO_A_VERIFICAR" not in signals:
+                signals.append("PREVENTIVO_A_VERIFICAR")
         else:
-            # No menciona dolor ni papeles al día → descartar (ruido)
+            # No menciona dolor ni papeles al día ni tiene telefono → descartar
             return None
 
     # Boost ML Questions Radar (alta calidad - Sakana+Claude)
