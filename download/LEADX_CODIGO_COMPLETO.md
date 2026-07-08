@@ -1,12 +1,12 @@
-# 📦 LeadX — Código Completo (Bundle Único para Gemini)
+# 📦 LeadX — Código Completo (Bundle Único para Qwen)
 
-**Generado:** 2026-07-07 23:52 UTC  
+**Generado:** 2026-07-08 01:39 UTC  
 **Repo:** https://github.com/simonkey888/Leadx  
 **Deploy:** https://leadx.simondalmasso44.workers.dev  
 **Stack:** Cloudflare Worker (edge) + Python GH Actions (scoring) + KV storage  
-**Worker Version:** b74d0bc6-5875-4c92-b48b-ee5cfeb66119  
-**Estado:** Producción activa · cron cada 1h · 10 leads Facebook Grupo A (Defensas contra Multas AR) con dolor real · 0 spam · 0 competidores · 0 duplicados · rediseño Twenty.com
-**Timestamp generación:** 2026-07-07 23:52 UTC (hora UTC) · Argentina: 2026-07-07 20:52:03 ART
+**Worker Version:** 7704e97a-808d-4dc7-8572-cfaa022701f5  
+**Estado:** Producción activa · 9 leads Facebook Grupo A con dolor real · score_explain + contact_confidence + pipeline_version 4.0 · rediseño Twenty.com · 0 spam · 0 competidores
+**Timestamp generación:** 2026-07-08 01:39 UTC (hora UTC) · Argentina: 2026-07-07 22:39:07 ART
 
 ---
 
@@ -14,8 +14,8 @@
 
 | # | Archivo | Líneas | Descripción |
 |---|---------|--------|-------------|
-| 1 | `worker.js` | 3,364 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
-| 2 | `generate_payload.py` | 2,358 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
+| 1 | `worker.js` | 3,409 | Cloudflare Worker v3 — HTML embebido + 20+ endpoints API + CRM dashboard + cron edge. Incluye: normalizePhoneAR() con 27 códigos de área AR, getUrlSecret() con sessionStorage+auto-prompt+fallback 'LEGACY_SECRET_REMOVED', validateWaFromModal() abre WhatsApp directo con window.open(waUrl) sin Apify, /api/whatsapp-validate con webhookUrl fire & forget, /api/whatsapp-webhook recibe resultados async, /api/apify-facebook con webhookUrl, /api/apify-webhook con regex AR phones+emails+merge KV, pinned leads (12 curados), WhatsApp SVG icons, heat score 0-100. |
+| 2 | `generate_payload.py` | 2,380 | Pipeline Python (GH Actions cada 1h). Incluye: scrape_ventafe_leads() con 5 páginas (?p=N) + URLs reales del aviso (/automoviles/5011376-honda-hr-v-...), normalize_ar_phone_ventafe(), filtros PAIN_KEYWORDS_RE con excepción VentaFe + keywords preventivas ('papeles al día', 'listo para transferir'), scoring con bypass para VentaFe (umbrales 40/25 + has_contact, no requiere has_explicit_pain), dedup por URL+teléfono (estable entre runs), mine_comments_for_contacts(), enrich_contacts_via_reddit_profile(), detector de contradicciones (vendedor miente + deuda real), clasific.ar quirúrgico (solo score>=70 + patente, campo deuda_clasificar), ML Questions num=50. |
 | 3 | `search_providers.py` | 1,134 | Providers: Reddit /search.rss (Atom feed) con html.unescape(), Facebook via DDG, ForoArgentina, MercadoLibre Q&A. Blacklist de subreddits irrelevantes. Rotación de 10 queries. |
 | 4 | `source_registry.py` | 317 | Registro de fuentes y rotación de queries. |
 | 5 | `pending_queries_kv.py` | 208 | Helper para persistir queries pendientes en KV (rotación cuando Reddit devuelve 429). |
@@ -642,6 +642,13 @@
 ## 📜 Git Log (últimos 20 commits)
 
 ```
+ea42ef9 feat(gpt+sakana): score_explain + pipeline_version en apify-webhook
+c661200 feat(gpt): contact_confidence en apify-webhook
+712105f feat(sakana): regex contextual WhatsApp en posts y comentarios
+5707a4a feat(sakana): extraer telefonos de comentarios de FB posts
+ff8dd2f fix(sakana): phone_to_e164 robusta + email anti-desechables
+809e45d fix: filtrar avisos de venta de autos sin dolor (Adolfo Giraudo taxi)
+c7ab3dd radar: auto-update 2026-07-07 23:58 UTC
 95f4d2b fix: filtrar ofertas de servicios gestoriales (competidores no leads)
 1a17c44 fix: anti-spam seminario + anti-duplicados en apify-webhook
 c3ba0a8 radar: auto-update 2026-07-07 22:58 UTC
@@ -655,13 +662,6 @@ e7d966c radar: auto-update 2026-07-07 21:20 UTC
 f0bebdc feat(gemini hibrido): VentaFe preventivo + FB dorking + etiquetado claro
 c036244 radar: auto-update 2026-07-07 20:18 UTC
 4b2b284 feat(gemini via A+B): dolor registral + triangulacion cross-platform ML
-df58516 radar: auto-update 2026-07-07 20:11 UTC
-7c0c1b0 fix(gemini sabueso fase 3.2): remover lista completa tras 'sin deuda/multas'
-91a6586 radar: auto-update 2026-07-07 20:07 UTC
-9aa4795 fix(gemini sabueso fase 3.1): word boundaries + excluir contexto negativo
-98c5062 radar: auto-update 2026-07-07 20:04 UTC
-4935589 fix(gemini sabueso fase 3): solo dolor real explicito, eliminar preventivas sin patente
-3f581bc radar: auto-update 2026-07-07 19:53 UTC
 ```
 
 ---
@@ -3424,9 +3424,13 @@ export default {
           if (SPAM_KW.test(text)) continue;
 
           // FIX SIMON: bloquear OFERTAS de servicios gestoriales (son competidores, no leads).
-          // "ELIMINO MULTAS", "SACO TURNOS", "HAGO INFORMES", "GESTORIA", etc.
           const SERVICE_OFFER_KW = /elimino\s+multas|saco\s+turnos|hago\s+informes|gestor[ií]a|gestor\s+automotor|ofrezco\s+mis\s+servicios|mis\s+servicios|consultanos|defendemos\s+tus\s+derechos|sacamos\s+turnos|realizamos\s+informes/i;
           if (SERVICE_OFFER_KW.test(text)) continue;
+
+          // FIX SIMON v2: bloquear avisos de venta de autos sin dolor (no son leads para gestoría).
+          // "se vende taxi", "consultar por privado" = aviso comercial, no persona con problema.
+          const SALES_AD_KW = /se\s+vende\s+(taxi|auto|moto|camioneta|veh[ií]culo)|consultar\s+por\s+privado|consultar\s+privado/i;
+          if (SALES_AD_KW.test(text)) continue;
 
           // FIX ANTI-DUPLICADOS: si el mismo autor ya tiene un post, solo quedarse con el de mayor score
           const authorKey = author.toLowerCase().trim();
@@ -3437,14 +3441,52 @@ export default {
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
           const patenteMatch = text.match(/\\b([A-Za-z]{2}\\s?\\d{3}\\s?[A-Za-z]{2})\\b/i);
 
+          // FIX SAKANA adaptado: regex contextual para capturar números después de keywords.
+          // El AR_PHONE anterior solo captura si el número empieza con código de área AR.
+          // Este regex captura números que vienen después de "whatsapp", "wsp", "celular", etc.
+          // aunque no tengan el formato estándar. Complemento, no reemplazo.
+          const WA_CONTEXT_RE = /(?:whatsapp|wsp|wapp|wp|wasap|contactame|escribime|mandame|llamame|tel[eé]fono|celular|cel|fijo)\s*[:\.]?\s*([+]?\d[\d\s\-\(\)]{8,15})/gi;
+          let waMatch;
+          while ((waMatch = WA_CONTEXT_RE.exec(text)) !== null) {
+            const num = waMatch[1].trim();
+            if (!phones.includes(num)) phones.push(num);
+          }
+
+          // FIX SAKANA: Extraer teléfonos y emails de COMENTARIOS del post.
+          // En grupos de FB, los usuarios suelen dejar su WhatsApp en comentarios
+          // respondiendo al post original. El post text rara vez tiene teléfono.
+          const comments = post.comments || [];
+          for (const c of (Array.isArray(comments) ? comments : [])) {
+            const commentText = c.text || '';
+            // No extraer teléfono de comentarios de gestoras/competidores
+            if (SERVICE_OFFER_KW.test(commentText) || /gestor[ií]a/i.test(commentText)) continue;
+            // AR_PHONE estándar
+            const commentPhones = (commentText.match(AR_PHONE) || []).map(p => p.trim());
+            for (const cp of commentPhones) {
+              if (!phones.includes(cp)) phones.push(cp);
+            }
+            // FIX SAKANA: regex contextual también en comentarios
+            let cmWaMatch;
+            const cmWaRe = /(?:whatsapp|wsp|wapp|wp|wasap|contactame|escribime|mandame|llamame|tel[eé]fono|celular|cel)\s*[:\.]?\s*([+]?\d[\d\s\-\(\)]{8,15})/gi;
+            while ((cmWaMatch = cmWaRe.exec(commentText)) !== null) {
+              const num = cmWaMatch[1].trim();
+              if (!phones.includes(num)) phones.push(num);
+            }
+            const commentEmails = (commentText.match(EMAIL_RE) || []).map(e => e.toLowerCase());
+            for (const ce of commentEmails) {
+              if (!emails.includes(ce)) emails.push(ce);
+            }
+          }
+
           // Scoring dinámico adaptado a grupos de consulta
           let score = 30;
-          if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) score += 25;
-          if (/transferencia|transferir|08|titular|papeles/i.test(text)) score += 20;
-          if (/deuda|libre.deuda|vencimiento|prescripci[oó]n|monto|abonar/i.test(text)) score += 20;
-          if (INTENT_KW.test(text)) score += 15;
-          if (phones.length > 0 || emails.length > 0) score += 20;
-          if (patenteMatch) score += 15;
+          const scoreExplain = ['+30 base'];
+          if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) { score += 25; scoreExplain.push('+25 multa/fotomulta'); }
+          if (/transferencia|transferir|08|titular|papeles/i.test(text)) { score += 20; scoreExplain.push('+20 transferencia/08'); }
+          if (/deuda|libre.deuda|vencimiento|prescripci[oó]n|monto|abonar/i.test(text)) { score += 20; scoreExplain.push('+20 deuda/prescripción'); }
+          if (INTENT_KW.test(text)) { score += 15; scoreExplain.push('+15 intención de consulta'); }
+          if (phones.length > 0 || emails.length > 0) { score += 20; scoreExplain.push('+20 tiene contacto'); }
+          if (patenteMatch) { score += 15; scoreExplain.push('+15 patente detectada'); }
           score = Math.min(100, score);
 
           if (score < 45) continue;
@@ -3461,10 +3503,13 @@ export default {
             url: postUrl,
             fecha_iso: (post.timestamp || '').slice(0, 10),
             score: score,
+            score_explain: scoreExplain,
             whatsapp_publico: phones[0] || '',
             telefono_publico: phones[0] || '',
             email_publico: emails[0] || '',
             has_contact: phones.length > 0 || emails.length > 0,
+            contact_confidence: (phones.length > 0 || emails.length > 0) ? 90 : (author ? 30 : 0),
+            pipeline_version: '4.0',
           });
         }
 
@@ -4506,26 +4551,41 @@ def parse_date(date_str: str) -> Optional[datetime]:
 
 
 def phone_to_e164(phone: str) -> str:
-    """Qwen+Kimi v2: Normaliza cualquier formato AR a E.164: +549112345678"""
+    """
+    Sakana+GLM: Normaliza cualquier formato AR a E.164: +549112345678
+    - Evita duplicar el 9 cuando ya viene con +549
+    - Valida códigos de área argentinos conocidos
+    """
+    if not phone:
+        return ""
     digits = re.sub(r"\D", "", phone)
     if not digits:
         return ""
-    # Quitar prefijo pais si existe
-    if digits.startswith("54"):
-        digits = digits[2:]
-    # Quitar 0 inicial (interurbano)
-    if digits.startswith("0"):
-        digits = digits[1:]
-    # Quitar 9 inicial (mobile prefix viejo)
-    if digits.startswith("9") and len(digits) == 11:
-        digits = digits[1:]
-    # Si tiene 10 digitos y empieza con 11 (CABA), agregar 9
-    if len(digits) == 10 and digits.startswith("11"):
-        digits = "9" + digits
-    # Si tiene 10 digitos y NO empieza con 5, agregar 549
-    elif len(digits) == 10 and not digits.startswith("5"):
-        digits = "9" + digits
-    return f"+54{digits}" if len(digits) >= 10 else ""
+
+    # Caso 1: Ya viene con 549 (formato correcto, 12 dígitos)
+    if digits.startswith("549") and len(digits) == 12:
+        return f"+{digits}"
+
+    # Caso 2: Viene con 54 pero sin 9 (formato internacional incompleto)
+    if digits.startswith("54") and len(digits) == 11:
+        return f"+549{digits[2:]}"
+
+    # Caso 3: Número local de 10 dígitos (ej: 1123456789, 3421234567)
+    valid_ac_2 = ("11", "15")
+    valid_ac_3 = ("341", "342", "343", "351", "353", "358", "362", "364",
+                  "370", "376", "379", "380", "381", "383", "385", "387", "388",
+                  "221", "223", "249", "261", "264", "291", "294", "297", "299")
+    if len(digits) == 10:
+        if digits[:2] in valid_ac_2 or digits[:3] in valid_ac_3:
+            return f"+549{digits}"
+
+    # Caso 4: Número de más de 10 dígitos (tomar últimos 10)
+    if len(digits) > 10:
+        last_10 = digits[-10:]
+        if last_10[:2] in valid_ac_2 or last_10[:3] in valid_ac_3:
+            return f"+549{last_10}"
+
+    return ""
 
 def normalize_phone_ar(raw: str) -> str:
     """Alias de phone_to_e164 para compatibilidad."""
@@ -5072,11 +5132,18 @@ def extract_entities(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 whatsapp = digits
                 break
 
-    # Extract email
+    # Extract email (FIX SAKANA: filtrar dominios desechables)
     email = ""
     m = re.search(EMAIL_PATTERN, combined)
     if m:
-        email = m.group(1).lower().strip()
+        candidate = m.group(1).lower().strip()
+        # Validar que no sea un dominio desechable
+        _DISPOSABLE = {"tempmail.com", "10minutemail.com", "guerrillamail.com",
+                       "mailinator.com", "yopmail.com", "trashmail.com",
+                       "dispostable.com", "fakeinbox.com", "temp-mail.org"}
+        domain = candidate.split("@")[-1] if "@" in candidate else ""
+        if domain not in _DISPOSABLE:
+            email = candidate
 
     # REGEX CONTEXTUAL (GPT+H.AI consensus v2 — fix BOMBA #2):
     # Solo guardar contacto si el snippet TAMBIEN tiene keyword de dolor O es de VentaFe.
@@ -10584,7 +10651,7 @@ curl 'https://leadx.simondalmasso44.workers.dev/api/leads?key=LEGACY_SECRET_REMO
 
 ---
 
-**Bundle generado automáticamente el 2026-07-07 23:52 UTC para auditoría de Kimi.**
+**Bundle generado automáticamente el 2026-07-08 01:39 UTC para auditoría de Kimi.**
 
 Próximos pasos sugeridos para Kimi auditar:
 1. Performance del scraper VentaFe (100 bloques, 16-17 válidos — ¿se puede subir a 30+?)
