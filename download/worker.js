@@ -2768,6 +2768,24 @@ export default {
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
           const patenteMatch = text.match(/\\b([A-Za-z]{2}\\s?\\d{3}\\s?[A-Za-z]{2})\\b/i);
 
+          // FIX SAKANA: Extraer teléfonos y emails de COMENTARIOS del post.
+          // En grupos de FB, los usuarios suelen dejar su WhatsApp en comentarios
+          // respondiendo al post original. El post text rara vez tiene teléfono.
+          const comments = post.comments || [];
+          for (const c of (Array.isArray(comments) ? comments : [])) {
+            const commentText = c.text || '';
+            // No extraer teléfono de comentarios de gestoras/competidores
+            if (SERVICE_OFFER_KW.test(commentText) || /gestor[ií]a/i.test(commentText)) continue;
+            const commentPhones = (commentText.match(AR_PHONE) || []).map(p => p.trim());
+            for (const cp of commentPhones) {
+              if (!phones.includes(cp)) phones.push(cp);
+            }
+            const commentEmails = (commentText.match(EMAIL_RE) || []).map(e => e.toLowerCase());
+            for (const ce of commentEmails) {
+              if (!emails.includes(ce)) emails.push(ce);
+            }
+          }
+
           // Scoring dinámico adaptado a grupos de consulta
           let score = 30;
           if (/multa|fotomulta|infracci[oó]n|forzar.barrera|peaje/i.test(text)) score += 25;
