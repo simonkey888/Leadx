@@ -2768,6 +2768,17 @@ export default {
           const emails = [...new Set((text.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
           const patenteMatch = text.match(/\\b([A-Za-z]{2}\\s?\\d{3}\\s?[A-Za-z]{2})\\b/i);
 
+          // FIX SAKANA adaptado: regex contextual para capturar números después de keywords.
+          // El AR_PHONE anterior solo captura si el número empieza con código de área AR.
+          // Este regex captura números que vienen después de "whatsapp", "wsp", "celular", etc.
+          // aunque no tengan el formato estándar. Complemento, no reemplazo.
+          const WA_CONTEXT_RE = /(?:whatsapp|wsp|wapp|wp|wasap|contactame|escribime|mandame|llamame|tel[eé]fono|celular|cel|fijo)\s*[:\.]?\s*([+]?\d[\d\s\-\(\)]{8,15})/gi;
+          let waMatch;
+          while ((waMatch = WA_CONTEXT_RE.exec(text)) !== null) {
+            const num = waMatch[1].trim();
+            if (!phones.includes(num)) phones.push(num);
+          }
+
           // FIX SAKANA: Extraer teléfonos y emails de COMENTARIOS del post.
           // En grupos de FB, los usuarios suelen dejar su WhatsApp en comentarios
           // respondiendo al post original. El post text rara vez tiene teléfono.
@@ -2776,9 +2787,17 @@ export default {
             const commentText = c.text || '';
             // No extraer teléfono de comentarios de gestoras/competidores
             if (SERVICE_OFFER_KW.test(commentText) || /gestor[ií]a/i.test(commentText)) continue;
+            // AR_PHONE estándar
             const commentPhones = (commentText.match(AR_PHONE) || []).map(p => p.trim());
             for (const cp of commentPhones) {
               if (!phones.includes(cp)) phones.push(cp);
+            }
+            // FIX SAKANA: regex contextual también en comentarios
+            let cmWaMatch;
+            const cmWaRe = /(?:whatsapp|wsp|wapp|wp|wasap|contactame|escribime|mandame|llamame|tel[eé]fono|celular|cel)\s*[:\.]?\s*([+]?\d[\d\s\-\(\)]{8,15})/gi;
+            while ((cmWaMatch = cmWaRe.exec(commentText)) !== null) {
+              const num = cmWaMatch[1].trim();
+              if (!phones.includes(num)) phones.push(num);
             }
             const commentEmails = (commentText.match(EMAIL_RE) || []).map(e => e.toLowerCase());
             for (const ce of commentEmails) {
