@@ -1,2 +1,3 @@
 skills/
 node_modules/
+scripts/set_github_secret.py

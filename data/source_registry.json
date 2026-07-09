@@ -1,0 +1,613 @@
+{
+  "metadata": {
+    "version": "10.2",
+    "created_at": "2026-07-03T22:33:56.147502+00:00",
+    "updated_at": "2026-07-09T20:43:53.459155+00:00"
+  },
+  "sources": [
+    {
+      "id": "a755e92b4a54",
+      "name": "r/ArAutos",
+      "canonical_url": "https://www.reddit.com/r/ArAutos/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147584+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "71b34c65d8d3",
+      "name": "r/argentina",
+      "canonical_url": "https://www.reddit.com/r/argentina/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147625+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "1baf5e15cef6",
+      "name": "r/Cordoba",
+      "canonical_url": "https://www.reddit.com/r/Cordoba/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147656+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "3841ccc90db4",
+      "name": "r/BuenosAires",
+      "canonical_url": "https://www.reddit.com/r/BuenosAires/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147674+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "a7d3637c18c3",
+      "name": "r/DerechoGenial",
+      "canonical_url": "https://www.reddit.com/r/DerechoGenial/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147689+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "9cd28278d81d",
+      "name": "r/AskArgentina",
+      "canonical_url": "https://www.reddit.com/r/AskArgentina/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147702+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "68d63ef10246",
+      "name": "r/PreguntasReddit",
+      "canonical_url": "https://www.reddit.com/r/PreguntasReddit/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147717+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "7587eda59c40",
+      "name": "r/Mendoza",
+      "canonical_url": "https://www.reddit.com/r/Mendoza/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147739+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "c825395fb4db",
+      "name": "r/Rosario",
+      "canonical_url": "https://www.reddit.com/r/Rosario/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147754+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "0d284a9b7d51",
+      "name": "r/Salta",
+      "canonical_url": "https://www.reddit.com/r/Salta/",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-03T22:33:56.147766+00:00",
+      "discovery_origin": "seed",
+      "topics": [
+        "autos",
+        "argentina",
+        "multas",
+        "transferencia"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "eeee1a0b6dcb",
+      "name": "more info",
+      "canonical_url": "https://duckduckgo.com/duckduckgo-help-pages/company/ads-by-microsoft-on-duckduckgo-private-search",
+      "domain": "duckduckgo.com",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 70,
+      "discovered_at": "2026-07-03T22:34:01.697653+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "449f3f73ede5",
+      "name": "Voy a ver un auto sin mecánico, recomendaciones?",
+      "canonical_url": "https://reddit.com/r/ArAutos/comments/1jv9h7v/voy_a_ver_un_auto_sin_mecánico_recomendaciones",
+      "domain": "reddit.com",
+      "platform": "reddit",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 85,
+      "discovered_at": "2026-07-03T22:34:01.697826+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "78bdc72feb00",
+      "name": "Fotomultas y radares en Argentina: cómo reclamar una infracción injusta",
+      "canonical_url": "https://estudiojuridicomogliani.com.ar/blog/actualidad/fotomultas-y-radares-en-argentina-como-reclamar-una-infraccion-injusta.html",
+      "domain": "estudiojuridicomogliani.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T00:43:20.797515+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "1ca69b30a608",
+      "name": "¿Qué tiene que tener una fotomulta para que sea válida?",
+      "canonical_url": "https://licenciaconducir.com.ar/multas/fotomultas/que-tiene-que-tener-una-fotomulta-para-que-sea-valida",
+      "domain": "licenciaconducir.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T00:43:20.797620+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "4edc301d4a74",
+      "name": "Multas por Patente: Consultá y Pagá Infracciones Online en Argentina",
+      "canonical_url": "https://multasporpatente.com.ar",
+      "domain": "multasporpatente.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T00:43:20.797697+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "e2eb1deaacf3",
+      "name": "Cómo Saber si la Cámara de la Fotomulta está Homologada",
+      "canonical_url": "https://autotest.com.ar/consejos/como-saber-si-la-camara-de-la-fotomulta-esta-homologada",
+      "domain": "autotest.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T00:43:20.797768+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "4af91edb6592",
+      "name": "Resolución de Foto Multas - Sitio Web",
+      "canonical_url": "https://resoluciondemultas.com.ar",
+      "domain": "resoluciondemultas.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T00:46:18.805584+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "4aa0c4cac591",
+      "name": "Cómo transferir un auto con 08 firmado (guía práctica completa)",
+      "canonical_url": "https://tramitesypermisos.org/transferir-auto-08-firmado",
+      "domain": "tramitesypermisos.org",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 70,
+      "discovered_at": "2026-07-04T01:47:45.860264+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "088f24c48a5e",
+      "name": "¿Si tengo el 08 firmado puedo transferir un vehículo?",
+      "canonical_url": "https://autofichas.com.ar/general/si-tengo-el-08-firmado-puedo-transferir-un-vehiculo",
+      "domain": "autofichas.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-04T01:47:45.860395+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "2be4de5f2dea",
+      "name": "Comprar auto con 08 firmado: riesgos, precauciones y qué tener en ...",
+      "canonical_url": "https://registrodeautomotores.com/comprar-auto-con-08-firmado-riesgos",
+      "domain": "registrodeautomotores.com",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 70,
+      "discovered_at": "2026-07-04T01:47:45.860520+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "5d11c56be567",
+      "name": "AUTOMOTORES: Tengo el Formulario 08 firmado, pero el titular falleció ...",
+      "canonical_url": "https://cpsabogados.com.ar/automotores-tengo-el-formulario-08-firmado-pero-el-titular-fallecio-puedo-transferir-igual",
+      "domain": "cpsabogados.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-06T22:13:28.260562+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    },
+    {
+      "id": "525ecf2b476f",
+      "name": "Fotomultas y radares: cómo funcionan - Multas Online",
+      "canonical_url": "https://multasonline.com.ar/fotomultas",
+      "domain": "multasonline.com.ar",
+      "platform": "blog",
+      "status": "approved",
+      "trust_score": 50,
+      "noise_score": 0,
+      "final_score": 80,
+      "discovered_at": "2026-07-07T14:20:23.846393+00:00",
+      "discovery_origin": "web_search",
+      "topics": [
+        "multas",
+        "transferencia",
+        "auto"
+      ],
+      "stats": {
+        "runs": 0,
+        "successful": 0,
+        "failed": 0,
+        "consecutive_failures": 0,
+        "total_leads": 0,
+        "last_success": "",
+        "last_failure": ""
+      }
+    }
+  ]
+}

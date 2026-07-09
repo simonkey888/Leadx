@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadX CRM — Gestión de Casos</title>
+<style>
+  :root {
+    --bg:       #F4F6F9;
+    --surface:  #FFFFFF;
+    --border:   #E1E8ED;
+    --text:     #1A2332;
+    --muted:    #6B7A8D;
+    --primary:  #1B4FBB;
+    --primary-h:#1640A0;
+    --green:    #00875A;
+    --green-h:  #006644;
+    --orange:   #FF8B00;
+    --red:      #DE350B;
+    --purple:   #6554C0;
+    --radius:   8px;
+    --shadow:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--primary);
+    color: #fff;
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .topbar-brand {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-brand span { opacity: .7; font-weight: 400; font-size: 13px; }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    opacity: .9;
+  }
+  .sync-btn {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .15s;
+  }
+  .sync-btn:hover { background: rgba(255,255,255,.25); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 16px 8px;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .1s;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .filter-item:hover { background: #F0F4FF; color: var(--text); }
+  .filter-item.active {
+    background: #EEF2FF;
+    border-left-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .filter-count {
+    background: var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .filter-item.active .filter-count {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* ── MAIN ── */
+  .main { flex: 1; padding: 24px; min-width: 0; }
+
+  /* ── KPI ROW ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.orange { color: var(--orange); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.blue { color: var(--primary); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .search-wrap input:focus { border-color: var(--primary); }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--primary-h); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #F8FAFC;
+    border-bottom: 2px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { color: var(--text); }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #F8FAFC; }
+  td { padding: 12px 14px; vertical-align: middle; }
+  .td-nombre { font-weight: 600; font-size: 13px; max-width: 160px; }
+  .td-nombre small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .td-resumen { max-width: 260px; }
+  .td-resumen p { font-size: 12px; color: var(--muted);
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; }
+
+  /* ── STATUS BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-nuevo    { background: #EEF2FF; color: #3730A3; }
+  .badge-contactado  { background: #FFF7E6; color: #92400E; }
+  .badge-gestion  { background: #F0FDF4; color: #166534; }
+  .badge-cerrado  { background: #ECFDF5; color: var(--green); }
+  .badge-descartado { background: #FEF2F2; color: var(--red); }
+
+  /* ── SOURCE TAG ── */
+  .source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    background: #F1F5F9;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── ACTION BUTTONS ── */
+  .actions { display: flex; gap: 6px; align-items: center; }
+  .btn-wa {
+    background: #25D366;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background .15s;
+  }
+  .btn-wa:hover { background: #1DAE53; }
+  .btn-icon {
+    background: #F1F5F9;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-icon:hover { background: #E2E8F0; color: var(--text); }
+
+  /* ── STATUS SELECT ── */
+  .status-sel {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+  .empty p { font-size: 13px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    width: 540px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    padding: 28px;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 20px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label { display: block; font-size: 12px; font-weight: 600;
+    color: var(--muted); margin-bottom: 5px; text-transform: uppercase;
+    letter-spacing: .4px; }
+  .modal-field .val { font-size: 14px; color: var(--text); }
+  .modal-field textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+  }
+  .modal-field textarea:focus { border-color: var(--primary); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn-secondary:hover { background: #F1F5F9; }
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .contact-box {
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .contact-box.no-contact {
+    background: #FEF9C3;
+    border-color: #FDE68A;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    color: var(--muted);
+    gap: 10px;
+    font-size: 13px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    📋 LeadX CRM
+    <span>Gestión de casos · Sin Fotomultas</span>
+  </div>
+  <div class="topbar-right">
+    <span id="syncTime">—</span>
+    <button class="sync-btn" onclick="loadLeads()">↻ Sincronizar</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Estado</div>
+      <div class="filter-item active" onclick="filterStatus('todos', this)" id="f-todos">
+        Todos <span class="filter-count" id="cnt-todos">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Nuevo', this)" id="f-Nuevo">
+        🔵 Nuevo <span class="filter-count" id="cnt-Nuevo">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Contactado', this)" id="f-Contactado">
+        🟡 Contactado <span class="filter-count" id="cnt-Contactado">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('En gestión', this)" id="f-En gestión">
+        🟢 En gestión <span class="filter-count" id="cnt-En gestión">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Cerrado', this)" id="f-Cerrado">
+        ✅ Cerrado <span class="filter-count" id="cnt-Cerrado">0</span>
+      </div>
+      <div class="filter-item" onclick="filterStatus('Descartado', this)" id="f-Descartado">
+        ❌ Descartado <span class="filter-count" id="cnt-Descartado">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Provincia</div>
+      <div id="prov-filters"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Fuente</div>
+      <div id="source-filters"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Total casos</div>
+        <div class="kpi-value blue" id="kpi-total">—</div>
+        <div class="kpi-sub">leads con contacto identificado</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Con WhatsApp</div>
+        <div class="kpi-value green" id="kpi-wa">—</div>
+        <div class="kpi-sub">contactables directo</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">En proceso</div>
+        <div class="kpi-value orange" id="kpi-proceso">—</div>
+        <div class="kpi-sub">activos esta semana</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cerrados</div>
+        <div class="kpi-value green" id="kpi-cerrados">—</div>
+        <div class="kpi-sub">casos resueltos</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Buscar por nombre, provincia, problema..."
+          id="searchInput" oninput="renderTable()">
+      </div>
+      <select id="sortSel" onchange="renderTable()">
+        <option value="fecha">↓ Más reciente</option>
+        <option value="score">↓ Mayor urgencia</option>
+        <option value="provincia">↑ Provincia</option>
+      </select>
+      <button class="btn-primary" onclick="openAddModal()">+ Agregar caso</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div id="tableContainer">
+        <div class="loading"><div class="spinner"></div> Cargando casos...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Detalle del caso</h2>
+
+    <div id="modal-contact-box" class="contact-box">
+      <div>
+        <strong id="modal-author">—</strong>
+        <div style="font-size:12px;color:#166534;margin-top:2px" id="modal-phone-label"></div>
+      </div>
+      <a id="modal-wa-btn" class="btn-wa" href="#" target="_blank">
+        💬 WhatsApp
+      </a>
+    </div>
+
+    <hr class="divider">
+
+    <div class="modal-field">
+      <label>Provincia</label>
+      <div class="val" id="modal-provincia">—</div>
+    </div>
+    <div class="modal-field">
+      <label>Fuente</label>
+      <div class="val" id="modal-source">—</div>
+    </div>
+    <div class="modal-field">
+      <label>Problema detectado</label>
+      <div class="val" id="modal-body" style="font-size:13px;color:var(--muted);line-height:1.6"></div>
+    </div>
+    <div class="modal-field">
+      <label>Ver post original</label>
+      <a id="modal-url" href="#" target="_blank"
+        style="font-size:12px;color:var(--primary)">Abrir enlace →</a>
+    </div>
+
+    <hr class="divider">
+
+    <div class="modal-field">
+      <label>Estado</label>
+      <select class="status-sel" id="modal-status-sel" onchange="saveStatusFromModal()">
+        <option>Nuevo</option>
+        <option>Contactado</option>
+        <option>En gestión</option>
+        <option>Cerrado</option>
+        <option>Descartado</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Notas internas</label>
+      <textarea id="modal-notes" placeholder="Anotá detalles del caso, monto estimado, acuerdos..."
+        onchange="saveNotesFromModal()"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cerrar</button>
+      <button class="btn-primary" onclick="saveAndClose()">Guardar y cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAddModal()">✕</button>
+    <h2>Agregar caso manual</h2>
+    <div class="modal-field">
+      <label>Nombre / Usuario</label>
+      <input type="text" id="add-nombre" placeholder="Nombre del contacto"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+    </div>
+    <div class="modal-field">
+      <label>WhatsApp / Teléfono</label>
+      <input type="text" id="add-phone" placeholder="+54 9 11 1234-5678"
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+    </div>
+    <div class="modal-field">
+      <label>Provincia</label>
+      <select id="add-prov" style="width:100%">
+        <option value="">— Seleccionar —</option>
+        <option>Santa Fe</option><option>Buenos Aires</option>
+        <option>CABA</option><option>Córdoba</option>
+        <option>Entre Ríos</option><option>Misiones</option>
+        <option>La Pampa</option><option>Mendoza</option><option>Otra</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Descripción del caso</label>
+      <textarea id="add-body" placeholder="Resumen del problema: qué multas tiene, monto estimado, urgencia..."
+        style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;min-height:80px;outline:none;resize:vertical"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn-primary" onclick="addManualCase()">Agregar caso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const S = {
+  allLeads:   [],   // todos los leads crudos de la API
+  crmLeads:   [],   // leads con contacto o manual + leads manuales
+  filtered:   [],
+  statusFilter: 'todos',
+  provFilter:   'todos',
+  sourceFilter: 'todos',
+  currentId:    null,
+};
+
+// Persistencia local (status + notes por lead ID)
+const DB = {
+  get: (id)     => { try { return JSON.parse(localStorage.getItem('crm_' + id)) || {}; } catch { return {}; } },
+  set: (id, d)  => localStorage.setItem('crm_' + id, JSON.stringify(d)),
+  getManual: () => { try { return JSON.parse(localStorage.getItem('crm_manual')) || []; } catch { return []; } },
+  setManual: (a) => localStorage.setItem('crm_manual', JSON.stringify(a)),
+};
+
+// ── LOAD ───────────────────────────────────────────────────────────────────
+async function loadLeads() {
+  document.getElementById('tableContainer').innerHTML =
+    '<div class="loading"><div class="spinner"></div> Sincronizando...</div>';
+
+  try {
+    const r    = await fetch('/api/leads');
+    const data = await r.json();
+    const raw  = [
+      ...(data.leads_hot  || []),
+      ...(data.leads_warm || []),
+      ...(data.leads_all  || []),
+    ];
+
+    // Dedup
+    const seen = new Set();
+    S.allLeads = raw.filter(l => {
+      if (seen.has(l.id)) return false;
+      seen.add(l.id);
+      return true;
+    });
+
+    // Para el CRM: solo leads con persona real (no anónimo)
+    // + leads con contacto (whatsapp/email/phone) + leads manuales
+    const apiCRM = S.allLeads.filter(l => {
+      const persona = l.persona || l.author || '';
+      const hasPersona = persona && persona.trim() && persona !== '(anónimo)' && persona !== 'anónimo' && persona !== '';
+      const hasContact = l.whatsapp_publico || l.email_publico || l.telefono_publico || l.phone || l.whatsapp;
+      const hasAuthorFlag = l.has_author === true || l.contactable === true;
+      return hasPersona || hasContact || hasAuthorFlag;
+    }).map(enrichLead);
+
+    const manual = DB.getManual().map(l => ({ ...l, _manual: true }));
+
+    // Merge (manual primero)
+    const allIds  = new Set(apiCRM.map(l => l.id));
+    S.crmLeads    = [
+      ...manual,
+      ...apiCRM.filter(l => !manual.some(m => m.id === l.id)),
+    ];
+
+    document.getElementById('syncTime').textContent =
+      'Actualizado ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+    applyFilters();
+    renderSidebar();
+    renderKPIs();
+
+  } catch (e) {
+    document.getElementById('tableContainer').innerHTML =
+      `<div class="empty"><h3>Error al cargar</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function enrichLead(l) {
+  const stored = DB.get(l.id);
+  // Adaptar field names de mi pipeline (snake_case) a lo que el CRM espera
+  const persona = l.persona || l.author || '';
+  const wa = l.whatsapp_publico || l.whatsapp || '';
+  const phone = l.telefono_publico || l.phone || wa;
+  const email = l.email_publico || l.email || '';
+  const title = l.problem_summary || l.title || '';
+  const body = l.quoted_text || l.snippet || l.body || title;
+  const url = l.source_url || l.url || '#';
+  const platform = l.platform || l.source_label || l.source || '';
+  return {
+    ...l,
+    author: persona,
+    phone: phone,
+    whatsapp: wa,
+    email: email,
+    source_label: platform,
+    source: platform,
+    title: title,
+    body: body,
+    url: url,
+    _status: stored.status || 'Nuevo',
+    _notes:  stored.notes  || '',
+    _phone:  phone || extractPhone(body) || '',
+    _wa_url: buildWaUrl(phone || extractPhone(body) || ''),
+    _display_name: (persona && persona !== '(anónimo)') ? persona : 'Sin nombre',
+    _resumen: cleanText(title || body),
+  };
+}
+
+function extractPhone(text) {
+  const m = text.match(/(?:\+54|0054)?[\s\-]?(?:9[\s\-]?)?(?:11|[2-9]\d{2,3})[\s\-]?\d{4}[\s\-]?\d{4}/);
+  return m ? m[0].trim() : '';
+}
+
+function buildWaUrl(phone) {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return '';
+  const norm = digits.startsWith('54') ? digits : '54' + digits.replace(/^0/, '');
+  return `https://wa.me/${norm}`;
+}
+
+function cleanText(t) {
+  return t.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
+// ── FILTERS ────────────────────────────────────────────────────────────────
+function filterStatus(val, el) {
+  S.statusFilter = val;
+  document.querySelectorAll('.sidebar .filter-item').forEach(e => {
+    if (e.id && e.id.startsWith('f-')) e.classList.remove('active');
+  });
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q   = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const pv  = S.provFilter;
+  const sf  = S.sourceFilter;
+
+  S.filtered = S.crmLeads.filter(l => {
+    if (S.statusFilter !== 'todos' && l._status !== S.statusFilter) return false;
+    if (pv !== 'todos' && (l.provincia || '') !== pv) return false;
+    if (sf !== 'todos' && (l.source_label || l.source || '') !== sf) return false;
+    if (q) {
+      const hay = `${l._display_name} ${l.provincia} ${l._resumen} ${l.source_label}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const sort = document.getElementById('sortSel')?.value || 'fecha';
+  S.filtered.sort((a, b) => {
+    if (sort === 'score')    return (b.score || 0) - (a.score || 0);
+    if (sort === 'provincia') return (a.provincia || '').localeCompare(b.provincia || '');
+    return (b.fecha_iso || '').localeCompare(a.fecha_iso || '');
+  });
+
+  renderTable();
+  renderCounts();
+}
+
+// ── RENDER TABLE ───────────────────────────────────────────────────────────
+function renderTable() {
+  applyFilters(); // re-run search
+  const leads = S.filtered;
+
+  if (!leads.length) {
+    document.getElementById('tableContainer').innerHTML = `
+      <div class="empty">
+        <h3>No hay casos en este filtro</h3>
+        <p>Probá cambiar el filtro de estado o buscá por otro término.</p>
+      </div>`;
+    return;
+  }
+
+  const rows = leads.map(l => `
+    <tr onclick="openDetail('${l.id}')" style="cursor:pointer">
+      <td class="td-nombre">
+        ${escH(l._display_name)}
+        <small>${escH(l.fecha_iso || '—')}</small>
+      </td>
+      <td>
+        <span class="source-tag">${escH(l.source_label || l.source || '—')}</span>
+      </td>
+      <td>${escH(l.provincia || '—')}</td>
+      <td class="td-resumen"><p>${escH(l._resumen)}</p></td>
+      <td>
+        <span class="badge badge-${cssStatus(l._status)}">${l._status}</span>
+      </td>
+      <td>
+        <div class="actions" onclick="event.stopPropagation()">
+          ${l._wa_url
+            ? `<a class="btn-wa" href="${l._wa_url}" target="_blank">💬</a>`
+            : `<span style="font-size:11px;color:var(--muted)">Sin WA</span>`
+          }
+          <button class="btn-icon" onclick="openDetail('${l.id}')">📝</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tableContainer').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre / Usuario</th>
+          <th>Fuente</th>
+          <th>Provincia</th>
+          <th>Problema</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function cssStatus(s) {
+  const map = { 'Nuevo': 'nuevo', 'Contactado': 'contactado',
+    'En gestión': 'gestion', 'Cerrado': 'cerrado', 'Descartado': 'descartado' };
+  return map[s] || 'nuevo';
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const leads    = S.crmLeads;
+  const withWa   = leads.filter(l => l._wa_url).length;
+  const enProc   = leads.filter(l => ['Contactado','En gestión'].includes(l._status)).length;
+  const cerrados = leads.filter(l => l._status === 'Cerrado').length;
+
+  document.getElementById('kpi-total').textContent    = leads.length;
+  document.getElementById('kpi-wa').textContent       = withWa;
+  document.getElementById('kpi-proceso').textContent  = enProc;
+  document.getElementById('kpi-cerrados').textContent = cerrados;
+}
+
+// ── SIDEBAR DYNAMIC ───────────────────────────────────────────────────────
+function renderCounts() {
+  const statuses = ['Nuevo','Contactado','En gestión','Cerrado','Descartado'];
+  document.getElementById('cnt-todos').textContent = S.crmLeads.length;
+  statuses.forEach(s => {
+    const el = document.getElementById('cnt-' + s);
+    if (el) el.textContent = S.crmLeads.filter(l => l._status === s).length;
+  });
+}
+
+function renderSidebar() {
+  // Provincias
+  const provs = [...new Set(S.crmLeads.map(l => l.provincia).filter(Boolean))].sort();
+  const pfContainer = document.getElementById('prov-filters');
+  pfContainer.innerHTML = `
+    <div class="filter-item ${S.provFilter==='todos'?'active':''}" onclick="setProvFilter('todos',this)">
+      Todas <span class="filter-count">${S.crmLeads.length}</span>
+    </div>
+    ${provs.map(p => `
+      <div class="filter-item ${S.provFilter===p?'active':''}" onclick="setProvFilter('${p}',this)">
+        ${p} <span class="filter-count">${S.crmLeads.filter(l=>l.provincia===p).length}</span>
+      </div>
+    `).join('')}`;
+
+  // Fuentes
+  const srcs = [...new Set(S.crmLeads.map(l => l.source_label || l.source).filter(Boolean))].sort();
+  const sfContainer = document.getElementById('source-filters');
+  sfContainer.innerHTML = srcs.map(s => `
+    <div class="filter-item ${S.sourceFilter===s?'active':''}" onclick="setSourceFilter('${s}',this)">
+      ${s} <span class="filter-count">${S.crmLeads.filter(l=>(l.source_label||l.source)===s).length}</span>
+    </div>
+  `).join('');
+}
+
+function setProvFilter(val, el) {
+  S.provFilter = val;
+  document.querySelectorAll('#prov-filters .filter-item').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+function setSourceFilter(val, el) {
+  S.sourceFilter = val;
+  document.querySelectorAll('#source-filters .filter-item').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilters();
+}
+
+// ── DETAIL MODAL ───────────────────────────────────────────────────────────
+function openDetail(id) {
+  const l = S.crmLeads.find(x => x.id === id);
+  if (!l) return;
+  S.currentId = id;
+
+  document.getElementById('modal-title').textContent    = l._display_name;
+  document.getElementById('modal-author').textContent   = l._display_name;
+  document.getElementById('modal-provincia').textContent = l.provincia || '—';
+  document.getElementById('modal-source').textContent   = l.source_label || l.source || '—';
+  document.getElementById('modal-body').textContent     = l.body || l.title || '—';
+  document.getElementById('modal-notes').value          = l._notes || '';
+  document.getElementById('modal-status-sel').value     = l._status || 'Nuevo';
+
+  const url = document.getElementById('modal-url');
+  url.href = l.url || '#';
+  url.textContent = l.url ? 'Abrir enlace →' : 'Sin enlace';
+
+  const box = document.getElementById('modal-contact-box');
+  const waBtn = document.getElementById('modal-wa-btn');
+  const phoneLabel = document.getElementById('modal-phone-label');
+
+  if (l._wa_url) {
+    box.classList.remove('no-contact');
+    waBtn.href = l._wa_url;
+    waBtn.style.display = 'inline-flex';
+    phoneLabel.textContent = l._phone || 'WhatsApp disponible';
+  } else {
+    box.classList.add('no-contact');
+    waBtn.style.display = 'none';
+    phoneLabel.textContent = 'Sin contacto directo — buscar por perfil';
+    document.getElementById('modal-author').textContent = l._display_name + ' (sin contacto)';
+  }
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  S.currentId = null;
+}
+
+function saveStatusFromModal() {
+  if (!S.currentId) return;
+  const status = document.getElementById('modal-status-sel').value;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  l._status = status;
+  const stored = DB.get(S.currentId);
+  DB.set(S.currentId, { ...stored, status });
+  renderKPIs();
+  renderCounts();
+}
+
+function saveNotesFromModal() {
+  if (!S.currentId) return;
+  const notes = document.getElementById('modal-notes').value;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (l) l._notes = notes;
+  const stored = DB.get(S.currentId);
+  DB.set(S.currentId, { ...stored, notes });
+}
+
+function saveAndClose() {
+  saveStatusFromModal();
+  saveNotesFromModal();
+  closeModal();
+  renderTable();
+}
+
+// ── ADD MANUAL ─────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function addManualCase() {
+  const nombre = document.getElementById('add-nombre').value.trim();
+  const phone  = document.getElementById('add-phone').value.trim();
+  const prov   = document.getElementById('add-prov').value;
+  const body   = document.getElementById('add-body').value.trim();
+
+  if (!nombre) { alert('Completá el nombre'); return; }
+
+  const id = 'manual_' + Date.now();
+  const lead = {
+    id,
+    source:       'manual',
+    source_label: 'Manual',
+    author:       nombre,
+    has_author:   true,
+    provincia:    prov,
+    body,
+    title:        body.slice(0, 80),
+    fecha_iso:    new Date().toISOString().slice(0, 10),
+    phone,
+    whatsapp:     phone,
+    score:        50,
+    _manual:      true,
+    _status:      'Nuevo',
+    _notes:       '',
+    _phone:       phone,
+    _wa_url:      buildWaUrl(phone),
+    _display_name: nombre,
+    _resumen:     body.slice(0, 200),
+  };
+
+  const manual = DB.getManual();
+  manual.unshift(lead);
+  DB.setManual(manual);
+  S.crmLeads.unshift(lead);
+
+  closeAddModal();
+  ['add-nombre','add-phone','add-body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('add-prov').value = '';
+
+  applyFilters();
+  renderSidebar();
+  renderKPIs();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+document.getElementById('searchInput')?.addEventListener('input', () => {
+  clearTimeout(window._st);
+  window._st = setTimeout(applyFilters, 200);
+});
+
+document.getElementById('sortSel')?.addEventListener('change', applyFilters);
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+    }
+  });
+});
+
+loadLeads();
+</script>
+</body>
+</html>
