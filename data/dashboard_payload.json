@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-09T13:47:09.358363+00:00",
-  "run_id": "b129f59ddbe6",
+  "generated_at": "2026-07-09T16:25:45.016817+00:00",
+  "run_id": "1ae915481999",
   "summary": {
-    "total_leads": 14,
-    "hot_leads": 14,
+    "total_leads": 15,
+    "hot_leads": 15,
     "warm_leads": 0,
-    "contactable": 14,
+    "contactable": 15,
     "with_whatsapp": 2,
-    "with_phone": 14,
+    "with_phone": 15,
     "with_email": 0,
     "avg_score": 42.0,
     "avg_score_hot": 42.0,
     "conversion_probability": 100.0,
     "by_category": {
-      "PREVENTIVE_SCAN": 14
+      "PREVENTIVE_SCAN": 15
     },
     "by_platform": {
-      "VentaFe": 14
+      "VentaFe": 15
     },
     "by_province": {
       "Paraná": 1
@@ -24,6 +24,46 @@
   },
   "leads_all": [
     {
+      "id": "3f9eb5f9020312da",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5012668",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "moto",
+      "patente": "DE101CV",
+      "fecha_visible": "2026-07-09",
+      "fecha_iso": "2026-07-09T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5012668-nivus-primera-mano-2022-170tsi-acepto-canje",
+      "quoted_text": "> NIVUS PRIMERA MANO 2022 170TSI ACEPTO CANJE Volkswagen Nivus 170 TSI . ACEPTO CANJE SOLO EN BUEN ESTADO. Vendo Volkswagen Nivus 170 TSI en excelente estado. Motor 1.0 turbo de 101 CV con gran rendimiento y bajo consumo, caja manual de 5 velocidades. Equipado con volante multifunción con control de",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493424227085",
+      "telefono_publico": "+5493424227085",
+      "telefono_e164": "+5493424227085",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "patente_detected": 15,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "PATENTE_DETECTED",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-09T16:25:45.012380+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "212c863d32e88c4b",
       "score": 42,
       "label": "real_lead",
@@ -58,7 +98,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.354651+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.012707+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -96,7 +136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355006+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013002+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -134,7 +174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355248+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013240+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -172,7 +212,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355524+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013575+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -210,7 +250,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355806+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013768+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -250,7 +290,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356074+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014028+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -290,7 +330,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356426+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014393+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -328,7 +368,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356628+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014596+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -366,7 +406,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356963+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014901+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -404,7 +444,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357252+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015180+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -442,7 +482,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357430+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015369+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -480,7 +520,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357739+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015659+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -518,7 +558,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357911+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015823+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -556,12 +596,52 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.358197+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.016106+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "3f9eb5f9020312da",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5012668",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "moto",
+      "patente": "DE101CV",
+      "fecha_visible": "2026-07-09",
+      "fecha_iso": "2026-07-09T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5012668-nivus-primera-mano-2022-170tsi-acepto-canje",
+      "quoted_text": "> NIVUS PRIMERA MANO 2022 170TSI ACEPTO CANJE Volkswagen Nivus 170 TSI . ACEPTO CANJE SOLO EN BUEN ESTADO. Vendo Volkswagen Nivus 170 TSI en excelente estado. Motor 1.0 turbo de 101 CV con gran rendimiento y bajo consumo, caja manual de 5 velocidades. Equipado con volante multifunción con control de",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493424227085",
+      "telefono_publico": "+5493424227085",
+      "telefono_e164": "+5493424227085",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "patente_detected": 15,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "PATENTE_DETECTED",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-09T16:25:45.012380+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "212c863d32e88c4b",
       "score": 42,
       "label": "real_lead",
@@ -596,7 +676,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.354651+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.012707+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -634,7 +714,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355006+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013002+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -672,7 +752,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355248+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013240+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -710,7 +790,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355524+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013575+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -748,7 +828,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.355806+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.013768+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -788,7 +868,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356074+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014028+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -828,7 +908,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356426+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014393+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -866,7 +946,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356628+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014596+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -904,7 +984,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.356963+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.014901+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -942,7 +1022,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357252+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015180+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -980,7 +1060,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357430+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015369+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1018,7 +1098,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357739+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015659+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1056,7 +1136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.357911+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.015823+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1094,7 +1174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T13:47:09.358197+00:00",
+      "discovery_timestamp": "2026-07-09T16:25:45.016106+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -1132,7 +1212,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 99.39,
-    "queries_executed": 2
+    "runtime_seconds": 92.83,
+    "queries_executed": 3
   }
 }

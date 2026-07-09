@@ -1,31 +1,5 @@
 [
   {
-    "run_id": "282aff560262",
-    "generated_at": "2026-07-04T00:44:14.221816+00:00",
-    "summary": {
-      "total_leads": 6,
-      "hot_leads": 5,
-      "warm_leads": 1,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 84.2,
-      "avg_score_hot": 92.0,
-      "conversion_probability": 83.3,
-      "by_category": {
-        "TRANSFER_PROBLEM": 6
-      },
-      "by_platform": {
-        "Reddit": 6
-      },
-      "by_province": {
-        "Buenos Aires": 1,
-        "La Plata": 1
-      }
-    }
-  },
-  {
     "run_id": "6d625ebfb6c6",
     "generated_at": "2026-07-04T00:46:58.848789+00:00",
     "summary": {
@@ -2506,6 +2480,31 @@
       },
       "by_platform": {
         "VentaFe": 14
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "1ae915481999",
+    "generated_at": "2026-07-09T16:25:45.016817+00:00",
+    "summary": {
+      "total_leads": 15,
+      "hot_leads": 15,
+      "warm_leads": 0,
+      "contactable": 15,
+      "with_whatsapp": 2,
+      "with_phone": 15,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 15
+      },
+      "by_platform": {
+        "VentaFe": 15
       },
       "by_province": {
         "Paraná": 1
