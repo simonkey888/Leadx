@@ -1,29 +1,138 @@
 {
-  "generated_at": "2026-07-09T18:48:58.461074+00:00",
-  "run_id": "42d640681d0f",
+  "generated_at": "2026-07-09T20:45:06.686040+00:00",
+  "run_id": "a29c756ceea2",
   "summary": {
-    "total_leads": 15,
-    "hot_leads": 15,
+    "total_leads": 18,
+    "hot_leads": 18,
     "warm_leads": 0,
     "contactable": 15,
     "with_whatsapp": 3,
     "with_phone": 15,
     "with_email": 1,
-    "avg_score": 42.0,
-    "avg_score_hot": 42.0,
+    "avg_score": 48.9,
+    "avg_score_hot": 48.9,
     "conversion_probability": 100.0,
     "by_category": {
+      "FINE_DISPUTE": 3,
       "PREVENTIVE_SCAN": 15
     },
     "by_platform": {
+      "Reddit": 3,
       "VentaFe": 15
     },
     "by_province": {
+      "Córdoba": 1,
+      "CABA": 1,
+      "Buenos Aires": 1,
       "Paraná": 1
     }
   },
   "leads_all": [
     {
+      "id": "71999d1a44af7205",
+      "score": 95,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "toyota",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/17j92u4/me_llego_una_multa_que_no_es_mia",
+      "quoted_text": "Yo soy de caba y hace unos dias me llego una multa en Chascomús por 45.000 pesos con una foto de un toyota con la patente borroneada y aparentemente figura que es mio.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15,
+        "extreme_intent": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "argentina",
+        "EXTREME_INTENT"
+      ],
+      "discovery_timestamp": "2026-07-09T20:45:06.352710+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "3dea65318b724194",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "Córdoba",
+      "ciudad": "Cordoba",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1afr4qb/me_llego_una_foto_multa_de_un_auto_que_ya_no_es",
+      "quoted_text": "Hoy me llego una fotomulta de un auto que ya no  es mio desde hace varios años. La multa  es de Parana y soy de Cordoba. Supongo que no  me afecta en lo mas mínimo, pero por las dudas consulto. PD: Estoy tratando de recordar como se llamaba el nuevo dueño para hacerle llegar la grata sorpresa",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "extreme_intent": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "EXTREME_INTENT"
+      ],
+      "discovery_timestamp": "2026-07-09T20:45:06.352605+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "1eba0587098c8b94",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "Buenos Aires",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1b7h55s/me_clavaron_fotomulta_de_otro_auto",
+      "quoted_text": "Me  llegó notificacion de una fotomulta de Pronvincia de Buenos Aires pero en la foto es otro auto ( mi  auto  es gris y el de la foto es negro). La foto se ve tan mal que con el zoom la patente parece decir la mía pero claramente es otro auto (ni siquiera es misma marca/modelo)",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-09T20:45:06.352843+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "3f9eb5f9020312da",
       "score": 42,
       "label": "real_lead",
@@ -60,7 +169,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.456696+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.353829+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -98,7 +207,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.456996+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354124+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -136,7 +245,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457277+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354422+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -174,7 +283,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457541+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354689+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -212,7 +321,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457806+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354969+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -250,7 +359,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457992+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.355166+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -290,7 +399,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.458243+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.355432+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -330,7 +439,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.458603+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.355807+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -368,7 +477,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.458809+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356017+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -406,7 +515,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459113+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356311+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -444,7 +553,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459412+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356618+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -482,7 +591,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459697+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356918+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -520,7 +629,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459980+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.357209+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -558,7 +667,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.460146+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.357380+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -596,12 +705,116 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.460446+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.357692+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "71999d1a44af7205",
+      "score": 95,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "CABA",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "toyota",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/17j92u4/me_llego_una_multa_que_no_es_mia",
+      "quoted_text": "Yo soy de caba y hace unos dias me llego una multa en Chascomús por 45.000 pesos con una foto de un toyota con la patente borroneada y aparentemente figura que es mio.",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15,
+        "extreme_intent": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "argentina",
+        "EXTREME_INTENT"
+      ],
+      "discovery_timestamp": "2026-07-09T20:45:06.352710+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "3dea65318b724194",
+      "score": 80,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "Córdoba",
+      "ciudad": "Cordoba",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1afr4qb/me_llego_una_foto_multa_de_un_auto_que_ya_no_es",
+      "quoted_text": "Hoy me llego una fotomulta de un auto que ya no  es mio desde hace varios años. La multa  es de Parana y soy de Cordoba. Supongo que no  me afecta en lo mas mínimo, pero por las dudas consulto. PD: Estoy tratando de recordar como se llamaba el nuevo dueño para hacerle llegar la grata sorpresa",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "extreme_intent": 20
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "EXTREME_INTENT"
+      ],
+      "discovery_timestamp": "2026-07-09T20:45:06.352605+00:00",
+      "deuda_clasificar": 0
+    },
+    {
+      "id": "1eba0587098c8b94",
+      "score": 75,
+      "label": "real_lead",
+      "problem_category": "FINE_DISPUTE",
+      "problem_summary": "Disputa de multa/fotomulta",
+      "persona": "(anónimo)",
+      "provincia": "Buenos Aires",
+      "ciudad": "",
+      "pais": "Argentina",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "",
+      "fecha_iso": "",
+      "platform": "Reddit",
+      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1b7h55s/me_clavaron_fotomulta_de_otro_auto",
+      "quoted_text": "Me  llegó notificacion de una fotomulta de Pronvincia de Buenos Aires pero en la foto es otro auto ( mi  auto  es gris y el de la foto es negro). La foto se ve tan mal que con el zoom la patente parece decir la mía pero claramente es otro auto (ni siquiera es misma marca/modelo)",
+      "contacto_publico": false,
+      "whatsapp_publico": "",
+      "whatsapp_link": "",
+      "telefono_publico": "",
+      "telefono_e164": "",
+      "email_publico": "",
+      "score_breakdown": {
+        "multa_or_fotomulta": 60,
+        "argentina_signal": 15
+      },
+      "detected_signals": [
+        "multa_fotomulta",
+        "argentina"
+      ],
+      "discovery_timestamp": "2026-07-09T20:45:06.352843+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "3f9eb5f9020312da",
       "score": 42,
       "label": "real_lead",
@@ -638,7 +851,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.456696+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.353829+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -676,7 +889,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.456996+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354124+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -714,7 +927,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457277+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354422+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -752,7 +965,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457541+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354689+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -790,7 +1003,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457806+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.354969+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -828,7 +1041,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.457992+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.355166+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -868,7 +1081,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.458243+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.355432+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -908,7 +1121,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.458603+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.355807+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -946,7 +1159,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.458809+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356017+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -984,7 +1197,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459113+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356311+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1022,7 +1235,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459412+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356618+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1060,7 +1273,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459697+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.356918+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1098,7 +1311,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.459980+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.357209+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1136,7 +1349,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.460146+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.357380+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1174,17 +1387,17 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T18:48:58.460446+00:00",
+      "discovery_timestamp": "2026-07-09T20:45:06.357692+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 100% de los leads calientes provienen de VentaFe.",
-    "El 7% de los leads calientes son de Paraná.",
+    "El 83% de los leads calientes provienen de VentaFe.",
+    "El 6% de los leads calientes son de Córdoba.",
     "El problema más frecuente es: Preventivo — Verificación de deuda sugerida.",
-    "100% de los leads calientes tienen contacto público visible.",
-    "1 leads calientes muestran señales de urgencia temporal."
+    "83% de los leads calientes tienen contacto público visible.",
+    "2 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
     "version": "1.0",
@@ -1212,7 +1425,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 97.18,
+    "runtime_seconds": 95.92,
     "queries_executed": 3
   }
 }
