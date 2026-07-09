@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-09T10:22:06.287311+00:00",
-  "run_id": "69eba8bb9c75",
+  "generated_at": "2026-07-09T13:47:09.358363+00:00",
+  "run_id": "b129f59ddbe6",
   "summary": {
     "total_leads": 14,
     "hot_leads": 14,
@@ -24,6 +24,44 @@
   },
   "leads_all": [
     {
+      "id": "212c863d32e88c4b",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5012505",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-07-09",
+      "fecha_iso": "2026-07-09T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5012505-palio-essence-ano-2015-1-6-cadenero-100-000km",
+      "quoted_text": "> Palio Essence año 2015 1.6 cadenero 100.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, sensor de estacionamiento, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acércate Av. 7 de marzo 1",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426139897",
+      "telefono_publico": "+5493426139897",
+      "telefono_e164": "+5493426139897",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-09T13:47:09.354651+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "f7b787ee9d983221",
       "score": 42,
       "label": "real_lead",
@@ -58,7 +96,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.283801+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355006+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -96,7 +134,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284080+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355248+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -134,45 +172,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284350+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "927f4ab64911c062",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5011468",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "peugeot",
-      "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5011468-peugeot-308-allure-nav-ano-2016-110-000km",
-      "quoted_text": "> Peugeot 308 Allure + Nav año 2016 110.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, pantalla táctil con navegador, techo panorámico, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acérc",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426139897",
-      "telefono_publico": "+5493426139897",
-      "telefono_e164": "+5493426139897",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284624+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355524+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -210,7 +210,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284808+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355806+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -250,7 +250,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285105+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356074+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -290,7 +290,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285447+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356426+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -328,7 +328,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285642+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356628+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -366,7 +366,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285954+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356963+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -404,7 +404,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286225+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357252+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -442,7 +442,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286394+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357430+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -480,7 +480,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286664+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357739+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -518,7 +518,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286824+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357911+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -556,12 +556,50 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.287115+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.358197+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "212c863d32e88c4b",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5012505",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "",
+      "patente": "",
+      "fecha_visible": "2026-07-09",
+      "fecha_iso": "2026-07-09T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5012505-palio-essence-ano-2015-1-6-cadenero-100-000km",
+      "quoted_text": "> Palio Essence año 2015 1.6 cadenero 100.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, sensor de estacionamiento, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acércate Av. 7 de marzo 1",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426139897",
+      "telefono_publico": "+5493426139897",
+      "telefono_e164": "+5493426139897",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-09T13:47:09.354651+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "f7b787ee9d983221",
       "score": 42,
       "label": "real_lead",
@@ -596,7 +634,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.283801+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355006+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -634,7 +672,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284080+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355248+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -672,45 +710,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284350+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "927f4ab64911c062",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5011468",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "peugeot",
-      "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5011468-peugeot-308-allure-nav-ano-2016-110-000km",
-      "quoted_text": "> Peugeot 308 Allure + Nav año 2016 110.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, pantalla táctil con navegador, techo panorámico, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acérc",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426139897",
-      "telefono_publico": "+5493426139897",
-      "telefono_e164": "+5493426139897",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284624+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355524+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -748,7 +748,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.284808+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.355806+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -788,7 +788,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285105+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356074+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -828,7 +828,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285447+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356426+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -866,7 +866,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285642+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356628+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -904,7 +904,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.285954+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.356963+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -942,7 +942,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286225+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357252+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -980,7 +980,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286394+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357430+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1018,7 +1018,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286664+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357739+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1056,7 +1056,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.286824+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.357911+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1094,7 +1094,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T10:22:06.287115+00:00",
+      "discovery_timestamp": "2026-07-09T13:47:09.358197+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -1132,7 +1132,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 92.75,
+    "runtime_seconds": 99.39,
     "queries_executed": 2
   }
 }
