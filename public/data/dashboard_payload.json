@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-10T11:48:00.756801+00:00",
-  "run_id": "c27d2e65da6b",
+  "generated_at": "2026-07-10T14:12:36.605252+00:00",
+  "run_id": "1915ddb3eec1",
   "summary": {
     "total_leads": 15,
     "hot_leads": 15,
@@ -24,6 +24,44 @@
   },
   "leads_all": [
     {
+      "id": "84bb421ef26e3561",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5005376",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-10",
+      "fecha_iso": "2026-07-10T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5005376-celta-1-4-ls-3ptas-2012",
+      "quoted_text": "> CELTA 1.4 LS 3ptas-2012 PALAMEDI AUTOS vende: CELTA 1.4 LS 3ptas-2012 157000Km Aire acondicionado y Llantas Cubiertas nuevas Servicios al día Revisión técnica Muy buen estado. Acepto motos de mi interés. Seguinos en Redes @ PALAMEDI AUTOMOTORES PALAMEDI AUTOS vende: CELTA 1.4 LS 3ptas-2012 157000K",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426127827",
+      "telefono_publico": "+5493426127827",
+      "telefono_e164": "+5493426127827",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-10T14:12:36.600826+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "3f9eb5f9020312da",
       "score": 42,
       "label": "real_lead",
@@ -60,7 +98,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.752284+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601171+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -98,45 +136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.752608+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "f7b787ee9d983221",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5012468",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-10",
-      "fecha_iso": "2026-07-10T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5012468-honda-cr-v-2-4-lx-2wd-cvt-2016",
-      "quoted_text": "> Honda CR-V 2.4 LX 2WD CVT 2016 PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva EXCELENTE ESTADO! CANJE/FINANCIACION Seguinos en redes @palamediautomotores PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva E",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426127827",
-      "telefono_publico": "+5493426127827",
-      "telefono_e164": "+5493426127827",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-10T11:48:00.752947+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601463+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -174,7 +174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753197+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601695+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -212,7 +212,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753486+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601961+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -250,7 +250,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753699+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602167+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -290,7 +290,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753972+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602428+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -330,7 +330,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.754339+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602774+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -349,7 +349,7 @@
       "fecha_iso": "2026-07-10T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009567-grand-vitara-2-0-4x4",
-      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 <div",
+      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 }); <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493424091108",
@@ -368,7 +368,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.754556+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602984+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -406,7 +406,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.754877+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.603300+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -444,7 +444,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755174+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.603588+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -482,7 +482,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755358+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.603767+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -520,7 +520,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755677+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.604054+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -558,7 +558,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755850+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.604242+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -596,12 +596,50 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.756151+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.604533+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "84bb421ef26e3561",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5005376",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-10",
+      "fecha_iso": "2026-07-10T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5005376-celta-1-4-ls-3ptas-2012",
+      "quoted_text": "> CELTA 1.4 LS 3ptas-2012 PALAMEDI AUTOS vende: CELTA 1.4 LS 3ptas-2012 157000Km Aire acondicionado y Llantas Cubiertas nuevas Servicios al día Revisión técnica Muy buen estado. Acepto motos de mi interés. Seguinos en Redes @ PALAMEDI AUTOMOTORES PALAMEDI AUTOS vende: CELTA 1.4 LS 3ptas-2012 157000K",
+      "contacto_publico": true,
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426127827",
+      "telefono_publico": "+5493426127827",
+      "telefono_e164": "+5493426127827",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-10T14:12:36.600826+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "3f9eb5f9020312da",
       "score": 42,
       "label": "real_lead",
@@ -638,7 +676,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.752284+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601171+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -676,45 +714,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.752608+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "f7b787ee9d983221",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5012468",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-10",
-      "fecha_iso": "2026-07-10T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5012468-honda-cr-v-2-4-lx-2wd-cvt-2016",
-      "quoted_text": "> Honda CR-V 2.4 LX 2WD CVT 2016 PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva EXCELENTE ESTADO! CANJE/FINANCIACION Seguinos en redes @palamediautomotores PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva E",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426127827",
-      "telefono_publico": "+5493426127827",
-      "telefono_e164": "+5493426127827",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-10T11:48:00.752947+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601463+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -752,7 +752,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753197+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601695+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -790,7 +790,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753486+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.601961+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -828,7 +828,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753699+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602167+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -868,7 +868,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.753972+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602428+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -908,7 +908,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.754339+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602774+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -927,7 +927,7 @@
       "fecha_iso": "2026-07-10T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009567-grand-vitara-2-0-4x4",
-      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 <div",
+      "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 }); <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493424091108",
@@ -946,7 +946,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.754556+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.602984+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -984,7 +984,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.754877+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.603300+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1022,7 +1022,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755174+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.603588+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1060,7 +1060,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755358+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.603767+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1098,7 +1098,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755677+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.604054+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1136,7 +1136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.755850+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.604242+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1174,7 +1174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-10T11:48:00.756151+00:00",
+      "discovery_timestamp": "2026-07-10T14:12:36.604533+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -1212,7 +1212,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 97.37,
+    "runtime_seconds": 98.42,
     "queries_executed": 2
   }
 }
