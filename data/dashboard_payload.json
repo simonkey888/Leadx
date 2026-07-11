@@ -1,135 +1,102 @@
 {
-  "generated_at": "2026-07-09T20:45:06.686040+00:00",
-  "run_id": "a29c756ceea2",
+  "generated_at": "2026-07-11T22:43:08.179890+00:00",
+  "run_id": "d67fe2c4b473",
   "summary": {
-    "total_leads": 18,
-    "hot_leads": 18,
+    "total_leads": 15,
+    "hot_leads": 15,
     "warm_leads": 0,
     "contactable": 15,
-    "with_whatsapp": 3,
+    "with_whatsapp": 2,
     "with_phone": 15,
-    "with_email": 1,
-    "avg_score": 48.9,
-    "avg_score_hot": 48.9,
+    "with_email": 0,
+    "avg_score": 42.0,
+    "avg_score_hot": 42.0,
     "conversion_probability": 100.0,
     "by_category": {
-      "FINE_DISPUTE": 3,
       "PREVENTIVE_SCAN": 15
     },
     "by_platform": {
-      "Reddit": 3,
       "VentaFe": 15
     },
     "by_province": {
-      "Córdoba": 1,
-      "CABA": 1,
-      "Buenos Aires": 1,
       "Paraná": 1
     }
   },
   "leads_all": [
     {
-      "id": "71999d1a44af7205",
-      "score": 95,
+      "id": "482503dfdbc076ea",
+      "score": 42,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "CABA",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5013354",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "toyota",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/17j92u4/me_llego_una_multa_que_no_es_mia",
-      "quoted_text": "Yo soy de caba y hace unos dias me llego una multa en Chascomús por 45.000 pesos con una foto de un toyota con la patente borroneada y aparentemente figura que es mio.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15,
-        "extreme_intent": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina",
-        "EXTREME_INTENT"
-      ],
-      "discovery_timestamp": "2026-07-09T20:45:06.352710+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3dea65318b724194",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Córdoba",
-      "ciudad": "Cordoba",
       "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1afr4qb/me_llego_una_foto_multa_de_un_auto_que_ya_no_es",
-      "quoted_text": "Hoy me llego una fotomulta de un auto que ya no  es mio desde hace varios años. La multa  es de Parana y soy de Cordoba. Supongo que no  me afecta en lo mas mínimo, pero por las dudas consulto. PD: Estoy tratando de recordar como se llamaba el nuevo dueño para hacerle llegar la grata sorpresa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5013354-mg3-hybrid-luxury-2026",
+      "quoted_text": "> ► MG3 HYBRID+ LUXURY 2026 ► MG3 HYBRID+ LUXURY 2026 • 2.600 KM • Color Blanco ✓ Sistema Hybrid+ ✓ Caja automática ✓ Pantalla multimedia ✓ Apple CarPlay y Android Auto ✓ Cámara de retroceso ✓ Tablero digital ✓ Climatizador automático ✓ Control crucero adaptativo ✓ Acceso sin llave ✓ Excelente estad",
+      "contacto_publico": true,
+      "whatsapp_publico": "543425445745",
+      "whatsapp_link": "https://wa.me/5493425445745",
+      "telefono_publico": "3425445745",
+      "telefono_e164": "+5493425445745",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "extreme_intent": 20
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "EXTREME_INTENT"
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.352605+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.176424+00:00",
       "deuda_clasificar": 0
     },
     {
-      "id": "1eba0587098c8b94",
-      "score": 75,
+      "id": "55918872af22ec8f",
+      "score": 42,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5013222",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1b7h55s/me_clavaron_fotomulta_de_otro_auto",
-      "quoted_text": "Me  llegó notificacion de una fotomulta de Pronvincia de Buenos Aires pero en la foto es otro auto ( mi  auto  es gris y el de la foto es negro). La foto se ve tan mal que con el zoom la patente parece decir la mía pero claramente es otro auto (ni siquiera es misma marca/modelo)",
-      "contacto_publico": false,
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5013222-kardian-evolution-156-mt-2024",
+      "quoted_text": "> KARDIAN Evolution 156 MT-2024 PALAMEDI AUTOS vende: KARDIAN Evolution 156 MT-2024 28000KM Caja manual Motor 1.6 Unica x su estado!!! Canjes/financiacion Seguinos en Redes @ PALAMEDI AUTOMOTORES PALAMEDI AUTOS vende: KARDIAN Evolution 156 MT-2024 28000KM Caja manual Motor 1.6 Unica x su estado!!! C",
+      "contacto_publico": true,
       "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
+      "whatsapp_link": "https://wa.me/5493426127827",
+      "telefono_publico": "+5493426127827",
+      "telefono_e164": "+5493426127827",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.352843+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.176666+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -144,8 +111,8 @@
       "pais": "Unknown",
       "vehiculo": "moto",
       "patente": "DE101CV",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012668-nivus-primera-mano-2022-170tsi-acepto-canje",
       "quoted_text": "> NIVUS PRIMERA MANO 2022 170TSI ACEPTO CANJE Volkswagen Nivus 170 TSI . ACEPTO CANJE SOLO EN BUEN ESTADO. Vendo Volkswagen Nivus 170 TSI en excelente estado. Motor 1.0 turbo de 101 CV con gran rendimiento y bajo consumo, caja manual de 5 velocidades. Equipado con volante multifunción con control de",
@@ -169,7 +136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.353829+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.176903+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -184,8 +151,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012505-palio-essence-ano-2015-1-6-cadenero-100-000km",
       "quoted_text": "> Palio Essence año 2015 1.6 cadenero 100.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, sensor de estacionamiento, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acércate Av. 7 de marzo 1",
@@ -207,45 +174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354124+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "f7b787ee9d983221",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5012468",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5012468-honda-cr-v-2-4-lx-2wd-cvt-2016",
-      "quoted_text": "> Honda CR-V 2.4 LX 2WD CVT 2016 PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva EXCELENTE ESTADO! CANJE/FINANCIACION Seguinos en redes @palamediautomotores PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva E",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426127827",
-      "telefono_publico": "+5493426127827",
-      "telefono_e164": "+5493426127827",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354422+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177149+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -260,8 +189,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012384-polo-1-6-msi-2021",
       "quoted_text": "> POLO 1.6 MSI 2021 Unico dueño, todos los servicios en tiempo y forma, cubiertas nuevas. Esta impecable, tomo canje. Tiene 130.000 km Unico dueño, todos los servicios en tiempo y forma, cubiertas nuevas. Esta impecable, tomo canje. Tiene 130.000 km #5012384 $ Consultar $ Consultar AGREGAR A FAVORIT",
@@ -283,7 +212,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354689+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177339+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -298,8 +227,8 @@
       "pais": "Unknown",
       "vehiculo": "citroen",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012240-citroen-c3-aircroos-primera-mano",
       "quoted_text": "> Citroen c3 aircroos primera mano Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubierta; freno ; tren delantero; solo contado consultame Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubie",
@@ -321,7 +250,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354969+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177559+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -336,8 +265,8 @@
       "pais": "Unknown",
       "vehiculo": "moto",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/4886932-suzuki-swif",
       "quoted_text": "> Suzuki Swif Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento #4886932 $ 13500000 $ 13500000 AGREGAR A FAVORITOS (0342) 155015888 #4886932 #4886932 $ 13500000 (0342) 155015888 <div",
@@ -359,7 +288,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.355166+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177710+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -374,8 +303,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/4945502-mercedes-benz-a200-blueefficiency-46-000-km-unico",
       "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
@@ -399,7 +328,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.355432+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177921+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -414,8 +343,8 @@
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5010012-ka-s-1-5l-5p-2018-64-099km",
       "quoted_text": "> KA S 1.5L 5P 2018 64.099KM KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná",
@@ -439,7 +368,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.355807+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178217+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -454,8 +383,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009567-grand-vitara-2-0-4x4",
       "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 <div",
@@ -477,45 +406,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356017+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "e35dba85aea4c6a0",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5009542",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5009542-ford-fiesta-se-kd-1-6-5p-2017",
-      "quoted_text": "> FORD FIESTA SE KD 1.6 5P 2017 ✔️ Año 2017 ✔️ 82.000 km ✔️ Motor 1.6 ✔️ Caja manual ✔️ 5 puertas ✔️ Llantas de aleación ✔️ Faros antiniebla ✔️ Aire acondicionado ✔️ Cierre centralizado ✔️ Levanta cristales eléctricos ✔️ Excelente estado ???? Marianoff Automóviles ???? WhatsApp 3425445745 ✔️ Año 201",
-      "contacto_publico": true,
-      "whatsapp_publico": "543425445745",
-      "whatsapp_link": "https://wa.me/5493425445745",
-      "telefono_publico": "WhatsApp 3425445745",
-      "telefono_e164": "+5493425445745",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356311+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178381+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -530,8 +421,8 @@
       "pais": "Unknown",
       "vehiculo": "citroen",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009294-citroen-berlingo-busines-mixto-hdi-5-asientos",
       "quoted_text": "> CITROEN BERLINGO BUSINES MIXTO HDI 5 ASIENTOS Muy buena unidad 5 ASIENTOS 1.6 HDI 2019 impecable de todos lados 82.000 kms todo al día RTV.NEUMATICOS SIN DETALLES MECANICA EXELENTE.SERVICE RIGUROSOS Muy buena unidad 5 ASIENTOS 1.6 HDI 2019 impecable de todos lados 82.000 kms todo al día RTV.NEUMAT",
@@ -553,11 +444,11 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356618+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178609+00:00",
       "deuda_clasificar": 0
     },
     {
-      "id": "713100a560cc2775",
+      "id": "798a8ab747c7a889",
       "score": 42,
       "label": "real_lead",
       "problem_category": "PREVENTIVE_SCAN",
@@ -568,17 +459,17 @@
       "pais": "Unknown",
       "vehiculo": "fiat",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5007516-fiat-sporting-2013",
-      "quoted_text": "> Fiat Sporting 2013 Km 100.000 Km 100.000 #5007516 $ 9.500.000 $ 9.500.000 AGREGAR A FAVORITOS ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 #5007516 #5007516 $ 9.500.000 ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 « 1 2 3 4 5 6 7 8 9 10 11 » Recomendados de Ventafe ¡Atencion VENTAFE NO LLAMA S",
+      "quoted_text": "> Fiat Sporting 2013 Km 100.000 Km 100.000 #5007516 $ 9.500.000 $ 9.500.000 AGREGAR A FAVORITOS ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 #5007516 #5007516 $ 9.500.000 ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 <div",
       "contacto_publico": true,
-      "whatsapp_publico": "543424668832",
-      "whatsapp_link": "https://wa.me/5493424668832",
-      "telefono_publico": "3424668832",
-      "telefono_e164": "+5493424668832",
-      "email_publico": "info@ventafe.com.ar",
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426100242",
+      "telefono_publico": "+5493426100242",
+      "telefono_e164": "+5493426100242",
+      "email_publico": "",
       "score_breakdown": {
         "ventafe_base": 20,
         "public_contact_visible": 25,
@@ -591,7 +482,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356918+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178750+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -606,8 +497,8 @@
       "pais": "Unknown",
       "vehiculo": "renault",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5007426-renault-sandero-1-6-2023-22-000-km-nuevo",
       "quoted_text": "> RENAULT SANDERO 1.6 2023 22.000 KM NUEVO !!! IMPECABLE DIGNO DE VER ,TODAS LAS UNIDADES TIENEN TRATAMIENTO ACRILICO EN LA PINTURA Y LAVADO EL TAPIZADO !! LOS PRECIOS CAMBIAN DEPENDIENDO EL MOMENTO QUE SE PAGUEN LAS UNIDADES Y SI LAS OPERACIONES SON CON CANJE O CONTADO , NO CONTESTAMOS MENSAJES , L",
@@ -629,7 +520,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.357209+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.179012+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -644,11 +535,11 @@
       "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5006538-bmw-x6",
-      "quoted_text": "> Bmw X6 Motor Nafta bi-turbo Cubiertas Impecable Caja automatica Motor Nafta bi-turbo Cubiertas Impecable Caja automatica #5006538 $ $ AGREGAR A FAVORITOS (0342) 156154768 #5006538 #5006538 $ (0342) 156154768 <div",
+      "quoted_text": "> Bmw X6 Motor Nafta bi-turbo Cubiertas Impecable Caja automatica Motor Nafta bi-turbo Cubiertas Impecable Caja automatica #5006538 $ $ AGREGAR A FAVORITOS (0342) 156154768 #5006538 #5006538 $ (0342) 156154768 }); <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493426154768",
@@ -667,7 +558,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.357380+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.179158+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -682,8 +573,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/4919824-gol-trend-pack-ii-2010-vendo-ya",
       "quoted_text": "> GOL TREND PACK II. 2010 VENDO YA!!! Muy bueno!!! Atención: LAS 4 CUBIERTAS NUEVAS!!! BATERÍA Y DISCO DE EMBRAGUE NUEVOS!! .Dirección, cierre centralizado, aire. Revisión técnica reciente. 119.000 km . LIQUIDO!!! $9.649.000 Muy bueno!!! Atención: LAS 4 CUBIERTAS NUEVAS!!! BATERÍA Y DISCO DE EMBRAGU",
@@ -705,113 +596,85 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.357692+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.179395+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
-      "id": "71999d1a44af7205",
-      "score": 95,
+      "id": "482503dfdbc076ea",
+      "score": 42,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "CABA",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5013354",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "toyota",
-      "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/17j92u4/me_llego_una_multa_que_no_es_mia",
-      "quoted_text": "Yo soy de caba y hace unos dias me llego una multa en Chascomús por 45.000 pesos con una foto de un toyota con la patente borroneada y aparentemente figura que es mio.",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15,
-        "extreme_intent": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "argentina",
-        "EXTREME_INTENT"
-      ],
-      "discovery_timestamp": "2026-07-09T20:45:06.352710+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "3dea65318b724194",
-      "score": 80,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Córdoba",
-      "ciudad": "Cordoba",
       "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1afr4qb/me_llego_una_foto_multa_de_un_auto_que_ya_no_es",
-      "quoted_text": "Hoy me llego una fotomulta de un auto que ya no  es mio desde hace varios años. La multa  es de Parana y soy de Cordoba. Supongo que no  me afecta en lo mas mínimo, pero por las dudas consulto. PD: Estoy tratando de recordar como se llamaba el nuevo dueño para hacerle llegar la grata sorpresa",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5013354-mg3-hybrid-luxury-2026",
+      "quoted_text": "> ► MG3 HYBRID+ LUXURY 2026 ► MG3 HYBRID+ LUXURY 2026 • 2.600 KM • Color Blanco ✓ Sistema Hybrid+ ✓ Caja automática ✓ Pantalla multimedia ✓ Apple CarPlay y Android Auto ✓ Cámara de retroceso ✓ Tablero digital ✓ Climatizador automático ✓ Control crucero adaptativo ✓ Acceso sin llave ✓ Excelente estad",
+      "contacto_publico": true,
+      "whatsapp_publico": "543425445745",
+      "whatsapp_link": "https://wa.me/5493425445745",
+      "telefono_publico": "3425445745",
+      "telefono_e164": "+5493425445745",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "extreme_intent": 20
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "EXTREME_INTENT"
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.352605+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.176424+00:00",
       "deuda_clasificar": 0
     },
     {
-      "id": "1eba0587098c8b94",
-      "score": 75,
+      "id": "55918872af22ec8f",
+      "score": 42,
       "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "(anónimo)",
-      "provincia": "Buenos Aires",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5013222",
+      "provincia": "",
       "ciudad": "",
-      "pais": "Argentina",
+      "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "",
-      "fecha_iso": "",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/DerechoGenial/comments/1b7h55s/me_clavaron_fotomulta_de_otro_auto",
-      "quoted_text": "Me  llegó notificacion de una fotomulta de Pronvincia de Buenos Aires pero en la foto es otro auto ( mi  auto  es gris y el de la foto es negro). La foto se ve tan mal que con el zoom la patente parece decir la mía pero claramente es otro auto (ni siquiera es misma marca/modelo)",
-      "contacto_publico": false,
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5013222-kardian-evolution-156-mt-2024",
+      "quoted_text": "> KARDIAN Evolution 156 MT-2024 PALAMEDI AUTOS vende: KARDIAN Evolution 156 MT-2024 28000KM Caja manual Motor 1.6 Unica x su estado!!! Canjes/financiacion Seguinos en Redes @ PALAMEDI AUTOMOTORES PALAMEDI AUTOS vende: KARDIAN Evolution 156 MT-2024 28000KM Caja manual Motor 1.6 Unica x su estado!!! C",
+      "contacto_publico": true,
       "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
+      "whatsapp_link": "https://wa.me/5493426127827",
+      "telefono_publico": "+5493426127827",
+      "telefono_e164": "+5493426127827",
       "email_publico": "",
       "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "argentina_signal": 15
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
       },
       "detected_signals": [
-        "multa_fotomulta",
-        "argentina"
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.352843+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.176666+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -826,8 +689,8 @@
       "pais": "Unknown",
       "vehiculo": "moto",
       "patente": "DE101CV",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012668-nivus-primera-mano-2022-170tsi-acepto-canje",
       "quoted_text": "> NIVUS PRIMERA MANO 2022 170TSI ACEPTO CANJE Volkswagen Nivus 170 TSI . ACEPTO CANJE SOLO EN BUEN ESTADO. Vendo Volkswagen Nivus 170 TSI en excelente estado. Motor 1.0 turbo de 101 CV con gran rendimiento y bajo consumo, caja manual de 5 velocidades. Equipado con volante multifunción con control de",
@@ -851,7 +714,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.353829+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.176903+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -866,8 +729,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012505-palio-essence-ano-2015-1-6-cadenero-100-000km",
       "quoted_text": "> Palio Essence año 2015 1.6 cadenero 100.000km Aire acondicionado, dirección, levanta vidrios, alarma y cierre centralizado, sensor de estacionamiento, faros antiniebla, llantas de aleación. Entrega y financiación hasta 36 cuotas fijas en pesos. También recibimos tu usado. Acércate Av. 7 de marzo 1",
@@ -889,45 +752,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354124+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "f7b787ee9d983221",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5012468",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5012468-honda-cr-v-2-4-lx-2wd-cvt-2016",
-      "quoted_text": "> Honda CR-V 2.4 LX 2WD CVT 2016 PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva EXCELENTE ESTADO! CANJE/FINANCIACION Seguinos en redes @palamediautomotores PALAMEDI AUTOS VENDE: Honda CR-V 2.4 LX 2WD CVT 2016 -153000km -Nafta -Automática -Línea nueva E",
-      "contacto_publico": true,
-      "whatsapp_publico": "",
-      "whatsapp_link": "https://wa.me/5493426127827",
-      "telefono_publico": "+5493426127827",
-      "telefono_e164": "+5493426127827",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354422+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177149+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -942,8 +767,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012384-polo-1-6-msi-2021",
       "quoted_text": "> POLO 1.6 MSI 2021 Unico dueño, todos los servicios en tiempo y forma, cubiertas nuevas. Esta impecable, tomo canje. Tiene 130.000 km Unico dueño, todos los servicios en tiempo y forma, cubiertas nuevas. Esta impecable, tomo canje. Tiene 130.000 km #5012384 $ Consultar $ Consultar AGREGAR A FAVORIT",
@@ -965,7 +790,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354689+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177339+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -980,8 +805,8 @@
       "pais": "Unknown",
       "vehiculo": "citroen",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5012240-citroen-c3-aircroos-primera-mano",
       "quoted_text": "> Citroen c3 aircroos primera mano Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubierta; freno ; tren delantero; solo contado consultame Primera mano citroen c3 aircroos con 85000 km ; muy buen estado ; le funciona todo; está muy bien de cubie",
@@ -1003,7 +828,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.354969+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177559+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1018,8 +843,8 @@
       "pais": "Unknown",
       "vehiculo": "moto",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/4886932-suzuki-swif",
       "quoted_text": "> Suzuki Swif Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento Titular Muy cuidado Motor cadenero Excelente de cubiertas full equipamiento #4886932 $ 13500000 $ 13500000 AGREGAR A FAVORITOS (0342) 155015888 #4886932 #4886932 $ 13500000 (0342) 155015888 <div",
@@ -1041,7 +866,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.355166+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177710+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1056,8 +881,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/4945502-mercedes-benz-a200-blueefficiency-46-000-km-unico",
       "quoted_text": "> Mercedes Benz A200 Blueefficiency 46.000 km unico! Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUNFLAT Pirelli Cinturato P7 nuevas 225/45/17 Sin deuda, multas, etc. Mercedes Benz A200 Blueefficiency Urban AUT L/13 1ra mano 46.000 Km. reales. Cubiertas RUN",
@@ -1081,7 +906,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.355432+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.177921+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1096,8 +921,8 @@
       "pais": "Argentina",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5010012-ka-s-1-5l-5p-2018-64-099km",
       "quoted_text": "> KA S 1.5L 5P 2018 64.099KM KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná ER. Consultas: 0810-444-2644 - WhatsApp 3424172512 http://https//chevroletcoinauto.com.ar/ 8:30 a 17:00 HS KA S 1.5L 5P 2018 64.099KM COINAUTO S.A. Suc. Paraná - Av. Almafuerte 2037 Paraná",
@@ -1121,7 +946,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.355807+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178217+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1136,8 +961,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009567-grand-vitara-2-0-4x4",
       "quoted_text": "> GRAND VITARA 2.0 4X4 EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA EXCELENTE ESTADO ANDA 4X4 CUBIERTAS MUY BUENAS PAPELES AL DIA #5009567 U$S8800.- U$S8800.- AGREGAR A FAVORITOS (0342) 4893019 (0342) 154091108 #5009567 #5009567 U$S8800.- (0342) 4893019 (0342) 154091108 <div",
@@ -1159,45 +984,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356017+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "e35dba85aea4c6a0",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5009542",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5009542-ford-fiesta-se-kd-1-6-5p-2017",
-      "quoted_text": "> FORD FIESTA SE KD 1.6 5P 2017 ✔️ Año 2017 ✔️ 82.000 km ✔️ Motor 1.6 ✔️ Caja manual ✔️ 5 puertas ✔️ Llantas de aleación ✔️ Faros antiniebla ✔️ Aire acondicionado ✔️ Cierre centralizado ✔️ Levanta cristales eléctricos ✔️ Excelente estado ???? Marianoff Automóviles ???? WhatsApp 3425445745 ✔️ Año 201",
-      "contacto_publico": true,
-      "whatsapp_publico": "543425445745",
-      "whatsapp_link": "https://wa.me/5493425445745",
-      "telefono_publico": "WhatsApp 3425445745",
-      "telefono_e164": "+5493425445745",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356311+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178381+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1212,8 +999,8 @@
       "pais": "Unknown",
       "vehiculo": "citroen",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5009294-citroen-berlingo-busines-mixto-hdi-5-asientos",
       "quoted_text": "> CITROEN BERLINGO BUSINES MIXTO HDI 5 ASIENTOS Muy buena unidad 5 ASIENTOS 1.6 HDI 2019 impecable de todos lados 82.000 kms todo al día RTV.NEUMATICOS SIN DETALLES MECANICA EXELENTE.SERVICE RIGUROSOS Muy buena unidad 5 ASIENTOS 1.6 HDI 2019 impecable de todos lados 82.000 kms todo al día RTV.NEUMAT",
@@ -1235,11 +1022,11 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356618+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178609+00:00",
       "deuda_clasificar": 0
     },
     {
-      "id": "713100a560cc2775",
+      "id": "798a8ab747c7a889",
       "score": 42,
       "label": "real_lead",
       "problem_category": "PREVENTIVE_SCAN",
@@ -1250,17 +1037,17 @@
       "pais": "Unknown",
       "vehiculo": "fiat",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5007516-fiat-sporting-2013",
-      "quoted_text": "> Fiat Sporting 2013 Km 100.000 Km 100.000 #5007516 $ 9.500.000 $ 9.500.000 AGREGAR A FAVORITOS ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 #5007516 #5007516 $ 9.500.000 ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 « 1 2 3 4 5 6 7 8 9 10 11 » Recomendados de Ventafe ¡Atencion VENTAFE NO LLAMA S",
+      "quoted_text": "> Fiat Sporting 2013 Km 100.000 Km 100.000 #5007516 $ 9.500.000 $ 9.500.000 AGREGAR A FAVORITOS ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 #5007516 #5007516 $ 9.500.000 ALBERTO MIGUEL (0342) 4560006 (0342) 156100242 <div",
       "contacto_publico": true,
-      "whatsapp_publico": "543424668832",
-      "whatsapp_link": "https://wa.me/5493424668832",
-      "telefono_publico": "3424668832",
-      "telefono_e164": "+5493424668832",
-      "email_publico": "info@ventafe.com.ar",
+      "whatsapp_publico": "",
+      "whatsapp_link": "https://wa.me/5493426100242",
+      "telefono_publico": "+5493426100242",
+      "telefono_e164": "+5493426100242",
+      "email_publico": "",
       "score_breakdown": {
         "ventafe_base": 20,
         "public_contact_visible": 25,
@@ -1273,7 +1060,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.356918+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.178750+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1288,8 +1075,8 @@
       "pais": "Unknown",
       "vehiculo": "renault",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5007426-renault-sandero-1-6-2023-22-000-km-nuevo",
       "quoted_text": "> RENAULT SANDERO 1.6 2023 22.000 KM NUEVO !!! IMPECABLE DIGNO DE VER ,TODAS LAS UNIDADES TIENEN TRATAMIENTO ACRILICO EN LA PINTURA Y LAVADO EL TAPIZADO !! LOS PRECIOS CAMBIAN DEPENDIENDO EL MOMENTO QUE SE PAGUEN LAS UNIDADES Y SI LAS OPERACIONES SON CON CANJE O CONTADO , NO CONTESTAMOS MENSAJES , L",
@@ -1311,7 +1098,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.357209+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.179012+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1326,11 +1113,11 @@
       "pais": "Unknown",
       "vehiculo": "auto",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/5006538-bmw-x6",
-      "quoted_text": "> Bmw X6 Motor Nafta bi-turbo Cubiertas Impecable Caja automatica Motor Nafta bi-turbo Cubiertas Impecable Caja automatica #5006538 $ $ AGREGAR A FAVORITOS (0342) 156154768 #5006538 #5006538 $ (0342) 156154768 <div",
+      "quoted_text": "> Bmw X6 Motor Nafta bi-turbo Cubiertas Impecable Caja automatica Motor Nafta bi-turbo Cubiertas Impecable Caja automatica #5006538 $ $ AGREGAR A FAVORITOS (0342) 156154768 #5006538 #5006538 $ (0342) 156154768 }); <div",
       "contacto_publico": true,
       "whatsapp_publico": "",
       "whatsapp_link": "https://wa.me/5493426154768",
@@ -1349,7 +1136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.357380+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.179158+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1364,8 +1151,8 @@
       "pais": "Unknown",
       "vehiculo": "",
       "patente": "",
-      "fecha_visible": "2026-07-09",
-      "fecha_iso": "2026-07-09T00:00:00",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
       "platform": "VentaFe",
       "source_url": "https://www.ventafe.com.ar/automoviles/4919824-gol-trend-pack-ii-2010-vendo-ya",
       "quoted_text": "> GOL TREND PACK II. 2010 VENDO YA!!! Muy bueno!!! Atención: LAS 4 CUBIERTAS NUEVAS!!! BATERÍA Y DISCO DE EMBRAGUE NUEVOS!! .Dirección, cierre centralizado, aire. Revisión técnica reciente. 119.000 km . LIQUIDO!!! $9.649.000 Muy bueno!!! Atención: LAS 4 CUBIERTAS NUEVAS!!! BATERÍA Y DISCO DE EMBRAGU",
@@ -1387,17 +1174,17 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-09T20:45:06.357692+00:00",
+      "discovery_timestamp": "2026-07-11T22:43:08.179395+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_warm": [],
   "insights": [
-    "El 83% de los leads calientes provienen de VentaFe.",
-    "El 6% de los leads calientes son de Córdoba.",
+    "El 100% de los leads calientes provienen de VentaFe.",
+    "El 7% de los leads calientes son de Paraná.",
     "El problema más frecuente es: Preventivo — Verificación de deuda sugerida.",
-    "83% de los leads calientes tienen contacto público visible.",
-    "2 leads calientes muestran señales de urgencia temporal."
+    "100% de los leads calientes tienen contacto público visible.",
+    "1 leads calientes muestran señales de urgencia temporal."
   ],
   "meta": {
     "version": "1.0",
@@ -1425,7 +1212,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 95.92,
-    "queries_executed": 3
+    "runtime_seconds": 85.5,
+    "queries_executed": 2
   }
 }
