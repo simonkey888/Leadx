@@ -1,24 +1,5 @@
 [
   {
-    "run_id": "112d34536eff",
-    "generated_at": "2026-07-04T20:52:04.280823+00:00",
-    "summary": {
-      "total_leads": 0,
-      "hot_leads": 0,
-      "warm_leads": 0,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 0,
-      "avg_score_hot": 0,
-      "conversion_probability": 0,
-      "by_category": {},
-      "by_platform": {},
-      "by_province": {}
-    }
-  },
-  {
     "run_id": "f57522756798",
     "generated_at": "2026-07-04T21:55:12.258048+00:00",
     "summary": {
@@ -2477,6 +2458,31 @@
   {
     "run_id": "cc44810d121c",
     "generated_at": "2026-07-11T07:10:22.064180+00:00",
+    "summary": {
+      "total_leads": 15,
+      "hot_leads": 15,
+      "warm_leads": 0,
+      "contactable": 15,
+      "with_whatsapp": 2,
+      "with_phone": 15,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 15
+      },
+      "by_platform": {
+        "VentaFe": 15
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "298e6f4e06de",
+    "generated_at": "2026-07-11T09:24:32.583197+00:00",
     "summary": {
       "total_leads": 15,
       "hot_leads": 15,
