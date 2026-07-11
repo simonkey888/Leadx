@@ -1,31 +1,5 @@
 [
   {
-    "run_id": "831a5cbf13ac",
-    "generated_at": "2026-07-05T07:21:38.168738+00:00",
-    "summary": {
-      "total_leads": 5,
-      "hot_leads": 3,
-      "warm_leads": 2,
-      "contactable": 1,
-      "with_whatsapp": 1,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 58.0,
-      "avg_score_hot": 66.7,
-      "conversion_probability": 60.0,
-      "by_category": {
-        "TRANSFER_PROBLEM": 5
-      },
-      "by_platform": {
-        "Reddit": 5
-      },
-      "by_province": {
-        "Santa Fe": 1,
-        "CABA": 1
-      }
-    }
-  },
-  {
     "run_id": "6f1f66ba0b1c",
     "generated_at": "2026-07-05T10:07:38.449858+00:00",
     "summary": {
@@ -2483,6 +2457,31 @@
   {
     "run_id": "a1d877981ae7",
     "generated_at": "2026-07-11T14:49:36.065524+00:00",
+    "summary": {
+      "total_leads": 15,
+      "hot_leads": 15,
+      "warm_leads": 0,
+      "contactable": 15,
+      "with_whatsapp": 2,
+      "with_phone": 15,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 15
+      },
+      "by_platform": {
+        "VentaFe": 15
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "07e2b7d41b3c",
+    "generated_at": "2026-07-11T15:52:27.883901+00:00",
     "summary": {
       "total_leads": 15,
       "hot_leads": 15,
