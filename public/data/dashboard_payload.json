@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-11T13:22:21.647067+00:00",
-  "run_id": "5594b40ec5af",
+  "generated_at": "2026-07-11T14:49:36.065524+00:00",
+  "run_id": "a1d877981ae7",
   "summary": {
     "total_leads": 15,
     "hot_leads": 15,
@@ -24,6 +24,44 @@
   },
   "leads_all": [
     {
+      "id": "482503dfdbc076ea",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5013354",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5013354-mg3-hybrid-luxury-2026",
+      "quoted_text": "> ► MG3 HYBRID+ LUXURY 2026 ► MG3 HYBRID+ LUXURY 2026 • 2.600 KM • Color Blanco ✓ Sistema Hybrid+ ✓ Caja automática ✓ Pantalla multimedia ✓ Apple CarPlay y Android Auto ✓ Cámara de retroceso ✓ Tablero digital ✓ Climatizador automático ✓ Control crucero adaptativo ✓ Acceso sin llave ✓ Excelente estad",
+      "contacto_publico": true,
+      "whatsapp_publico": "543425445745",
+      "whatsapp_link": "https://wa.me/5493425445745",
+      "telefono_publico": "3425445745",
+      "telefono_e164": "+5493425445745",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-11T14:49:36.062017+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "55918872af22ec8f",
       "score": 42,
       "label": "real_lead",
@@ -58,7 +96,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.643578+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062262+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -98,7 +136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.643837+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062504+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -136,7 +174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644083+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062738+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -174,7 +212,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644269+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062943+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -212,7 +250,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644483+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063165+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -250,7 +288,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644631+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063318+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -290,7 +328,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644833+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063532+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -330,7 +368,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645171+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063837+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -368,45 +406,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645340+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "e35dba85aea4c6a0",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5009542",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-11",
-      "fecha_iso": "2026-07-11T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5009542-ford-fiesta-se-kd-1-6-5p-2017",
-      "quoted_text": "> FORD FIESTA SE KD 1.6 5P 2017 ✔️ Año 2017 ✔️ 82.000 km ✔️ Motor 1.6 ✔️ Caja manual ✔️ 5 puertas ✔️ Llantas de aleación ✔️ Faros antiniebla ✔️ Aire acondicionado ✔️ Cierre centralizado ✔️ Levanta cristales eléctricos ✔️ Excelente estado ???? Marianoff Automóviles ???? WhatsApp 3425445745 ✔️ Año 201",
-      "contacto_publico": true,
-      "whatsapp_publico": "543425445745",
-      "whatsapp_link": "https://wa.me/5493425445745",
-      "telefono_publico": "WhatsApp 3425445745",
-      "telefono_e164": "+5493425445745",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645579+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064003+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -444,7 +444,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645800+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064232+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -482,7 +482,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645938+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064376+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -520,7 +520,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.646178+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064608+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -558,7 +558,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.646306+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064742+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -596,12 +596,50 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.646530+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064984+00:00",
       "deuda_clasificar": 0
     }
   ],
   "leads_hot": [
     {
+      "id": "482503dfdbc076ea",
+      "score": 42,
+      "label": "real_lead",
+      "problem_category": "PREVENTIVE_SCAN",
+      "problem_summary": "Preventivo — Verificación de deuda sugerida",
+      "persona": "u/Vendedor #5013354",
+      "provincia": "",
+      "ciudad": "",
+      "pais": "Unknown",
+      "vehiculo": "auto",
+      "patente": "",
+      "fecha_visible": "2026-07-11",
+      "fecha_iso": "2026-07-11T00:00:00",
+      "platform": "VentaFe",
+      "source_url": "https://www.ventafe.com.ar/automoviles/5013354-mg3-hybrid-luxury-2026",
+      "quoted_text": "> ► MG3 HYBRID+ LUXURY 2026 ► MG3 HYBRID+ LUXURY 2026 • 2.600 KM • Color Blanco ✓ Sistema Hybrid+ ✓ Caja automática ✓ Pantalla multimedia ✓ Apple CarPlay y Android Auto ✓ Cámara de retroceso ✓ Tablero digital ✓ Climatizador automático ✓ Control crucero adaptativo ✓ Acceso sin llave ✓ Excelente estad",
+      "contacto_publico": true,
+      "whatsapp_publico": "543425445745",
+      "whatsapp_link": "https://wa.me/5493425445745",
+      "telefono_publico": "3425445745",
+      "telefono_e164": "+5493425445745",
+      "email_publico": "",
+      "score_breakdown": {
+        "ventafe_base": 20,
+        "public_contact_visible": 25,
+        "has_contact": 30
+      },
+      "detected_signals": [
+        "PREVENTIVO_A_VERIFICAR",
+        "VENTAFE_LISTING",
+        "contact_visible",
+        "VENTAFE_LEAD",
+        "HAS_CONTACT"
+      ],
+      "discovery_timestamp": "2026-07-11T14:49:36.062017+00:00",
+      "deuda_clasificar": 0
+    },
+    {
       "id": "55918872af22ec8f",
       "score": 42,
       "label": "real_lead",
@@ -636,7 +674,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.643578+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062262+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -676,7 +714,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.643837+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062504+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -714,7 +752,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644083+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062738+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -752,7 +790,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644269+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.062943+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -790,7 +828,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644483+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063165+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -828,7 +866,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644631+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063318+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -868,7 +906,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.644833+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063532+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -908,7 +946,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645171+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.063837+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -946,45 +984,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645340+00:00",
-      "deuda_clasificar": 0
-    },
-    {
-      "id": "e35dba85aea4c6a0",
-      "score": 42,
-      "label": "real_lead",
-      "problem_category": "PREVENTIVE_SCAN",
-      "problem_summary": "Preventivo — Verificación de deuda sugerida",
-      "persona": "u/Vendedor #5009542",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Unknown",
-      "vehiculo": "auto",
-      "patente": "",
-      "fecha_visible": "2026-07-11",
-      "fecha_iso": "2026-07-11T00:00:00",
-      "platform": "VentaFe",
-      "source_url": "https://www.ventafe.com.ar/automoviles/5009542-ford-fiesta-se-kd-1-6-5p-2017",
-      "quoted_text": "> FORD FIESTA SE KD 1.6 5P 2017 ✔️ Año 2017 ✔️ 82.000 km ✔️ Motor 1.6 ✔️ Caja manual ✔️ 5 puertas ✔️ Llantas de aleación ✔️ Faros antiniebla ✔️ Aire acondicionado ✔️ Cierre centralizado ✔️ Levanta cristales eléctricos ✔️ Excelente estado ???? Marianoff Automóviles ???? WhatsApp 3425445745 ✔️ Año 201",
-      "contacto_publico": true,
-      "whatsapp_publico": "543425445745",
-      "whatsapp_link": "https://wa.me/5493425445745",
-      "telefono_publico": "WhatsApp 3425445745",
-      "telefono_e164": "+5493425445745",
-      "email_publico": "",
-      "score_breakdown": {
-        "ventafe_base": 20,
-        "public_contact_visible": 25,
-        "has_contact": 30
-      },
-      "detected_signals": [
-        "PREVENTIVO_A_VERIFICAR",
-        "VENTAFE_LISTING",
-        "contact_visible",
-        "VENTAFE_LEAD",
-        "HAS_CONTACT"
-      ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645579+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064003+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1022,7 +1022,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645800+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064232+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1060,7 +1060,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.645938+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064376+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1098,7 +1098,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.646178+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064608+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1136,7 +1136,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.646306+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064742+00:00",
       "deuda_clasificar": 0
     },
     {
@@ -1174,7 +1174,7 @@
         "VENTAFE_LEAD",
         "HAS_CONTACT"
       ],
-      "discovery_timestamp": "2026-07-11T13:22:21.646530+00:00",
+      "discovery_timestamp": "2026-07-11T14:49:36.064984+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -1212,7 +1212,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 96.76,
+    "runtime_seconds": 98.31,
     "queries_executed": 2
   }
 }
