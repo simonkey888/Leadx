@@ -1,31 +1,5 @@
 [
   {
-    "run_id": "3eb887d38af7",
-    "generated_at": "2026-07-05T20:54:14.690717+00:00",
-    "summary": {
-      "total_leads": 5,
-      "hot_leads": 5,
-      "warm_leads": 0,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 70.0,
-      "avg_score_hot": 70.0,
-      "conversion_probability": 100.0,
-      "by_category": {
-        "TRANSFER_PROBLEM": 1,
-        "FINE_DISPUTE": 4
-      },
-      "by_platform": {
-        "Reddit": 5
-      },
-      "by_province": {
-        "CABA": 1
-      }
-    }
-  },
-  {
     "run_id": "436ea2157068",
     "generated_at": "2026-07-05T21:58:14.495614+00:00",
     "summary": {
@@ -2509,6 +2483,25 @@
       "by_province": {
         "Paraná": 1
       }
+    }
+  },
+  {
+    "run_id": "dbf30823ab4a",
+    "generated_at": "2026-07-11T23:51:27.065134+00:00",
+    "summary": {
+      "total_leads": 0,
+      "hot_leads": 0,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 0,
+      "avg_score_hot": 0,
+      "conversion_probability": 0,
+      "by_category": {},
+      "by_platform": {},
+      "by_province": {}
     }
   }
 ]
