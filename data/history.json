@@ -1,32 +1,5 @@
 [
   {
-    "run_id": "1d50322a2dfc",
-    "generated_at": "2026-07-04T15:58:11.944372+00:00",
-    "summary": {
-      "total_leads": 6,
-      "hot_leads": 6,
-      "warm_leads": 0,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 85.0,
-      "avg_score_hot": 85.0,
-      "conversion_probability": 100.0,
-      "by_category": {
-        "TRANSFER_PROBLEM": 4,
-        "FINE_DISPUTE": 2
-      },
-      "by_platform": {
-        "Reddit": 6
-      },
-      "by_province": {
-        "CABA": 1,
-        "Tigre": 1
-      }
-    }
-  },
-  {
     "run_id": "aa96ddb86e3a",
     "generated_at": "2026-07-04T17:07:49.457499+00:00",
     "summary": {
@@ -2479,6 +2452,31 @@
   {
     "run_id": "ac33d13c5f80",
     "generated_at": "2026-07-10T23:00:23.014576+00:00",
+    "summary": {
+      "total_leads": 15,
+      "hot_leads": 15,
+      "warm_leads": 0,
+      "contactable": 15,
+      "with_whatsapp": 2,
+      "with_phone": 15,
+      "with_email": 0,
+      "avg_score": 42.0,
+      "avg_score_hot": 42.0,
+      "conversion_probability": 100.0,
+      "by_category": {
+        "PREVENTIVE_SCAN": 15
+      },
+      "by_platform": {
+        "VentaFe": 15
+      },
+      "by_province": {
+        "Paraná": 1
+      }
+    }
+  },
+  {
+    "run_id": "2719c63c6f9d",
+    "generated_at": "2026-07-11T00:05:01.381402+00:00",
     "summary": {
       "total_leads": 15,
       "hot_leads": 15,
