@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-12T16:55:26.005465+00:00",
-  "run_id": "5d7fedb9e249",
+  "generated_at": "2026-07-12T17:57:26.536019+00:00",
+  "run_id": "6758da13699b",
   "summary": {
     "total_leads": 1,
     "hot_leads": 1,
@@ -56,7 +56,7 @@
         "argentina",
         "EXTREME_INTENT"
       ],
-      "discovery_timestamp": "2026-07-12T16:55:24.648660+00:00",
+      "discovery_timestamp": "2026-07-12T17:57:25.084569+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -96,7 +96,7 @@
         "argentina",
         "EXTREME_INTENT"
       ],
-      "discovery_timestamp": "2026-07-12T16:55:24.648660+00:00",
+      "discovery_timestamp": "2026-07-12T17:57:25.084569+00:00",
       "deuda_clasificar": 0
     }
   ],
@@ -132,7 +132,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 65.74,
-    "queries_executed": 2
+    "runtime_seconds": 66.37,
+    "queries_executed": 1
   }
 }
