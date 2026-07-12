@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-12T13:09:42.543240+00:00",
-  "run_id": "39d2780dfb5d",
+  "generated_at": "2026-07-12T14:52:35.438297+00:00",
+  "run_id": "bcd70db3086c",
   "summary": {
     "total_leads": 0,
     "hot_leads": 0,
@@ -48,7 +48,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 66.7,
+    "runtime_seconds": 65.5,
     "queries_executed": 1
   }
 }

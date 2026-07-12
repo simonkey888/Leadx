@@ -1,24 +1,5 @@
 [
   {
-    "run_id": "4fd65b830188",
-    "generated_at": "2026-07-06T09:01:57.186766+00:00",
-    "summary": {
-      "total_leads": 0,
-      "hot_leads": 0,
-      "warm_leads": 0,
-      "contactable": 0,
-      "with_whatsapp": 0,
-      "with_phone": 0,
-      "with_email": 0,
-      "avg_score": 0,
-      "avg_score_hot": 0,
-      "conversion_probability": 0,
-      "by_category": {},
-      "by_platform": {},
-      "by_province": {}
-    }
-  },
-  {
     "run_id": "eeaa151a77d8",
     "generated_at": "2026-07-06T10:15:51.716777+00:00",
     "summary": {
@@ -2456,6 +2437,25 @@
   {
     "run_id": "39d2780dfb5d",
     "generated_at": "2026-07-12T13:09:42.543240+00:00",
+    "summary": {
+      "total_leads": 0,
+      "hot_leads": 0,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 0,
+      "avg_score_hot": 0,
+      "conversion_probability": 0,
+      "by_category": {},
+      "by_platform": {},
+      "by_province": {}
+    }
+  },
+  {
+    "run_id": "bcd70db3086c",
+    "generated_at": "2026-07-12T14:52:35.438297+00:00",
     "summary": {
       "total_leads": 0,
       "hot_leads": 0,

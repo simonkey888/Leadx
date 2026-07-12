@@ -1,31 +1,12 @@
 {
   "total_runs": 100,
-  "last_run": "2026-07-12T13:09:42.543240+00:00",
-  "last_run_id": "39d2780dfb5d",
+  "last_run": "2026-07-12T14:52:35.438297+00:00",
+  "last_run_id": "bcd70db3086c",
   "total_leads_all_time": 1195,
   "total_hot_leads_all_time": 1195,
   "avg_hot_per_run": 11.9,
-  "runs_today": 6,
+  "runs_today": 7,
   "last_7_days": [
-    {
-      "run_id": "dbf30823ab4a",
-      "generated_at": "2026-07-11T23:51:27.065134+00:00",
-      "summary": {
-        "total_leads": 0,
-        "hot_leads": 0,
-        "warm_leads": 0,
-        "contactable": 0,
-        "with_whatsapp": 0,
-        "with_phone": 0,
-        "with_email": 0,
-        "avg_score": 0,
-        "avg_score_hot": 0,
-        "conversion_probability": 0,
-        "by_category": {},
-        "by_platform": {},
-        "by_province": {}
-      }
-    },
     {
       "run_id": "4c7af325fe59",
       "generated_at": "2026-07-12T02:13:53.019356+00:00",
@@ -124,6 +105,25 @@
     {
       "run_id": "39d2780dfb5d",
       "generated_at": "2026-07-12T13:09:42.543240+00:00",
+      "summary": {
+        "total_leads": 0,
+        "hot_leads": 0,
+        "warm_leads": 0,
+        "contactable": 0,
+        "with_whatsapp": 0,
+        "with_phone": 0,
+        "with_email": 0,
+        "avg_score": 0,
+        "avg_score_hot": 0,
+        "conversion_probability": 0,
+        "by_category": {},
+        "by_platform": {},
+        "by_province": {}
+      }
+    },
+    {
+      "run_id": "bcd70db3086c",
+      "generated_at": "2026-07-12T14:52:35.438297+00:00",
       "summary": {
         "total_leads": 0,
         "hot_leads": 0,
