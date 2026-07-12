@@ -1,28 +1,5 @@
 [
   {
-    "run_id": "0b0c9de2a60b",
-    "generated_at": "2026-07-06T14:22:05.479107+00:00",
-    "summary": {
-      "total_leads": 1,
-      "hot_leads": 1,
-      "warm_leads": 0,
-      "contactable": 1,
-      "with_whatsapp": 0,
-      "with_phone": 1,
-      "with_email": 0,
-      "avg_score": 100.0,
-      "avg_score_hot": 100.0,
-      "conversion_probability": 100.0,
-      "by_category": {
-        "FINE_DISPUTE": 1
-      },
-      "by_platform": {
-        "Ventafe.Com.Ar": 1
-      },
-      "by_province": {}
-    }
-  },
-  {
     "run_id": "f9dd6d61001f",
     "generated_at": "2026-07-06T15:50:57.608626+00:00",
     "summary": {
@@ -2471,6 +2448,25 @@
       "by_platform": {
         "Reddit": 1
       },
+      "by_province": {}
+    }
+  },
+  {
+    "run_id": "c3d3f23af6f4",
+    "generated_at": "2026-07-12T19:04:06.844534+00:00",
+    "summary": {
+      "total_leads": 0,
+      "hot_leads": 0,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 0,
+      "avg_score_hot": 0,
+      "conversion_probability": 0,
+      "by_category": {},
+      "by_platform": {},
       "by_province": {}
     }
   }
