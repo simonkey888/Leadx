@@ -1,110 +1,26 @@
 {
-  "generated_at": "2026-07-13T10:21:28.944067+00:00",
-  "run_id": "a1bd523193cd",
+  "generated_at": "2026-07-13T13:18:25.547831+00:00",
+  "run_id": "b36dcd95316a",
   "summary": {
-    "total_leads": 1,
-    "hot_leads": 1,
+    "total_leads": 0,
+    "hot_leads": 0,
     "warm_leads": 0,
     "contactable": 0,
     "with_whatsapp": 0,
     "with_phone": 0,
     "with_email": 0,
-    "avg_score": 100.0,
-    "avg_score_hot": 100.0,
-    "conversion_probability": 100.0,
-    "by_category": {
-      "FINE_DISPUTE": 1
-    },
-    "by_platform": {
-      "Reddit": 1
-    },
+    "avg_score": 0,
+    "avg_score_hot": 0,
+    "conversion_probability": 0,
+    "by_category": {},
+    "by_platform": {},
     "by_province": {}
   },
-  "leads_all": [
-    {
-      "id": "3281468c5907c1db",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Bubbly-Butterfly-195",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-12T12:40:08+00:00",
-      "fecha_iso": "2026-07-12T12:40:08+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ESLegal/comments/1uueeeq/cobrar_el_paro_e_irse_de_viaje",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola! Mi mujer tuvo que irse de urgencia a Argentina por que el padre está mal de salud.<br/> Ella está cobrando el paro y leyó por ahí que tiene que avisar el SEPE, el tema es que no tiene acceso a su red móvil allí para ingresar con la Clave Móvil.<br/> Su estadía",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15,
-        "extreme_intent": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days",
-        "argentina",
-        "EXTREME_INTENT"
-      ],
-      "discovery_timestamp": "2026-07-13T10:21:27.539025+00:00",
-      "deuda_clasificar": 0
-    }
-  ],
-  "leads_hot": [
-    {
-      "id": "3281468c5907c1db",
-      "score": 100,
-      "label": "real_lead",
-      "problem_category": "FINE_DISPUTE",
-      "problem_summary": "Disputa de multa/fotomulta",
-      "persona": "u/Bubbly-Butterfly-195",
-      "provincia": "",
-      "ciudad": "",
-      "pais": "Argentina",
-      "vehiculo": "",
-      "patente": "",
-      "fecha_visible": "2026-07-12T12:40:08+00:00",
-      "fecha_iso": "2026-07-12T12:40:08+00:00",
-      "platform": "Reddit",
-      "source_url": "https://www.reddit.com/r/ESLegal/comments/1uueeeq/cobrar_el_paro_e_irse_de_viaje",
-      "quoted_text": "<!-- SC_OFF --><div class=\"md\"><p>Hola! Mi mujer tuvo que irse de urgencia a Argentina por que el padre está mal de salud.<br/> Ella está cobrando el paro y leyó por ahí que tiene que avisar el SEPE, el tema es que no tiene acceso a su red móvil allí para ingresar con la Clave Móvil.<br/> Su estadía",
-      "contacto_publico": false,
-      "whatsapp_publico": "",
-      "whatsapp_link": "",
-      "telefono_publico": "",
-      "telefono_e164": "",
-      "email_publico": "",
-      "score_breakdown": {
-        "multa_or_fotomulta": 60,
-        "recent_0_3_days": 20,
-        "argentina_signal": 15,
-        "extreme_intent": 20
-      },
-      "detected_signals": [
-        "multa_fotomulta",
-        "recent_0_3_days",
-        "argentina",
-        "EXTREME_INTENT"
-      ],
-      "discovery_timestamp": "2026-07-13T10:21:27.539025+00:00",
-      "deuda_clasificar": 0
-    }
-  ],
+  "leads_all": [],
+  "leads_hot": [],
   "leads_warm": [],
   "insights": [
-    "El 100% de los leads calientes provienen de Reddit.",
-    "El problema más frecuente es: Disputa de multa/fotomulta.",
-    "0% de los leads calientes tienen contacto público visible."
+    "Sin datos suficientes para generar insights."
   ],
   "meta": {
     "version": "1.0",
@@ -132,7 +48,7 @@
       "dm_hint": 60,
       "urgency_hint": 30
     },
-    "runtime_seconds": 66.37,
-    "queries_executed": 1
+    "runtime_seconds": 65.56,
+    "queries_executed": 2
   }
 }
