@@ -1,34 +1,5 @@
 [
   {
-    "run_id": "586e8db346f9",
-    "generated_at": "2026-07-07T04:40:07.911855+00:00",
-    "summary": {
-      "total_leads": 30,
-      "hot_leads": 30,
-      "warm_leads": 0,
-      "contactable": 30,
-      "with_whatsapp": 17,
-      "with_phone": 30,
-      "with_email": 0,
-      "avg_score": 87.7,
-      "avg_score_hot": 87.7,
-      "conversion_probability": 100.0,
-      "by_category": {
-        "OTHER": 14,
-        "TRANSFER_PROBLEM": 13,
-        "OWNERSHIP_ISSUE": 2,
-        "FINE_DISPUTE": 1
-      },
-      "by_platform": {
-        "Ventafe.Com.Ar": 30
-      },
-      "by_province": {
-        "CABA": 2,
-        "Paraná": 1
-      }
-    }
-  },
-  {
     "run_id": "6b8ff6a10aa1",
     "generated_at": "2026-07-07T04:47:18.474308+00:00",
     "summary": {
@@ -2356,6 +2327,25 @@
   {
     "run_id": "d6f93e027d15",
     "generated_at": "2026-07-13T22:52:53.729566+00:00",
+    "summary": {
+      "total_leads": 0,
+      "hot_leads": 0,
+      "warm_leads": 0,
+      "contactable": 0,
+      "with_whatsapp": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "avg_score": 0,
+      "avg_score_hot": 0,
+      "conversion_probability": 0,
+      "by_category": {},
+      "by_platform": {},
+      "by_province": {}
+    }
+  },
+  {
+    "run_id": "278805ebbe2a",
+    "generated_at": "2026-07-13T23:50:59.753464+00:00",
     "summary": {
       "total_leads": 0,
       "hot_leads": 0,
