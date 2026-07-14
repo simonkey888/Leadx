@@ -1913,43 +1913,158 @@ export default {
       });
     }
 
-    // ─── GET /api/leads ───
+    // ════════════════════════════════════════════════════════════════════
+    // AUTH ENDPOINTS — DASHBOARD_PASSWORD + SESSION_SECRET (not INGEST_SECRET)
+    // ════════════════════════════════════════════════════════════════════
+    const _rlKey = '__leadx_login_rl';
+    if (typeof globalThis[_rlKey] === 'undefined') globalThis[_rlKey] = new Map();
+    const _rl = globalThis[_rlKey];
+    function _rlCheck(ip) {
+      const now = Date.now();
+      const e = _rl.get(ip) || { count: 0, windowStart: now };
+      if (now - e.windowStart > 60000) { e.count = 0; e.windowStart = now; }
+      e.count++; _rl.set(ip, e); return e.count <= 5;
+    }
+    function _rlClear(ip) { _rl.delete(ip); }
+
+    async function _verifySession(request, env) {
+      const cookie = request.headers.get('Cookie') || '';
+      const m = cookie.match(/leadx_session=([^;]+)/);
+      if (!m) return false;
+      const token = m[1];
+      if (!env.SESSION_SECRET) return false;
+      const parts = token.split('.');
+      if (parts.length !== 2) return false;
+      const [payload, sig] = parts;
+      const expectedSig = await _hmac(payload, env.SESSION_SECRET);
+      if (!_constantTimeEqual(sig, expectedSig)) return false;
+      try {
+        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+        if (Date.now() - decoded.ts > 12 * 3600 * 1000) return false;
+      } catch { return false; }
+      return true;
+    }
+
+    async function _hmac(data, secret) {
+      const key = await crypto.subtle.importKey(
+        'raw', new TextEncoder().encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+      return btoa(String.fromCharCode(...new Uint8Array(sig)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function _constantTimeEqual(a, b) {
+      if (a.length !== b.length) return false;
+      let r = 0;
+      for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      return r === 0;
+    }
+
+    // ─── POST /api/auth/login ───
+    if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      if (!_rlCheck(ip)) {
+        return jsonResponse({ ok: false, error: 'Demasiados intentos. Esperá 1 minuto.' }, corsHeaders, 429);
+      }
+      try {
+        const body = await request.json();
+        const password = body.password || '';
+        if (!env.DASHBOARD_PASSWORD || !_constantTimeEqual(password, env.DASHBOARD_PASSWORD)) {
+          console.log(`[AUTH] login fail ip=${ip} ts=${Date.now()}`);
+          return jsonResponse({ ok: false, error: 'Contraseña incorrecta' }, corsHeaders, 401);
+        }
+        _rlClear(ip);
+        const payload = btoa(JSON.stringify({ ts: Date.now(), r: Math.random().toString(36).slice(2) }))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const sig = await _hmac(payload, env.SESSION_SECRET);
+        const token = `${payload}.${sig}`;
+        const headers = {
+          ...corsHeaders,
+          'Set-Cookie': `leadx_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=43200`,
+          'Content-Type': 'application/json',
+        };
+        console.log(`[AUTH] login ok ip=${ip} ts=${Date.now()}`);
+        return new Response(JSON.stringify({ ok: true }), { headers });
+      } catch (e) {
+        return jsonResponse({ ok: false, error: 'Contraseña incorrecta' }, corsHeaders, 401);
+      }
+    }
+
+    // ─── GET /api/auth/session ───
+    if (url.pathname === '/api/auth/session' && request.method === 'GET') {
+      const authenticated = await _verifySession(request, env);
+      return jsonResponse({ authenticated, mode: authenticated ? 'real' : 'demo' }, corsHeaders);
+    }
+
+    // ─── POST /api/auth/logout ───
+    if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
+      const headers = {
+        ...corsHeaders,
+        'Set-Cookie': 'leadx_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
+        'Content-Type': 'application/json',
+      };
+      return new Response(JSON.stringify({ ok: true }), { headers });
+    }
+
+    // ─── GET /api/leads ─── (session-aware)
     if (url.pathname === '/api/leads' && request.method === 'GET') {
+      const authenticated = await _verifySession(request, env);
+
+      if (!authenticated) {
+        // PUBLIC MODE — 12 fictitious demo leads only
+        const DEMO_LEADS = [
+          { id: "demo_001", score: 95, persona: "Carlos Demo", provincia: "Santa Fe", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa de moto comprada usada", snippet: "Hola, compré una moto usada y ahora me apareció una multa de enero.", vehiculo: "moto", fecha_iso: new Date(Date.now() - 6*3600000).toISOString(), fb_username: "demo_user_001", _status: "Nuevo", _isDemo: true },
+          { id: "demo_002", score: 88, persona: "María Ejemplo", provincia: "CABA", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "3 multas de tránsito transferidas", snippet: "Tengo 3 multas de una moto que transferí hace más de un año.", vehiculo: "moto", fecha_iso: new Date(Date.now() - 2*3600000).toISOString(), fb_username: "demo_user_002", _status: "Nuevo", _isDemo: true },
+          { id: "demo_003", score: 75, persona: "Juan Prueba", provincia: "Buenos Aires", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Camioneta con multas del dueño anterior", snippet: "Compré una camioneta que tenía 2 multas del dueño anterior.", vehiculo: "camioneta", fecha_iso: new Date(Date.now() - 86400000).toISOString(), fb_username: "demo_user_003", telefono_publico: "+5491134567890", _status: "Contactado", _isDemo: true },
+          { id: "demo_004", score: 70, persona: "Ana Test", provincia: "Entre Ríos", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa del primer dueño fallecido", snippet: "Consulta sobre una multa del primer dueño del auto.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 4*3600000).toISOString(), fb_username: "demo_user_004", _status: "Nuevo", _isDemo: true },
+          { id: "demo_005", score: 65, persona: "Pedro Sample", provincia: "CABA", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Exceso de velocidad CABA", snippet: "Me llegó una multa de CABA por exceso de velocidad 84km/h.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 12*3600000).toISOString(), telefono_publico: "+5491134567890", _status: "En gestión", _isDemo: true },
+          { id: "demo_006", score: 55, persona: "Lucía Mock", provincia: "Misiones", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa de radar móvil ¿prescribe?", snippet: "Las multas de radar móvil prescriben a los 3 años?", vehiculo: "auto", fecha_iso: new Date(Date.now() - 18*3600000).toISOString(), fb_username: "demo_user_006", _status: "Nuevo", _isDemo: true },
+          { id: "demo_007", score: 50, persona: "Roberto Demo", provincia: "Santa Fe", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Patente mal cargada en multa", snippet: "Me apareció una multa radicada en La Plata.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 2*86400000).toISOString(), fb_username: "demo_user_007", _status: "Cerrado", _isDemo: true },
+          { id: "demo_008", score: 45, persona: "Patricia Ejemplo", provincia: "Corrientes", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Páginas de consulta no muestran infracciones", snippet: "Por qué en las páginas de consulta no aparecen.", fecha_iso: new Date(Date.now() - 3*86400000).toISOString(), fb_username: "demo_user_008", _status: "Nuevo", _isDemo: true },
+          { id: "demo_009", score: 40, persona: "Diego Prueba", provincia: "Buenos Aires", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Descargo por 3 multas del 2023", snippet: "Se puede hacer algún descargo? Todas son del 2023.", vehiculo: "moto", fecha_iso: new Date(Date.now() - 5*86400000).toISOString(), _status: "Descartado", _isDemo: true },
+          { id: "demo_010", score: 35, persona: "Sandra Test", provincia: "CABA", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Consulta sobre VTV y multas", snippet: "Tengo la VTV vencida.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 7*86400000).toISOString(), telefono_publico: "+5491134567890", _status: "Nuevo", _isDemo: true },
+          { id: "demo_011", score: 80, persona: "Fernando Demo", provincia: "Santa Fe", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Ruta provincial, multa de policía caminera", snippet: "Policía Caminera en ruta provincial Santa Fe.", vehiculo: "camioneta", fecha_iso: new Date(Date.now() - 8*3600000).toISOString(), fb_username: "demo_user_011", _status: "Nuevo", _isDemo: true },
+          { id: "demo_012", score: 60, persona: "Carolina Sample", provincia: "Entre Ríos", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa de grúa municipal", snippet: "Me llevaron el auto con grúa municipal.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 14*3600000).toISOString(), fb_username: "demo_user_012", _status: "Nuevo", _isDemo: true },
+        ];
+        return jsonResponse({
+          leads_all: DEMO_LEADS,
+          leads_hot: DEMO_LEADS.filter(l => l.score >= 70),
+          summary: { total_leads: DEMO_LEADS.length, hot_leads: DEMO_LEADS.filter(l => l.score >= 70).length, with_whatsapp: 3, with_messenger: 9, with_email: 0 },
+          meta: { version: 'demo-v1', source: 'demo', generated_at: new Date().toISOString() },
+        }, corsHeaders);
+      }
+
+      // AUTHENTICATED MODE — real leads from KV
       try {
         const raw = await env.LEADX_KV.get('leads:live');
         if (!raw) {
           return jsonResponse({
-            leads_all: [],
-            leads_hot: [],
+            leads_all: [], leads_hot: [],
             summary: { total_leads: 0, hot_leads: 0, with_whatsapp: 0, with_messenger: 0, with_email: 0 },
-            meta: { version: '11.3', source: 'empty_kv', generated_at: new Date().toISOString() }
-          }, corsHeaders);
+            meta: { version: '11.5', source: 'empty_kv', generated_at: new Date().toISOString() }
+          }, { ...corsHeaders, 'Cache-Control': 'no-store, private', 'Pragma': 'no-cache', 'Vary': 'Cookie' });
         }
         const data = JSON.parse(raw);
-        // Asegurar estructura mínima
         if (!data.leads_all) data.leads_all = [];
         if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.score || 0) >= 50);
-        // SIMON FIX 2026-07-09: KPI honesto — separar WhatsApp real (teléfono) de Messenger (fb_username)
         const _all = data.leads_all;
-        const _hasTel = l => !!(l.telefono_publico || l.whatsapp_publico || l.telefono || l.phone);
-        const _hasFb  = l => !!(l.fb_username || l.fb_author_id);
-        const _hasEm  = l => !!(l.email || l.email_publico);
         data.summary = {
           total_leads: _all.length,
           hot_leads: data.leads_hot.length,
-          with_whatsapp: _all.filter(_hasTel).length,
-          with_messenger: _all.filter(_hasFb).length,
-          with_email: _all.filter(_hasEm).length,
+          with_whatsapp: _all.filter(l => l.telefono_publico || l.whatsapp_publico || l.telefono || l.phone).length,
+          with_messenger: _all.filter(l => l.fb_username || l.fb_author_id).length,
+          with_email: _all.filter(l => l.email || l.email_publico).length,
         };
-        if (!data.meta) data.meta = { version: '11.3', source: 'kv', generated_at: new Date().toISOString() };
-        return jsonResponse(data, corsHeaders);
+        if (!data.meta) data.meta = { version: '11.5', source: 'kv', generated_at: new Date().toISOString() };
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, private', 'Pragma': 'no-cache', 'Vary': 'Cookie' },
+        });
       } catch (e) {
-        return jsonResponse({
-          error: 'kv_read_failed',
-          message: e.message,
-          leads_all: [],
-          meta: { version: '10.0', source: 'error' }
-        }, corsHeaders, 500);
+        return jsonResponse({ error: 'kv_read_failed', message: e.message, leads_all: [],
+          meta: { version: '11.5', source: 'error' } }, corsHeaders, 500);
       }
     }
 

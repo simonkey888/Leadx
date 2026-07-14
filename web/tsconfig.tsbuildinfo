@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/demo-leads.ts","./src/main.tsx","./src/types.ts","./src/components/Actions.tsx","./src/components/Badge.tsx","./src/components/Filters.tsx","./src/components/Kpis.tsx","./src/components/LeadTable.tsx","./src/lib/api.ts","./src/lib/heatmap.ts","./src/lib/storage.ts"],"version":"5.9.3"}

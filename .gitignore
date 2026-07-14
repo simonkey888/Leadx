@@ -34,3 +34,5 @@ tool-results/
 # Cloudflare local
 .wrangler/
 .dev.vars
+web/node_modules/
+web/dist/
