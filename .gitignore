@@ -36,3 +36,5 @@ tool-results/
 .dev.vars
 web/node_modules/
 web/dist/
+*.tsbuildinfo
+test-results.json

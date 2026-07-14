@@ -1907,10 +1907,13 @@ export default {
     }
 
     // ─── GET / ─── Dashboard HTML
-    if (url.pathname === '/' || url.pathname === '/index.html') {
-      return new Response(DASHBOARD_HTML, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      });
+    // ─── Frontend routes: serve React build via Cloudflare Static Assets ───
+    // /api/* and /cookies* routes are handled below BEFORE this fallback.
+    // Any non-API route falls through to env.ASSETS (SPA mode).
+    if (env.ASSETS && (url.pathname === '/' || url.pathname === '/index.html' ||
+        url.pathname.startsWith('/assets/') ||
+        url.pathname === '/vite.svg' || url.pathname === '/favicon.ico')) {
+      return env.ASSETS.fetch(request);
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -3759,7 +3762,17 @@ export default {
       }
     }
 
-    // ─── 404 ───
+    // ─── SPA fallback: any unknown non-API route → index.html ───
+    if (env.ASSETS) {
+      // Try the exact path first (e.g. /robots.txt), fallback to index.html for SPA routes
+      const assetResponse = await env.ASSETS.fetch(request);
+      if (assetResponse.status !== 404) return assetResponse;
+      // SPA fallback: serve index.html for client-side routing
+      const spaRequest = new Request(new URL('/index.html', request.url), request);
+      return env.ASSETS.fetch(spaRequest);
+    }
+
+    // ─── 404 (only if ASSETS binding missing) ───
     return jsonResponse({ error: 'not_found', path: url.pathname }, corsHeaders, 404);
   },
 
