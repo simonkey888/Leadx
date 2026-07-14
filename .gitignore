@@ -1,3 +1,36 @@
 skills/
 node_modules/
 scripts/set_github_secret.py
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Claves y certificados
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Cookies y sesiones
+*cookies*.json
+*cookie*.json
+*cookies*.txt
+*session*.json
+
+# Credenciales
+credentials*.json
+secrets*.json
+service-account*.json
+
+# Archivos temporales de agentes
+upload/
+download/
+tool-results/
+
+# Cloudflare local
+.wrangler/
+.dev.vars
