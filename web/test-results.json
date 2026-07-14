@@ -1,6 +1,6 @@
 {
-  "total": 12,
-  "passed": 12,
+  "total": 17,
+  "passed": 17,
   "failed": 0,
   "results": [
     {
@@ -24,9 +24,9 @@
       "detail": "Login fail path no autentica"
     },
     {
-      "name": "5. Cinco fallos producen 429 (worker.js rate limit)",
+      "name": "5. Cinco fallos producen 429 (Cloudflare binding, limit=5 period=60)",
       "ok": true,
-      "detail": "Rate limit no implementado"
+      "detail": "Rate limit no implementado o config incompleta"
     },
     {
       "name": "6. Login correcto cambia a datos reales (App.tsx)",
@@ -62,6 +62,31 @@
       "name": "12. Ningún deploy (no artifact de wrangler deploy)",
       "ok": true,
       "detail": "Se detectó artifact de deploy"
+    },
+    {
+      "name": "13. /api/metrics sin sesión devuelve métricas demo (status='demo')",
+      "ok": true,
+      "detail": "Metrics no tiene modo demo"
+    },
+    {
+      "name": "14. /api/metrics autenticado tiene Cache-Control: no-store, private",
+      "ok": true,
+      "detail": "Cache headers faltantes en metrics real"
+    },
+    {
+      "name": "15. Rate limit usa Cloudflare binding (LOGIN_RATE_LIMITER, no globalThis.Map)",
+      "ok": true,
+      "detail": "In-memory rate limit aún presente"
+    },
+    {
+      "name": "16. wrangler.toml tiene binding LOGIN_RATE_LIMITER",
+      "ok": true,
+      "detail": "Binding no configurado en wrangler.toml (path: /tmp/Leadx-light-ui/wrangler.toml)"
+    },
+    {
+      "name": "17. Login sin binding devuelve 503 (no in-memory fallback)",
+      "ok": true,
+      "detail": "Fallback en memoria presente"
     }
   ]
 }

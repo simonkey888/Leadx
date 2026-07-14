@@ -76,11 +76,12 @@ test("4. Contraseña incorrecta mantiene modo demo (api.ts no setea authenticate
   apiSrc.includes("ok: false") && !apiSrc.includes("setSession({ authenticated: true }) ? result.ok : false"),
   "Login fail path no autentica");
 
-// TEST 5: Cinco fallos producen 429
-// → worker.js tiene rate limit 5/60s
-test("5. Cinco fallos producen 429 (worker.js rate limit)",
-  workerSrc.includes("_rlCheck") && workerSrc.includes("429") && workerSrc.includes("e.count <= 5"),
-  "Rate limit no implementado");
+// TEST 5: Cinco fallos producen 429 (via Cloudflare Rate Limiting binding)
+test("5. Cinco fallos producen 429 (Cloudflare binding, limit=5 period=60)",
+  workerSrc.includes("env.LOGIN_RATE_LIMITER.limit") && workerSrc.includes("429") &&
+  readFileSync(join(ROOT, "..", "wrangler.toml"), "utf-8").includes("limit = 5") &&
+  readFileSync(join(ROOT, "..", "wrangler.toml"), "utf-8").includes("period = 60"),
+  "Rate limit no implementado o config incompleta");
 
 // TEST 6: Login correcto cambia a datos reales
 // → App.tsx: en login ok, setSession({ authenticated: true, mode: 'real' })
@@ -125,6 +126,39 @@ test("11. Build de producción exitoso (dist/ con JS + CSS + HTML)",
 test("12. Ningún deploy (no artifact de wrangler deploy)",
   !existsSync(join(ROOT, ".wrangler", "published.json")) && !existsSync(join(ROOT, "..", ".wrangler", "published.json")),
   "Se detectó artifact de deploy");
+
+// ── Tests adicionales: metrics session-aware + rate limit binding ──
+
+// TEST 13: /api/metrics en modo demo (sin sesión) no expone datos reales
+test("13. /api/metrics sin sesión devuelve métricas demo (status='demo')",
+  workerSrc.includes("status: 'demo'") && workerSrc.includes("DEMO_METRICS") &&
+  workerSrc.includes("if (!authenticated)"),
+  "Metrics no tiene modo demo");
+
+// TEST 14: /api/metrics en modo real tiene Cache-Control: no-store, private
+test("14. /api/metrics autenticado tiene Cache-Control: no-store, private",
+  workerSrc.includes("'Cache-Control': 'no-store, private'") &&
+  workerSrc.includes("'Vary': 'Cookie'"),
+  "Cache headers faltantes en metrics real");
+
+// TEST 15: Rate limit usa Cloudflare binding (no in-memory Map)
+test("15. Rate limit usa Cloudflare binding (LOGIN_RATE_LIMITER, no globalThis.Map)",
+  workerSrc.includes("env.LOGIN_RATE_LIMITER.limit") &&
+  !workerSrc.includes("globalThis[_rlKey]") &&
+  !workerSrc.includes("globalThis[_rlKey] = new Map()"),
+  "In-memory rate limit aún presente");
+
+// TEST 16: wrangler.toml tiene binding LOGIN_RATE_LIMITER
+const wranglerPath = existsSync(join(ROOT, "..", "wrangler.toml")) ? join(ROOT, "..", "wrangler.toml") : join(ROOT, "wrangler.toml");
+const wranglerContent = existsSync(wranglerPath) ? readFileSync(wranglerPath, "utf-8") : "";
+test("16. wrangler.toml tiene binding LOGIN_RATE_LIMITER",
+  wranglerContent.includes("LOGIN_RATE_LIMITER") && wranglerContent.includes('namespace_id = "1001"'),
+  `Binding no configurado en wrangler.toml (path: ${wranglerPath})`);
+
+// TEST 17: Login sin binding devuelve 503 (no fallback en memoria)
+test("17. Login sin binding devuelve 503 (no in-memory fallback)",
+  workerSrc.includes("rl.reason === 'no_binding'") && workerSrc.includes("503"),
+  "Fallback en memoria presente");
 
 console.log(`\n${"═".repeat(60)}`);
 console.log(`RESULTADO: ${passed}/${passed + failed} tests pasaron`);

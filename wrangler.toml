@@ -15,3 +15,12 @@ enabled = true
 # Cron Trigger cada 1h - scraping desde edge IP (no bloqueada)
 [triggers]
 crons = ["0 * * * *"]
+
+# Cloudflare Rate Limiting binding for login protection
+[[ratelimits]]
+name = "LOGIN_RATE_LIMITER"
+namespace_id = "1001"
+
+[ratelimits.simple]
+limit = 5
+period = 60

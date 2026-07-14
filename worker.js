@@ -1916,16 +1916,15 @@ export default {
     // ════════════════════════════════════════════════════════════════════
     // AUTH ENDPOINTS — DASHBOARD_PASSWORD + SESSION_SECRET (not INGEST_SECRET)
     // ════════════════════════════════════════════════════════════════════
-    const _rlKey = '__leadx_login_rl';
-    if (typeof globalThis[_rlKey] === 'undefined') globalThis[_rlKey] = new Map();
-    const _rl = globalThis[_rlKey];
-    function _rlCheck(ip) {
-      const now = Date.now();
-      const e = _rl.get(ip) || { count: 0, windowStart: now };
-      if (now - e.windowStart > 60000) { e.count = 0; e.windowStart = now; }
-      e.count++; _rl.set(ip, e); return e.count <= 5;
+    // Rate limit via Cloudflare Rate Limiting binding LOGIN_RATE_LIMITER.
+    // No in-memory fallback for production. If binding missing, login disabled.
+    async function _rlCheck(request, env) {
+      if (!env.LOGIN_RATE_LIMITER) return { ok: false, reason: 'no_binding' };
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const key = 'login:' + ip;
+      const { success } = await env.LOGIN_RATE_LIMITER.limit({ key });
+      return { ok: success };
     }
-    function _rlClear(ip) { _rl.delete(ip); }
 
     async function _verifySession(request, env) {
       const cookie = request.headers.get('Cookie') || '';
@@ -1964,10 +1963,15 @@ export default {
 
     // ─── POST /api/auth/login ───
     if (url.pathname === '/api/auth/login' && request.method === 'POST') {
-      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-      if (!_rlCheck(ip)) {
+      // Cloudflare Rate Limiting binding (no in-memory fallback)
+      const rl = await _rlCheck(request, env);
+      if (!rl.ok) {
+        if (rl.reason === 'no_binding') {
+          return jsonResponse({ ok: false, error: 'Servicio no disponible.' }, corsHeaders, 503);
+        }
         return jsonResponse({ ok: false, error: 'Demasiados intentos. Esperá 1 minuto.' }, corsHeaders, 429);
       }
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
       try {
         const body = await request.json();
         const password = body.password || '';
@@ -1975,7 +1979,6 @@ export default {
           console.log(`[AUTH] login fail ip=${ip} ts=${Date.now()}`);
           return jsonResponse({ ok: false, error: 'Contraseña incorrecta' }, corsHeaders, 401);
         }
-        _rlClear(ip);
         const payload = btoa(JSON.stringify({ ts: Date.now(), r: Math.random().toString(36).slice(2) }))
           .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         const sig = await _hmac(payload, env.SESSION_SECRET);
@@ -2068,22 +2071,43 @@ export default {
       }
     }
 
-    // ─── GET /api/metrics ───
+    // ─── GET /api/metrics ─── (session-aware)
     if (url.pathname === '/api/metrics' && request.method === 'GET') {
+      const authenticated = await _verifySession(request, env);
+
+      if (!authenticated) {
+        // PUBLIC MODE — metrics calculated only on demo leads (12 fictitious)
+        // No real counters, timestamps, or version visible anonymously
+        const DEMO_METRICS = {
+          total_leads: 12,
+          hot_leads: 4,
+          urgent_leads: 1,
+          contactable_leads: 3,
+          status: 'demo',
+        };
+        return jsonResponse(DEMO_METRICS, corsHeaders);
+      }
+
+      // AUTHENTICATED MODE — real metrics from KV
       try {
         const raw = await env.LEADX_KV.get('leads:live');
         if (!raw) {
           return jsonResponse({
             total_leads: 0, hot_leads: 0, contactable_leads: 0,
             urgent_leads: 0, status: 'empty'
-          }, corsHeaders);
+          }, {
+            ...corsHeaders,
+            'Cache-Control': 'no-store, private',
+            'Pragma': 'no-cache',
+            'Vary': 'Cookie',
+          });
         }
         const data = JSON.parse(raw);
         const leads = data.leads_all || [];
         const hot = leads.filter(l => (l.score || 0) >= 50);
         const urgent = leads.filter(l => (l.score || 0) >= 80);
         const contact = leads.filter(l => l.contact?.whatsapp || l.contact?.phone || l.whatsapp_publico);
-        return jsonResponse({
+        return new Response(JSON.stringify({
           total_leads: leads.length,
           hot_leads: hot.length,
           urgent_leads: urgent.length,
@@ -2091,7 +2115,15 @@ export default {
           status: 'ok',
           last_updated: data.meta?.generated_at || null,
           version: data.meta?.version || 'unknown'
-        }, corsHeaders);
+        }), {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, private',
+            'Pragma': 'no-cache',
+            'Vary': 'Cookie',
+          },
+        });
       } catch (e) {
         return jsonResponse({ error: e.message, status: 'error' }, corsHeaders, 500);
       }
