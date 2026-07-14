@@ -918,7 +918,7 @@ const S = {
 };
 
 // FIX QWEN v2.9: Sin prompt de autenticación.
-// getUrlSecret() siempre devuelve 'LEGACY_SECRET_REMOVED' hardcodeado (uso interno, frontend read-only).
+// getUrlSecret() devuelve string vacío (no hardcoded secret). Auth server-side solo.
 
 // Persistencia local (status + notes por lead ID)
 const DB = {
@@ -1617,10 +1617,14 @@ async function validateWaFromTable(id) {
 }
 
 function getUrlSecret() {
-  // FIX QWEN v2.9: Hardcodeado, sin prompts ni sessionStorage.
-  // Uso interno (frontend read-only). Si en el futuro se necesita auth real,
-  // agregar allowlist de IPs o proxy en el Worker.
-  return 'LEGACY_SECRET_REMOVED';
+  // SECURITY FIX 2026-07-14: No hardcoded secret in client code.
+  // Returns empty string — el caller debe manejar el caso de auth faltante.
+  // El INGEST_SECRET real se carga solo en el Worker (server-side), no en
+  // el HTML/JS que se sirve al navegador. Los endpoints públicos que no
+  // requieren auth (GET /api/leads) siguen funcionando sin este valor.
+  // Para endpoints autenticados, el operador debe usar un proxy server-side
+  // o ingresar el secret manualmente (futura implementación).
+  return '';
 }
 
 function closeModal() {
