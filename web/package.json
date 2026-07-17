@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "node scripts/run-tests.mjs"
+    "test": "node scripts/run-tests.mjs && node scripts/containment-tests.mjs",
+    "test:containment": "node scripts/containment-tests.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
