@@ -75,14 +75,16 @@ export async function checkSession(): Promise<SessionInfo> {
   }
 }
 
-export async function continueSession(): Promise<boolean> {
+export async function continueSession(): Promise<SessionInfo> {
   const res = await fetch(`${API_BASE}/api/auth/activity`, {
     method: "POST",
     credentials: "include",
     headers: { "X-LeadX-Activity": "user" },
   });
   if (res.status === 401) throw new SessionExpiredError();
-  return res.ok;
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  const data = await res.json();
+  return { authenticated: true, mode: "real", ...data };
 }
 
 export function relativeTime(lead: Lead): string {

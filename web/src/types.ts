@@ -47,4 +47,6 @@ export type HeatFilter = "todos" | "hot" | "warm" | "cold";
 export interface SessionInfo {
   authenticated: boolean;
   mode: "demo" | "real";
+  idleExpiresAt?: number;
+  absoluteExpiresAt?: number;
 }

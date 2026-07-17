@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 44465)
-Total output lines: 3909
+Warning: truncated output (original token count: 44562)
+Total output lines: 3918
 
 /**
  * LeadX Worker v10 — AUTOCONTENIDO
@@ -1425,7 +1425,7 @@ function openDetail(id) {
   const phoneLabel = document.getElementById('modal-phone-label');
 
   if (l._wa_state === 'validated_whatsapp') {
-    b…14465 tokens truncated…eaders: {
+    b…14562 tokens truncated…eaders: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
                 'Accept': 'text/html',
                 'Accept-Language': 'es-AR,es;q=0.9',
