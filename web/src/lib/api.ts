@@ -3,7 +3,14 @@ import { DEMO_LEADS } from "../demo-leads";
 
 const API_BASE = "";
 
-export async function fetchLeads(authenticated: boolean): Promise<{ leads: Lead[]; meta: any; isDemo: boolean }> {
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("session_expired");
+    this.name = "SessionExpiredError";
+  }
+}
+
+export async function fetchLeads(authenticated: boolean, userActivity = false): Promise<{ leads: Lead[]; meta: any; isDemo: boolean }> {
   if (!authenticated) {
     // PUBLIC MODE — return demo leads, never call /api/leads for real data
     return {
@@ -16,16 +23,14 @@ export async function fetchLeads(authenticated: boolean): Promise<{ leads: Lead[
   // AUTHENTICATED MODE — fetch real leads with session cookie
   const res = await fetch(`${API_BASE}/api/leads?limit=200`, {
     credentials: "include",
-    headers: { "Accept": "application/json" },
+    headers: {
+      "Accept": "application/json",
+      ...(userActivity ? { "X-LeadX-Activity": "user" } : {}),
+    },
   });
 
   if (res.status === 401) {
-    // Session expired — fallback to demo
-    return {
-      leads: DEMO_LEADS.map((l) => ({ ...l, _isDemo: true })),
-      meta: { version: "demo-v1", source: "demo-fallback" },
-      isDemo: true,
-    };
+    throw new SessionExpiredError();
   }
 
   if (!res.ok) throw new Error(`API ${res.status}`);
@@ -68,6 +73,16 @@ export async function checkSession(): Promise<SessionInfo> {
   } catch {
     return { authenticated: false, mode: "demo" };
   }
+}
+
+export async function continueSession(): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/api/auth/activity`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "X-LeadX-Activity": "user" },
+  });
+  if (res.status === 401) throw new SessionExpiredError();
+  return res.ok;
 }
 
 export function relativeTime(lead: Lead): string {

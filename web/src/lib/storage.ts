@@ -1,20 +1,17 @@
 import type { Lead, LeadStatus } from "../types";
 
-const STORAGE_KEY = "leadx_crm_state_v1";
-
 interface CrmState {
   [leadId: string]: { _status?: LeadStatus; _notes?: string; _monto?: number };
 }
 
+let memoryState: CrmState = {};
+
 export function loadCrmState(): CrmState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
+  return memoryState;
 }
 
 export function saveCrmState(state: CrmState): void {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  memoryState = state;
 }
 
 export function mergeCrmState(leads: Lead[]): Lead[] {
@@ -29,5 +26,5 @@ export function updateLeadCrm(leadId: string, patch: Partial<CrmState[string]>):
 }
 
 export function clearCrmState(): void {
-  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  memoryState = {};
 }
