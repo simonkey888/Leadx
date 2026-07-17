@@ -18,17 +18,17 @@ jobs:
       - name: Checkout containment candidate
         uses: actions/checkout@v4
         with:
-          ref: hotfix/production-data-containment-v1
+          ref: a6185a2d1fc392d22686ac7dda90ba3afebd7714
           fetch-depth: 1
 
       - name: Verify candidate HEAD
         shell: bash
         run: |
           set -euo pipefail
-          expected="dbe6b637748452eb53a2ee8306c58431c183edb6"
+          expected="a6185a2d1fc392d22686ac7dda90ba3afebd7714"
           actual="$(git rev-parse HEAD)"
           if [[ "$actual" != "$expected" ]]; then
-            echo "Unexpected containment HEAD."
+            echo "Unexpected containment HEAD. Expected: $expected, Actual: $actual"
             exit 1
           fi
 
@@ -67,5 +67,114 @@ jobs:
           done
           echo "All required Worker secret names are configured."
 
-      - name: Validate containment deployment bundle
+      - name: Capture active version ID before deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Retrieving currently active deployment version ID..."
+          DEPLOYMENTS_JSON=$(npx --yes wrangler@4.111.0 deployments list --json)
+          PREV_VERSION_ID=$(echo "$DEPLOYMENTS_JSON" | jq -r '
+            if type == "array" then
+              .[] | select(.active == true or .latest == true) | .id
+            elif type == "object" and .deployments then
+              .deployments[] | select(.active == true or .latest == true) | .id
+            else
+              empty
+            end
+          ' | head -n 1)
+          if [[ -z "$PREV_VERSION_ID" || "$PREV_VERSION_ID" == "null" ]]; then
+            echo "Warning: Could not capture active version ID. Fallback rollback is disabled."
+            echo "PREV_VERSION_ID=" >> $GITHUB_ENV
+          else
+            echo "Successfully registered previous version ID: $PREV_VERSION_ID"
+            echo "PREV_VERSION_ID=$PREV_VERSION_ID" >> $GITHUB_ENV
+          fi
+
+      - name: Validate absence of active cron triggers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -qi "cron" wrangler.toml; then
+            echo "CRITICAL: 'cron' trigger configuration found in wrangler.toml!"
+            exit 1
+          fi
+          echo "No cron trigger configuration detected in wrangler.toml."
+
+      - name: Validate containment deployment bundle (dry-run)
         run: npx --yes wrangler@4.111.0 deploy --dry-run
+
+      - name: Execute single wrangler deploy
+        run: npx --yes wrangler@4.111.0 deploy
+
+      - name: Validate production deployment (smoke tests)
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROD_URL="https://leadx.simondalmasso44.workers.dev"
+          echo "Starting post-deploy smoke tests on $PROD_URL..."
+
+          # Allow 5 seconds for CDN / Edge network propagation
+          sleep 5
+
+          echo "----------------------------------------"
+          echo "Smoke Test 1: Validate unauthenticated session state"
+          echo "----------------------------------------"
+          SESSION_JSON=$(curl -s -f "$PROD_URL/api/auth/session")
+          echo "Response: $SESSION_JSON"
+          if ! echo "$SESSION_JSON" | jq -e '.authenticated == false' >/dev/null; then
+            echo "Validation failed: Visitor must not be authenticated!"
+            exit 1
+          fi
+          if ! echo "$SESSION_JSON" | jq -e '.mode == "demo"' >/dev/null; then
+            echo "Validation failed: Session mode must be 'demo'!"
+            exit 1
+          fi
+
+          echo "----------------------------------------"
+          echo "Smoke Test 2: Validate anonymous leads (exactly 12 demo leads)"
+          echo "----------------------------------------"
+          LEADS_JSON=$(curl -s -f "$PROD_URL/api/leads")
+          LEADS_COUNT=$(echo "$LEADS_JSON" | jq '.leads_all | length')
+          echo "Leads count: $LEADS_COUNT"
+          if [[ "$LEADS_COUNT" -ne 12 ]]; then
+            echo "Validation failed: Expected exactly 12 demo leads, got $LEADS_COUNT!"
+            exit 1
+          fi
+          NON_DEMO_COUNT=$(echo "$LEADS_JSON" | jq '[.leads_all[] | select(._isDemo != true)] | length')
+          if [[ "$NON_DEMO_COUNT" -ne 0 ]]; then
+            echo "Validation failed: Found $NON_DEMO_COUNT non-demo leads in public response!"
+            exit 1
+          fi
+
+          echo "----------------------------------------"
+          echo "Smoke Test 3: Validate anonymous metrics (demo population only)"
+          echo "----------------------------------------"
+          METRICS_JSON=$(curl -s -f "$PROD_URL/api/metrics")
+          echo "Response: $METRICS_JSON"
+          if ! echo "$METRICS_JSON" | jq -e '.status == "demo"' >/dev/null; then
+            echo "Validation failed: Metrics status must be 'demo'!"
+            exit 1
+          fi
+          if echo "$METRICS_JSON" | jq -e 'has("version") or has("last_updated")' >/dev/null; then
+            echo "Validation failed: Anonymous metrics must not expose version or last_updated meta!"
+            exit 1
+          fi
+
+          echo "----------------------------------------"
+          echo "Smoke Test 4: Validate SPA container loads correctly"
+          echo "----------------------------------------"
+          INDEX_HTML=$(curl -s -f "$PROD_URL/")
+          if ! echo "$INDEX_HTML" | grep -qi "<html" >/dev/null; then
+            echo "Validation failed: Root URL response does not contain valid HTML!"
+            exit 1
+          fi
+          echo "All production smoke tests passed successfully!"
+
+      - name: Automatic Rollback on Failure
+        if: failure() && env.PREV_VERSION_ID != ''
+        run: |
+          echo "----------------------------------------"
+          echo "SMOKE TESTS OR DEPLOYMENT FAILED!"
+          echo "Initiating automatic rollback to version ${{ env.PREV_VERSION_ID }}..."
+          echo "----------------------------------------"
+          npx --yes wrangler@4.111.0 rollback ${{ env.PREV_VERSION_ID }} --message "Automatic rollback triggered due to production smoke test failure"
