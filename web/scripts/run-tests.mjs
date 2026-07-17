@@ -44,6 +44,11 @@ const demoLeadsSrc = existsSync(join(SRC, "demo-leads.ts")) ? readFileSync(join(
 const apiSrc = existsSync(join(SRC, "lib", "api.ts")) ? readFileSync(join(SRC, "lib", "api.ts"), "utf-8") : "";
 const appSrc = existsSync(join(SRC, "App.tsx")) ? readFileSync(join(SRC, "App.tsx"), "utf-8") : "";
 const sessionStateSrc = existsSync(join(SRC, "lib", "session-state.ts")) ? readFileSync(join(SRC, "lib", "session-state.ts"), "utf-8") : "";
+const stylesSrc = readFileSync(join(SRC, "styles.css"), "utf-8");
+const kpisSrc = readFileSync(join(SRC, "components", "Kpis.tsx"), "utf-8");
+const leadListSrc = readFileSync(join(SRC, "components", "LeadTable.tsx"), "utf-8");
+const detailSrc = readFileSync(join(SRC, "components", "LeadDetail.tsx"), "utf-8");
+const allClientSource = readAllFiles(SRC).map((file) => readFileSync(file, "utf-8")).join("\n");
 
 // ── Worker ──
 const workerSrc = existsSync(join(ROOT, "..", "worker.js")) ? readFileSync(join(ROOT, "..", "worker.js"), "utf-8") : readFileSync(join(ROOT, "worker.js"), "utf-8").catch(() => "");
@@ -161,6 +166,31 @@ test("16. wrangler.toml tiene binding LOGIN_RATE_LIMITER",
 test("17. Login sin binding devuelve 503 (no in-memory fallback)",
   workerSrc.includes("rl.reason === 'no_binding'") && workerSrc.includes("503"),
   "Fallback en memoria presente");
+
+test("18. Dashboard muestra exactamente cuatro KPIs compactos",
+  (kpisSrc.match(/className="kpi"/g) || []).length === 4,
+  "La banda de métricas no tiene cuatro elementos");
+
+test("19. Mobile usa cards reales y no una tabla transformada",
+  leadListSrc.includes("<article") && !leadListSrc.includes("<table"),
+  "La lista mobile todavía depende de una tabla");
+
+test("20. Login mobile, texto demo y modos están presentes",
+  appSrc.includes("Desbloquear datos reales") && appSrc.includes("Datos ficticios para explorar el CRM") &&
+  appSrc.includes("Modo demo") && appSrc.includes("Datos reales"),
+  "Falta una señal esencial de modo o acceso");
+
+test("21. Detalle responsive incluye diálogo y acciones de contacto",
+  detailSrc.includes('role="dialog"') && detailSrc.includes("<Actions") && stylesSrc.includes(".lead-detail"),
+  "Detalle de lead incompleto");
+
+test("22. Targets y breakpoint mobile cumplen contrato base",
+  stylesSrc.includes("min-height:44px") && stylesSrc.includes("@media(max-width:760px)"),
+  "Targets o breakpoint mobile ausentes");
+
+test("23. Cliente no persiste datos en localStorage",
+  !allClientSource.includes("localStorage") && !allClientSource.includes("sessionStorage"),
+  "Se detectó almacenamiento persistente en el cliente");
 
 console.log(`\n${"═".repeat(60)}`);
 console.log(`RESULTADO: ${passed}/${passed + failed} tests pasaron`);
