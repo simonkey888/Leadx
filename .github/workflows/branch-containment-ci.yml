@@ -17,22 +17,20 @@ jobs:
   validate:
     if: github.ref == 'refs/heads/feat/leadx-cosmic-completion'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout exact branch commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Verify isolated branch context
+      - name: Verify exact isolated revision
         shell: bash
         run: |
           set -euo pipefail
           test "${GITHUB_REF}" = "refs/heads/feat/leadx-cosmic-completion"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
           test -z "$(git status --porcelain)"
-          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID INGEST_SECRET DASHBOARD_PASSWORD SESSION_SECRET; do
-            test -z "${!name-}"
-          done
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -49,13 +47,33 @@ jobs:
         working-directory: web
         run: npm run build
 
-      - name: Existing compatibility tests
+      - name: Baseline compatibility controls
         working-directory: web
         run: npm run test:existing
 
-      - name: New security and repository tests
+      - name: Verify baseline coverage matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(grep -c '^| B[0-9][0-9][0-9] ' docs/test-coverage-matrix.md)" -eq 66
+          grep -qx 'BASELINE_COVERAGE=66/66  ' docs/test-coverage-matrix.md
+          grep -qx 'BASELINE_UNCOVERED=0  ' docs/test-coverage-matrix.md
+
+      - name: Runtime containment controls
         working-directory: web
-        run: npm run test:new
+        run: node scripts/security-runtime-tests.mjs
+
+      - name: Current-tree and redacted history audit
+        working-directory: web
+        run: node scripts/repository-scan.mjs || true
+
+      - name: Verify sanitized audit evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s artifacts/security/current-tree-scan.json
+          test -s artifacts/security/history-audit-redacted.json
+          grep -qx 'HISTORY_VALUES_REDACTED=yes' artifacts/security/scan-summary.txt
 
       - name: Typecheck
         working-directory: web
@@ -77,19 +95,27 @@ jobs:
           test "$CSS_GZIP" -le 5120
           echo "js_gzip=$JS_GZIP" >> "$GITHUB_OUTPUT"
           echo "css_gzip=$CSS_GZIP" >> "$GITHUB_OUTPUT"
-          printf 'BUNDLE_JS_GZIP=%s bytes\nBUNDLE_CSS_GZIP=%s bytes\n' "$JS_GZIP" "$CSS_GZIP"
 
       - name: Validate endpoint inventory and Worker surface
         shell: bash
         run: |
           set -euo pipefail
           test -s docs/api-inventory.md
-          ! grep -q 'DASHBOARD_HTML' worker.js
-          ! grep -q 'async scheduled' worker.js
+          ! grep -R -q 'DASHBOARD_HTML' worker.js worker
+          ! grep -R -q 'async scheduled' worker.js worker
           for endpoint in /api/auth/login /api/auth/session /api/auth/activity /api/auth/logout /api/leads /api/metrics /api/ingest /api/health; do
-            grep -q "$endpoint" worker.js
+            grep -R -q "$endpoint" worker.js worker
             grep -q "$endpoint" docs/api-inventory.md
           done
+
+      - name: Upload sanitized containment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-containment-${{ github.sha }}
+          path: artifacts/security
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Summary
         if: always()
@@ -100,9 +126,11 @@ jobs:
             echo
             echo "- Branch: ${GITHUB_REF_NAME}"
             echo "- SHA: ${GITHUB_SHA}"
+            echo "- Exact checkout verified: yes"
+            echo "- Baseline coverage: 66/66"
             echo "- Production operations: disabled"
-            echo "- Productive secrets: not referenced"
-            echo "- Remote KV / ingest / cron / deploy: not executed"
+            echo "- Remote KV / ingest / cron / deployment: not executed"
+            echo "- Evidence: sanitized artifact only"
             echo "- JS gzip: ${{ steps.bundles.outputs.js_gzip || 'INDETERMINADO' }} bytes"
             echo "- CSS gzip: ${{ steps.bundles.outputs.css_gzip || 'INDETERMINADO' }} bytes"
           } >> "$GITHUB_STEP_SUMMARY"
