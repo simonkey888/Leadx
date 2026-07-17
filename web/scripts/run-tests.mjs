@@ -43,6 +43,7 @@ const bundleContent = bundleJs ? readFileSync(bundleJs, "utf-8") : "";
 const demoLeadsSrc = existsSync(join(SRC, "demo-leads.ts")) ? readFileSync(join(SRC, "demo-leads.ts"), "utf-8") : "";
 const apiSrc = existsSync(join(SRC, "lib", "api.ts")) ? readFileSync(join(SRC, "lib", "api.ts"), "utf-8") : "";
 const appSrc = existsSync(join(SRC, "App.tsx")) ? readFileSync(join(SRC, "App.tsx"), "utf-8") : "";
+const sessionStateSrc = existsSync(join(SRC, "lib", "session-state.ts")) ? readFileSync(join(SRC, "lib", "session-state.ts"), "utf-8") : "";
 
 // ── Worker ──
 const workerSrc = existsSync(join(ROOT, "..", "worker.js")) ? readFileSync(join(ROOT, "..", "worker.js"), "utf-8") : readFileSync(join(ROOT, "worker.js"), "utf-8").catch(() => "");
@@ -96,9 +97,10 @@ test("7. Refresh conserva sesión (checkSession + /api/auth/session)",
   "Sesión no persiste");
 
 // TEST 8: Logout elimina datos reales de memoria
-// → App.tsx: handleLogout setLeads([]) + clearCrmState()
-test("8. Logout elimina datos reales de memoria (setLeads([]) + clearCrmState)",
-  appSrc.includes("setLeads([])") && appSrc.includes("clearCrmState()"),
+// → App delegates every logout/expiration path to the same safe purge function.
+test("8. Logout elimina datos reales, cierra detalle y restaura demo",
+  appSrc.includes("purgeRealSessionState(DEMO_LEADS, clearCrmState)") &&
+  appSrc.includes("setSelectedLead(null)") && sessionStateSrc.includes("authenticated: false"),
   "Logout no limpia estado");
 
 // TEST 9: Cookie no es accesible desde JavaScript
@@ -132,7 +134,7 @@ test("12. Ningún deploy (no artifact de wrangler deploy)",
 // TEST 13: /api/metrics en modo demo (sin sesión) no expone datos reales
 test("13. /api/metrics sin sesión devuelve métricas demo (status='demo')",
   workerSrc.includes("status: 'demo'") && workerSrc.includes("DEMO_METRICS") &&
-  workerSrc.includes("if (!authenticated)"),
+  workerSrc.includes("if (!verification.authenticated)"),
   "Metrics no tiene modo demo");
 
 // TEST 14: /api/metrics en modo real tiene Cache-Control: no-store, private
