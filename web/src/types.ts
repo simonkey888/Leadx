@@ -32,6 +32,7 @@ export interface Lead {
   image_urls?: string[];
   score_explain?: string[];
   _status?: LeadStatus;
+  _priority?: LeadPriority;
   _notes?: string;
   _monto?: number;
   _heat_label?: HeatLabel;
@@ -39,7 +40,8 @@ export interface Lead {
   _isDemo?: boolean;
 }
 
-export type LeadStatus = "Nuevo" | "Contactado" | "En gestión" | "Cerrado" | "Descartado";
+export type LeadStatus = "Nuevo" | "Revisado" | "Contactado" | "En gestión" | "Esperando respuesta" | "Cerrado" | "Descartado";
+export type LeadPriority = "Alta" | "Media" | "Baja";
 export type HeatLabel = "hot" | "warm" | "cold";
 export type ContactFilter = "todos" | "whatsapp" | "messenger" | "email" | "sin_contacto";
 export type HeatFilter = "todos" | "hot" | "warm" | "cold";
