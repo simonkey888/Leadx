@@ -1,0 +1,109 @@
+name: LeadX Branch Containment CI
+
+on:
+  push:
+    branches:
+      - feat/leadx-cosmic-completion
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-containment-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/feat/leadx-cosmic-completion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify branch and prohibited operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/feat/leadx-cosmic-completion"
+          test -z "$(git status --porcelain)"
+          if grep -Eq 'wrangler[[:space:]]+deploy|wrangler[[:space:]]+secret|/api/cron-run|curl[^\n]*/api/ingest' .github/workflows/branch-containment-ci.yml; then
+            echo "Containment CI contains a prohibited production operation."
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install exact dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build
+        working-directory: web
+        run: npm run build
+
+      - name: Existing compatibility tests
+        working-directory: web
+        run: npm run test:existing
+
+      - name: New security and repository tests
+        working-directory: web
+        run: npm run test:new
+
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
+
+      - name: Measure production bundles
+        id: bundles
+        working-directory: web
+        shell: bash
+        run: |
+          set -euo pipefail
+          JS_FILE=$(find dist/assets -maxdepth 1 -type f -name '*.js' | head -n 1)
+          CSS_FILE=$(find dist/assets -maxdepth 1 -type f -name '*.css' | head -n 1)
+          test -n "$JS_FILE"
+          test -n "$CSS_FILE"
+          JS_GZIP=$(gzip -c "$JS_FILE" | wc -c | tr -d ' ')
+          CSS_GZIP=$(gzip -c "$CSS_FILE" | wc -c | tr -d ' ')
+          test "$JS_GZIP" -le 61440
+          test "$CSS_GZIP" -le 5120
+          echo "js_gzip=$JS_GZIP" >> "$GITHUB_OUTPUT"
+          echo "css_gzip=$CSS_GZIP" >> "$GITHUB_OUTPUT"
+          printf 'BUNDLE_JS_GZIP=%s bytes\nBUNDLE_CSS_GZIP=%s bytes\n' "$JS_GZIP" "$CSS_GZIP"
+
+      - name: Validate endpoint inventory and Worker surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s docs/api-inventory.md
+          ! grep -q 'DASHBOARD_HTML' worker.js
+          ! grep -q 'async scheduled' worker.js
+          for endpoint in /api/auth/login /api/auth/session /api/auth/activity /api/auth/logout /api/leads /api/metrics /api/ingest /api/health; do
+            grep -q "$endpoint" worker.js
+            grep -q "$endpoint" docs/api-inventory.md
+          done
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '### LeadX branch containment validation'
+            echo
+            echo "- Branch: ${GITHUB_REF_NAME}"
+            echo "- SHA: ${GITHUB_SHA}"
+            echo "- Production operations: disabled"
+            echo "- Productive secrets: not referenced"
+            echo "- Remote KV / ingest / cron / deploy: not executed"
+            echo "- JS gzip: ${{ steps.bundles.outputs.js_gzip || 'INDETERMINADO' }} bytes"
+            echo "- CSS gzip: ${{ steps.bundles.outputs.css_gzip || 'INDETERMINADO' }} bytes"
+          } >> "$GITHUB_STEP_SUMMARY"
