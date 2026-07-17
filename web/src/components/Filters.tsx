@@ -1,53 +1,65 @@
+import { SlidersHorizontal, X } from "lucide-react";
 import type { Lead, ContactFilter, HeatFilter, LeadStatus } from "../types";
 
 interface Props {
   leads: Lead[];
-  search: string; setSearch: (s: string) => void;
-  statusFilter: LeadStatus | "todos"; setStatusFilter: (s: LeadStatus | "todos") => void;
-  contactFilter: ContactFilter; setContactFilter: (c: ContactFilter) => void;
-  heatFilter: HeatFilter; setHeatFilter: (h: HeatFilter) => void;
+  search: string; setSearch: (value: string) => void;
+  statusFilter: LeadStatus | "todos"; setStatusFilter: (value: LeadStatus | "todos") => void;
+  contactFilter: ContactFilter; setContactFilter: (value: ContactFilter) => void;
+  heatFilter: HeatFilter; setHeatFilter: (value: HeatFilter) => void;
+  provinceFilter: string; setProvinceFilter: (value: string) => void;
+  sourceFilter: string; setSourceFilter: (value: string) => void;
+  sort: string; setSort: (value: string) => void;
+  onActivity?: () => void;
 }
 
-const STATUSES: (LeadStatus | "todos")[] = ["Nuevo", "Contactado", "En gestión", "Cerrado", "Descartado"];
+export function Filters(props: Props) {
+  const provinces = [...new Set(props.leads.map((lead) => lead.provincia).filter(Boolean))].sort() as string[];
+  const sources = [...new Set(props.leads.map((lead) => lead.source_label || lead.platform).filter(Boolean))].sort() as string[];
+  const activeCount = [props.statusFilter, props.contactFilter, props.heatFilter].filter((value) => value !== "todos").length
+    + Number(Boolean(props.provinceFilter)) + Number(Boolean(props.sourceFilter));
 
-export function Filters({ leads, search, setSearch, statusFilter, setStatusFilter, contactFilter, setContactFilter, heatFilter, setHeatFilter }: Props) {
-  const count = (filter: string): number => leads.filter((l) => {
-    if (filter === "todos") return true;
-    if (filter === "whatsapp") return !!(l.whatsapp_publico || l.telefono_publico || l.telefono || l.phone);
-    if (filter === "messenger") return !!(l.fb_username || l.fb_author_id);
-    if (filter === "email") return !!(l.email_publico || l.email);
-    if (filter === "sin_contacto") return !(l.whatsapp_publico || l.telefono_publico || l.telefono || l.phone || l.fb_username || l.fb_author_id || l.email_publico || l.email);
-    if (filter === "hot") return (l._heat_score ?? l.score ?? 0) >= 70;
-    if (filter === "warm") { const s = l._heat_score ?? l.score ?? 0; return s >= 40 && s < 70; }
-    if (filter === "cold") return (l._heat_score ?? l.score ?? 0) < 40;
-    return l._status === filter;
-  }).length;
+  const clear = () => {
+    props.setStatusFilter("todos"); props.setContactFilter("todos"); props.setHeatFilter("todos");
+    props.setProvinceFilter(""); props.setSourceFilter(""); props.onActivity?.();
+  };
 
   return (
-    <div className="filters">
-      <input type="search" className="filters__search" placeholder="Buscar por nombre, provincia, problema…" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Buscar leads" />
-      <div className="filters__group">
-        <span className="filters__label">Estado</span>
-        <button className={`filter-chip ${statusFilter === "todos" ? "filter-chip--active" : ""}`} onClick={() => setStatusFilter("todos")}>Todos <span className="filter-chip__count">{count("todos")}</span></button>
-        {STATUSES.filter((s) => s !== "todos").map((s) => (
-          <button key={s} className={`filter-chip ${statusFilter === s ? "filter-chip--active" : ""}`} onClick={() => setStatusFilter(s)}>{s} <span className="filter-chip__count">{count(s)}</span></button>
-        ))}
+    <div className="filter-area">
+      <div className="toolbar">
+        <input type="search" className="search" placeholder="Buscar nombre, problema o provincia…" value={props.search}
+          onChange={(event) => { props.setSearch(event.target.value); props.onActivity?.(); }} aria-label="Buscar leads" />
+        <button className="control-button filter-trigger" onClick={() => document.body.classList.add("filters-open")}>
+          <SlidersHorizontal size={17} />Filtros{activeCount > 0 && <span>{activeCount}</span>}
+        </button>
+        <label className="sort-control"><span className="sr-only">Ordenar</span>
+          <select value={props.sort} onChange={(event) => { props.setSort(event.target.value); props.onActivity?.(); }}>
+            <option value="priority">Prioridad</option><option value="recent">Más recientes</option><option value="name">Nombre</option>
+          </select>
+        </label>
       </div>
-      <div className="filters__group">
-        <span className="filters__label">Contacto</span>
-        {(["todos", "whatsapp", "messenger", "email", "sin_contacto"] as ContactFilter[]).map((c) => (
-          <button key={c} className={`filter-chip ${contactFilter === c ? "filter-chip--active" : ""}`} onClick={() => setContactFilter(c)}>{labelContact(c)} <span className="filter-chip__count">{count(c)}</span></button>
-        ))}
-      </div>
-      <div className="filters__group">
-        <span className="filters__label">Prioridad</span>
-        {(["todos", "hot", "warm", "cold"] as HeatFilter[]).map((h) => (
-          <button key={h} className={`filter-chip ${heatFilter === h ? "filter-chip--active" : ""}`} onClick={() => setHeatFilter(h)}>{labelHeat(h)} <span className="filter-chip__count">{count(h)}</span></button>
-        ))}
+      <div className="filters-sheet" role="region" aria-label="Filtros">
+        <div className="sheet-header"><div><span className="eyebrow">Refinar lista</span><h2>Filtros</h2></div>
+          <button className="icon-button mobile-only" onClick={() => document.body.classList.remove("filters-open")} aria-label="Cerrar filtros"><X size={20} /></button>
+        </div>
+        <div className="filter-grid">
+          <Select label="Estado" value={props.statusFilter} onChange={(value) => { props.setStatusFilter(value); props.onActivity?.(); }} options={["todos", "Nuevo", "Contactado", "En gestión", "Cerrado", "Descartado"]} />
+          <Select label="Prioridad" value={props.heatFilter} onChange={(value) => { props.setHeatFilter(value); props.onActivity?.(); }} options={["todos", "hot", "warm", "cold"]} labels={{ hot: "Alta", warm: "Media", cold: "Baja" }} />
+          <Select label="Contacto" value={props.contactFilter} onChange={(value) => { props.setContactFilter(value); props.onActivity?.(); }} options={["todos", "whatsapp", "messenger", "email", "sin_contacto"]} labels={{ messenger: "Facebook", sin_contacto: "Sin contacto" }} />
+          <Select label="Provincia" value={props.provinceFilter} onChange={(value) => { props.setProvinceFilter(value); props.onActivity?.(); }} options={["", ...provinces]} labels={{ "": "Todas" }} />
+          <Select label="Fuente" value={props.sourceFilter} onChange={(value) => { props.setSourceFilter(value); props.onActivity?.(); }} options={["", ...sources]} labels={{ "": "Todas" }} />
+        </div>
+        <div className="sheet-actions"><button className="btn" onClick={clear}>Limpiar</button>
+          <button className="btn btn--primary mobile-only" onClick={() => document.body.classList.remove("filters-open")}>Ver resultados</button></div>
       </div>
     </div>
   );
 }
 
-function labelContact(c: ContactFilter): string { return c === "todos" ? "Todos" : c === "sin_contacto" ? "Sin contacto" : c === "whatsapp" ? "WhatsApp" : c === "messenger" ? "Messenger" : "Email"; }
-function labelHeat(h: HeatFilter): string { return h === "todos" ? "Todas" : h === "hot" ? "Alta" : h === "warm" ? "Media" : "Baja"; }
+function Select<T extends string>({ label, value, onChange, options, labels = {} }: {
+  label: string; value: T; onChange: (value: T) => void; options: T[]; labels?: Record<string, string>;
+}) {
+  return <label className="filter-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value as T)}>
+    {options.map((option) => <option key={option || "all"} value={option}>{labels[option] || (option === "todos" ? "Todos" : option)}</option>)}
+  </select></label>;
+}

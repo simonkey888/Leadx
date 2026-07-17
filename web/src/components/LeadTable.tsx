@@ -1,50 +1,55 @@
-import { MapPin, Clock, Facebook, Globe } from "lucide-react";
+import { Clock, Facebook, Globe, MapPin } from "lucide-react";
 import type { Lead } from "../types";
 import { relativeTime } from "../lib/api";
 import { Badge } from "./Badge";
 import { Actions } from "./Actions";
 
-export function LeadTable({ leads }: { leads: Lead[] }) {
-  if (leads.length === 0) {
-    return <div className="empty">No hay leads que coincidan con los filtros</div>;
-  }
+interface Props {
+  leads: Lead[];
+  selectedId?: string;
+  onSelect: (lead: Lead) => void;
+  onActivity?: () => void;
+}
+
+export function LeadTable({ leads, selectedId, onSelect, onActivity }: Props) {
+  if (leads.length === 0) return <div className="empty">No hay leads que coincidan con los filtros.</div>;
   return (
-    <div className="table-wrap">
-      <table className="table" aria-label="Lista de leads">
-        <thead>
-          <tr>
-            <th scope="col">Lead</th>
-            <th scope="col">Estado · Prioridad</th>
-            <th scope="col">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leads.map((lead) => (
-            <tr key={lead.id}>
-              <td>
-                <div className="lead-cell">
-                  <div className="lead-cell__name">{lead.persona || "Sin nombre"}</div>
-                  <div className="lead-cell__meta">
-                    {lead.provincia && <><MapPin size={12} aria-hidden="true" />{lead.provincia}</>}
-                    <SourceIcon lead={lead} />
-                    <Clock size={12} aria-hidden="true" />{relativeTime(lead)}
-                  </div>
-                  <div className="lead-cell__problem">{lead.title || lead.snippet || "—"}</div>
-                </div>
-              </td>
-              <td><Badge lead={lead} /></td>
-              <td><Actions lead={lead} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="lead-list" role="list" aria-label="Lista de leads">
+      {leads.map((lead) => (
+        <article
+          key={lead.id}
+          role="listitem"
+          tabIndex={0}
+          className={`lead-row ${selectedId === lead.id ? "lead-row--selected" : ""}`}
+          onClick={() => { onActivity?.(); onSelect(lead); }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault(); onActivity?.(); onSelect(lead);
+            }
+          }}
+        >
+          <div className="lead-row__main">
+            <div className="lead-row__heading">
+              <strong>{lead.persona || "Sin nombre"}</strong>
+              <span className="lead-row__time">{relativeTime(lead)}</span>
+            </div>
+            <div className="lead-row__meta">
+              {lead.provincia && <><MapPin size={13} aria-hidden="true" />{lead.provincia}<span>·</span></>}
+              <Source lead={lead} />
+              <span className="desktop-only">· <Clock size={13} aria-hidden="true" />{relativeTime(lead)}</span>
+            </div>
+            <p className="lead-row__problem">{lead.snippet || lead.title || "Sin descripción"}</p>
+          </div>
+          <div className="lead-row__badge"><Badge lead={lead} /></div>
+          <div className="lead-row__actions"><Actions lead={lead} labels onActivity={onActivity} /></div>
+        </article>
+      ))}
     </div>
   );
 }
 
-function SourceIcon({ lead }: { lead: Lead }) {
-  const src = (lead.source || lead.platform || "").toLowerCase();
-  if (src.includes("facebook")) return <><Facebook size={12} aria-hidden="true" />Facebook</>;
-  if (src.includes("reddit")) return <><Globe size={12} aria-hidden="true" />Reddit</>;
-  return <><Globe size={12} aria-hidden="true" />{lead.source_label || lead.platform || "—"}</>;
+function Source({ lead }: { lead: Lead }) {
+  const source = (lead.source || lead.platform || "").toLowerCase();
+  if (source.includes("facebook")) return <><Facebook size={13} aria-hidden="true" />Facebook</>;
+  return <><Globe size={13} aria-hidden="true" />{lead.source_label || lead.platform || "Web"}</>;
 }
