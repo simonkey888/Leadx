@@ -3,8 +3,25 @@ import type { Lead } from "../types";
 import { getWhatsAppUrl, getMessengerUrl, getEmailUrl } from "../lib/api";
 
 export function Actions({ lead, labels = false, onActivity }: { lead: Lead; labels?: boolean; onActivity?: () => void }) {
+  if (lead._isDemo) {
+    return (
+      <div className="actions actions--demo" onClick={(event) => event.stopPropagation()} aria-label="Acciones simuladas">
+        <button type="button" className="action-btn action-btn--disabled" disabled title="Acción disponible con datos reales">
+          <MessageCircle size={16} aria-hidden="true" />{labels && <span>WhatsApp</span>}
+        </button>
+        <button type="button" className="action-btn action-btn--disabled" disabled title="Acción disponible con datos reales">
+          <Send size={16} aria-hidden="true" />{labels && <span>Facebook</span>}
+        </button>
+        <button type="button" className="action-btn action-btn--disabled" disabled title="Acción disponible con datos reales">
+          <Mail size={16} aria-hidden="true" />{labels && <span>Email</span>}
+        </button>
+        {labels && <span className="demo-action-note">Acciones disponibles con datos reales</span>}
+      </div>
+    );
+  }
+
   const wa = getWhatsAppUrl(lead);
-  const msg = getMessengerUrl(lead);
+  const messenger = getMessengerUrl(lead);
   const email = getEmailUrl(lead);
 
   return (
@@ -12,21 +29,21 @@ export function Actions({ lead, labels = false, onActivity }: { lead: Lead; labe
       <a href={wa || "#"} target={wa ? "_blank" : undefined} rel={wa ? "noopener noreferrer" : undefined}
          className={`action-btn action-btn--wa ${!wa ? "action-btn--disabled" : ""}`}
          aria-label={wa ? "WhatsApp" : "Sin WhatsApp"} title="WhatsApp"
-         onClick={(e) => { if (!wa) e.preventDefault(); else onActivity?.(); }}>
+         onClick={(event) => { if (!wa) event.preventDefault(); else onActivity?.(); }}>
         <MessageCircle size={16} aria-hidden="true" />
         {labels && <span>WhatsApp</span>}
       </a>
-      <a href={msg || "#"} target={msg ? "_blank" : undefined} rel={msg ? "noopener noreferrer" : undefined}
-         className={`action-btn action-btn--messenger ${!msg ? "action-btn--disabled" : ""}`}
-         aria-label={msg ? "Messenger" : "Sin Messenger"} title="Messenger"
-         onClick={(e) => { if (!msg) e.preventDefault(); else onActivity?.(); }}>
+      <a href={messenger || "#"} target={messenger ? "_blank" : undefined} rel={messenger ? "noopener noreferrer" : undefined}
+         className={`action-btn action-btn--messenger ${!messenger ? "action-btn--disabled" : ""}`}
+         aria-label={messenger ? "Messenger" : "Sin Messenger"} title="Messenger"
+         onClick={(event) => { if (!messenger) event.preventDefault(); else onActivity?.(); }}>
         <Send size={16} aria-hidden="true" />
         {labels && <span>Facebook</span>}
       </a>
       <a href={email || "#"}
          className={`action-btn action-btn--email ${!email ? "action-btn--disabled" : ""}`}
          aria-label={email ? "Email" : "Sin email"} title="Email"
-         onClick={(e) => { if (!email) e.preventDefault(); else onActivity?.(); }}>
+         onClick={(event) => { if (!email) event.preventDefault(); else onActivity?.(); }}>
         <Mail size={16} aria-hidden="true" />
         {labels && <span>Email</span>}
       </a>
