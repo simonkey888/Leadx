@@ -1,0 +1,71 @@
+name: Deploy containment
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-containment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout containment candidate
+        uses: actions/checkout@v4
+        with:
+          ref: hotfix/production-data-containment-v1
+          fetch-depth: 1
+
+      - name: Verify candidate HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="dbe6b637748452eb53a2ee8306c58431c183edb6"
+          actual="$(git rev-parse HEAD)"
+          if [[ "$actual" != "$expected" ]]; then
+            echo "Unexpected containment HEAD."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: web
+        run: npm run build
+
+      - name: Run tests
+        working-directory: web
+        run: npm test
+
+      - name: Verify Cloudflare authentication
+        run: npx --yes wrangler@4.111.0 whoami
+
+      - name: Verify required Worker secrets by name
+        shell: bash
+        run: |
+          set -euo pipefail
+          secret_names="$(npx --yes wrangler@4.111.0 secret list --format json | jq -r '.[].name')"
+          for required in DASHBOARD_PASSWORD SESSION_SECRET INGEST_SECRET; do
+            if ! grep -Fxq "$required" <<<"$secret_names"; then
+              echo "Missing required Worker secret: $required"
+              exit 1
+            fi
+          done
+          echo "All required Worker secret names are configured."
+
+      - name: Validate containment deployment bundle
+        run: npx --yes wrangler@4.111.0 deploy --dry-run
