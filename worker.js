@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 44562)
-Total output lines: 3918
-
 /**
  * LeadX Worker v10 — AUTOCONTENIDO
  * =================================
@@ -1425,7 +1422,1267 @@ function openDetail(id) {
   const phoneLabel = document.getElementById('modal-phone-label');
 
   if (l._wa_state === 'validated_whatsapp') {
-    b…14562 tokens truncated…eaders: {
+    box.classList.remove('no-contact');
+    waBtn.href = l._wa_url;
+    waBtn.style.display = 'inline-flex';
+    waBtn.innerHTML = WA_ICON + ' <span style="font-size:13px;color:#25D366">WhatsApp</span>';
+    phoneLabel.textContent = l._wa_display + ' (verificado)';
+  } else if (l._wa_state === 'normalized_contact') {
+    box.classList.remove('no-contact');
+    waBtn.style.display = 'inline-flex';
+    waBtn.href = '#';
+    waBtn.innerHTML = WA_ICON_GRAY + ' <span style="font-size:13px">Validar</span>';
+    waBtn.onclick = (e) => { e.preventDefault(); validateWaFromModal(); };
+    phoneLabel.textContent = l._wa_display + ' (pendiente validación)';
+  } else if (l._wa_state === 'not_whatsapp') {
+    box.classList.remove('no-contact');
+    waBtn.style.display = 'none';
+    phoneLabel.textContent = l._wa_display + ' (no tiene WhatsApp)';
+  } else {
+    // invalid_format o sin telefono
+    box.classList.add('no-contact');
+    waBtn.style.display = 'none';
+    phoneLabel.textContent = l._phone ? 'Teléfono inválido: ' + l._phone : 'Sin contacto directo — buscar por perfil';
+    if (!l._phone) document.getElementById('modal-author').textContent = l._display_name + ' (sin contacto)';
+  }
+
+  // FIX GEMINI Estrategia A: Mostrar botón de Messenger si el lead es de FB y tiene fb_username.
+  // Si no hay WhatsApp, Sergio puede contactar directo por Messenger con un click.
+  const messengerBtn = document.getElementById('modal-messenger-btn');
+  if (messengerBtn) {
+    if (l.fb_username && (l.source_label === 'Facebook' || l.platform === 'Facebook')) {
+      messengerBtn.href = 'https://m.me/' + l.fb_username;
+      messengerBtn.style.display = 'inline-flex';
+    } else {
+      messengerBtn.style.display = 'none';
+    }
+  }
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function stripUprefix(s) {
+  if (!s) return '';
+  if (s.startsWith('/u/')) return s.slice(3);
+  if (s.startsWith('u/')) return s.slice(2);
+  return s;
+}
+function copyWaTemplate() {
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  const persona = stripUprefix(l.persona || l.author || '');
+  const problema = l.problem_summary || l.title || l._resumen || 'tu consulta';
+  const tpl = 'Hola ' + (persona || '') + ', te contactamos de SinFotomultas. Vi que tenés una consulta sobre ' + problema + '. ¿Querés que te ayudemos a resolverlo? Consulta sin cargo.';
+  navigator.clipboard.writeText(tpl).then(() => {
+    const btn = document.getElementById('modal-copy-tpl');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  }).catch(() => alert('No se pudo copiar. Texto: ' + tpl));
+}
+
+function copyContactTemplate() {
+  // N2: Guión DM no-spam para Reddit (Claude)
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  const author = stripUprefix(l.persona || l.author || '');
+  const problema = l.problem_summary || l.title || l._resumen || 'tu consulta vehicular';
+  const tpl = 'Hola, vi tu publicación sobre ' + problema + '. Trabajo con un equipo que resuelve este tipo de consultas. ¿Querés que te cuente cómo funciona? Sin compromiso.';
+  navigator.clipboard.writeText(tpl).then(() => {
+    const btn = document.getElementById('modal-copy-dm');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  }).catch(() => alert('No se pudo copiar. Texto: ' + tpl));
+}
+
+// N1: Fetch Reddit bio desde Worker endpoint
+async function fetchRedditBio(username) {
+  if (!username) return null;
+  try {
+    // FIX GEMINI Bug #2: enviar X-Webhook-Secret para que el endpoint no devuelva 401
+    const r = await fetch('/api/reddit-bio?user=' + encodeURIComponent(username), {
+      headers: { 'X-Webhook-Secret': getUrlSecret() }
+    });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Llamar bio fetch cuando se abre el modal con Reddit user
+async function loadBioIfReddit(l) {
+  const bioField = document.getElementById('modal-bio-field');
+  const bioContent = document.getElementById('modal-bio-content');
+  bioField.style.display = 'none';
+  
+  const author = (l.persona || l.author || '').trim();
+  const redditUser = stripUprefix(author);
+  
+  if (!redditUser || !(l.url || '').includes('reddit.com')) return;
+  
+  // Mostrar loading
+  bioField.style.display = 'block';
+  bioContent.textContent = 'Buscando contacto en bio...';
+  bioContent.style.background = '#FEF3C7';
+  bioContent.style.borderColor = '#FDE68A';
+  
+  const bio = await fetchRedditBio(redditUser);
+  if (!bio || !bio.ok) {
+    bioField.style.display = 'none';
+    return;
+  }
+  
+  const contacts = [];
+  if (bio.phone) contacts.push('📱 ' + bio.phone);
+  if (bio.email) contacts.push('✉ ' + bio.email);
+  if (bio.whatsapp) contacts.push('🟢 WhatsApp: ' + bio.whatsapp);
+  
+  if (contacts.length === 0) {
+    bioField.style.display = 'none';
+    return;
+  }
+  
+  bioContent.innerHTML = contacts.join('<br>');
+  bioContent.style.background = '#F0FDF4';
+  bioContent.style.borderColor = '#BBF7D0';
+  
+  // Actualizar _phone y _wa_url del lead si encontramos contacto
+  if (bio.whatsapp || bio.phone) {
+    const num = bio.whatsapp || bio.phone;
+    const digits = num.replace(/\D/g, '');
+    const norm = digits.startsWith('54') ? digits : '54' + digits.replace(/^0/, '');
+    l._phone = num;
+    l._wa_url = 'https://wa.me/' + norm;
+    // Actualizar botón WA en el modal
+    const waBtn = document.getElementById('modal-wa-btn');
+    waBtn.href = l._wa_url;
+    waBtn.style.display = 'inline-flex';
+    document.getElementById('modal-phone-label').textContent = num;
+    document.getElementById('modal-contact-box').classList.remove('no-contact');
+  }
+}
+
+// Abrir WhatsApp directamente sin validación Apify (fix Qwen pragmático).
+// La validación era inestable (actor Apify a menudo cae) y Sergio puede validar
+// manualmente al abrir el chat. Velocidad > precisión aquí.
+async function validateWaFromModal() {
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) { alert('Sin lead seleccionado'); return; }
+  if (!l._wa_url && !l._wa_e164) {
+    alert('Sin WhatsApp disponible para este lead');
+    return;
+  }
+
+  // Si no hay _wa_url pero hay e164, construirlo al vuelo
+  const waUrl = l._wa_url || (l._wa_e164
+    ? 'https://wa.me/' + (l._wa_e164.startsWith('+') ? l._wa_e164.slice(1) : l._wa_e164)
+    : '');
+
+  if (!waUrl) {
+    alert('Sin WhatsApp disponible para este lead');
+    return;
+  }
+
+  // Abrir WhatsApp en nueva pestaña
+  window.open(waUrl, '_blank');
+
+  // Marcar como validado y contactado localmente (Qwen P0 v3.1)
+  // Persistencia en localStorage via DB.set para que el estado sobreviva reloads
+  if (l._wa_e164) setWaValidation(l._wa_e164, true);
+  l._wa_state = 'validated_whatsapp';
+  l._status = 'Contactado';
+  DB.set(S.currentId, { ...DB.get(S.currentId), status: 'Contactado' });
+
+  const waBtn = document.getElementById('modal-wa-btn');
+  if (waBtn) {
+    waBtn.innerHTML = WA_ICON + ' <span style="font-size:13px;color:#25D366">WhatsApp ✓</span>';
+    waBtn.href = waUrl;
+    waBtn.onclick = (e) => { e.preventDefault(); window.open(waUrl, '_blank'); };
+  }
+  const phoneLabel = document.getElementById('modal-phone-label');
+  if (phoneLabel) phoneLabel.textContent = (l._wa_display || l._wa_e164 || '') + ' (abierto)';
+
+  renderTable();
+  renderKPIs();
+}
+
+async function validateWaFromTable(id) {
+  const l = S.crmLeads.find(x => x.id === id);
+  if (!l) return;
+  S.currentId = id;
+  await validateWaFromModal();
+}
+
+function getUrlSecret() {
+  // SECURITY FIX 2026-07-14: No hardcoded secret in client code.
+  // Returns empty string — el caller debe manejar el caso de auth faltante.
+  // El INGEST_SECRET real se carga solo en el Worker (server-side), no en
+  // el HTML/JS que se sirve al navegador. Los endpoints públicos que no
+  // requieren auth (GET /api/leads) siguen funcionando sin este valor.
+  // Para endpoints autenticados, el operador debe usar un proxy server-side
+  // o ingresar el secret manualmente (futura implementación).
+  return '';
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  S.currentId = null;
+}
+
+function saveStatusFromModal() {
+  if (!S.currentId) return;
+  const status = document.getElementById('modal-status-sel').value;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  l._status = status;
+  const stored = DB.get(S.currentId);
+  DB.set(S.currentId, { ...stored, status });
+  // M3: Mostrar campo monto solo si está Cerrado
+  const montoField = document.getElementById('modal-monto-field');
+  if (status === 'Cerrado') {
+    montoField.style.display = 'block';
+    document.getElementById('modal-monto').value = stored.monto || '';
+    updateComision();
+  } else {
+    montoField.style.display = 'none';
+  }
+  renderKPIs();
+  renderCounts();
+}
+
+function updateComision() {
+  const monto = parseFloat(document.getElementById('modal-monto').value) || 0;
+  const comision = monto * getComisionPct() / 100;
+  document.getElementById('modal-comision').textContent = '$' + comision.toLocaleString('es-AR');
+}
+
+function saveMontoFromModal() {
+  if (!S.currentId) return;
+  const monto = parseFloat(document.getElementById('modal-monto').value) || 0;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (l) l._monto = monto;
+  const stored = DB.get(S.currentId);
+  DB.set(S.currentId, { ...stored, monto });
+  updateComision();
+  renderKPIs();
+}
+
+function saveNotesFromModal() {
+  if (!S.currentId) return;
+  const notes = document.getElementById('modal-notes').value;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (l) l._notes = notes;
+  const stored = DB.get(S.currentId);
+  DB.set(S.currentId, { ...stored, notes });
+}
+
+function saveAndClose() {
+  saveStatusFromModal();
+  saveNotesFromModal();
+  closeModal();
+  renderTable();
+}
+
+// FORENSIC INTELLIGENCE: registrar caso resuelto
+async function submitForensicCase() {
+  if (!S.currentId) return;
+  const l = S.crmLeads.find(x => x.id === S.currentId);
+  if (!l) return;
+  const payload = {
+    lead_id: S.currentId,
+    patente: l.patente || prompt('Confirmá la patente:'),
+    ubicacion: l.ubicacion_infraccion || '',
+    result: document.getElementById('log-result').value,
+    argument_used: document.getElementById('log-argument').value,
+    fee_charged: parseFloat(document.getElementById('log-fee').value) || 0
+  };
+  if (!payload.patente) return alert('Se requiere patente.');
+  try {
+    const r = await fetch('/api/forensic-case', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': getUrlSecret() },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.ok) {
+      alert('✅ Caso registrado en base forense de LeadX!');
+      document.getElementById('forensic-log-card').style.display = 'none';
+    } else { alert('Error: ' + d.error); }
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── ADD MANUAL ─────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function addManualCase() {
+  const nombre = document.getElementById('add-nombre').value.trim();
+  const phone  = document.getElementById('add-phone').value.trim();
+  const prov   = document.getElementById('add-prov').value;
+  const body   = document.getElementById('add-body').value.trim();
+
+  if (!nombre) { alert('Completá el nombre'); return; }
+
+  const id = 'manual_' + Date.now();
+  const lead = {
+    id,
+    source:       'manual',
+    source_label: 'Manual',
+    author:       nombre,
+    has_author:   true,
+    provincia:    prov,
+    body,
+    title:        body.slice(0, 80),
+    fecha_iso:    new Date().toISOString().slice(0, 10),
+    phone,
+    whatsapp:     phone,
+    score:        50,
+    _manual:      true,
+    _status:      'Nuevo',
+    _notes:       '',
+    _phone:       phone,
+    _wa_url:      buildWaUrl(phone),
+    _display_name: nombre,
+    _resumen:     body.slice(0, 200),
+  };
+
+  const manual = DB.getManual();
+  manual.unshift(lead);
+  DB.setManual(manual);
+  S.crmLeads.unshift(lead);
+
+  closeAddModal();
+  ['add-nombre','add-phone','add-body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('add-prov').value = '';
+
+  applyFilters();
+  renderSidebar();
+  renderKPIs();
+}
+
+// ── N3: Settings helpers (comision configurable) ───────────────────────────
+function getComisionPct() {
+  try { return parseFloat(localStorage.getItem('crm_comision_pct')) || 15; }
+  catch(e) { return 15; }
+}
+function setComisionPct(v) {
+  localStorage.setItem('crm_comision_pct', String(v));
+}
+function openSettings() {
+  document.getElementById('settings-comision').value = getComisionPct();
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+function saveSettings() {
+  const v = parseFloat(document.getElementById('settings-comision').value);
+  if (isNaN(v) || v < 0 || v > 100) { alert('Porcentaje inválido'); return; }
+  setComisionPct(v);
+  closeSettings();
+  renderKPIs();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+document.getElementById('searchInput')?.addEventListener('input', () => {
+  clearTimeout(window._st);
+  window._st = setTimeout(applyFilters, 200);
+});
+
+document.getElementById('sortSel')?.addEventListener('change', applyFilters);
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+    }
+  });
+});
+
+// ─── ON-DEMAND VLM DRAG & DROP ───
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('acta-dropzone');
+  const fi = document.getElementById('acta-file-input');
+  if (!dz || !fi) return;
+  ['dragenter','dragover','dragleave','drop'].forEach(n => dz.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); }, false));
+  ['dragenter','dragover'].forEach(n => dz.addEventListener(n, () => dz.classList.add('dragover'), false));
+  ['dragleave','drop'].forEach(n => dz.addEventListener(n, () => dz.classList.remove('dragover'), false));
+  dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleActaUpload(e.dataTransfer.files[0]); });
+  fi.addEventListener('change', e => { if (fi.files.length) handleActaUpload(fi.files[0]); });
+});
+
+async function handleActaUpload(file) {
+  if (!S.currentId) return alert('Seleccioná un lead primero');
+  const loader = document.getElementById('vlm-loader');
+  const resultCard = document.getElementById('vlm-result-card');
+  const dz = document.getElementById('acta-dropzone');
+  loader.style.display = 'flex'; resultCard.style.display = 'none'; dz.style.opacity = '0.3';
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onloadend = async () => {
+    const b64 = reader.result.split(',')[1];
+    try {
+      const r = await fetch('/api/analyze-acta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': getUrlSecret() },
+        body: JSON.stringify({ lead_id: S.currentId, image_b64: b64 })
+      });
+      const d = await r.json();
+      loader.style.display = 'none'; dz.style.opacity = '1';
+      if (d.ok && d.analysis) renderVlmResult(d.analysis, d.lead_phone);
+      else alert('Error: ' + (d.error || '?'));
+    } catch(e) { loader.style.display = 'none'; dz.style.opacity = '1'; alert('Error: ' + e.message); }
+  };
+}
+
+function renderVlmResult(a, phone) {
+  const c = document.getElementById('vlm-result-card');
+  document.getElementById('wizard-patente-label').textContent = 'Patente: ' + (a.patente || 'No visible');
+  document.getElementById('wizard-ubicacion-label').textContent = 'Ubicación: ' + (a.ubicacion || 'No detectada');
+  document.getElementById('wizard-legal-analysis').textContent = a.legal_warning || 'Sin análisis legal disponible.';
+  const badge = document.getElementById('wizard-geo-badge');
+  const prov = (a.provincia || '').toLowerCase();
+  if (prov.includes('santa fe')) { badge.textContent = '📍 Santa Fe'; badge.style.background = 'rgba(99,102,241,.1)'; badge.style.color = '#818cf8'; }
+  else { badge.textContent = '📍 ' + (a.provincia || 'Nacional'); badge.style.background = 'rgba(245,158,11,.1)'; badge.style.color = '#fbbf24'; }
+  const maps = document.getElementById('wizard-maps-btn');
+  if (a.ubicacion) { maps.style.display = 'inline-flex'; maps.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a.ubicacion + ', ' + (a.provincia || 'Santa Fe') + ', Argentina'); }
+  else maps.style.display = 'none';
+  const wa = document.getElementById('wizard-wa-btn');
+  if (phone) {
+    wa.style.display = 'inline-flex';
+    const p = phone.replace(/[^0-9]/g, '');
+    const msg = 'Hola! Vi tu consulta sobre la multa de patente ' + (a.patente || '') + ' en ' + (a.ubicacion || '') + '. Podemos verificar si el acta tiene fallas de homologación. ¿Te interesa?';
+    wa.href = p.length > 8 ? 'https://wa.me/' + p + '?text=' + encodeURIComponent(msg) : 'https://m.me/' + phone + '?text=' + encodeURIComponent(msg);
+  } else wa.style.display = 'none';
+  c.style.display = 'block';
+  loadLeads();
+}
+
+loadLeads();
+</script>
+</body>
+</html>
+`;
+
+// ─────────────────────────────────────────────────────────────
+// WORKER PRINCIPAL
+// ─────────────────────────────────────────────────────────────
+
+
+
+function jsonResponse(data, corsHeaders, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status: status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...corsHeaders,
+    }
+  });
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const origin = request.headers.get('Origin') || '*';
+
+    // CORS headers
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': origin === 'null' ? '*' : origin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-Webhook-Secret',
+      'Access-Control-Max-Age': '86400',
+    };
+
+    // Handle preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // ─── GET / ─── Dashboard HTML
+    // ─── Frontend routes: serve React build via Cloudflare Static Assets ───
+    // /api/* and /cookies* routes are handled below BEFORE this fallback.
+    // Any non-API route falls through to env.ASSETS (SPA mode).
+    if (env.ASSETS && (url.pathname === '/' || url.pathname === '/index.html' ||
+        url.pathname.startsWith('/assets/') ||
+        url.pathname === '/vite.svg' || url.pathname === '/favicon.ico')) {
+      return env.ASSETS.fetch(request);
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // AUTH ENDPOINTS — DASHBOARD_PASSWORD + SESSION_SECRET (not INGEST_SECRET)
+    // ════════════════════════════════════════════════════════════════════
+    // Rate limit via Cloudflare Rate Limiting binding LOGIN_RATE_LIMITER.
+    // No in-memory fallback for production. If binding missing, login disabled.
+    async function _rlCheck(request, env) {
+      if (!env.LOGIN_RATE_LIMITER) return { ok: false, reason: 'no_binding' };
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const key = 'login:' + ip;
+      const { success } = await env.LOGIN_RATE_LIMITER.limit({ key });
+      return { ok: success };
+    }
+
+    const SESSION_IDLE_MS = 20 * 60 * 1000;
+    const SESSION_ABSOLUTE_MS = 8 * 60 * 60 * 1000;
+    const SESSION_RENEW_MIN_MS = 60 * 1000;
+
+    function _expiredSessionCookie() {
+      return 'leadx_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0';
+    }
+
+    function _randomNonce() {
+      const bytes = crypto.getRandomValues(new Uint8Array(16));
+      return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function _decodeSessionPayload(payload) {
+      const padded = payload.replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(padded));
+    }
+
+    async function _issueSession(payload, env, now) {
+      const encoded = btoa(JSON.stringify(payload))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const sig = await _hmac(encoded, env.SESSION_SECRET);
+      const remainingSeconds = Math.max(0, Math.ceil((payload.iat + SESSION_ABSOLUTE_MS - now) / 1000));
+      return {
+        token: `${encoded}.${sig}`,
+        cookie: `leadx_session=${encoded}.${sig}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${remainingSeconds}`,
+      };
+    }
+
+    async function _verifySession(request, env, options = {}) {
+      const cookie = request.headers.get('Cookie') || '';
+      const m = cookie.match(/leadx_session=([^;]+)/);
+      if (!m) return { authenticated: false, reason: 'missing' };
+      const token = m[1];
+      if (!env.SESSION_SECRET) return { authenticated: false, reason: 'configuration' };
+      const parts = token.split('.');
+      if (parts.length !== 2) return { authenticated: false, reason: 'invalid' };
+      const [payload, sig] = parts;
+      const expectedSig = await _hmac(payload, env.SESSION_SECRET);
+      if (!_constantTimeEqual(sig, expectedSig)) return { authenticated: false, reason: 'invalid' };
+      try {
+        const decoded = _decodeSessionPayload(payload);
+        const now = Date.now();
+        if (!Number.isFinite(decoded.iat) || !Number.isFinite(decoded.lastActivity) ||
+            typeof decoded.nonce !== 'string' || decoded.nonce.length < 16 ||
+            decoded.lastActivity < decoded.iat || decoded.lastActivity > now + 5000) {
+          return { authenticated: false, reason: 'invalid' };
+        }
+        if (now - decoded.iat > SESSION_ABSOLUTE_MS) {
+          return { authenticated: false, reason: 'absolute_expired' };
+        }
+        if (now - decoded.lastActivity > SESSION_IDLE_MS) {
+          return { authenticated: false, reason: 'idle_expired' };
+        }
+
+        let setCookie = null;
+        let session = decoded;
+        if (options.userActivity === true && now - decoded.lastActivity >= SESSION_RENEW_MIN_MS) {
+          session = { ...decoded, lastActivity: now, nonce: _randomNonce() };
+          setCookie = (await _issueSession(session, env, now)).cookie;
+        }
+        return { authenticated: true, reason: 'valid', session, setCookie };
+      } catch {
+        return { authenticated: false, reason: 'invalid' };
+      }
+    }
+
+    function _isExplicitUserActivity(request) {
+      return request.headers.get('X-LeadX-Activity') === 'user';
+    }
+
+    function _protectedHeaders(corsHeaders, verification) {
+      const headers = {
+        ...corsHeaders,
+        'Cache-Control': 'no-store, private',
+        'Pragma': 'no-cache',
+        'Vary': 'Cookie',
+      };
+      if (verification.setCookie) headers['Set-Cookie'] = verification.setCookie;
+      return headers;
+    }
+
+    function _expiredSessionResponse(corsHeaders, reason) {
+      return jsonResponse({ error: 'session_expired', reason }, {
+        ...corsHeaders,
+        'Cache-Control': 'no-store, private',
+        'Pragma': 'no-cache',
+        'Vary': 'Cookie',
+        'Set-Cookie': _expiredSessionCookie(),
+      }, 401);
+    }
+
+    async function _hmac(data, secret) {
+      const key = await crypto.subtle.importKey(
+        'raw', new TextEncoder().encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+      return btoa(String.fromCharCode(...new Uint8Array(sig)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function _constantTimeEqual(a, b) {
+      if (a.length !== b.length) return false;
+      let r = 0;
+      for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      return r === 0;
+    }
+
+    // ─── POST /api/auth/login ───
+    if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+      // Cloudflare Rate Limiting binding (no in-memory fallback)
+      const rl = await _rlCheck(request, env);
+      if (!rl.ok) {
+        if (rl.reason === 'no_binding') {
+          return jsonResponse({ ok: false, error: 'Servicio no disponible.' }, corsHeaders, 503);
+        }
+        return jsonResponse({ ok: false, error: 'Demasiados intentos. Esperá 1 minuto.' }, corsHeaders, 429);
+      }
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      try {
+        const body = await request.json();
+        const password = body.password || '';
+        if (!env.DASHBOARD_PASSWORD || !_constantTimeEqual(password, env.DASHBOARD_PASSWORD)) {
+          console.log(`[AUTH] login fail ip=${ip} ts=${Date.now()}`);
+          return jsonResponse({ ok: false, error: 'Contraseña incorrecta' }, corsHeaders, 401);
+        }
+        if (!env.SESSION_SECRET) {
+          return jsonResponse({ ok: false, error: 'Servicio no disponible.' }, corsHeaders, 503);
+        }
+        const now = Date.now();
+        const issued = await _issueSession({ iat: now, lastActivity: now, nonce: _randomNonce() }, env, now);
+        const headers = {
+          ...corsHeaders,
+          'Set-Cookie': issued.cookie,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, private',
+          'Vary': 'Cookie',
+        };
+        console.log(`[AUTH] login ok ip=${ip} ts=${Date.now()}`);
+        return new Response(JSON.stringify({ ok: true }), { headers });
+      } catch (e) {
+        return jsonResponse({ ok: false, error: 'Contraseña incorrecta' }, corsHeaders, 401);
+      }
+    }
+
+    // ─── GET /api/auth/session ───
+    if (url.pathname === '/api/auth/session' && request.method === 'GET') {
+      const verification = await _verifySession(request, env);
+      const headers = verification.authenticated
+        ? _protectedHeaders(corsHeaders, verification)
+        : { ...corsHeaders, ...(verification.reason !== 'missing' ? { 'Set-Cookie': _expiredSessionCookie() } : {}) };
+      return jsonResponse({
+        authenticated: verification.authenticated,
+        mode: verification.authenticated ? 'real' : 'demo',
+        reason: verification.reason,
+        ...(verification.authenticated ? {
+          idleExpiresAt: verification.session.lastActivity + SESSION_IDLE_MS,
+          absoluteExpiresAt: verification.session.iat + SESSION_ABSOLUTE_MS,
+        } : {}),
+      }, headers);
+    }
+
+    // ─── POST /api/auth/activity ─── explicit user action; never called by polling
+    if (url.pathname === '/api/auth/activity' && request.method === 'POST') {
+      const verification = await _verifySession(request, env, { userActivity: true });
+      if (!verification.authenticated) return _expiredSessionResponse(corsHeaders, verification.reason);
+      return jsonResponse({
+        ok: true,
+        authenticated: true,
+        idleExpiresAt: verification.session.lastActivity + SESSION_IDLE_MS,
+        absoluteExpiresAt: verification.session.iat + SESSION_ABSOLUTE_MS,
+      }, _protectedHeaders(corsHeaders, verification));
+    }
+
+    // ─── POST /api/auth/logout ───
+    if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
+      const headers = {
+        ...corsHeaders,
+        'Set-Cookie': _expiredSessionCookie(),
+        'Content-Type': 'application/json',
+      };
+      return new Response(JSON.stringify({ ok: true }), { headers });
+    }
+
+    // ─── GET /api/leads ─── (session-aware)
+    if (url.pathname === '/api/leads' && request.method === 'GET') {
+      const verification = await _verifySession(request, env, {
+        userActivity: _isExplicitUserActivity(request),
+      });
+
+      if (!verification.authenticated && verification.reason !== 'missing') {
+        return _expiredSessionResponse(corsHeaders, verification.reason);
+      }
+
+      if (!verification.authenticated) {
+        // PUBLIC MODE — 12 fictitious demo leads only
+        const DEMO_LEADS = [
+          { id: "demo_001", score: 95, persona: "Carlos Demo", provincia: "Santa Fe", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa de moto comprada usada", snippet: "Hola, compré una moto usada y ahora me apareció una multa de enero.", vehiculo: "moto", fecha_iso: new Date(Date.now() - 6*3600000).toISOString(), fb_username: "demo_user_001", _status: "Nuevo", _isDemo: true },
+          { id: "demo_002", score: 88, persona: "María Ejemplo", provincia: "CABA", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "3 multas de tránsito transferidas", snippet: "Tengo 3 multas de una moto que transferí hace más de un año.", vehiculo: "moto", fecha_iso: new Date(Date.now() - 2*3600000).toISOString(), fb_username: "demo_user_002", _status: "Nuevo", _isDemo: true },
+          { id: "demo_003", score: 75, persona: "Juan Prueba", provincia: "Buenos Aires", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Camioneta con multas del dueño anterior", snippet: "Compré una camioneta que tenía 2 multas del dueño anterior.", vehiculo: "camioneta", fecha_iso: new Date(Date.now() - 86400000).toISOString(), fb_username: "demo_user_003", telefono_publico: "+5491134567890", _status: "Contactado", _isDemo: true },
+          { id: "demo_004", score: 70, persona: "Ana Test", provincia: "Entre Ríos", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa del primer dueño fallecido", snippet: "Consulta sobre una multa del primer dueño del auto.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 4*3600000).toISOString(), fb_username: "demo_user_004", _status: "Nuevo", _isDemo: true },
+          { id: "demo_005", score: 65, persona: "Pedro Sample", provincia: "CABA", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Exceso de velocidad CABA", snippet: "Me llegó una multa de CABA por exceso de velocidad 84km/h.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 12*3600000).toISOString(), telefono_publico: "+5491134567890", _status: "En gestión", _isDemo: true },
+          { id: "demo_006", score: 55, persona: "Lucía Mock", provincia: "Misiones", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa de radar móvil ¿prescribe?", snippet: "Las multas de radar móvil prescriben a los 3 años?", vehiculo: "auto", fecha_iso: new Date(Date.now() - 18*3600000).toISOString(), fb_username: "demo_user_006", _status: "Nuevo", _isDemo: true },
+          { id: "demo_007", score: 50, persona: "Roberto Demo", provincia: "Santa Fe", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Patente mal cargada en multa", snippet: "Me apareció una multa radicada en La Plata.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 2*86400000).toISOString(), fb_username: "demo_user_007", _status: "Cerrado", _isDemo: true },
+          { id: "demo_008", score: 45, persona: "Patricia Ejemplo", provincia: "Corrientes", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Páginas de consulta no muestran infracciones", snippet: "Por qué en las páginas de consulta no aparecen.", fecha_iso: new Date(Date.now() - 3*86400000).toISOString(), fb_username: "demo_user_008", _status: "Nuevo", _isDemo: true },
+          { id: "demo_009", score: 40, persona: "Diego Prueba", provincia: "Buenos Aires", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Descargo por 3 multas del 2023", snippet: "Se puede hacer algún descargo? Todas son del 2023.", vehiculo: "moto", fecha_iso: new Date(Date.now() - 5*86400000).toISOString(), _status: "Descartado", _isDemo: true },
+          { id: "demo_010", score: 35, persona: "Sandra Test", provincia: "CABA", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Consulta sobre VTV y multas", snippet: "Tengo la VTV vencida.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 7*86400000).toISOString(), telefono_publico: "+5491134567890", _status: "Nuevo", _isDemo: true },
+          { id: "demo_011", score: 80, persona: "Fernando Demo", provincia: "Santa Fe", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Ruta provincial, multa de policía caminera", snippet: "Policía Caminera en ruta provincial Santa Fe.", vehiculo: "camioneta", fecha_iso: new Date(Date.now() - 8*3600000).toISOString(), fb_username: "demo_user_011", _status: "Nuevo", _isDemo: true },
+          { id: "demo_012", score: 60, persona: "Carolina Sample", provincia: "Entre Ríos", source_label: "Facebook", platform: "Facebook", source: "facebook_apify", title: "Multa de grúa municipal", snippet: "Me llevaron el auto con grúa municipal.", vehiculo: "auto", fecha_iso: new Date(Date.now() - 14*3600000).toISOString(), fb_username: "demo_user_012", _status: "Nuevo", _isDemo: true },
+        ];
+        return jsonResponse({
+          leads_all: DEMO_LEADS,
+          leads_hot: DEMO_LEADS.filter(l => l.score >= 70),
+          summary: { total_leads: DEMO_LEADS.length, hot_leads: DEMO_LEADS.filter(l => l.score >= 70).length, with_whatsapp: 3, with_messenger: 9, with_email: 0 },
+          meta: { version: 'demo-v1', source: 'demo', generated_at: new Date().toISOString() },
+        }, corsHeaders);
+      }
+
+      // AUTHENTICATED MODE — real leads from KV
+      try {
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) {
+          return jsonResponse({
+            leads_all: [], leads_hot: [],
+            summary: { total_leads: 0, hot_leads: 0, with_whatsapp: 0, with_messenger: 0, with_email: 0 },
+            meta: { version: '11.5', source: 'empty_kv', generated_at: new Date().toISOString() }
+          }, _protectedHeaders(corsHeaders, verification));
+        }
+        const data = JSON.parse(raw);
+        if (!data.leads_all) data.leads_all = [];
+        if (!data.leads_hot) data.leads_hot = (data.leads_all || []).filter(l => (l.score || 0) >= 50);
+        const _all = data.leads_all;
+        data.summary = {
+          total_leads: _all.length,
+          hot_leads: data.leads_hot.length,
+          with_whatsapp: _all.filter(l => l.telefono_publico || l.whatsapp_publico || l.telefono || l.phone).length,
+          with_messenger: _all.filter(l => l.fb_username || l.fb_author_id).length,
+          with_email: _all.filter(l => l.email || l.email_publico).length,
+        };
+        if (!data.meta) data.meta = { version: '11.5', source: 'kv', generated_at: new Date().toISOString() };
+        return new Response(JSON.stringify(data), {
+          headers: { ..._protectedHeaders(corsHeaders, verification), 'Content-Type': 'application/json' },
+        });
+      } catch (e) {
+        return jsonResponse({ error: 'kv_read_failed', message: e.message, leads_all: [],
+          meta: { version: '11.5', source: 'error' } }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/metrics ─── (session-aware)
+    if (url.pathname === '/api/metrics' && request.method === 'GET') {
+      const verification = await _verifySession(request, env, {
+        userActivity: _isExplicitUserActivity(request),
+      });
+
+      if (!verification.authenticated && verification.reason !== 'missing') {
+        return _expiredSessionResponse(corsHeaders, verification.reason);
+      }
+
+      if (!verification.authenticated) {
+        // PUBLIC MODE — metrics calculated only on demo leads (12 fictitious)
+        // No real counters, timestamps, or version visible anonymously
+        const DEMO_METRICS = {
+          total_leads: 12,
+          hot_leads: 4,
+          urgent_leads: 1,
+          contactable_leads: 3,
+          status: 'demo',
+        };
+        return jsonResponse(DEMO_METRICS, corsHeaders);
+      }
+
+      // AUTHENTICATED MODE — real metrics from KV
+      try {
+        const raw = await env.LEADX_KV.get('leads:live');
+        if (!raw) {
+          return jsonResponse({
+            total_leads: 0, hot_leads: 0, contactable_leads: 0,
+            urgent_leads: 0, status: 'empty'
+          }, _protectedHeaders(corsHeaders, verification));
+        }
+        const data = JSON.parse(raw);
+        const leads = data.leads_all || [];
+        const hot = leads.filter(l => (l.score || 0) >= 50);
+        const urgent = leads.filter(l => (l.score || 0) >= 80);
+        const contact = leads.filter(l => l.contact?.whatsapp || l.contact?.phone || l.whatsapp_publico);
+        return new Response(JSON.stringify({
+          total_leads: leads.length,
+          hot_leads: hot.length,
+          urgent_leads: urgent.length,
+          contactable_leads: contact.length,
+          status: 'ok',
+          last_updated: data.meta?.generated_at || null,
+          version: data.meta?.version || 'unknown'
+        }), {
+          headers: {
+            ..._protectedHeaders(corsHeaders, verification),
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (e) {
+        return jsonResponse({ error: e.message, status: 'error' }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/ingest ───
+    if (url.pathname === '/api/ingest' && request.method === 'POST') {
+      // Auth check
+      const secret = request.headers.get('X-Webhook-Secret');
+      const expected = env.INGEST_SECRET;
+      if (!expected) {
+        return jsonResponse({ status: 'rejected', reason: 'no_secret_configured' }, corsHeaders, 500);
+      }
+      if (secret !== expected) {
+        return jsonResponse({ status: 'rejected', reason: 'auth_failed' }, corsHeaders, 401);
+      }
+
+      try {
+        const body = await request.json();
+        const newLeads = body.leads_all || [];
+        const newHot = body.leads_hot || newLeads.filter(l => (l.score || 0) >= 50);
+
+        // Anti-wipe: si vienen <5 leads, NO sobrescribir
+        const prevRaw = await env.LEADX_KV.get('leads:live');
+        let prevLeads = [];
+        if (prevRaw) {
+          try {
+            const prev = JSON.parse(prevRaw);
+            prevLeads = prev.leads_all || [];
+          } catch {}
+        }
+
+        if (newLeads.length < 5 && prevLeads.length >= 5) {
+          return jsonResponse({
+            status: 'rejected',
+            reason: 'anti_wipe',
+            incoming: newLeads.length,
+            existing: prevLeads.length
+          }, corsHeaders, 200);
+        }
+
+        // GPT FIX 3: Deep merge - KV tiene prioridad en estado CRM
+        const prevById = new Map();
+        prevLeads.forEach(l => prevById.set(l.id, l));
+        newLeads.forEach(newLead => {
+          const existing = prevById.get(newLead.id);
+          if (existing) {
+            // Merge: Python trae datos frescos, KV preserva estado del CRM
+            prevById.set(newLead.id, {
+              ...newLead,                          // datos frescos de Python
+              score: existing.score ?? newLead.score,  // KV prioridad
+              status: existing.status ?? newLead.status,
+              _status: existing._status ?? newLead._status,
+              _notes: existing._notes ?? newLead._notes,
+              _monto: existing._monto ?? newLead._monto,
+              whatsapp_validated: existing.whatsapp_validated ?? newLead.whatsapp_validated,
+              _wa_state: existing._wa_state ?? newLead._wa_state,
+              _wa_e164: existing._wa_e164 ?? newLead._wa_e164,
+              // Contacto: si Python encontro uno nuevo y KV no tiene, usar el nuevo
+              whatsapp_publico: existing.whatsapp_publico || newLead.whatsapp_publico,
+              telefono_publico: existing.telefono_publico || newLead.telefono_publico,
+              email_publico: existing.email_publico || newLead.email_publico,
+            });
+          } else {
+            prevById.set(newLead.id, newLead);
+          }
+        });
+        const merged = Array.from(prevById.values());
+
+        // FIX GEMINI: Decay temporal de leads (>7 días sin gestión pierden 5 pts/día).
+        // Evita que el dashboard se llene de leads viejos "calientes" que nunca se contactaron.
+        // Solo aplica a leads en estado 'Nuevo' o sin estado (no toca los que ya están en gestión).
+        merged.forEach(l => {
+          const ts = l.fecha_iso || l.discovery_timestamp;
+          const leadDate = ts ? new Date(ts) : null;
+          if (leadDate && !isNaN(leadDate.getTime())) {
+            const ageDays = (Date.now() - leadDate.getTime()) / 86400000;
+            if (ageDays > 7 && (l._status === 'Nuevo' || l.status === 'Nuevo' || !l._status)) {
+              const decay = Math.floor((ageDays - 7) * 5);
+              l.score = Math.max(0, (l.score || 0) - decay);
+              l._decay_applied = decay;
+              l._heat_label = l.score >= 70 ? 'hot' : l.score >= 40 ? 'warm' : 'cold';
+            }
+          }
+        });
+
+        // Truncate to 500 most recent
+        merged.sort((a, b) => {
+          const da = new Date(a.fecha_iso || a.discovery_timestamp || 0).getTime();
+          const db = new Date(b.fecha_iso || b.discovery_timestamp || 0).getTime();
+          return db - da;
+        });
+        const truncated = merged.slice(0, 500);
+
+        const payload = {
+          leads_all: truncated,
+          leads_hot: truncated.filter(l => (l.score || 0) >= 50),
+          summary: {
+            total_leads: truncated.length,
+            hot_leads: truncated.filter(l => (l.score || 0) >= 50).length,
+          },
+          meta: {
+            version: '10.0',
+            source: 'pipeline_v7',
+            generated_at: body.meta?.generated_at || new Date().toISOString(),
+            ingest_at: new Date().toISOString(),
+            merged_from_prev: prevLeads.length,
+            new_in_batch: newLeads.length,
+          }
+        };
+
+        await env.LEADX_KV.put('leads:live', JSON.stringify(payload));
+        return jsonResponse({
+          status: 'ok',
+          total: truncated.length,
+          new: newLeads.length,
+          merged: prevLeads.length
+        }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ status: 'error', message: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/kv ─── (auth required)
+    if (url.pathname === '/api/kv' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const key = url.searchParams.get('key');
+      if (!key) return jsonResponse({ error: 'missing_key' }, corsHeaders, 400);
+      try {
+        const raw = await env.LEADX_KV.get(key);
+        if (raw === null) {
+          return jsonResponse({ error: 'not_found' }, corsHeaders, 404);
+        }
+        return jsonResponse({ value: JSON.parse(raw) }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── POST /api/kv ─── (auth required)
+    if (url.pathname === '/api/kv' && request.method === 'POST') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+      try {
+        const body = await request.json();
+        const { key, value, ttl } = body;
+        if (!key || value === undefined) {
+          return jsonResponse({ error: 'missing_key_or_value' }, corsHeaders, 400);
+        }
+        const putOptions = ttl ? { expirationTtl: ttl } : {};
+        await env.LEADX_KV.put(key, JSON.stringify(value), putOptions);
+        return jsonResponse({ ok: true, key }, corsHeaders);
+      } catch (e) {
+        return jsonResponse({ error: e.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/ml-questions ─── ML Questions Radar via Cloudflare edge IP
+    // (evita 403 de ML API desde GH Actions datacenter IPs)
+    if (url.pathname === '/api/ml-questions' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ error: 'unauthorized' }, corsHeaders, 401);
+      }
+
+      const ML_BASE = "https://api.mercadolibre.com";
+      const MULTA_KW = ["multa", "infraccion", "libre deuda", "deuda",
+                        "fotomulta", "puede transferir", "transferencia",
+                        "patente", "08", "cedula", "transferir"];
+      const TITLE_Q = ["transferir urgente", "no puedo transferir",
+                       "con multa", "deuda patente", "libre deuda",
+                       "transferencia pendiente"];
+      const MAX_ITEMS_PER_QUERY = 3;
+      const MAX_TOTAL_ITEMS = 10;
+
+      const allLeads = [];
+      const seenItems = new Set();
+      let totalProcessed = 0;
+
+      const debugInfo = { fetches: [], errors: [] };
+      const mlFetch = async (path) => {
+        try {
+          const r = await fetch(`${ML_BASE}${path}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+              "Accept": "application/json"
+            }
+          });
+          debugInfo.fetches.push({ path: path.slice(0, 80), status: r.status });
+          if (!r.ok) {
+            const text = await r.text().catch(() => "");
+            debugInfo.errors.push({ path: path.slice(0, 80), status: r.status, body: text.slice(0, 200) });
+            return null;
+          }
+          return r.json();
+        } catch (e) {
+          debugInfo.errors.push({ path: path.slice(0, 80), error: e.message });
+          return null;
+        }
+      };
+
+      const processItem = async (item) => {
+        if (!item || !item.id) return;
+        if (seenItems.has(item.id)) return;
+        seenItems.add(item.id);
+        totalProcessed++;
+
+        const qData = await mlFetch(
+          `/questions/search?item=${item.id}&status=ANSWERED&limit=50`
+        );
+        if (!qData || !qData.questions || !qData.questions.length) return;
+
+        // Fetch seller contact (1 call per item, opcional)
+        let sellerContact = {};
+        const sellerId = item.seller && item.seller.id;
+        if (sellerId) {
+          const sData = await mlFetch(`/users/${sellerId}`);
+          if (sData) {
+            const phone = sData.phone;
+            const email = sData.email;
+            if (phone && phone.number) {
+              const digits = String(phone.area_code || "") + String(phone.number);
+              sellerContact.phone = digits.replace(/\D/g, "");
+            }
+            if (email && !email.includes("mercadolibre") && !email.includes("noreply")) {
+              sellerContact.email = email.toLowerCase().trim();
+            }
+            sellerContact.is_professional = (sData.tags || []).some(t =>
+              ["car_dealer", "real_estate_agency", "meli_choice", "large_seller"].includes(t)
+            );
+            if (sData.nickname && !item.seller.nickname) {
+              item.seller.nickname = sData.nickname;
+            }
+          }
+        }
+
+        for (const q of qData.questions) {
+          const qText = (q.text || "").toLowerCase();
+          if (!MULTA_KW.some(kw => qText.includes(kw))) continue;
+
+          const hasContact = !!(sellerContact.phone || sellerContact.email);
+
+          allLeads.push({
+            id: `ml_q_${q.id || item.id}`,
+            source: "mercadolibre_questions",
+            source_label: "MercadoLibre",
+            author: (item.seller && item.seller.nickname) || "",
+            title: `[ML] ${(item.title || "").slice(0, 120)}`,
+            snippet: `Pregunta: "${q.text}"\nRespuesta: "${(q.answer && q.answer.text) || ""}"\nAuto: ${item.title} - $${(item.price || 0).toLocaleString()}`.slice(0, 3000),
+            url: item.permalink || "",
+            fecha_iso: (q.date_created || "").slice(0, 10),
+            provincia: (item.address && item.address.state_name) || "",
+            platform: "MercadoLibre",
+            score: 0,
+            // Campos extra
+            whatsapp_publico: sellerContact.phone || "",
+            telefono_publico: sellerContact.phone || "",
+            email_publico: sellerContact.email || "",
+            seller_id: String(sellerId || ""),
+            question_text: q.text || "",
+            has_answer: !!(q.answer),
+            price: item.price || 0,
+            is_professional_seller: sellerContact.is_professional || false,
+            contact_source: hasContact ? "ml_seller_profile" : "",
+          });
+        }
+      };
+
+      try {
+        // Busqueda 1: titulos con keywords de multa (pre-filtrado, Claude fix)
+        for (const q of TITLE_Q) {
+          if (totalProcessed >= MAX_TOTAL_ITEMS) break;
+          const data = await mlFetch(
+            `/sites/MLA/search?q=${encodeURIComponent(q)}&category=MLA1744&sort=date_desc&limit=${MAX_ITEMS_PER_QUERY}`
+          );
+          if (data && data.results) {
+            for (const item of data.results) {
+              if (totalProcessed >= MAX_TOTAL_ITEMS) break;
+              await processItem(item);
+            }
+          }
+        }
+
+        // Busqueda 2: autos recientes genericos (red mas amplia)
+        if (totalProcessed < MAX_TOTAL_ITEMS) {
+          const generic = await mlFetch(
+            `/sites/MLA/search?category=MLA1744&sort=date_desc&limit=15`
+          );
+          if (generic && generic.results) {
+            for (const item of generic.results.slice(0, MAX_TOTAL_ITEMS - totalProcessed)) {
+              await processItem(item);
+            }
+          }
+        }
+
+        return jsonResponse({
+          ok: true,
+          leads: allLeads,
+          total: allLeads.length,
+          contactables: allLeads.filter(l => l.whatsapp_publico || l.email_publico).length,
+          items_processed: seenItems.size,
+          debug: debugInfo,
+        }, corsHeaders);
+      } catch (err) {
+        return jsonResponse({ ok: false, error: err.message }, corsHeaders, 500);
+      }
+    }
+
+    // ─── GET /api/reddit-bio ─── Multi-path Reddit user scraper
+    // Intenta: about.json, comments.rss, submitted.rss, old.reddit HTML
+    // Devuelve telefono/whatsapp/email si los encuentra en cualquier fuente
+    if (url.pathname === '/api/reddit-bio' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+      const username = url.searchParams.get('user');
+      if (!username) {
+        return jsonResponse({ ok: false, error: 'missing_user' }, corsHeaders, 400);
+      }
+
+      // Regex AR quirurgico (CHEVRON+QWEN consensus)
+      const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b|\b0?(?:11|2\d{2}|3\d{2})[-\s]?\d{3,4}[-\s]?\d{4}\b/g;
+      const AR_WA = /(?:wa\.me\/(\d{8,15})|whatsapp[:\s]+(\+?[\d\s\-]{8,15})|(?:wp|wpp|wsp|wapp)[:\s]+(\+?[\d\s\-]{8,15}))/gi;
+      const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+      const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com'];
+
+      const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/html, application/xml, */*',
+        'Accept-Language': 'es-AR,es;q=0.9,en;q=0.8',
+      };
+
+      const allText = []; // acumular texto de todas las fuentes
+      let bio = '';
+      let sourcesTried = [];
+
+      // Path 1: /about.json (probablemente 403 pero intentar)
+      try {
+        const r1 = await fetch('https://www.reddit.com/user/' + encodeURIComponent(username) + '/about.json', { headers });
+        sourcesTried.push('about.json:' + r1.status);
+        if (r1.ok) {
+          const data = await r1.json();
+          const sub = (data && data.data && data.data.subreddit) || {};
+          bio = (sub.public_description || '') + ' ' + (sub.description || '');
+          allText.push(bio);
+        }
+      } catch (e) {}
+
+      // Path 2: /comments/.rss (legacy RSS, a veces no bloqueado)
+      if (!bio) {
+        try {
+          const r2 = await fetch('https://www.reddit.com/user/' + encodeURIComponent(username) + '/comments/.rss?limit=25', { headers });
+          sourcesTried.push('comments.rss:' + r2.status);
+          if (r2.ok) {
+            const xml = await r2.text();
+            // Extraer texto de entries del RSS
+            const entries = xml.match(/<entry>([\s\S]*?)<\/entry>/g) || [];
+            entries.forEach(e => {
+              const content = (e.match(/<content[^>]*>([\s\S]*?)<\/content>/) || [])[1] || '';
+              const cleaned = content.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+              allText.push(cleaned);
+            });
+          }
+        } catch (e) {}
+      }
+
+      // Path 3: /submitted/.rss (posts del user)
+      if (!bio) {
+        try {
+          const r3 = await fetch('https://www.reddit.com/user/' + encodeURIComponent(username) + '/submitted/.rss?limit=25', { headers });
+          sourcesTried.push('submitted.rss:' + r3.status);
+          if (r3.ok) {
+            const xml = await r3.text();
+            const entries = xml.match(/<entry>([\s\S]*?)<\/entry>/g) || [];
+            entries.forEach(e => {
+              const content = (e.match(/<content[^>]*>([\s\S]*?)<\/content>/) || [])[1] || '';
+              const cleaned = content.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+              allText.push(cleaned);
+            });
+          }
+        } catch (e) {}
+      }
+
+      // Combinar todo el texto y buscar contactos
+      const fullText = allText.join(' \n ');
+      const phones = [...new Set((fullText.match(AR_PHONE) || []).map(p => p.trim()))];
+      const waMatches = [...fullText.matchAll(AR_WA)];
+      const whatsapps = [...new Set(waMatches.map(m => (m[1] || m[2] || m[3] || '').trim()).filter(Boolean))];
+      const emails = [...new Set((fullText.match(EMAIL_RE) || [])
+        .map(e => e.toLowerCase().trim())
+        .filter(e => !SPAM_DOMAINS.some(d => e.includes(d))))];
+
+      return jsonResponse({
+        ok: true,
+        username: username,
+        bio: (bio || fullText.slice(0, 500)).trim(),
+        sources_tried: sourcesTried,
+        phone: phones[0] || '',
+        phones: phones,
+        whatsapp: whatsapps[0] || '',
+        whatsapps: whatsapps,
+        email: emails[0] || '',
+        emails: emails,
+        has_contact: phones.length > 0 || whatsapps.length > 0 || emails.length > 0,
+      }, corsHeaders);
+    }
+
+    // ─── GET /api/ddg-foromoto ─── ForoMoto + clasificados AR via DDG
+    // Busca en foros AR con snippets que contengan dolor + contacto
+    if (url.pathname === '/api/ddg-foromoto' && request.method === 'GET') {
+      const secret = request.headers.get('X-Webhook-Secret');
+      if (!env.INGEST_SECRET || secret !== env.INGEST_SECRET) {
+        return jsonResponse({ ok: false, error: 'unauthorized' }, corsHeaders, 401);
+      }
+
+      // Queries para foros AR con intención + contacto
+      // DDG tiene mala cobertura de site:foromoto, usar queries amplias con keywords AR
+      const QUERIES = [
+        'multa fotomulta argentina whatsapp celular "11-"',
+        'no puedo transferir auto multa argentina telefono',
+        'libre deuda falso argentina whatsapp contacto',
+        'compre auto multas anteriores dueño argentina celular',
+        'vendo auto multas pendientes argentina whatsapp',
+        'me llego fotomulta argentina ayuda whatsapp',
+      ];
+
+      // Regex AR con códigos de área (Qwen consensus)
+      const AR_PHONE = /(?:\+54\s?9?\s?)?(?:11|2\d{2}|3\d{2})\s?[-.\s]?\d{4}[-.\s]?\d{4}|\b15[-\s]?\d{4}[-\s]?\d{4}\b/g;
+      const AR_WA = /wa\.me\/(\d{8,15})|(?:whatsapp|wp|wpp|wsp|wapp)[:\s]+(\+?[\d\s\-]{8,15})/gi;
+      const EMAIL_RE = /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g;
+      const SPAM_DOMAINS = ['mailinator', 'tempmail', 'guerrillamail', '10minutemail', 'noreply', 'example.com'];
+
+      // Keywords de dolor (GPT insight: filtro contextual)
+      const PAIN_KEYWORDS = /multa|fotomulta|infracci[oó]n|libre.deuda|transferencia|patente|08|c[eé]dula|veraz|registro.automotor|juez.de.faltas|peaje|telepeaje|deuda/i;
+
+      const allLeads = [];
+
+      try {
+        let debugHtmlSize = 0;
+        let debugFirstSnippet = '';
+        let debugResultCount = 0;
+        for (const query of QUERIES) {
+          try {
+            const ddgUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query);
+            const r = await fetch(ddgUrl, {
+              headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
                 'Accept': 'text/html',
                 'Accept-Language': 'es-AR,es;q=0.9',
