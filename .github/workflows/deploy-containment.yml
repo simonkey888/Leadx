@@ -13,6 +13,7 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      DEPLOY_SUCCEEDED: "false"
 
     steps:
       - name: Checkout containment candidate
@@ -71,20 +72,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "Retrieving currently active deployment version ID..."
-          DEPLOYMENTS_JSON=$(npx --yes wrangler@4.111.0 deployments list --json)
-          PREV_VERSION_ID=$(echo "$DEPLOYMENTS_JSON" | jq -r '
-            if type == "array" then
-              .[] | select(.active == true or .latest == true) | .id
-            elif type == "object" and .deployments then
-              .deployments[] | select(.active == true or .latest == true) | .id
-            else
-              empty
-            end
+          echo "Retrieving currently active deployment version ID via wrangler deployments status..."
+          STATUS_JSON=$(npx --yes wrangler@4.111.0 deployments status --json)
+          PREV_VERSION_ID=$(echo "$STATUS_JSON" | jq -r '
+            .versions[] | select(.percentage == 100 or .percentage == "100") | .version_id
           ' | head -n 1)
           if [[ -z "$PREV_VERSION_ID" || "$PREV_VERSION_ID" == "null" ]]; then
-            echo "Warning: Could not capture active version ID. Fallback rollback is disabled."
-            echo "PREV_VERSION_ID=" >> $GITHUB_ENV
+            echo "CRITICAL ERROR: Could not capture active version ID with 100% traffic. Aborting deployment to prevent open-failure!"
+            exit 1
           else
             echo "Successfully registered previous version ID: $PREV_VERSION_ID"
             echo "PREV_VERSION_ID=$PREV_VERSION_ID" >> $GITHUB_ENV
@@ -104,7 +99,9 @@ jobs:
         run: npx --yes wrangler@4.111.0 deploy --dry-run
 
       - name: Execute single wrangler deploy
-        run: npx --yes wrangler@4.111.0 deploy
+        run: |
+          npx --yes wrangler@4.111.0 deploy
+          echo "DEPLOY_SUCCEEDED=true" >> $GITHUB_ENV
 
       - name: Validate production deployment (smoke tests)
         shell: bash
@@ -171,10 +168,12 @@ jobs:
           echo "All production smoke tests passed successfully!"
 
       - name: Automatic Rollback on Failure
-        if: failure() && env.PREV_VERSION_ID != ''
+        if: failure() && env.DEPLOY_SUCCEEDED == 'true' && env.PREV_VERSION_ID != ''
         run: |
           echo "----------------------------------------"
-          echo "SMOKE TESTS OR DEPLOYMENT FAILED!"
+          echo "SMOKE TESTS FAILED AFTER SUCCESSFUL DEPLOYMENT!"
           echo "Initiating automatic rollback to version ${{ env.PREV_VERSION_ID }}..."
           echo "----------------------------------------"
           npx --yes wrangler@4.111.0 rollback ${{ env.PREV_VERSION_ID }} --message "Automatic rollback triggered due to production smoke test failure"
+          echo "Rollback completed. Marking job as failed."
+          exit 1
