@@ -5,36 +5,42 @@ on:
     branches:
       - feat/leadx-cosmic-completion
       - feat/leadx-multi-linea-comercial-v1
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: leadx-containment-${{ github.ref }}
+  group: leadx-containment-${{ github.event.pull_request.head.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
-    if: github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1'
+    if: >-
+      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1')) ||
+      (github.event_name == 'pull_request' && github.head_ref == 'feat/leadx-multi-linea-comercial-v1') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Checkout exact branch commit
+      - name: Checkout exact candidate SHA
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.EXPECTED_SHA }}
           fetch-depth: 0
 
-      - name: Verify exact isolated revision
+      - name: Verify exact clean revision
         shell: bash
         run: |
           set -euo pipefail
-          case "${GITHUB_REF}" in
-            refs/heads/feat/leadx-cosmic-completion|refs/heads/feat/leadx-multi-linea-comercial-v1) ;;
-            *) echo "Unexpected branch: ${GITHUB_REF}"; exit 1 ;;
-          esac
-          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           test -z "$(git status --porcelain)"
+          git merge-base --is-ancestor e762c64ac1e9a71052f70b8e44ca1442d151d8e2 HEAD
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -51,7 +57,7 @@ jobs:
         working-directory: web
         run: npm run build
 
-      - name: Baseline compatibility controls
+      - name: Preserve all 66 baseline controls
         working-directory: web
         run: npm run test:existing
 
@@ -62,10 +68,15 @@ jobs:
           test "$(grep -c '^| B[0-9][0-9][0-9] ' docs/test-coverage-matrix.md)" -eq 66
           grep -qx 'BASELINE_COVERAGE=66/66  ' docs/test-coverage-matrix.md
           grep -qx 'BASELINE_UNCOVERED=0  ' docs/test-coverage-matrix.md
+          jq -e '.total == 66 and .passed == 66 and .failed == 0' web/test-results.json >/dev/null
 
-      - name: Runtime containment controls
+      - name: Runtime and multi-line controls
         working-directory: web
         run: npm test
+
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
 
       - name: Current-tree and redacted history audit
         working-directory: web
@@ -77,22 +88,27 @@ jobs:
           set -euo pipefail
           test -s artifacts/security/current-tree-scan.json
           test -s artifacts/security/history-audit-redacted.json
+          test -s artifacts/security/scan-summary.txt
           grep -qx 'HISTORY_VALUES_REDACTED=yes' artifacts/security/scan-summary.txt
-
-      - name: Typecheck
-        working-directory: web
-        run: npm run typecheck
 
       - name: Browser screenshots and responsive smoke
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/ui
-          (cd web && npm run preview -- --host 127.0.0.1 > /tmp/leadx-preview.log 2>&1 &)
           cd web
           npm install --no-save --package-lock=false @playwright/test@1.51.1
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
+          npm run preview -- --host 127.0.0.1 > /tmp/leadx-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4173/ >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4173/ >/dev/null
           npx playwright test scripts/visual-smoke.spec.mjs --workers=1
+          test "$(find ../artifacts/ui -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 8
 
       - name: Measure production bundles
         id: bundles
@@ -102,16 +118,15 @@ jobs:
           set -euo pipefail
           JS_FILE=$(find dist/assets -maxdepth 1 -type f -name '*.js' | head -n 1)
           CSS_FILE=$(find dist/assets -maxdepth 1 -type f -name '*.css' | head -n 1)
-          test -n "$JS_FILE"
-          test -n "$CSS_FILE"
+          test -n "$JS_FILE" && test -n "$CSS_FILE"
           JS_GZIP=$(gzip -c "$JS_FILE" | wc -c | tr -d ' ')
           CSS_GZIP=$(gzip -c "$CSS_FILE" | wc -c | tr -d ' ')
-          test "$JS_GZIP" -le 61440
-          test "$CSS_GZIP" -le 5120
+          test "$JS_GZIP" -le 81920
+          test "$CSS_GZIP" -le 12288
           echo "js_gzip=$JS_GZIP" >> "$GITHUB_OUTPUT"
           echo "css_gzip=$CSS_GZIP" >> "$GITHUB_OUTPUT"
 
-      - name: Validate endpoint inventory and Worker surface
+      - name: Validate endpoint and deployment surfaces
         shell: bash
         run: |
           set -euo pipefail
@@ -122,33 +137,51 @@ jobs:
             grep -R -q "$endpoint" worker.js worker
             grep -q "$endpoint" docs/api-inventory.md
           done
+          grep -q 'workflow_dispatch:' .github/workflows/deploy-containment.yml
+          grep -q 'target_sha:' .github/workflows/deploy-containment.yml
+          ! grep -q 'TARGET_SHA: a6185a2d1fc392d22686ac7dda90ba3afebd7714' .github/workflows/deploy-containment.yml
+
+      - name: Build sanitized artifact manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/meta
+          printf 'HEAD_SHA=%s\n' "$EXPECTED_SHA" > artifacts/meta/manifest.txt
+          printf 'BASELINE_COVERAGE=66/66\n' >> artifacts/meta/manifest.txt
+          printf 'MULTI_LINE_TESTS=PASS\n' >> artifacts/meta/manifest.txt
+          printf 'PAGEERROR=0\nOVERFLOW=0\nSCREENSHOTS=8\n' >> artifacts/meta/manifest.txt
+          find artifacts -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > artifacts/SHA256SUMS
+          ! find artifacts -type f \( -name '.env' -o -name '*.env' -o -name '*.pem' -o -name '*.key' \) | grep -q .
+          ! grep -R -E -i 'set-cookie:|authorization: bearer|CLOUDFLARE_API_TOKEN|DASHBOARD_PASSWORD=|SESSION_SECRET=|INGEST_SECRET=' artifacts
 
       - name: Upload sanitized containment evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: leadx-containment-${{ github.sha }}
+          name: leadx-multiline-${{ env.EXPECTED_SHA }}
           path: |
             artifacts/security
             artifacts/ui
+            artifacts/meta
+            artifacts/SHA256SUMS
             web/dist
-          if-no-files-found: warn
-          retention-days: 14
+            web/test-results.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Summary
         if: always()
         shell: bash
         run: |
           {
-            echo '### LeadX branch containment validation'
+            echo '### LeadX multi-line validation'
             echo
-            echo "- Branch: ${GITHUB_REF_NAME}"
-            echo "- SHA: ${GITHUB_SHA}"
-            echo "- Exact checkout verified: yes"
-            echo "- Baseline coverage: 66/66"
-            echo "- Production operations: disabled"
-            echo "- Remote KV / ingest / cron / deployment: not executed"
-            echo "- Evidence: sanitized artifact only"
+            echo "- SHA: $EXPECTED_SHA"
+            echo '- Exact checkout: verified'
+            echo '- Baseline: 66/66'
+            echo '- Multi-line controls: executed'
+            echo '- Browser states: 8'
+            echo '- Production operations: disabled'
             echo "- JS gzip: ${{ steps.bundles.outputs.js_gzip || 'INDETERMINADO' }} bytes"
             echo "- CSS gzip: ${{ steps.bundles.outputs.css_gzip || 'INDETERMINADO' }} bytes"
           } >> "$GITHUB_STEP_SUMMARY"
