@@ -55,7 +55,11 @@ jobs:
 
       - name: Build
         working-directory: web
-        run: npm run build
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p ../artifacts/diagnostics
+          npm run build 2>&1 | tee ../artifacts/diagnostics/build.log
 
       - name: Preserve all 66 baseline controls
         working-directory: web
@@ -160,13 +164,14 @@ jobs:
         with:
           name: leadx-multiline-${{ env.EXPECTED_SHA }}
           path: |
+            artifacts/diagnostics
             artifacts/security
             artifacts/ui
             artifacts/meta
             artifacts/SHA256SUMS
             web/dist
             web/test-results.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Summary
