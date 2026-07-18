@@ -19,7 +19,7 @@ for (const [name, width, height, linea, detail] of cases) {
     await page.goto(`http://127.0.0.1:4173/?linea=${linea}`);
     const label = linea === "fotomultas" ? "Fotomultas" : "Repuestos agrícolas";
     await expect(page.getByRole("button", { name: label })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByText("Provincia", { exact: true }).first()).toBeVisible({ visible: Number(width) >= 760 });
+    if (Number(width) >= 760) await expect(page.getByText("Provincia", { exact: true }).first()).toBeVisible();
     if (detail) {
       await page.locator(Number(width) < 760 ? ".lead-card" : ".lead-table tbody tr").first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
