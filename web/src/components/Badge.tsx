@@ -1,2 +1,12 @@
-import type {Lead} from "../types";
-export function Badge({lead}:{lead:Lead}){const status=lead._status||lead.status||"Nuevo";const priority=lead._priority||lead.priority||"Media";return <span className={`badge badge--${String(status).toLowerCase().replace(" ","-")}`}>{status} · {priority}</span>}
+import type { Lead } from "../types";
+import { leadPriority, leadStatus } from "../lib/multi-line";
+
+export function Badge({ lead }: { lead: Lead }) {
+  const status = leadStatus(lead);
+  const priority = leadPriority(lead);
+  return (
+    <span className={`badge badge--${status.toLocaleLowerCase("es").replaceAll(" ", "-")}`} title={`Estado: ${status} · Prioridad: ${priority}`}>
+      <span className="badge__dot" aria-hidden="true" /><span>{status}</span><span className="badge__sep">·</span><span>{priority}</span>
+    </span>
+  );
+}
