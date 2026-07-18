@@ -1,4 +1,4 @@
-export const RELEASE = "leadx-containment-v2";
+export const RELEASE = "leadx-multiline-v1";
 export const SESSION_COOKIE = "leadx_session";
 export const SESSION_IDLE_MS = 20 * 60 * 1000;
 export const SESSION_ABSOLUTE_MS = 8 * 60 * 60 * 1000;
@@ -9,50 +9,29 @@ export const MAX_LEADS = 500;
 export const VERTICALS = new Set(["fotomultas", "repuestos_agricolas"]);
 
 export const STATUS_VALUES = new Set([
-  "Nuevo", "Revisado", "Contactado", "En gestión",
-  "Esperando respuesta", "Cerrado", "Descartado",
+  "Nuevo", "Contactado", "Calificado", "Propuesta", "Ganado", "Perdido",
+  "Revisado", "En gestión", "Esperando respuesta", "Cerrado", "Descartado",
 ]);
 export const PRIORITY_VALUES = new Set(["Alta", "Media", "Baja"]);
 export const CRM_FIELDS = [
-  "status", "priority", "notes", "owner", "amount", "contacted_at",
-  "next_action_at", "last_activity_at", "resolution", "resolution_reason",
-  "updated_at", "version", "_status", "_priority", "_notes", "_monto", "assigned_to", "history",
+  "status", "priority", "notes", "owner", "assigned_to", "amount", "contacted_at",
+  "next_action_at", "last_activity_at", "resolution", "resolution_reason", "history",
+  "updated_at", "version", "_status", "_priority", "_notes", "_monto", "_history", "whatsapp_confirmed",
 ];
 
 export const API_METHODS = new Map([
-  ["/api/auth/login", ["POST"]],
-  ["/api/auth/session", ["GET"]],
-  ["/api/auth/activity", ["POST"]],
-  ["/api/auth/logout", ["POST"]],
-  ["/api/leads", ["GET"]],
-  ["/api/metrics", ["GET"]],
-  ["/api/ingest", ["POST"]],
-  ["/api/health", ["GET"]],
+  ["/api/auth/login", ["POST"]], ["/api/auth/session", ["GET"]], ["/api/auth/activity", ["POST"]],
+  ["/api/auth/logout", ["POST"]], ["/api/leads", ["GET"]], ["/api/metrics", ["GET"]],
+  ["/api/ingest", ["POST"]], ["/api/health", ["GET"]],
 ]);
 
 export const REMOVED_PATHS = new Set([
-  "/api/kv",
-  "/api/ml-questions",
-  "/api/reddit-bio",
-  "/api/ddg-foromoto",
-  "/api/clasificar-webhook",
-  "/api/clasificar-patente",
-  "/api/clasificar-basic",
-  "/api/apify-facebook",
-  "/cookies",
-  "/cookies.html",
-  "/api/cookies",
-  "/api/whatsapp-validate",
-  "/api/whatsapp-webhook",
-  "/api/apify-webhook",
-  "/api/enrich-patente",
-  "/api/analyze-acta",
-  "/api/forensic-case",
-  "/api/cron-run",
-  "/api/enrich-all",
-  "/api/reddit-profile-links",
-  "/api/shadow-osint",
-  "/api/ventafe-debug",
+  "/api/kv", "/api/ml-questions", "/api/reddit-bio", "/api/ddg-foromoto",
+  "/api/clasificar-webhook", "/api/clasificar-patente", "/api/clasificar-basic",
+  "/api/apify-facebook", "/cookies", "/cookies.html", "/api/cookies",
+  "/api/whatsapp-validate", "/api/whatsapp-webhook", "/api/apify-webhook",
+  "/api/enrich-patente", "/api/analyze-acta", "/api/forensic-case", "/api/cron-run",
+  "/api/enrich-all", "/api/reddit-profile-links", "/api/shadow-osint", "/api/ventafe-debug",
 ]);
 
 export function demoLeads(now = Date.now(), vertical = "fotomultas") {
