@@ -1,0 +1,79 @@
+name: Deploy containment
+on:
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: Exact main SHA to deploy
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TARGET_SHA: ${{ inputs.target_sha }}
+      BASE_URL: https://leadx.simondalmasso44.workers.dev
+    steps:
+      - name: Validate requested main revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+      - uses: actions/checkout@v4
+        with: {ref: "${{ inputs.target_sha }}", fetch-depth: 0}
+      - name: Verify exact current main HEAD
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
+      - name: Install build test and typecheck
+        run: cd web && npm ci && npm run build && npm test && npm run typecheck
+      - name: Verify Cloudflare and secret names
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.111.0 whoami
+          names="$(npx --yes wrangler@4.111.0 secret list --format json | jq -r '.[].name')"
+          for name in DASHBOARD_PASSWORD SESSION_SECRET INGEST_SECRET; do grep -Fxq "$name" <<<"$names"; done
+      - name: Record previous active version
+        id: previous
+        run: |
+          set -euo pipefail
+          id="$(npx --yes wrangler@4.111.0 deployments list --format json | jq -r '[.[]|select(.is_active==true)][0].id // empty')"
+          test -n "$id"
+          echo "version=$id" >> "$GITHUB_OUTPUT"
+      - name: Dry run
+        run: npx --yes wrangler@4.111.0 deploy --dry-run
+      - name: Deploy exactly once
+        id: deploy
+        run: |
+          set -euo pipefail
+          out="$(npx --yes wrangler@4.111.0 deploy 2>&1)"; printf '%s\n' "$out"
+          id="$(grep -oE 'Current Version ID: [a-f0-9-]+' <<<"$out" | awk '{print $4}')"; test -n "$id"
+          echo "version=$id" >> "$GITHUB_OUTPUT"
+      - name: Confirm active traffic and smoke
+        id: smoke
+        run: |
+          set -euo pipefail
+          deployments="$(npx --yes wrangler@4.111.0 deployments list --format json)"
+          jq -e --arg id '${{ steps.deploy.outputs.version }}' '[.[]|select(.id==$id and .is_active==true)]|length==1' <<<"$deployments"
+          curl -fsS "$BASE_URL/api/health" | jq -e '.status=="ok"'
+          curl -fsS "$BASE_URL/api/auth/session" | jq -e '.authenticated==false and .mode=="demo"'
+          for v in fotomultas repuestos_agricolas; do
+            curl -fsS "$BASE_URL/api/leads?vertical=$v" | jq -e --arg v "$v" '.leads_all|length==12 and all(.[];._isDemo==true and .vertical==$v)'
+            curl -fsS "$BASE_URL/api/metrics?vertical=$v" | jq -e '.status=="demo" and .total_leads==12'
+          done
+          html="$(curl -fsS "$BASE_URL/")"; grep -q '<title>LeadX CRM</title>' <<<"$html"
+      - name: Automatic rollback after failed smoke
+        if: failure() && steps.deploy.conclusion == 'success' && steps.smoke.conclusion == 'failure'
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.111.0 rollback '${{ steps.previous.outputs.version }}' --message 'Automatic rollback after LeadX smoke failure'
+          curl -fsS "$BASE_URL/api/health" | jq -e '.status=="ok"'

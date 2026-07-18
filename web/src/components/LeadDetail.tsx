@@ -1,41 +1,4 @@
-import { ArrowLeft, CalendarDays, ExternalLink, MapPin, X } from "lucide-react";
-import type { Lead } from "../types";
-import { relativeTime } from "../lib/api";
-import { Actions } from "./Actions";
-import { Badge } from "./Badge";
-
-export function LeadDetail({ lead, onClose, onActivity }: { lead: Lead; onClose: () => void; onActivity?: () => void }) {
-  const date = lead.first_seen_at || lead.discovery_timestamp || lead.fecha_iso || lead.fecha_visible;
-  const sourceUrl = lead._isDemo ? null : lead.source_url;
-  return (
-    <div className="detail-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <aside className="lead-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-        <header className="lead-detail__header">
-          <button className="icon-button lead-detail__back" onClick={onClose} aria-label="Volver"><ArrowLeft size={20} /></button>
-          <div><span className="eyebrow">Detalle del lead</span><h2 id="detail-title">{lead.persona || "Sin nombre"}</h2></div>
-          <button className="icon-button lead-detail__close" onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
-        </header>
-        <div className="lead-detail__body">
-          <Badge lead={lead} />
-          <div className="detail-meta">
-            {lead.provincia && <span><MapPin size={15} />{lead.provincia}</span>}
-            <span><CalendarDays size={15} />{relativeTime(lead)}</span>
-          </div>
-          {date && <time className="exact-date" dateTime={new Date(date).toISOString()}>{new Date(date).toLocaleString("es-AR")}</time>}
-          <section><h3>Problema</h3><p className="detail-problem">{lead.snippet || lead.quoted_text || lead.title || "Sin descripción"}</p></section>
-          {!lead._isDemo && (lead.telefono_publico || lead.whatsapp_publico || lead.email_publico || lead.email) && (
-            <section><h3>Contacto</h3><p>{lead.telefono_publico || lead.whatsapp_publico || lead.email_publico || lead.email}</p></section>
-          )}
-          {sourceUrl ? (
-            <a className="source-link" href={sourceUrl} target="_blank" rel="noopener noreferrer" onClick={onActivity}>
-              Abrir publicación original <ExternalLink size={15} />
-            </a>
-          ) : lead._isDemo ? (
-            <p className="demo-action-note">La fuente y los contactos son simulados en modo demo.</p>
-          ) : null}
-        </div>
-        <footer className="lead-detail__footer"><Actions lead={lead} labels onActivity={onActivity} /></footer>
-      </aside>
-    </div>
-  );
-}
+import{ArrowLeft,X}from"lucide-react";import type{Lead}from"../types";import{Badge}from"./Badge";import{Actions}from"./Actions";
+const labels:Record<string,string>={plate:"Patente",municipality:"Municipio",violation_type:"Tipo de infracción",estimated_amount:"Monto estimado",due_date:"Vencimiento",brand:"Marca",machine_type:"Tipo de máquina",model:"Modelo",part_number:"Número de pieza",quantity:"Cantidad",urgency:"Urgencia"};
+export function LeadDetail({lead,onClose,onActivity}:{lead:Lead;onClose:()=>void;onActivity?:()=>void}){const fields=Object.entries(lead.vertical_data||{}).filter(([,v])=>v!==undefined&&v!=="");return <div className="detail-layer" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><aside className="lead-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><header><button className="icon-button back" onClick={onClose} aria-label="Atrás"><ArrowLeft/></button><div><small>{lead.vertical==="repuestos_agricolas"?"Repuestos agrícolas":"Fotomultas"}</small><h2 id="detail-title">{lead.name||lead.persona}</h2></div><button className="icon-button close" onClick={onClose} aria-label="Cerrar"><X/></button></header><div className="detail-body"><Badge lead={lead}/><dl><Info k="Provincia" v={lead.province||lead.provincia}/><Info k="Canal" v={lead.channel||lead.source_label}/><Info k="Asignado a" v={lead.assigned_to||lead.owner||"Sin asignar"}/>{fields.map(([k,v])=><Info key={k} k={labels[k]||k} v={typeof v==="number"&&k.includes("amount")?`$ ${v.toLocaleString("es-AR")}`:String(v)}/>)}</dl>{(lead.snippet||lead.title)&&<section><h3>Consulta</h3><p>{lead.snippet||lead.title}</p></section>}{(lead._notes||lead.notes)&&<section><h3>Notas</h3><p>{lead._notes||lead.notes}</p></section>}{(lead._monto||lead.amount)&&<section><h3>Monto</h3><p>$ {Number(lead._monto||lead.amount).toLocaleString("es-AR")}</p></section>}{Array.isArray(lead.history)&&lead.history.length>0&&<section><h3>Historial</h3><p>{lead.history.length} eventos registrados</p></section>}</div><footer><span>{lead.phone||lead.telefono||"Sin teléfono"}</span><Actions lead={lead} labels onActivity={onActivity}/></footer></aside></div>}
+function Info({k,v}:{k:string;v:unknown}){return v?<div><dt>{k}</dt><dd>{String(v)}</dd></div>:null}

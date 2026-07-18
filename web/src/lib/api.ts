@@ -1,5 +1,6 @@
 import type { Lead, SessionInfo } from "../types";
-import { DEMO_LEADS } from "../demo-leads";
+import { demoByVertical } from "../demo-leads";
+import type { Vertical } from "../types";
 
 const API_BASE = "";
 
@@ -10,16 +11,16 @@ export class SessionExpiredError extends Error {
   }
 }
 
-export async function fetchLeads(authenticated: boolean, userActivity = false): Promise<{ leads: Lead[]; meta: Record<string, string>; isDemo: boolean }> {
+export async function fetchLeads(authenticated: boolean, userActivity = false, vertical: Vertical = "fotomultas"): Promise<{ leads: Lead[]; meta: Record<string, string>; isDemo: boolean }> {
   if (!authenticated) {
     return {
-      leads: DEMO_LEADS.map((lead) => ({ ...lead, _isDemo: true })),
+      leads: demoByVertical(vertical).map((lead) => ({ ...lead, _isDemo: true })),
       meta: { version: "demo-v2", source: "demo", generated_at: new Date().toISOString() },
       isDemo: true,
     };
   }
 
-  const res = await fetch(`${API_BASE}/api/leads?limit=200`, {
+  const res = await fetch(`${API_BASE}/api/leads?limit=200&vertical=${vertical}`, {
     credentials: "include",
     headers: {
       Accept: "application/json",
@@ -89,10 +90,16 @@ export function relativeTime(lead: Lead): string {
 }
 
 export function getWhatsAppUrl(lead: Lead): string | null {
-  if (lead._isDemo) return null;
+  if (lead.channel === "messenger" || lead.whatsapp_confirmed === false) return null;
   const phone = lead.whatsapp_publico || lead.telefono_publico || lead.telefono || lead.phone || "";
-  const digits = phone.replace(/\D/g, "");
-  return digits.length >= 8 ? `https://wa.me/${digits}` : null;
+  let digits = String(phone).replace(/\D/g, "");
+  if (digits.startsWith("0")) digits=digits.replace(/^0+/,"");
+  if (digits.startsWith("15")) digits=digits.slice(2);
+  if (digits.startsWith("54") && !digits.startsWith("549")) digits=`549${digits.slice(2)}`;
+  if (!digits.startsWith("54") && digits.length===10) digits=`549${digits}`;
+  if (digits.length < 10 || digits.length > 15) return null;
+  const message=lead.vertical==="repuestos_agricolas"?"Hola, te contacto por tu consulta sobre repuestos agrícolas.":"Hola, te contacto por tu consulta relacionada con fotomultas.";
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
 export function getMessengerUrl(lead: Lead): string | null {
