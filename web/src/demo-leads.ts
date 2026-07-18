@@ -4,6 +4,7 @@ const names = ["Martín Demo", "Laura Ejemplo", "Nicolás Prueba", "Sofía Ficti
 const provinces = ["Santa Fe", "Córdoba", "Buenos Aires", "Entre Ríos", "Mendoza", "La Pampa"];
 const statuses = ["Nuevo", "Contactado", "Calificado", "Propuesta", "Ganado", "Perdido"] as const;
 const priorities = ["Alta", "Media", "Baja"] as const;
+const urgencies = ["alta", "media", "baja"] as const;
 const brands = ["Case IH", "New Holland", "Case IH", "New Holland"];
 const machines = ["Cosechadora", "Tractor", "Sembradora", "Pulverizadora"];
 const now = Date.now();
@@ -56,7 +57,7 @@ export const DEMO_REPUESTOS: Lead[] = names.map((_, index) => ({
     model: ["Axial-Flow 7130", "T7.245", "Precision 500", "Patriot 350"][index % 4],
     part_number: `FX-${87_312_000 + index * 17}`,
     quantity: index % 3 + 1,
-    urgency: priorities[index % 3].toLowerCase(),
+    urgency: urgencies[index % 3],
   },
 }));
 
