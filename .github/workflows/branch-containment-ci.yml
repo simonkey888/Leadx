@@ -63,7 +63,11 @@ jobs:
 
       - name: Preserve all 66 baseline controls
         working-directory: web
-        run: npm run test:existing
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p ../artifacts/diagnostics
+          npm run test:existing 2>&1 | tee ../artifacts/diagnostics/baseline.log
 
       - name: Verify baseline coverage matrix
         shell: bash
