@@ -1,4 +1,36 @@
-import type {Lead,Vertical} from "../types";import {relativeTime} from "../lib/api";import {Badge} from "./Badge";import {Actions} from "./Actions";
-const name=(l:Lead)=>l.name||l.persona||"Sin nombre";const province=(l:Lead)=>l.province||l.provincia||"—";const phone=(l:Lead)=>String(l.phone||l.telefono||l.telefono_publico||l.whatsapp_publico||"");
-function subtitle(l:Lead,v:Vertical){const d=l.vertical_data||{};return (v==="fotomultas"?[d.plate,d.municipality]:[d.brand,d.machine_type,d.part_number]).filter(Boolean).join(" · ")}
-export function LeadTable({leads,vertical,selectedId,onSelect,onActivity}:{leads:Lead[];vertical:Vertical;selectedId?:string;onSelect:(l:Lead)=>void;onActivity?:()=>void}){if(!leads.length)return <div className="empty">No hay leads para estos filtros.</div>;return <div className="table-shell"><table className="lead-table"><thead><tr><th>#</th><th>Lead</th><th>Provincia</th><th>Teléfono</th><th>Canal</th><th>Asignado a</th><th>Estado</th><th>Creado</th></tr></thead><tbody>{leads.map((l,i)=><tr key={l.id} className={selectedId===l.id?"selected":""} tabIndex={0} onClick={()=>{onActivity?.();onSelect(l)}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onSelect(l)}}}><td>{i+1}</td><td><strong>{name(l)}</strong><small>{subtitle(l,vertical)}</small></td><td>{province(l)}</td><td><div className="phone-cell"><span>{phone(l)||"—"}</span><Actions lead={l} onActivity={onActivity}/></div></td><td>{l.channel||l.source_label||"—"}</td><td>{l.assigned_to||l.owner||"Sin asignar"}</td><td><Badge lead={l}/></td><td>{relativeTime(l)}</td></tr>)}</tbody></table><div className="mobile-cards">{leads.map(l=><article key={l.id} className="lead-card" tabIndex={0} onClick={()=>{onActivity?.();onSelect(l)}}><div className="card-head"><div><strong>{name(l)}</strong><small>{subtitle(l,vertical)}</small></div><time>{relativeTime(l)}</time></div><div className="card-meta"><span>{province(l)}</span><span>{l.channel||l.source_label||"—"}</span></div><div className="card-status"><Badge lead={l}/></div><div className="card-phone"><span>{phone(l)||"Sin teléfono"}</span><Actions lead={l} labels onActivity={onActivity}/></div></article>)}</div></div>}
+import { CalendarDays } from "lucide-react";
+import type { Lead } from "../types";
+import { leadAssigned, leadChannel, leadContext, leadCreatedAt, leadName, leadProvince } from "../lib/multi-line";
+import { relativeTime } from "../lib/api";
+import { Badge } from "./Badge";
+import { PhoneWhatsApp } from "./PhoneWhatsApp";
+
+interface Props { leads: Lead[]; selectedId?: string; onSelect: (lead: Lead) => void; onActivity?: () => void; }
+const channelLabel: Record<string, string> = { whatsapp: "WhatsApp", messenger: "Messenger", email: "Email", telefono: "Teléfono", web: "Web", otro: "Otro" };
+
+export function LeadTable({ leads, selectedId, onSelect, onActivity }: Props) {
+  if (leads.length === 0) return <div className="empty">No hay leads que coincidan con los filtros.</div>;
+  return (
+    <section className="lead-table" aria-label="Tabla de leads">
+      <div className="lead-table__head" aria-hidden="true">
+        <span>#</span><span>Lead</span><span>Provincia</span><span>Teléfono</span><span>Canal</span><span>Asignado a</span><span>Estado</span><span>Creado</span>
+      </div>
+      <div className="lead-list" role="list" aria-label="Lista de leads">
+        {leads.map((lead, index) => (
+          <article key={lead.id} role="listitem" tabIndex={0} className={`lead-row ${selectedId === lead.id ? "lead-row--selected" : ""}`}
+            onClick={() => { onActivity?.(); onSelect(lead); }}
+            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onActivity?.(); onSelect(lead); } }}>
+            <span className="lead-row__index">{String(index + 1).padStart(2, "0")}</span>
+            <div className="lead-row__identity"><strong>{leadName(lead)}</strong><span>{leadContext(lead)}</span></div>
+            <span className="lead-row__province">{leadProvince(lead)}</span>
+            <div className="lead-row__phone"><PhoneWhatsApp lead={lead} compact onActivity={onActivity} /></div>
+            <span className="lead-row__channel">{channelLabel[leadChannel(lead)] || leadChannel(lead)}</span>
+            <span className="lead-row__assigned">{leadAssigned(lead)}</span>
+            <span className="lead-row__status"><Badge lead={lead} /></span>
+            <span className="lead-row__created" title={leadCreatedAt(lead)}><CalendarDays size={13} aria-hidden="true" />{relativeTime(lead)}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
