@@ -89,9 +89,10 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts/ui
           (cd web && npm run preview -- --host 127.0.0.1 > /tmp/leadx-preview.log 2>&1 &)
-          npx --yes playwright@1.51.1 install chromium
           cd web
-          npx --yes @playwright/test@1.51.1 test scripts/visual-smoke.spec.mjs --workers=1
+          npm install --no-save --package-lock=false @playwright/test@1.51.1
+          npx playwright install chromium
+          npx playwright test scripts/visual-smoke.spec.mjs --workers=1
 
       - name: Measure production bundles
         id: bundles
