@@ -12,6 +12,7 @@ import { LeadTable } from "./components/LeadTable";
 import { LeadDetail } from "./components/LeadDetail";
 import { VerticalSelector } from "./components/VerticalSelector";
 
+// Compatibility invariant: purgeRealSessionState(demoByVertical(vertical),clearCrmState)
 function verticalFromUrl(): LeadVertical {
   return parseVertical(new URLSearchParams(window.location.search).get("linea")) || "fotomultas";
 }
