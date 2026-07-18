@@ -71,7 +71,7 @@ export async function handleMetrics(request, env) {
   if (!verification.authenticated) {
     const leads = demoLeads(Date.now(), requested.value || "fotomultas");
     const result = metricsFor(leads, "demo");
-    return json({ ...result, total_leads: 12, contactable_leads: 0 });
+    return json({ ...result, status: "demo", total_leads: 12, contactable_leads: 0 });
   }
   if (!env.LEADX_KV) return json({ error: "service_unavailable" }, 503, privateHeaders(verification));
   const raw = await env.LEADX_KV.get("leads:live");
