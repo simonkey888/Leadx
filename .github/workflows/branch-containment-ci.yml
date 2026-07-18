@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/leadx-cosmic-completion
+      - feat/leadx-multi-linea-comercial-v1
   workflow_dispatch:
 
 permissions:
@@ -15,7 +16,7 @@ concurrency:
 
 jobs:
   validate:
-    if: github.ref == 'refs/heads/feat/leadx-cosmic-completion'
+    if: github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -28,7 +29,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "${GITHUB_REF}" = "refs/heads/feat/leadx-cosmic-completion"
+          case "${GITHUB_REF}" in
+            refs/heads/feat/leadx-cosmic-completion|refs/heads/feat/leadx-multi-linea-comercial-v1) ;;
+            *) echo "Unexpected branch: ${GITHUB_REF}"; exit 1 ;;
+          esac
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
           test -z "$(git status --porcelain)"
 
