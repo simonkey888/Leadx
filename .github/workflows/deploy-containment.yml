@@ -129,11 +129,22 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/deploy artifacts/production
+          deployments_jq='
+            def deployments:
+              if (.result | type) == "array" then
+                .result
+              elif (.result | type) == "object"
+                   and (.result.deployments | type) == "array" then
+                .result.deployments
+              else
+                error("Unexpected Cloudflare deployments response schema")
+              end;
+          '
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
           curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/previous-deployments.json
-          jq -e '.success == true and (.result | length) > 0' artifacts/deploy/previous-deployments.json >/dev/null
-          previous_deployment="$(jq -r '.result[0].id // empty' artifacts/deploy/previous-deployments.json)"
-          previous_version="$(jq -r '.result[0].versions[]? | select(.percentage == 100) | .version_id' artifacts/deploy/previous-deployments.json | head -n 1)"
+          jq -e "${deployments_jq} .success == true and (deployments | length) > 0" artifacts/deploy/previous-deployments.json >/dev/null
+          previous_deployment="$(jq -r "${deployments_jq} deployments[0].id // empty" artifacts/deploy/previous-deployments.json)"
+          previous_version="$(jq -r "${deployments_jq} deployments[0].versions[]? | select(.percentage == 100) | .version_id" artifacts/deploy/previous-deployments.json | head -n 1)"
           test -n "$previous_deployment" && test -n "$previous_version"
           echo "deployment_id=$previous_deployment" >> "$GITHUB_OUTPUT"
           echo "version_id=$previous_version" >> "$GITHUB_OUTPUT"
@@ -163,15 +174,27 @@ jobs:
           LEADX_BASE_URL: ${{ env.BASE_URL }}
         run: |
           set -euo pipefail
+          deployments_jq='
+            def deployments:
+              if (.result | type) == "array" then
+                .result
+              elif (.result | type) == "object"
+                   and (.result.deployments | type) == "array" then
+                .result.deployments
+              else
+                error("Unexpected Cloudflare deployments response schema")
+              end;
+          '
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
           for attempt in $(seq 1 30); do
             curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/current-deployments.json
-            current_version="$(jq -r '.result[0].versions[]? | select(.percentage == 100) | .version_id' artifacts/deploy/current-deployments.json | head -n 1)"
+            jq -e "${deployments_jq} .success == true and (deployments | length) > 0" artifacts/deploy/current-deployments.json >/dev/null
+            current_version="$(jq -r "${deployments_jq} deployments[0].versions[]? | select(.percentage == 100) | .version_id" artifacts/deploy/current-deployments.json | head -n 1)"
             [[ "$current_version" == "${{ steps.deploy.outputs.version_id }}" ]] && break
             sleep 2
           done
-          jq -e --arg version '${{ steps.deploy.outputs.version_id }}' '.success == true and (.result[0].versions | length) == 1 and (.result[0].versions[0].percentage == 100) and (.result[0].versions[0].version_id == $version)' artifacts/deploy/current-deployments.json >/dev/null
-          deployment_id="$(jq -r '.result[0].id' artifacts/deploy/current-deployments.json)"
+          jq -e --arg version '${{ steps.deploy.outputs.version_id }}' "${deployments_jq} .success == true and (deployments | length) > 0 and (deployments[0].versions | length) == 1 and (deployments[0].versions[0].percentage == 100) and (deployments[0].versions[0].version_id == \$version)" artifacts/deploy/current-deployments.json >/dev/null
+          deployment_id="$(jq -r "${deployments_jq} deployments[0].id" artifacts/deploy/current-deployments.json)"
           test -n "$deployment_id"
           echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
           echo 'traffic=100' >> "$GITHUB_OUTPUT"
@@ -211,15 +234,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          deployments_jq='
+            def deployments:
+              if (.result | type) == "array" then
+                .result
+              elif (.result | type) == "object"
+                   and (.result.deployments | type) == "array" then
+                .result.deployments
+              else
+                error("Unexpected Cloudflare deployments response schema")
+              end;
+          '
           npx --yes wrangler@${WRANGLER_VERSION} rollback '${{ steps.previous.outputs.version_id }}' --message "Automatic rollback after failed LeadX smoke for ${TARGET_SHA}"
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
           for attempt in $(seq 1 30); do
             curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/rollback-deployments.json
-            restored="$(jq -r '.result[0].versions[]? | select(.percentage == 100) | .version_id' artifacts/deploy/rollback-deployments.json | head -n 1)"
+            jq -e "${deployments_jq} .success == true and (deployments | length) > 0" artifacts/deploy/rollback-deployments.json >/dev/null
+            restored="$(jq -r "${deployments_jq} deployments[0].versions[]? | select(.percentage == 100) | .version_id" artifacts/deploy/rollback-deployments.json | head -n 1)"
             [[ "$restored" == '${{ steps.previous.outputs.version_id }}' ]] && break
             sleep 2
           done
-          jq -e --arg version '${{ steps.previous.outputs.version_id }}' '.result[0].versions | length == 1 and .[0].percentage == 100 and .[0].version_id == $version' artifacts/deploy/rollback-deployments.json >/dev/null
+          jq -e --arg version '${{ steps.previous.outputs.version_id }}' "${deployments_jq} .success == true and (deployments | length) > 0 and (deployments[0].versions | length) == 1 and (deployments[0].versions[0].percentage == 100) and (deployments[0].versions[0].version_id == \$version)" artifacts/deploy/rollback-deployments.json >/dev/null
           curl -fsS "$BASE_URL/api/health" | jq -e '.status == "ok"' >/dev/null
           echo 'ROLLBACK_STATE=completed' >> artifacts/deploy/summary.txt
 
