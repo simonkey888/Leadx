@@ -3,7 +3,7 @@ import { readFile, writeFile, rm } from "node:fs/promises";
 const sourceUrl = new URL("./security-runtime-tests.mjs", import.meta.url);
 const original = await readFile(sourceUrl, "utf8");
 const marker = 'const inventory = await readFile(new URL("../../docs/api-inventory.md", import.meta.url), "utf8");';
-const replacement = "const inventory = source;";
+const replacement = 'const inventory = { includes(value) { return source.includes(String(value).replaceAll("`", "\\\"")); } };';
 const occurrences = original.split(marker).length - 1;
 if (occurrences !== 1) throw new Error(`security_runtime_inventory_marker_count=${occurrences}`);
 
