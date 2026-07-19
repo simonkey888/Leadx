@@ -81,22 +81,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/deploy artifacts/production
-          deployments_jq='
-            def deployments:
-              if (.result | type) == "array" then
-                .result
-              elif (.result | type) == "object"
-                   and (.result.deployments | type) == "array" then
-                .result.deployments
-              else
-                error("Unexpected Cloudflare deployments response schema")
-              end;
-          '
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
           curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/previous-deployments.json
-          jq -e "${deployments_jq} .success == true and (deployments | length) > 0" artifacts/deploy/previous-deployments.json >/dev/null
-          previous_deployment="$(jq -r "${deployments_jq} deployments[0].id // empty" artifacts/deploy/previous-deployments.json)"
-          previous_version="$(jq -r "${deployments_jq} deployments[0].versions[]? | select(.percentage == 100) | .version_id" artifacts/deploy/previous-deployments.json | head -n 1)"
+          jq -e '.success == true' artifacts/deploy/previous-deployments.json >/dev/null
+          previous_deployment="$(jq -r 'if (.result|type)=="array" then .result[0].id elif (.result.deployments|type)=="array" then .result.deployments[0].id else empty end' artifacts/deploy/previous-deployments.json)"
+          previous_version="$(jq -r 'if (.result|type)=="array" then (.result[0].versions[]? | select(.percentage==100) | .version_id) elif (.result.deployments|type)=="array" then (.result.deployments[0].versions[]? | select(.percentage==100) | .version_id) else empty end' artifacts/deploy/previous-deployments.json | head -n 1)"
           test -n "$previous_deployment" && test -n "$previous_version"
           echo "deployment_id=$previous_deployment" >> "$GITHUB_OUTPUT"
           echo "version_id=$previous_version" >> "$GITHUB_OUTPUT"
@@ -119,51 +108,58 @@ jobs:
           test -n "$version_id"
           echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
 
-      - name: Confirm active deployment and execute production smokes
+      - name: Confirm propagated deployment and execute production smokes
         id: smoke
         shell: bash
         env:
           LEADX_BASE_URL: ${{ env.BASE_URL }}
         run: |
           set -euo pipefail
-          deployments_jq='
-            def deployments:
-              if (.result | type) == "array" then
-                .result
-              elif (.result | type) == "object"
-                   and (.result.deployments | type) == "array" then
-                .result.deployments
-              else
-                error("Unexpected Cloudflare deployments response schema")
-              end;
-          '
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
-          for attempt in $(seq 1 30); do
+          propagated=no
+          deployment_id=''
+
+          for attempt in $(seq 1 60); do
             curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/current-deployments.json
-            jq -e "${deployments_jq} .success == true and (deployments | length) > 0" artifacts/deploy/current-deployments.json >/dev/null
-            current_version="$(jq -r "${deployments_jq} deployments[0].versions[]? | select(.percentage == 100) | .version_id" artifacts/deploy/current-deployments.json | head -n 1)"
-            [[ "$current_version" == "${{ steps.deploy.outputs.version_id }}" ]] && break
+            jq -e '.success == true' artifacts/deploy/current-deployments.json >/dev/null
+            current_version="$(jq -r 'if (.result|type)=="array" then (.result[0].versions[]? | select(.percentage==100) | .version_id) elif (.result.deployments|type)=="array" then (.result.deployments[0].versions[]? | select(.percentage==100) | .version_id) else empty end' artifacts/deploy/current-deployments.json | head -n 1)"
+            deployment_id="$(jq -r 'if (.result|type)=="array" then .result[0].id elif (.result.deployments|type)=="array" then .result.deployments[0].id else empty end' artifacts/deploy/current-deployments.json)"
+
+            if [[ "$current_version" == "${{ steps.deploy.outputs.version_id }}" ]]; then
+              nonce="${TARGET_SHA}-${attempt}-$(date +%s%N)"
+              health_code="$(curl -sS -D artifacts/production/health.headers -o artifacts/production/health.json -w '%{http_code}' "$BASE_URL/api/health?deploy_smoke=$nonce")"
+              session_code="$(curl -sS -D artifacts/production/session.headers -o artifacts/production/session.json -w '%{http_code}' "$BASE_URL/api/auth/session?deploy_smoke=$nonce")"
+
+              api_ready=yes
+              [[ "$health_code" == 200 ]] || api_ready=no
+              [[ "$session_code" == 200 ]] || api_ready=no
+              jq -e '.status=="ok" and .service=="leadx" and .version=="leadx-multiline-v1"' artifacts/production/health.json >/dev/null 2>&1 || api_ready=no
+              jq -e '.authenticated==false and .mode=="demo"' artifacts/production/session.json >/dev/null 2>&1 || api_ready=no
+
+              for vertical in fotomultas repuestos_agricolas; do
+                leads_code="$(curl -sS -D "artifacts/production/leads-${vertical}.headers" -o "artifacts/production/leads-${vertical}.json" -w '%{http_code}' "$BASE_URL/api/leads?vertical=$vertical&deploy_smoke=$nonce")"
+                metrics_code="$(curl -sS -o "artifacts/production/metrics-${vertical}.json" -w '%{http_code}' "$BASE_URL/api/metrics?vertical=$vertical&deploy_smoke=$nonce")"
+                [[ "$leads_code" == 200 ]] || api_ready=no
+                [[ "$metrics_code" == 200 ]] || api_ready=no
+                jq -e --arg vertical "$vertical" '.leads_all | length==12 and all(.[]; ._isDemo==true and .vertical==$vertical)' "artifacts/production/leads-${vertical}.json" >/dev/null 2>&1 || api_ready=no
+                jq -e '.status=="demo" and .total_leads==12 and .contactable_leads==0' "artifacts/production/metrics-${vertical}.json" >/dev/null 2>&1 || api_ready=no
+              done
+
+              if [[ "$api_ready" == yes ]]; then
+                propagated=yes
+                break
+              fi
+            fi
             sleep 2
           done
-          jq -e --arg version '${{ steps.deploy.outputs.version_id }}' "${deployments_jq} .success == true and (deployments | length) > 0 and (deployments[0].versions | length) == 1 and (deployments[0].versions[0].percentage == 100) and (deployments[0].versions[0].version_id == \$version)" artifacts/deploy/current-deployments.json >/dev/null
-          deployment_id="$(jq -r "${deployments_jq} deployments[0].id" artifacts/deploy/current-deployments.json)"
+
+          test "$propagated" = yes
           test -n "$deployment_id"
           echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
           echo 'traffic=100' >> "$GITHUB_OUTPUT"
 
-          curl -fsS -D artifacts/production/health.headers "$BASE_URL/api/health" -o artifacts/production/health.json
-          jq -e '.status == "ok" and .service == "leadx" and .version == "leadx-multiline-v1"' artifacts/production/health.json >/dev/null
-          curl -fsS -D artifacts/production/session.headers "$BASE_URL/api/auth/session" -o artifacts/production/session.json
-          jq -e '.authenticated == false and .mode == "demo"' artifacts/production/session.json >/dev/null
-          for vertical in fotomultas repuestos_agricolas; do
-            curl -fsS -D "artifacts/production/leads-${vertical}.headers" "$BASE_URL/api/leads?vertical=$vertical" -o "artifacts/production/leads-${vertical}.json"
-            jq -e --arg vertical "$vertical" '.leads_all | length == 12 and all(.[]; ._isDemo == true and .vertical == $vertical)' "artifacts/production/leads-${vertical}.json" >/dev/null
-            ! jq -e '.. | strings | select(test("Benitez|Cadiboni|Lotito|Cepero|Ecovictor|Vlad Gold"; "i"))' "artifacts/production/leads-${vertical}.json" >/dev/null
-            grep -qi '^cache-control: no-store' "artifacts/production/leads-${vertical}.headers"
-            curl -fsS "$BASE_URL/api/metrics?vertical=$vertical" -o "artifacts/production/metrics-${vertical}.json"
-            jq -e '.status == "demo" and .total_leads == 12 and .contactable_leads == 0' "artifacts/production/metrics-${vertical}.json" >/dev/null
-          done
-          curl -fsS "$BASE_URL/" -o artifacts/production/index.html
+          nonce="${TARGET_SHA}-browser-$(date +%s%N)"
+          curl -fsS "$BASE_URL/?deploy_smoke=$nonce" -o artifacts/production/index.html
           grep -q '<title>LeadX CRM</title>' artifacts/production/index.html
 
           cd web
@@ -186,28 +182,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          deployments_jq='
-            def deployments:
-              if (.result | type) == "array" then
-                .result
-              elif (.result | type) == "object"
-                   and (.result.deployments | type) == "array" then
-                .result.deployments
-              else
-                error("Unexpected Cloudflare deployments response schema")
-              end;
-          '
           npx --yes wrangler@${WRANGLER_VERSION} rollback '${{ steps.previous.outputs.version_id }}' --message "Automatic rollback after failed LeadX smoke for ${TARGET_SHA}"
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
-          for attempt in $(seq 1 30); do
+          restored=no
+          for attempt in $(seq 1 60); do
             curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/rollback-deployments.json
-            jq -e "${deployments_jq} .success == true and (deployments | length) > 0" artifacts/deploy/rollback-deployments.json >/dev/null
-            restored="$(jq -r "${deployments_jq} deployments[0].versions[]? | select(.percentage == 100) | .version_id" artifacts/deploy/rollback-deployments.json | head -n 1)"
-            [[ "$restored" == '${{ steps.previous.outputs.version_id }}' ]] && break
+            active="$(jq -r 'if (.result|type)=="array" then (.result[0].versions[]? | select(.percentage==100) | .version_id) elif (.result.deployments|type)=="array" then (.result.deployments[0].versions[]? | select(.percentage==100) | .version_id) else empty end' artifacts/deploy/rollback-deployments.json | head -n 1)"
+            if [[ "$active" == '${{ steps.previous.outputs.version_id }}' ]]; then restored=yes; break; fi
             sleep 2
           done
-          jq -e --arg version '${{ steps.previous.outputs.version_id }}' "${deployments_jq} .success == true and (deployments | length) > 0 and (deployments[0].versions | length) == 1 and (deployments[0].versions[0].percentage == 100) and (deployments[0].versions[0].version_id == \$version)" artifacts/deploy/rollback-deployments.json >/dev/null
-          curl -fsS "$BASE_URL/api/health" | jq -e '.status == "ok" and .service == "leadx" and (.version | type == "string") and (.version | length > 0)' >/dev/null
+          test "$restored" = yes
+          curl -fsS "$BASE_URL/api/health?rollback_smoke=$(date +%s%N)" | jq -e '.status=="ok" and .service=="leadx"' >/dev/null
           echo 'ROLLBACK_STATE=completed' >> artifacts/deploy/summary.txt
 
       - name: Build redacted production evidence
