@@ -20,12 +20,19 @@ for (const [name, width, height, linea, detail] of cases) {
     const label = linea === "fotomultas" ? "Fotomultas" : "Repuestos agrícolas";
     await expect(page.getByRole("button", { name: label })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("html")).toHaveAttribute("data-linea", String(linea));
+    await expect(page.getByText("Datos ficticios para explorar el CRM", { exact: false })).toBeVisible();
+    await expect(page.getByText("CONTACTADO", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("NO CONTACTADO", { exact: true }).first()).toBeVisible();
     if (Number(width) >= 760) await expect(page.getByText("Provincia", { exact: true }).first()).toBeVisible();
     if (detail) {
       await page.locator(Number(width) < 760 ? ".lead-card:visible" : ".lead-table tbody tr:visible").first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Marcar como contactado" })).toBeDisabled();
     }
-    await expect(page.locator('a[title="Abrir WhatsApp"]:visible').first()).toBeVisible();
+    const demoWhatsApp = page.locator('button[title="WhatsApp deshabilitado en modo demo"]:visible').first();
+    await expect(demoWhatsApp).toBeVisible();
+    await expect(demoWhatsApp).toBeDisabled();
+    await expect(page.locator('a[href^="https://wa.me/"]')).toHaveCount(0);
     const diagnostics = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       pageerror: document.documentElement.dataset.pageerror || "false",
