@@ -31,6 +31,19 @@ export async function login(password: string): Promise<{ ok: boolean; error?: st
   return { ok: true };
 }
 
+export async function importPrivateLeads(payload: unknown): Promise<{ status: string; total: number; imported: number; inserted: number; updated: number }> {
+  const res = await fetch(`${API_BASE}/api/admin/import`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-LeadX-Activity": "user" },
+    body: JSON.stringify(payload),
+  });
+  if (res.status === 401) throw new SessionExpiredError();
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.reason || body.error || `Importación rechazada (${res.status})`);
+  return body;
+}
+
 export async function logout(): Promise<void> { await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", credentials: "include" }); }
 
 export async function checkSession(): Promise<SessionInfo> {
