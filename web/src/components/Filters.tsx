@@ -43,12 +43,12 @@ export function Filters(props: Props) {
         <input type="search" className="search"
           placeholder={props.vertical === "fotomultas" ? "Buscar nombre, patente, municipio…" : "Buscar nombre, marca, máquina, pieza…"}
           value={props.search} onChange={(event) => { props.setSearch(event.target.value); props.onActivity?.(); }} aria-label="Buscar leads" />
-        <button type="button" className="control-button filter-trigger" onClick={() => document.body.classList.add("filters-open")}>
+        <button type="button" className="control-button filter-trigger" aria-haspopup="dialog" onClick={() => document.body.classList.add("filters-open")}>
           <SlidersHorizontal size={17} aria-hidden="true" /> Filtros {activeCount > 0 && <span>{activeCount}</span>}
         </button>
         <label className="sort-control"><span className="sr-only">Ordenar</span>
           <select value={props.sort} onChange={(event) => { props.setSort(event.target.value); props.onActivity?.(); }}>
-            <option value="recent">Más recientes</option><option value="priority">Prioridad</option><option value="name">Nombre</option>
+            <option value="potential">Mayor potencial</option><option value="recent">Más recientes</option><option value="priority">Prioridad</option><option value="name">Nombre</option>
           </select>
         </label>
         <button type="button" className="control-button export-button" onClick={props.onExport} disabled={props.leads.length === 0}>
@@ -56,13 +56,14 @@ export function Filters(props: Props) {
         </button>
       </div>
 
-      <div className="filters-sheet" role="region" aria-label="Filtros">
+      <button type="button" className="filters-backdrop" onClick={() => document.body.classList.remove("filters-open")} aria-label="Cerrar filtros" />
+      <div className="filters-sheet" role="dialog" aria-modal="true" aria-label="Filtros">
         <div className="sheet-header">
           <div><span className="eyebrow">Refinar lista</span><h2>Filtros</h2></div>
-          <button type="button" className="icon-button mobile-only" onClick={() => document.body.classList.remove("filters-open")} aria-label="Cerrar filtros"><X size={20} /></button>
+          <button type="button" className="icon-button" onClick={() => document.body.classList.remove("filters-open")} aria-label="Cerrar filtros"><X size={20} /></button>
         </div>
         <div className="filter-grid">
-          <Select label="Estado" value={props.filters.status} onChange={(value) => update("status", value)} options={["todos", "Nuevo", "Contactado", "Calificado", "Propuesta", "Ganado", "Perdido"]} />
+          <Select label="Etapa comercial" value={props.filters.status} onChange={(value) => update("status", value)} options={["todos", "Ganado", "Propuesta", "Calificado", "Contactado", "Nuevo", "Perdido"]} />
           <Select label="Prioridad" value={props.filters.priority} onChange={(value) => update("priority", value)} options={["todos", "Alta", "Media", "Baja"]} />
           <Select label="Provincia" value={props.filters.province} onChange={(value) => update("province", value)} options={["", ...provinces]} labels={{ "": "Todas" }} />
           <Select label="Canal" value={props.filters.channel} onChange={(value) => update("channel", value)} options={["", ...channels]} labels={{ "": "Todos", whatsapp: "WhatsApp", messenger: "Messenger", email: "Email", telefono: "Teléfono", web: "Web" }} />
@@ -85,7 +86,7 @@ export function Filters(props: Props) {
           )}
         </div>
         <div className="sheet-actions"><button type="button" className="btn" onClick={clear}>Limpiar</button>
-          <button type="button" className="btn btn--primary mobile-only" onClick={() => document.body.classList.remove("filters-open")}>Ver resultados</button></div>
+          <button type="button" className="btn btn--primary" onClick={() => document.body.classList.remove("filters-open")}>Ver resultados</button></div>
       </div>
     </section>
   );

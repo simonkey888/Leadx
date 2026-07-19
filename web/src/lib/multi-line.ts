@@ -124,6 +124,39 @@ export function leadCreatedAt(lead: Lead): string | undefined { return lead.crea
 export function leadStatus(lead: Lead): CommercialLeadStatus { return canonicalStatus(lead.status || lead._status); }
 export function leadPriority(lead: Lead): LeadPriority { return canonicalPriority(lead.priority || lead._priority, Number(lead._heat_score ?? lead.score ?? 0)); }
 
+export type LeadPotential = "Convertido" | "Muy alto" | "Alto" | "Medio" | "Bajo" | "No viable";
+
+const STATUS_POTENTIAL: Record<CommercialLeadStatus, number> = {
+  Ganado: 100,
+  Propuesta: 90,
+  Calificado: 75,
+  Contactado: 55,
+  Nuevo: 35,
+  Perdido: 0,
+};
+
+const PRIORITY_POTENTIAL: Record<LeadPriority, number> = { Alta: 100, Media: 60, Baja: 25 };
+
+export function leadPotentialScore(lead: Lead): number {
+  const status = leadStatus(lead);
+  if (status === "Ganado") return 100;
+  if (status === "Perdido") return 0;
+  const rawScore = Number(lead.score ?? lead._heat_score);
+  const score = Number.isFinite(rawScore) ? Math.max(0, Math.min(100, rawScore)) : STATUS_POTENTIAL[status];
+  return Math.round(STATUS_POTENTIAL[status] * 0.65 + score * 0.25 + PRIORITY_POTENTIAL[leadPriority(lead)] * 0.1);
+}
+
+export function leadPotential(lead: Lead): LeadPotential {
+  const status = leadStatus(lead);
+  if (status === "Ganado") return "Convertido";
+  if (status === "Perdido") return "No viable";
+  const score = leadPotentialScore(lead);
+  if (score >= 85) return "Muy alto";
+  if (score >= 65) return "Alto";
+  if (score >= 40) return "Medio";
+  return "Bajo";
+}
+
 function compact(parts: Array<string | number | undefined>): string {
   return parts.filter((part) => part !== undefined && String(part).trim() !== "").join(" · ");
 }

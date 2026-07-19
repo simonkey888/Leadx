@@ -1,6 +1,6 @@
 import{readFileSync}from"node:fs";import{join}from"node:path";import{demoLeads}from"../../worker/config.mjs";import{preserveCrmState,sanitizeLead}from"../../worker/body.mjs";
 const root=join(process.cwd(),".."),src=p=>readFileSync(join(root,p),"utf8");
-const app=src("web/src/App.tsx"),types=src("web/src/types.ts"),domain=src("web/src/lib/multi-line.ts"),demo=src("web/src/demo-leads.ts"),storage=src("web/src/lib/storage.ts"),table=src("web/src/components/LeadTable.tsx"),filters=src("web/src/components/Filters.tsx"),main=src("web/src/main.tsx"),responsive=src("web/src/styles-multiline-responsive.css"),worker=src("worker/data-handlers.mjs");
+const app=src("web/src/App.tsx"),types=src("web/src/types.ts"),domain=src("web/src/lib/multi-line.ts"),demo=src("web/src/demo-leads.ts"),storage=src("web/src/lib/storage.ts"),table=src("web/src/components/LeadTable.tsx"),filters=src("web/src/components/Filters.tsx"),main=src("web/src/main.tsx"),base=src("web/src/styles-multiline-base.css"),responsive=src("web/src/styles-multiline-responsive.css"),worker=src("worker/data-handlers.mjs");
 let passed=0;const test=(name,ok)=>{if(!ok)throw new Error(`FAIL: ${name}`);passed++;console.log(`✓ ${name}`)};
 test("shared vertical model",types.includes('LeadVertical = "fotomultas" | "repuestos_agricolas"')&&types.includes("vertical_data?: LeadVerticalData"));
 test("legacy migration defaults Fotomultas",domain.includes('parseVertical(input.vertical) || "fotomultas"'));
@@ -10,6 +10,10 @@ test("search includes vertical data",domain.includes("Object.values(lead.vertica
 test("Company aliases absent",!/Company|Empresa|Organización|Organization|Account/.test(app+table+filters));
 test("Provincia table column",table.includes("<th>Provincia</th>"));
 test("phone and WhatsApp adjacent",table.includes("<th>Teléfono</th>")&&table.includes("<PhoneWhatsApp lead={lead} compact"));
+test("desktop filters use a left drawer",filters.includes("filters-backdrop")&&base.includes("inset:0 auto 0 0")&&base.includes("translateX(-104%)"));
+test("lead index column is absent",!table.includes("<th>#</th>")&&!table.includes("lead-index"));
+test("assigned field is absent from list columns",!table.includes("<th>Asignado a</th>")&&!table.includes("card-assigned")&&storage.includes('"assigned_to"'));
+test("commercial potential ranks the list",table.includes("<th>Potencial</th>")&&domain.includes("leadPotentialScore")&&app.includes('useState("potential")'));
 test("Messenger cannot create WhatsApp",domain.includes('leadChannel(normalized) === "messenger"'));
 test("Argentine numbers require 549",domain.includes('/^549\\d{10}$/')&&domain.includes("replace(/\\D/g"));
 test("CRM fields stay volatile",storage.includes('"_notes"')&&storage.includes('"_monto"')&&storage.includes('"assigned_to"')&&storage.includes('"history"'));
