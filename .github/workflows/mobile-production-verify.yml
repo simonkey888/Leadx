@@ -1,0 +1,127 @@
+name: LeadX Mobile Production Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/mobile-production-verify.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-mobile-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ops/leadx-mobile-production-verify-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: https://leadx.simondalmasso44.workers.dev
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+    steps:
+      - name: Prepare redacted evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DASHBOARD_PASSWORD"
+          mkdir -p artifacts/mobile-production
+
+      - name: Verify health and brand assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce="mobile-${{ github.event.pull_request.head.sha }}-$(date +%s%N)"
+          test "$(curl -sS -o artifacts/mobile-production/health.json -w '%{http_code}' "$BASE_URL/api/health?verify=$nonce")" = 200
+          jq -e '.status=="ok" and .service=="leadx" and .version=="leadx-multiline-v1"' artifacts/mobile-production/health.json >/dev/null
+          test "$(curl -sS -o artifacts/mobile-production/leadx-mark.svg -w '%{http_code}' "$BASE_URL/leadx-mark.svg?verify=$nonce")" = 200
+          test "$(curl -sS -o artifacts/mobile-production/leadx-wordmark.svg -w '%{http_code}' "$BASE_URL/leadx-wordmark.svg?verify=$nonce")" = 200
+          grep -q '<svg' artifacts/mobile-production/leadx-mark.svg
+          grep -q '<svg' artifacts/mobile-production/leadx-wordmark.svg
+
+      - name: Verify authenticated API and vertical containment
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce="auth-${{ github.event.pull_request.head.sha }}-$(date +%s%N)"
+          login_code="$(curl -sS -c /tmp/leadx.cookies -o /tmp/login.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" "$BASE_URL/api/auth/login?verify=$nonce")"
+          test "$login_code" = 200
+          jq -e '.ok==true' /tmp/login.json >/dev/null
+          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/auth/session?verify=$nonce" | jq -e '.authenticated==true and .mode=="real"' >/dev/null
+          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=fotomultas&verify=$nonce" > /tmp/fotomultas.json
+          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=repuestos_agricolas&verify=$nonce" > /tmp/agro.json
+          jq -e '(.leads_all|length)==9 and all(.leads_all[]; .vertical=="fotomultas")' /tmp/fotomultas.json >/dev/null
+          jq -e '(.leads_all|length)==0' /tmp/agro.json >/dev/null
+          test "$(curl -sS -b /tmp/leadx.cookies -o /tmp/logout.json -w '%{http_code}' -X POST "$BASE_URL/api/auth/logout?verify=$nonce")" = 200
+          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/auth/session?verify=$nonce" | jq -e '.authenticated==false and .mode=="demo"' >/dev/null
+          printf 'LOGIN_SECRET=PASS\nFOTOMULTAS_COUNT=9\nAGRO_COUNT=0\nVERTICAL_CONTAINMENT=PASS\nLOGOUT_DEMO=PASS\n' > artifacts/mobile-production/api-summary.txt
+          rm -f /tmp/leadx.cookies /tmp/login.json /tmp/logout.json /tmp/fotomultas.json /tmp/agro.json
+
+      - name: Browser smoke mobile and desktop
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          cat > /tmp/mobile-production.spec.mjs <<'EOF'
+          import { test, expect } from '@playwright/test';
+          const base = process.env.BASE_URL;
+          const password = process.env.DASHBOARD_PASSWORD;
+          test('mobile demo and real', async ({ page }) => {
+            const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+            await page.setViewportSize({width:390,height:844});
+            await page.goto(`${base}/?linea=repuestos_agricolas&verify=${Date.now()}`,{waitUntil:'networkidle'});
+            await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
+            await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
+            await expect(page.getByRole('searchbox')).toHaveAttribute('placeholder','Buscar empresa, contacto o producto…');
+            const demoDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length,padding:getComputedStyle(document.querySelector('.lead-card')).paddingTop}));
+            expect(demoDiag).toEqual({overflow:0,stored:0,padding:'12px'}); expect(errors).toEqual([]);
+            await page.screenshot({path:'artifacts/mobile-production/mobile-demo.png',fullPage:true});
+            await page.getByRole('button',{name:'Desbloquear datos reales'}).click();
+            await page.getByLabel('Contraseña').fill(password);
+            await page.getByRole('button',{name:'Ingresar'}).click();
+            await expect(page.getByText('Datos reales',{exact:true})).toBeVisible();
+            await expect(page.getByRole('button',{name:'Importar leads'})).toBeVisible();
+            await expect(page.getByText('No hay leads que coincidan con los filtros.')).toBeVisible();
+            const realDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
+            expect(realDiag).toEqual({overflow:0,stored:0}); expect(errors).toEqual([]);
+            await page.screenshot({path:'artifacts/mobile-production/mobile-real.png',fullPage:true});
+            await page.getByRole('button',{name:'Salir'}).click();
+            await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
+            await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
+          });
+          test('desktop demo', async ({ page }) => {
+            const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+            await page.setViewportSize({width:1440,height:900});
+            await page.goto(`${base}/?linea=repuestos_agricolas&verify=${Date.now()}`,{waitUntil:'networkidle'});
+            await expect(page.locator('.lead-table')).toBeVisible();
+            await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
+            const diag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
+            expect(diag).toEqual({overflow:0,stored:0}); expect(errors).toEqual([]);
+            await page.screenshot({path:'artifacts/mobile-production/desktop-demo.png',fullPage:true});
+          });
+          EOF
+          npx playwright test /tmp/mobile-production.spec.mjs --workers=1
+          test "$(find artifacts/mobile-production -name '*.png' | wc -l)" -eq 3
+          printf 'MOBILE_DEMO=PASS\nMOBILE_REAL=PASS\nDESKTOP_DEMO=PASS\nPAGEERROR=0\nOVERFLOW=0\nPRIVATE_IMPORT_VISIBILITY=PASS\n' >> artifacts/mobile-production/api-summary.txt
+
+      - name: Redact and hash evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f artifacts/mobile-production/health.json
+          find artifacts/mobile-production -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > artifacts/mobile-production/SHA256SUMS
+          ! grep -R -E -i 'DASHBOARD_PASSWORD|SESSION_SECRET|INGEST_SECRET|set-cookie:|whatsapp_publico|email_publico|contact_name' artifacts/mobile-production
+
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-mobile-production-${{ github.event.pull_request.head.sha }}
+          path: artifacts/mobile-production
+          if-no-files-found: error
+          retention-days: 7
