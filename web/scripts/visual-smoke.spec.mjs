@@ -24,7 +24,7 @@ for (const [name, width, height, linea, detail] of cases) {
     await expect(page.getByText("Datos ficticios para explorar el CRM", { exact: false })).toBeVisible();
     await expect(leadSurface.getByText("CONTACTADO", { exact: true }).first()).toBeVisible();
     await expect(leadSurface.getByText("NO CONTACTADO", { exact: true }).first()).toBeVisible();
-    if (Number(width) >= 760) await expect(leadSurface.getByRole("columnheader", { name: "Provincia" })).toBeVisible();
+    if (Number(width) >= 760) await expect(leadSurface.locator("th", { hasText: "Provincia" })).toBeVisible();
     if (detail) {
       await page.locator(Number(width) < 760 ? ".lead-card:visible" : ".lead-table tbody tr:visible").first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
