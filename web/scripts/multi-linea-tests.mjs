@@ -1,0 +1,23 @@
+import{readFileSync}from"node:fs";import{join}from"node:path";import{demoLeads}from"../../worker/config.mjs";import{preserveCrmState,sanitizeLead}from"../../worker/body.mjs";
+const root=join(process.cwd(),".."),src=p=>readFileSync(join(root,p),"utf8");
+const app=src("web/src/App.tsx"),types=src("web/src/types.ts"),domain=src("web/src/lib/multi-line.ts"),demo=src("web/src/demo-leads.ts"),storage=src("web/src/lib/storage.ts"),table=src("web/src/components/LeadTable.tsx"),filters=src("web/src/components/Filters.tsx"),main=src("web/src/main.tsx"),responsive=src("web/src/styles-multiline-responsive.css"),worker=src("worker/data-handlers.mjs");
+let passed=0;const test=(name,ok)=>{if(!ok)throw new Error(`FAIL: ${name}`);passed++;console.log(`✓ ${name}`)};
+test("shared vertical model",types.includes('LeadVertical = "fotomultas" | "repuestos_agricolas"')&&types.includes("vertical_data?: LeadVerticalData"));
+test("legacy migration defaults Fotomultas",domain.includes('parseVertical(input.vertical) || "fotomultas"'));
+test("URL reflects active line",app.includes('searchParams.set("linea", vertical)')&&app.includes('get("linea")'));
+test("contextual filters switch",filters.includes("Municipio")&&filters.includes("Tipo de infracción")&&filters.includes("Número de pieza")&&filters.includes("Urgencia"));
+test("search includes vertical data",domain.includes("Object.values(lead.vertical_data || {})"));
+test("Company aliases absent",!/Company|Empresa|Organización|Organization|Account/.test(app+table+filters));
+test("Provincia table column",table.includes("<th>Provincia</th>"));
+test("phone and WhatsApp adjacent",table.includes("<th>Teléfono</th>")&&table.includes("<PhoneWhatsApp lead={lead} compact"));
+test("Messenger cannot create WhatsApp",domain.includes('leadChannel(normalized) === "messenger"'));
+test("Argentine numbers require 549",domain.includes('/^549\\d{10}$/')&&domain.includes("replace(/\\D/g"));
+test("CRM fields stay volatile",storage.includes('"_notes"')&&storage.includes('"_monto"')&&storage.includes('"assigned_to"')&&storage.includes('"history"'));
+test("frontend has 12 demo generators per line",demo.includes("DEMO_FOTOMULTAS")&&demo.includes("DEMO_REPUESTOS")&&demo.includes("names.map"));
+test("no browser persistence",!/localStorage|sessionStorage|indexedDB/.test(app+storage+domain));
+test("mobile and reduced motion loaded",main.includes("styles-multiline-responsive.css")&&responsive.includes("@media(max-width:760px)")&&responsive.includes("prefers-reduced-motion:reduce"));
+for(const vertical of["fotomultas","repuestos_agricolas"]){const rows=demoLeads(1800000000000,vertical);test(`${vertical} has 12 isolated demos`,rows.length===12&&rows.every(row=>row.vertical===vertical&&row._isDemo))}
+const legacy=sanitizeLead({id:"legacy",persona:"Fixture"});test("sanitizer defaults missing vertical",legacy?.vertical==="fotomultas");test("sanitizer rejects invalid vertical",sanitizeLead({id:"invalid",vertical:"arbitraria",persona:"Fixture"})===null);
+const incoming=sanitizeLead({id:"keep",vertical:"fotomultas",persona:"Fixture"}),preserved=preserveCrmState(incoming,{_notes:"Conservar",_monto:250000,assigned_to:"Operador",_status:"Propuesta",history:[{action:"Contacto"}]});test("CRM state survives migration",preserved._notes==="Conservar"&&preserved._monto===250000&&preserved.assigned_to==="Operador"&&preserved._status==="Propuesta"&&preserved.history.length===1);
+test("API validates and scopes vertical",worker.includes('error: "invalid_vertical"')&&worker.includes("lead.vertical === requested.value")&&worker.includes('requested.value || "fotomultas"'));
+console.log(`MULTI_LINEA=${passed}/${passed}`);

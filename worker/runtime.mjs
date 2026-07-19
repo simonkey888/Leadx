@@ -1,0 +1,56 @@
+import { API_METHODS, RELEASE, REMOVED_PATHS } from "./config.mjs";
+import { handleActivity, handleLogin, handleSession } from "./auth-handlers.mjs";
+import { handleIngest, handleLeads, handleMetrics } from "./data-handlers.mjs";
+import { expiredCookie, json, logEvent, requestId, responseWithHeaders, sameOriginAllowed } from "./http.mjs";
+import { privateHeaders } from "./session.mjs";
+
+async function serveAsset(request, env) {
+  if (!env.ASSETS) return json({ error: "static_assets_unavailable" }, 503);
+  let response = await env.ASSETS.fetch(request);
+  if (response.status === 404) response = await env.ASSETS.fetch(new Request(new URL("/index.html", request.url), request));
+  const cache = new URL(request.url).pathname.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "no-cache";
+  return responseWithHeaders(response, { "Cache-Control": cache });
+}
+
+function methodNotAllowed(allowed) {
+  return json({ error: "method_not_allowed" }, 405, { Allow: allowed.join(", ") });
+}
+
+function preflight(allowed) {
+  return responseWithHeaders(new Response(null, { status: 204 }), {
+    Allow: `${allowed.join(", ")}, OPTIONS`,
+    "Access-Control-Allow-Methods": `${allowed.join(", ")}, OPTIONS`,
+    "Access-Control-Allow-Headers": "Content-Type, X-Ingest-Secret, X-Webhook-Secret, X-LeadX-Activity",
+    "Access-Control-Max-Age": "600",
+    "Vary": "Origin",
+  });
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const requestIdValue = requestId(request);
+    const allowed = API_METHODS.get(url.pathname);
+
+    if (REMOVED_PATHS.has(url.pathname)) return json({ error: "not_found" }, 404);
+    if (url.pathname.startsWith("/api/") && !allowed) return json({ error: "not_found" }, 404);
+    if (!sameOriginAllowed(request, url)) return json({ error: "cross_origin_forbidden" }, 403, { "Vary": "Origin" });
+    if (allowed && request.method === "OPTIONS") return preflight(allowed);
+    if (allowed && !allowed.includes(request.method)) return methodNotAllowed(allowed);
+
+    try {
+      if (url.pathname === "/api/auth/login") return await handleLogin(request, env, requestIdValue);
+      if (url.pathname === "/api/auth/session") return await handleSession(request, env);
+      if (url.pathname === "/api/auth/activity") return await handleActivity(request, env);
+      if (url.pathname === "/api/auth/logout") return json({ ok: true }, 200, { ...privateHeaders(), "Set-Cookie": expiredCookie() });
+      if (url.pathname === "/api/leads") return await handleLeads(request, env);
+      if (url.pathname === "/api/metrics") return await handleMetrics(request, env);
+      if (url.pathname === "/api/ingest") return await handleIngest(request, env, requestIdValue);
+      if (url.pathname === "/api/health") return json({ status: "ok", service: "leadx", version: RELEASE, checked_at: new Date().toISOString() });
+      return await serveAsset(request, env);
+    } catch {
+      logEvent("request.failed", requestIdValue, "error", { route: url.pathname.startsWith("/api/") ? "api" : "asset" });
+      return json({ error: "internal_error", request_id: requestIdValue }, 500);
+    }
+  },
+};

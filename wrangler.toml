@@ -8,10 +8,22 @@ account_id = "b21fa81d12acb663798f9f7c51801955"
 binding = "LEADX_KV"
 id = "4a63bcf757fa4f5b9720ff820b7b9ac6"
 
+# Cloudflare Static Assets — serve React build from web/dist
+[assets]
+directory = "./web/dist"
+binding = "ASSETS"
+
+
 # Observability
 [observability]
 enabled = true
 
-# Cron Trigger cada 1h - scraping desde edge IP (no bloqueada)
-[triggers]
-crons = ["0 * * * *"]
+
+# Cloudflare Rate Limiting binding for login protection
+[[ratelimits]]
+name = "LOGIN_RATE_LIMITER"
+namespace_id = "1001"
+
+[ratelimits.simple]
+limit = 5
+period = 60
