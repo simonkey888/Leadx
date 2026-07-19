@@ -64,7 +64,7 @@ jobs:
             await page.screenshot({path:'artifacts/mobile-production/mobile-demo.png',fullPage:true});
 
             await page.getByRole('button',{name:'Desbloquear datos reales'}).click();
-            await page.getByLabel('Contraseña').fill(password);
+            await page.getByLabel('Contraseña').last().fill(password);
             await page.getByRole('button',{name:'Ingresar'}).click();
             await expect(page.getByText('Datos reales',{exact:true})).toBeVisible();
             await expect(page.getByRole('button',{name:'Importar leads'})).toBeVisible();
