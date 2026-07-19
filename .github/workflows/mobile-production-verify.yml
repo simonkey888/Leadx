@@ -42,25 +42,7 @@ jobs:
           grep -q '<svg' artifacts/mobile-production/leadx-mark.svg
           grep -q '<svg' artifacts/mobile-production/leadx-wordmark.svg
 
-      - name: Verify authenticated API and vertical containment
-        shell: bash
-        run: |
-          set -euo pipefail
-          nonce="auth-${{ github.event.pull_request.head.sha }}-$(date +%s%N)"
-          login_code="$(curl -sS -c /tmp/leadx.cookies -o /tmp/login.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" "$BASE_URL/api/auth/login?verify=$nonce")"
-          test "$login_code" = 200
-          jq -e '.ok==true' /tmp/login.json >/dev/null
-          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/auth/session?verify=$nonce" | jq -e '.authenticated==true and .mode=="real"' >/dev/null
-          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=fotomultas&verify=$nonce" > /tmp/fotomultas.json
-          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=repuestos_agricolas&verify=$nonce" > /tmp/agro.json
-          jq -e '(.leads_all|length)==9 and all(.leads_all[]; .vertical=="fotomultas")' /tmp/fotomultas.json >/dev/null
-          jq -e '(.leads_all|length)==0' /tmp/agro.json >/dev/null
-          test "$(curl -sS -b /tmp/leadx.cookies -c /tmp/leadx.cookies -o /tmp/logout.json -w '%{http_code}' -X POST "$BASE_URL/api/auth/logout?verify=$nonce")" = 200
-          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/auth/session?verify=$nonce" | jq -e '.authenticated==false and .mode=="demo"' >/dev/null
-          printf 'LOGIN_SECRET=PASS\nFOTOMULTAS_COUNT=9\nAGRO_COUNT=0\nVERTICAL_CONTAINMENT=PASS\nLOGOUT_DEMO=PASS\n' > artifacts/mobile-production/api-summary.txt
-          rm -f /tmp/leadx.cookies /tmp/login.json /tmp/logout.json /tmp/fotomultas.json /tmp/agro.json
-
-      - name: Browser smoke mobile and desktop
+      - name: Browser and authenticated API smoke
         shell: bash
         run: |
           set -euo pipefail
@@ -70,7 +52,7 @@ jobs:
           import { test, expect } from '@playwright/test';
           const base = process.env.BASE_URL;
           const password = process.env.DASHBOARD_PASSWORD;
-          test('mobile demo and real', async ({ page }) => {
+          test('mobile demo, real session and vertical APIs', async ({ page }) => {
             const errors=[]; page.on('pageerror',e=>errors.push(e.message));
             await page.setViewportSize({width:390,height:844});
             await page.goto(`${base}/?linea=repuestos_agricolas&verify=${Date.now()}`,{waitUntil:'networkidle'});
@@ -80,18 +62,35 @@ jobs:
             const demoDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length,padding:getComputedStyle(document.querySelector('.lead-card')).paddingTop}));
             expect(demoDiag).toEqual({overflow:0,stored:0,padding:'12px'}); expect(errors).toEqual([]);
             await page.screenshot({path:'artifacts/mobile-production/mobile-demo.png',fullPage:true});
+
             await page.getByRole('button',{name:'Desbloquear datos reales'}).click();
             await page.getByLabel('Contraseña').fill(password);
             await page.getByRole('button',{name:'Ingresar'}).click();
             await expect(page.getByText('Datos reales',{exact:true})).toBeVisible();
             await expect(page.getByRole('button',{name:'Importar leads'})).toBeVisible();
             await expect(page.getByText('No hay leads que coincidan con los filtros.')).toBeVisible();
+
+            const nonce=Date.now();
+            const sessionResponse=await page.request.get(`${base}/api/auth/session?verify=${nonce}`);
+            expect(sessionResponse.status()).toBe(200);
+            expect(await sessionResponse.json()).toMatchObject({authenticated:true,mode:'real'});
+            const fotomultasResponse=await page.request.get(`${base}/api/leads?vertical=fotomultas&verify=${nonce}`);
+            const agroResponse=await page.request.get(`${base}/api/leads?vertical=repuestos_agricolas&verify=${nonce}`);
+            expect(fotomultasResponse.status()).toBe(200); expect(agroResponse.status()).toBe(200);
+            const fotomultas=await fotomultasResponse.json(); const agro=await agroResponse.json();
+            expect(fotomultas.leads_all).toHaveLength(9);
+            expect(fotomultas.leads_all.every((lead)=>lead.vertical==='fotomultas')).toBeTruthy();
+            expect(agro.leads_all).toHaveLength(0);
+
             const realDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
             expect(realDiag).toEqual({overflow:0,stored:0}); expect(errors).toEqual([]);
             await page.screenshot({path:'artifacts/mobile-production/mobile-real.png',fullPage:true});
+
             await page.getByRole('button',{name:'Salir'}).click();
             await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
             await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
+            const endedResponse=await page.request.get(`${base}/api/auth/session?verify=${Date.now()}`);
+            expect(await endedResponse.json()).toMatchObject({authenticated:false,mode:'demo'});
           });
           test('desktop demo', async ({ page }) => {
             const errors=[]; page.on('pageerror',e=>errors.push(e.message));
@@ -107,7 +106,7 @@ jobs:
           npx playwright test mobile-production.spec.mjs --workers=1
           rm -f mobile-production.spec.mjs
           test "$(find artifacts/mobile-production -name '*.png' | wc -l)" -eq 3
-          printf 'MOBILE_DEMO=PASS\nMOBILE_REAL=PASS\nDESKTOP_DEMO=PASS\nPAGEERROR=0\nOVERFLOW=0\nPRIVATE_IMPORT_VISIBILITY=PASS\n' >> artifacts/mobile-production/api-summary.txt
+          printf 'LOGIN_SECRET=PASS\nSESSION_REAL=PASS\nFOTOMULTAS_COUNT=9\nAGRO_COUNT=0\nVERTICAL_CONTAINMENT=PASS\nLOGOUT_DEMO=PASS\nMOBILE_DEMO=PASS\nMOBILE_REAL=PASS\nDESKTOP_DEMO=PASS\nPAGEERROR=0\nOVERFLOW=0\nPRIVATE_IMPORT_VISIBILITY=PASS\n' > artifacts/mobile-production/api-summary.txt
 
       - name: Redact and hash evidence
         if: always()
