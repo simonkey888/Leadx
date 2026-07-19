@@ -5,6 +5,7 @@ on:
     branches:
       - feat/leadx-cosmic-completion
       - feat/leadx-multi-linea-comercial-v1
+      - feat/leadx-commercial-potential-layout-v1
   pull_request:
     branches:
       - main
@@ -20,11 +21,11 @@ concurrency:
 jobs:
   validate:
     if: >-
-      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1')) ||
-      (github.event_name == 'pull_request' && github.head_ref == 'feat/leadx-multi-linea-comercial-v1') ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1' || github.ref == 'refs/heads/feat/leadx-commercial-potential-layout-v1')) ||
+      (github.event_name == 'pull_request' && (github.head_ref == 'feat/leadx-multi-linea-comercial-v1' || github.head_ref == 'feat/leadx-commercial-potential-layout-v1')) ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
@@ -78,7 +79,7 @@ jobs:
           grep -qx 'BASELINE_UNCOVERED=0  ' docs/test-coverage-matrix.md
           jq -e '.total == 66 and .passed == 66 and .failed == 0' web/test-results.json >/dev/null
 
-      - name: Runtime and multi-line controls
+      - name: Runtime multi-line and contact controls
         working-directory: web
         shell: bash
         run: |
@@ -103,7 +104,7 @@ jobs:
           test -s artifacts/security/scan-summary.txt
           grep -qx 'HISTORY_VALUES_REDACTED=yes' artifacts/security/scan-summary.txt
 
-      - name: Browser screenshots and responsive smoke
+      - name: Browser screenshots responsive and synthetic session smoke
         shell: bash
         run: |
           set -euo pipefail
@@ -119,8 +120,9 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:4173/ >/dev/null
-          npx playwright test scripts/visual-smoke.spec.mjs --workers=1 2>&1 | tee ../artifacts/diagnostics/browser.log
-          test "$(find ../artifacts/ui -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 8
+          npx playwright test scripts/visual-smoke.spec.mjs scripts/session-browser-smoke.spec.mjs --workers=1 2>&1 | tee ../artifacts/diagnostics/browser.log
+          test "$(find ../artifacts/ui -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 10
+          grep -q '10 passed' ../artifacts/diagnostics/browser.log
 
       - name: Measure production bundles
         id: bundles
@@ -151,6 +153,7 @@ jobs:
           done
           grep -q 'workflow_dispatch:' .github/workflows/deploy-containment.yml
           grep -q 'target_sha:' .github/workflows/deploy-containment.yml
+          grep -q '\[deploy-leadx-once\]' .github/workflows/deploy-once.yml
           ! grep -q 'TARGET_SHA: a6185a2d1fc392d22686ac7dda90ba3afebd7714' .github/workflows/deploy-containment.yml
 
       - name: Build sanitized artifact manifest
@@ -160,8 +163,9 @@ jobs:
           mkdir -p artifacts/meta
           printf 'HEAD_SHA=%s\n' "$EXPECTED_SHA" > artifacts/meta/manifest.txt
           printf 'BASELINE_COVERAGE=66/66\n' >> artifacts/meta/manifest.txt
-          printf 'MULTI_LINE_TESTS=PASS\n' >> artifacts/meta/manifest.txt
-          printf 'PAGEERROR=0\nOVERFLOW=0\nSCREENSHOTS=8\n' >> artifacts/meta/manifest.txt
+          printf 'MULTI_LINE_TESTS=PASS\nCONTACT_STATE_TESTS=PASS\n' >> artifacts/meta/manifest.txt
+          printf 'SYNTHETIC_SESSION_TESTS=2/2\nPAGEERROR=0\nOVERFLOW=0\nSCREENSHOTS=10\n' >> artifacts/meta/manifest.txt
+          printf 'PRIVATE_BROWSER_STORAGE=NOT_USED\nMANUAL_CONTACT_ACTION=DISABLED\n' >> artifacts/meta/manifest.txt
           find artifacts -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > artifacts/SHA256SUMS
           ! find artifacts -type f \( -name '.env' -o -name '*.env' -o -name '*.pem' -o -name '*.key' \) | grep -q .
           ! grep -R -E -i 'set-cookie:|authorization: bearer|CLOUDFLARE_API_TOKEN|DASHBOARD_PASSWORD=|SESSION_SECRET=|INGEST_SECRET=' artifacts
@@ -170,7 +174,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: leadx-multiline-${{ env.EXPECTED_SHA }}
+          name: leadx-commercial-layout-${{ env.EXPECTED_SHA }}
           path: |
             artifacts/diagnostics
             artifacts/security
@@ -187,13 +191,15 @@ jobs:
         shell: bash
         run: |
           {
-            echo '### LeadX multi-line validation'
+            echo '### LeadX commercial layout validation'
             echo
             echo "- SHA: $EXPECTED_SHA"
             echo '- Exact checkout: verified'
             echo '- Baseline: 66/66'
-            echo '- Multi-line controls: executed'
-            echo '- Browser states: 8'
+            echo '- Contact status: server-derived only'
+            echo '- Manual contact mutation: disabled'
+            echo '- Browser states: 10'
+            echo '- Synthetic login/reload/logout: 2/2'
             echo '- Production operations: disabled'
             echo "- JS gzip: ${{ steps.bundles.outputs.js_gzip || 'INDETERMINADO' }} bytes"
             echo "- CSS gzip: ${{ steps.bundles.outputs.css_gzip || 'INDETERMINADO' }} bytes"
