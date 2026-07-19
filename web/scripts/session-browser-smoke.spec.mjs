@@ -83,15 +83,17 @@ for (const [name, width, height] of viewports) {
 
     await passwordInput.fill(SYNTHETIC_PASSWORD);
     await page.getByRole("button", { name: Number(width) < 760 ? "Ingresar" : "Entrar" }).click();
+    const leadSurface = page.locator(Number(width) < 760 ? ".mobile-cards:visible" : ".lead-table:visible");
     await expect(page.getByText("Datos reales", { exact: true })).toBeVisible();
-    await expect(page.getByText(PRIVATE_SENTINEL, { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("CONTACTADO", { exact: true }).first()).toBeVisible();
+    await expect(leadSurface.getByText(PRIVATE_SENTINEL, { exact: true })).toBeVisible();
+    await expect(leadSurface.getByText("CONTACTADO", { exact: true })).toBeVisible();
     await expect(page.locator('a[title="Abrir WhatsApp"]:visible').first()).toBeVisible();
     await expect(page.getByText("Datos ficticios para explorar el CRM", { exact: false })).toHaveCount(0);
 
     await page.reload();
+    const reloadedLeadSurface = page.locator(Number(width) < 760 ? ".mobile-cards:visible" : ".lead-table:visible");
     await expect(page.getByText("Datos reales", { exact: true })).toBeVisible();
-    await expect(page.getByText(PRIVATE_SENTINEL, { exact: true }).first()).toBeVisible();
+    await expect(reloadedLeadSurface.getByText(PRIVATE_SENTINEL, { exact: true })).toBeVisible();
     await page.screenshot({ path: `../artifacts/ui/${name}.png`, fullPage: true });
 
     await page.getByRole("button", { name: "Salir" }).click();
