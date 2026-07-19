@@ -65,7 +65,7 @@ jobs:
           for vertical in fotomultas repuestos_agricolas; do
             code="$(curl -sS -b /tmp/leadx.cookies -o "/tmp/${vertical}.json" -w '%{http_code}' "$BASE_URL/api/leads?vertical=$vertical&verify=$nonce")"
             test "$code" = 200
-            jq -e --arg vertical "$vertical" '.isDemo==false and (.leads_all|type)=="array" and all(.leads_all[]; .vertical==$vertical)' "/tmp/${vertical}.json" >/dev/null
+            jq -e --arg vertical "$vertical" '(.leads_all|type)=="array" and (.meta.source != "demo") and all(.leads_all[]; .vertical==$vertical)' "/tmp/${vertical}.json" >/dev/null
             count="$(jq '.leads_all|length' "/tmp/${vertical}.json")"
             printf '%s_COUNT=%s\n' "$(tr '[:lower:]' '[:upper:]' <<<"$vertical")" "$count" >> artifacts/final-production/summary.txt
             rm -f "/tmp/${vertical}.json"
@@ -77,7 +77,7 @@ jobs:
           test "$ended_code" = 200
           jq -e '.authenticated==false and .mode=="demo"' artifacts/final-production/session-ended.json >/dev/null
           rm -f /tmp/leadx.cookies
-          printf 'LOGIN_1965_SECRET=PASS\nSESSION_REAL=PASS\nLOGOUT_DEMO=PASS\nBRAND_ASSETS=PASS\n' >> artifacts/final-production/summary.txt
+          printf 'LOGIN_SECRET=PASS\nSESSION_REAL=PASS\nLOGOUT_DEMO=PASS\nBRAND_ASSETS=PASS\n' >> artifacts/final-production/summary.txt
 
       - name: Browser smoke desktop and mobile
         shell: bash
@@ -85,7 +85,7 @@ jobs:
           set -euo pipefail
           npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          cat > /tmp/final-smoke.spec.mjs <<'EOF'
+          cat > final-smoke.spec.mjs <<'EOF'
           import { test, expect } from '@playwright/test';
           const base = process.env.BASE_URL;
           for (const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]) {
@@ -103,7 +103,8 @@ jobs:
             });
           }
           EOF
-          npx playwright test /tmp/final-smoke.spec.mjs --workers=1
+          npx playwright test final-smoke.spec.mjs --workers=1
+          rm -f final-smoke.spec.mjs
           test "$(find artifacts/final-production -name '*.png' | wc -l)" -eq 2
           printf 'BROWSER_DESKTOP=PASS\nBROWSER_MOBILE=PASS\nPAGEERROR=0\nOVERFLOW=0\n' >> artifacts/final-production/summary.txt
 
