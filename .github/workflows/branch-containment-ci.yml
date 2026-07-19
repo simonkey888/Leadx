@@ -7,6 +7,7 @@ on:
       - feat/leadx-multi-linea-comercial-v1
       - feat/leadx-commercial-potential-layout-v1
       - feat/leadx-agro-cnh-pipeline-v1
+      - feat/leadx-brand-logo-v1
       - fix/leadx-demo-action-smoke-v2
   pull_request:
     branches:
@@ -23,8 +24,8 @@ concurrency:
 jobs:
   validate:
     if: >-
-      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1' || github.ref == 'refs/heads/feat/leadx-commercial-potential-layout-v1' || github.ref == 'refs/heads/feat/leadx-agro-cnh-pipeline-v1' || github.ref == 'refs/heads/fix/leadx-demo-action-smoke-v2')) ||
-      (github.event_name == 'pull_request' && (github.head_ref == 'feat/leadx-multi-linea-comercial-v1' || github.head_ref == 'feat/leadx-commercial-potential-layout-v1' || github.head_ref == 'feat/leadx-agro-cnh-pipeline-v1' || github.head_ref == 'fix/leadx-demo-action-smoke-v2')) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1' || github.ref == 'refs/heads/feat/leadx-commercial-potential-layout-v1' || github.ref == 'refs/heads/feat/leadx-agro-cnh-pipeline-v1' || github.ref == 'refs/heads/feat/leadx-brand-logo-v1' || github.ref == 'refs/heads/fix/leadx-demo-action-smoke-v2')) ||
+      (github.event_name == 'pull_request' && (github.head_ref == 'feat/leadx-multi-linea-comercial-v1' || github.head_ref == 'feat/leadx-commercial-potential-layout-v1' || github.head_ref == 'feat/leadx-agro-cnh-pipeline-v1' || github.head_ref == 'feat/leadx-brand-logo-v1' || github.head_ref == 'fix/leadx-demo-action-smoke-v2')) ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -108,10 +109,17 @@ jobs:
           test -n "$JS_FILE" && test -n "$CSS_FILE"
           test "$(gzip -c "$JS_FILE" | wc -c | tr -d ' ')" -le 81920
           test "$(gzip -c "$CSS_FILE" | wc -c | tr -d ' ')" -le 12288
-      - name: Validate endpoint and deployment surfaces
+      - name: Validate brand assets and deployment surfaces
         shell: bash
         run: |
           set -euo pipefail
+          test -s web/public/leadx-mark.svg
+          test -s web/public/leadx-wordmark.svg
+          test "$(wc -c < web/public/leadx-mark.svg)" -le 4096
+          test "$(wc -c < web/public/leadx-wordmark.svg)" -le 8192
+          grep -q 'leadx-mark.svg' web/index.html
+          grep -q 'leadx-wordmark.svg' web/src/styles-multiline-base.css
+          ! grep -E -q 'https?://' web/public/leadx-mark.svg web/public/leadx-wordmark.svg
           test -s docs/api-inventory.md
           ! grep -R -q 'DASHBOARD_HTML' worker.js worker
           ! grep -R -q 'async scheduled' worker.js worker
@@ -126,7 +134,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: leadx-agro-cnh-${{ env.EXPECTED_SHA }}
+          name: leadx-brand-logo-${{ env.EXPECTED_SHA }}
           path: |
             artifacts
             web/dist
