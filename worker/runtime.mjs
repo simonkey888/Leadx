@@ -1,8 +1,10 @@
 import { API_METHODS, RELEASE, REMOVED_PATHS } from "./config.mjs";
 import { handleActivity, handleLogin, handleSession } from "./auth-handlers.mjs";
-import { handleIngest, handleLeads, handleMetrics } from "./data-handlers.mjs";
+import { handleIngest, handleLeads, handleMetrics, handlePrivateImport } from "./data-handlers.mjs";
 import { expiredCookie, json, logEvent, requestId, responseWithHeaders, sameOriginAllowed } from "./http.mjs";
 import { privateHeaders } from "./session.mjs";
+
+const PRIVATE_IMPORT_PATH = "/api/admin/import";
 
 async function serveAsset(request, env) {
   if (!env.ASSETS) return json({ error: "static_assets_unavailable" }, 503);
@@ -10,6 +12,11 @@ async function serveAsset(request, env) {
   if (response.status === 404) response = await env.ASSETS.fetch(new Request(new URL("/index.html", request.url), request));
   const cache = new URL(request.url).pathname.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "no-cache";
   return responseWithHeaders(response, { "Cache-Control": cache });
+}
+
+function methodsFor(pathname) {
+  if (pathname === PRIVATE_IMPORT_PATH) return ["POST"];
+  return API_METHODS.get(pathname);
 }
 
 function methodNotAllowed(allowed) {
@@ -30,7 +37,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const requestIdValue = requestId(request);
-    const allowed = API_METHODS.get(url.pathname);
+    const allowed = methodsFor(url.pathname);
 
     if (REMOVED_PATHS.has(url.pathname)) return json({ error: "not_found" }, 404);
     if (url.pathname.startsWith("/api/") && !allowed) return json({ error: "not_found" }, 404);
@@ -46,6 +53,7 @@ export default {
       if (url.pathname === "/api/leads") return await handleLeads(request, env);
       if (url.pathname === "/api/metrics") return await handleMetrics(request, env);
       if (url.pathname === "/api/ingest") return await handleIngest(request, env, requestIdValue);
+      if (url.pathname === PRIVATE_IMPORT_PATH) return await handlePrivateImport(request, env, requestIdValue);
       if (url.pathname === "/api/health") return json({ status: "ok", service: "leadx", version: RELEASE, checked_at: new Date().toISOString() });
       return await serveAsset(request, env);
     } catch {
