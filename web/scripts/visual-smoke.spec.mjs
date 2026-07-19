@@ -19,14 +19,13 @@ for (const [name, width, height, linea, detail] of cases) {
     await page.goto(`http://127.0.0.1:4173/?linea=${linea}`);
     const label = linea === "fotomultas" ? "Fotomultas" : "Repuestos agrícolas";
     await expect(page.getByRole("button", { name: label })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("html")).toHaveAttribute("data-linea", String(linea));
     if (Number(width) >= 760) await expect(page.getByText("Provincia", { exact: true }).first()).toBeVisible();
     if (detail) {
-      await page.locator(Number(width) < 760 ? ".lead-card" : ".lead-table tbody tr").first().click();
+      await page.locator(Number(width) < 760 ? ".lead-card:visible" : ".lead-table tbody tr:visible").first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
-      await expect(page.getByTitle("Abrir WhatsApp").first()).toBeVisible();
-    } else {
-      await expect(page.getByTitle("Abrir WhatsApp").first()).toBeVisible();
     }
+    await expect(page.locator('a[title="Abrir WhatsApp"]:visible').first()).toBeVisible();
     const diagnostics = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       pageerror: document.documentElement.dataset.pageerror || "false",
