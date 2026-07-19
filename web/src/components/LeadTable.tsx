@@ -3,6 +3,7 @@ import type { Lead } from "../types";
 import { leadChannel, leadContext, leadName, leadProvince } from "../lib/multi-line";
 import { relativeTime } from "../lib/api";
 import { Badge } from "./Badge";
+import { ContactStatusBadge } from "./ContactStatusBadge";
 import { PhoneWhatsApp } from "./PhoneWhatsApp";
 import { PotentialBadge } from "./PotentialBadge";
 
@@ -23,7 +24,7 @@ export function LeadTable({ leads, selectedId, onSelect, onActivity }: Props) {
             <td>{leadProvince(lead)}</td>
             <td><PhoneWhatsApp lead={lead} compact onActivity={onActivity} /></td>
             <td>{channelLabel[leadChannel(lead)] || leadChannel(lead)}</td>
-            <td><PotentialBadge lead={lead} /></td>
+            <td><span className="commercial-signals"><PotentialBadge lead={lead} /><ContactStatusBadge lead={lead} /></span></td>
             <td><span className="created-cell"><CalendarDays size={13} aria-hidden="true" />{relativeTime(lead)}</span></td>
           </tr>
         ))}</tbody>
@@ -35,7 +36,7 @@ export function LeadTable({ leads, selectedId, onSelect, onActivity }: Props) {
             onClick={() => select(lead)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); select(lead); } }}>
             <div className="card-head"><div><strong>{leadName(lead)}</strong><small>{leadContext(lead)}</small></div><Badge lead={lead} /></div>
             <div className="card-meta"><span>{leadProvince(lead)}</span><span>{channelLabel[leadChannel(lead)] || leadChannel(lead)}</span></div>
-            <div className="card-potential"><PotentialBadge lead={lead} /><span>{relativeTime(lead)}</span></div>
+            <div className="card-potential"><span className="commercial-signals"><PotentialBadge lead={lead} /><ContactStatusBadge lead={lead} /></span><span>{relativeTime(lead)}</span></div>
             <div className="card-phone"><PhoneWhatsApp lead={lead} compact onActivity={onActivity} /></div>
           </article>
         ))}
