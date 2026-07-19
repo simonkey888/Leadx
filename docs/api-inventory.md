@@ -49,7 +49,32 @@ All private responses are `no-store, private` and vary on `Cookie`. Anonymous AP
 
 ## Removed surface
 
-The following remain hard-removed and return runtime `404`: generic KV routes, cookie collection, Reddit/Facebook/Apify scraping, WhatsApp validators/webhooks, plate/VLM analysis, forensic writes, enrichment, cron execution and shadow-OSINT routes. `DASHBOARD_HTML`, `COOKIES_HTML` and scheduled Worker execution are not part of the approved runtime.
+The following routes remain hard-removed and return runtime `404` without reaching assets or storage:
+
+- `/api/kv`
+- `/api/ml-questions`
+- `/api/reddit-bio`
+- `/api/ddg-foromoto`
+- `/api/clasificar-webhook`
+- `/api/clasificar-patente`
+- `/api/clasificar-basic`
+- `/api/apify-facebook`
+- `/cookies`
+- `/cookies.html`
+- `/api/cookies`
+- `/api/whatsapp-validate`
+- `/api/whatsapp-webhook`
+- `/api/apify-webhook`
+- `/api/enrich-patente`
+- `/api/analyze-acta`
+- `/api/forensic-case`
+- `/api/cron-run`
+- `/api/enrich-all`
+- `/api/reddit-profile-links`
+- `/api/shadow-osint`
+- `/api/ventafe-debug`
+
+`DASHBOARD_HTML`, `COOKIES_HTML` and scheduled Worker execution are not part of the approved runtime.
 
 ## Production rule
 
