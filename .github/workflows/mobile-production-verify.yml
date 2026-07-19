@@ -55,7 +55,7 @@ jobs:
           curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=repuestos_agricolas&verify=$nonce" > /tmp/agro.json
           jq -e '(.leads_all|length)==9 and all(.leads_all[]; .vertical=="fotomultas")' /tmp/fotomultas.json >/dev/null
           jq -e '(.leads_all|length)==0' /tmp/agro.json >/dev/null
-          test "$(curl -sS -b /tmp/leadx.cookies -o /tmp/logout.json -w '%{http_code}' -X POST "$BASE_URL/api/auth/logout?verify=$nonce")" = 200
+          test "$(curl -sS -b /tmp/leadx.cookies -c /tmp/leadx.cookies -o /tmp/logout.json -w '%{http_code}' -X POST "$BASE_URL/api/auth/logout?verify=$nonce")" = 200
           curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/auth/session?verify=$nonce" | jq -e '.authenticated==false and .mode=="demo"' >/dev/null
           printf 'LOGIN_SECRET=PASS\nFOTOMULTAS_COUNT=9\nAGRO_COUNT=0\nVERTICAL_CONTAINMENT=PASS\nLOGOUT_DEMO=PASS\n' > artifacts/mobile-production/api-summary.txt
           rm -f /tmp/leadx.cookies /tmp/login.json /tmp/logout.json /tmp/fotomultas.json /tmp/agro.json
