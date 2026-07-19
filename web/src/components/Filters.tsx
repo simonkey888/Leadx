@@ -48,10 +48,10 @@ export function Filters(props: Props) {
   return (
     <section className="filter-area" aria-label="Búsqueda y filtros">
       <div className="toolbar">
-        <input type="search" className="search" placeholder={props.vertical === "fotomultas" ? "Buscar nombre, patente, municipio…" : "Buscar empresa, contacto, producto, próxima acción…"} value={props.search} onChange={(event) => { props.setSearch(event.target.value); props.onActivity?.(); }} aria-label="Buscar leads" />
+        <input type="search" className="search" placeholder={props.vertical === "fotomultas" ? "Buscar nombre, patente, municipio…" : "Buscar empresa, contacto o producto…"} value={props.search} onChange={(event) => { props.setSearch(event.target.value); props.onActivity?.(); }} aria-label="Buscar leads" />
         <button type="button" className="control-button filter-trigger" aria-haspopup="dialog" onClick={() => document.body.classList.add("filters-open")}><SlidersHorizontal size={17} aria-hidden="true" /> Filtros {activeCount > 0 && <span>{activeCount}</span>}</button>
         <label className="sort-control"><span className="sr-only">Ordenar</span><select value={props.sort} onChange={(event) => { props.setSort(event.target.value); props.onActivity?.(); }}><option value="potential">Mayor potencial</option><option value="recent">Más recientes</option><option value="priority">Prioridad</option><option value="name">Nombre</option></select></label>
-        {props.vertical === "repuestos_agricolas" && <><input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(event) => void importFile(event.target.files?.[0])} /><button type="button" className="control-button" disabled={importing} onClick={() => importRef.current?.click()}><Upload size={16} aria-hidden="true" />{importing ? "Importando…" : "Importar leads"}</button></>}
+        {props.vertical === "repuestos_agricolas" && <><input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(event) => void importFile(event.target.files?.[0])} /><button type="button" className="control-button import-button" disabled={importing} onClick={() => importRef.current?.click()}><Upload size={16} aria-hidden="true" />{importing ? "Importando…" : "Importar leads"}</button></>}
         <button type="button" className="control-button export-button" onClick={props.onExport} disabled={props.leads.length === 0}><Download size={16} aria-hidden="true" /> Exportar</button>
       </div>
       {importNotice && <p className="session-notice" role="status">{importNotice}</p>}
