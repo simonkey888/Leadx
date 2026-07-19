@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">LeadX</title>
+  <g fill="#202124">
+    <path d="M7 52h16.5L43 30.5l8.5 8.5L56 8 25 12.5l8.5 8.5z"/>
+    <path d="M31.5 39.5 44 52h14L38.5 30.5z"/>
+    <path d="M7 15h14l10.5 11.5-9 9.5z"/>
+  </g>
+</svg>
