@@ -8,6 +8,7 @@ on:
       - feat/leadx-commercial-potential-layout-v1
       - feat/leadx-agro-cnh-pipeline-v1
       - feat/leadx-brand-logo-v1
+      - feat/leadx-mobile-polish-v1
       - fix/leadx-demo-action-smoke-v2
   pull_request:
     branches:
@@ -24,8 +25,8 @@ concurrency:
 jobs:
   validate:
     if: >-
-      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1' || github.ref == 'refs/heads/feat/leadx-commercial-potential-layout-v1' || github.ref == 'refs/heads/feat/leadx-agro-cnh-pipeline-v1' || github.ref == 'refs/heads/feat/leadx-brand-logo-v1' || github.ref == 'refs/heads/fix/leadx-demo-action-smoke-v2')) ||
-      (github.event_name == 'pull_request' && (github.head_ref == 'feat/leadx-multi-linea-comercial-v1' || github.head_ref == 'feat/leadx-commercial-potential-layout-v1' || github.head_ref == 'feat/leadx-agro-cnh-pipeline-v1' || github.head_ref == 'feat/leadx-brand-logo-v1' || github.head_ref == 'fix/leadx-demo-action-smoke-v2')) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/feat/leadx-cosmic-completion' || github.ref == 'refs/heads/feat/leadx-multi-linea-comercial-v1' || github.ref == 'refs/heads/feat/leadx-commercial-potential-layout-v1' || github.ref == 'refs/heads/feat/leadx-agro-cnh-pipeline-v1' || github.ref == 'refs/heads/feat/leadx-brand-logo-v1' || github.ref == 'refs/heads/feat/leadx-mobile-polish-v1' || github.ref == 'refs/heads/fix/leadx-demo-action-smoke-v2')) ||
+      (github.event_name == 'pull_request' && (github.head_ref == 'feat/leadx-multi-linea-comercial-v1' || github.head_ref == 'feat/leadx-commercial-potential-layout-v1' || github.head_ref == 'feat/leadx-agro-cnh-pipeline-v1' || github.head_ref == 'feat/leadx-brand-logo-v1' || github.head_ref == 'feat/leadx-mobile-polish-v1' || github.head_ref == 'fix/leadx-demo-action-smoke-v2')) ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -134,7 +135,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: leadx-brand-logo-${{ env.EXPECTED_SHA }}
+          name: leadx-mobile-polish-${{ env.EXPECTED_SHA }}
           path: |
             artifacts
             web/dist
