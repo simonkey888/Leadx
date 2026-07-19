@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p artifacts/ui
+          mkdir -p artifacts/ui artifacts/diagnostics
           cd web
           npm install --no-save --package-lock=false @playwright/test@1.51.1
           npx playwright install --with-deps chromium
@@ -119,7 +119,7 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:4173/ >/dev/null
-          npx playwright test scripts/visual-smoke.spec.mjs --workers=1
+          npx playwright test scripts/visual-smoke.spec.mjs --workers=1 2>&1 | tee ../artifacts/diagnostics/browser.log
           test "$(find ../artifacts/ui -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 8
 
       - name: Measure production bundles
