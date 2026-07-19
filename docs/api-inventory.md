@@ -1,6 +1,6 @@
 # LeadX API inventory
 
-Validated branch: `feat/leadx-multi-linea-comercial-v1`.
+Validated branch: `feat/leadx-agro-cnh-pipeline-v1`.
 
 LeadX retains one contained Worker surface. Multi-line support extends the lead domain without adding providers, scraping, automation, enrichment or arbitrary storage access.
 
@@ -24,10 +24,10 @@ A stored or ingested record with no `vertical` is treated as `fotomultas` for ba
 
 | Consumer | Required routes |
 |---|---|
-| React SPA | `/api/auth/login`, `/api/auth/session`, `/api/auth/activity`, `/api/auth/logout`, `/api/leads`, `/api/metrics` |
+| React SPA | `/api/auth/login`, `/api/auth/session`, `/api/auth/activity`, `/api/auth/logout`, `/api/leads`, `/api/metrics`, `/api/admin/import` |
 | Hunter / approved ingestion | `/api/ingest` only |
 | Anonymous smoke / uptime | `/api/health`, `/api/auth/session`, `/api/leads`, `/api/metrics`, `/` |
-| Private operation | Auth/session routes plus authenticated `/api/leads` and `/api/metrics` |
+| Private operation | Auth/session routes plus authenticated `/api/leads`, `/api/metrics` and `/api/admin/import` |
 
 ## Retained endpoints
 
@@ -43,6 +43,7 @@ A stored or ingested record with no `vertical` is treated as `fotomultas` for ba
 | GET | `/api/metrics?vertical=<allowed>` | Optional signed cookie | Returns metrics calculated only from the selected vertical. |
 | GET | `/api/metrics` | Optional signed cookie | Safe compatibility response; anonymous metrics remain fixed demo metrics. |
 | POST | `/api/ingest` | `INGEST_SECRET` | Validates the bounded JSON payload, defaults missing vertical to Fotomultas, rejects invalid verticals and preserves CRM state. |
+| POST | `/api/admin/import` | Signed dashboard session + explicit activity header | Bounded private JSON upsert. Accepts only one allowed vertical, deduplicates by lead `id`, preserves the other vertical and existing CRM fields, and returns counters rather than imported records. |
 | GET | `/api/health` | None | Sanitized health only; no KV access or private counters. |
 
 All private responses are `no-store, private` and vary on `Cookie`. Anonymous API responses are `no-store`. The React client does not persist real leads or CRM state in browser storage.
