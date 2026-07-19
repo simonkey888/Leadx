@@ -66,7 +66,7 @@ jobs:
           set -euo pipefail
           npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          cat > /tmp/mobile-production.spec.mjs <<'EOF'
+          cat > mobile-production.spec.mjs <<'EOF'
           import { test, expect } from '@playwright/test';
           const base = process.env.BASE_URL;
           const password = process.env.DASHBOARD_PASSWORD;
@@ -104,7 +104,8 @@ jobs:
             await page.screenshot({path:'artifacts/mobile-production/desktop-demo.png',fullPage:true});
           });
           EOF
-          npx playwright test /tmp/mobile-production.spec.mjs --workers=1
+          npx playwright test mobile-production.spec.mjs --workers=1
+          rm -f mobile-production.spec.mjs
           test "$(find artifacts/mobile-production -name '*.png' | wc -l)" -eq 3
           printf 'MOBILE_DEMO=PASS\nMOBILE_REAL=PASS\nDESKTOP_DEMO=PASS\nPAGEERROR=0\nOVERFLOW=0\nPRIVATE_IMPORT_VISIBILITY=PASS\n' >> artifacts/mobile-production/api-summary.txt
 
@@ -113,7 +114,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f artifacts/mobile-production/health.json
+          rm -f artifacts/mobile-production/health.json mobile-production.spec.mjs
           find artifacts/mobile-production -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > artifacts/mobile-production/SHA256SUMS
           ! grep -R -E -i 'DASHBOARD_PASSWORD|SESSION_SECRET|INGEST_SECRET|set-cookie:|whatsapp_publico|email_publico|contact_name' artifacts/mobile-production
 
