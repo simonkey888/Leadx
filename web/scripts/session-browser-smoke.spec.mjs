@@ -90,10 +90,15 @@ for (const [name, width, height] of viewports) {
     await expect(page.locator('a[title="Abrir WhatsApp"]:visible').first()).toBeVisible();
     await expect(page.getByText("Datos ficticios para explorar el CRM", { exact: false })).toHaveCount(0);
 
+    await page.getByRole("button", { name: "Repuestos agrícolas" }).click();
+    await expect(page.getByRole("button", { name: "Importar leads" })).toBeVisible();
+    await expect(leadSurface.getByText(PRIVATE_SENTINEL, { exact: true })).toBeVisible();
+
     await page.reload();
     const reloadedLeadSurface = page.locator(Number(width) < 760 ? ".mobile-cards:visible" : ".lead-table:visible");
     await expect(page.getByText("Datos reales", { exact: true })).toBeVisible();
     await expect(reloadedLeadSurface.getByText(PRIVATE_SENTINEL, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Importar leads" })).toBeVisible();
     await page.screenshot({ path: `../artifacts/ui/${name}.png`, fullPage: true });
 
     await page.getByRole("button", { name: "Salir" }).click();
@@ -101,6 +106,7 @@ for (const [name, width, height] of viewports) {
     await expect(page.getByText("Datos ficticios para explorar el CRM", { exact: false })).toBeVisible();
     await expect(page.getByText(PRIVATE_SENTINEL, { exact: true })).toHaveCount(0);
     await expect(page.locator('a[href^="https://wa.me/"]')).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Importar leads" })).toHaveCount(0);
 
     const diagnostics = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
