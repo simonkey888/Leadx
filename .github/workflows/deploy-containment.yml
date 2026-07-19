@@ -68,18 +68,60 @@ jobs:
           npm test
           npm run typecheck
 
-      - name: Preflight Cloudflare access and smoke credential
+      - name: Preflight Cloudflare access and required secrets
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing GitHub Actions secret: CLOUDFLARE_API_TOKEN'; exit 1; }
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing GitHub Actions secret: CLOUDFLARE_ACCOUNT_ID'; exit 1; }
-          test -n "$LEADX_SMOKE_PASSWORD" || { echo 'Missing GitHub Actions secret: DASHBOARD_PASSWORD'; exit 1; }
-          npx --yes wrangler@${WRANGLER_VERSION} whoami >/dev/null
-          names="$(npx --yes wrangler@${WRANGLER_VERSION} secret list --format json | jq -r '.[].name')"
-          for name in DASHBOARD_PASSWORD SESSION_SECRET INGEST_SECRET; do
-            grep -Fxq "$name" <<<"$names" || { echo "Missing Cloudflare Worker secret: $name"; exit 1; }
-          done
+
+          missing=()
+          errors=()
+          cloudflare_control_ready=true
+
+          if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
+            missing+=("GitHub Actions: CLOUDFLARE_API_TOKEN")
+            cloudflare_control_ready=false
+          fi
+          if [[ -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            missing+=("GitHub Actions: CLOUDFLARE_ACCOUNT_ID")
+            cloudflare_control_ready=false
+          fi
+          if [[ -z "$LEADX_SMOKE_PASSWORD" ]]; then
+            missing+=("GitHub Actions: DASHBOARD_PASSWORD")
+          fi
+
+          if [[ "$cloudflare_control_ready" == true ]]; then
+            if ! npx --yes wrangler@${WRANGLER_VERSION} whoami >/dev/null; then
+              errors+=("Cloudflare authentication failed")
+            else
+              runtime_names=""
+              if runtime_names="$(npx --yes wrangler@${WRANGLER_VERSION} secret list --format json | jq -r '.[].name')"; then
+                for name in DASHBOARD_PASSWORD SESSION_SECRET INGEST_SECRET; do
+                  if ! grep -Fxq "$name" <<<"$runtime_names"; then
+                    missing+=("Cloudflare Runtime: $name")
+                  fi
+                done
+              else
+                errors+=("Cloudflare Runtime secret inventory unavailable")
+              fi
+            fi
+          else
+            errors+=("Cloudflare Runtime secret inventory skipped because control credentials are unavailable")
+          fi
+
+          if (( ${#missing[@]} > 0 || ${#errors[@]} > 0 )); then
+            echo 'Deployment preflight failed.'
+            if (( ${#missing[@]} > 0 )); then
+              echo 'Missing required secret names:'
+              printf ' - %s\n' "${missing[@]}"
+            fi
+            if (( ${#errors[@]} > 0 )); then
+              echo 'Preflight errors:'
+              printf ' - %s\n' "${errors[@]}"
+            fi
+            exit 1
+          fi
+
+          echo 'All required secret names are available.'
 
       - name: Record previous production deployment
         id: previous
