@@ -28,11 +28,80 @@ function metricsFor(leads, status) {
     new_leads: leads.filter((lead) => canonicalStatus(lead) === "Nuevo").length,
     qualified_leads: leads.filter((lead) => canonicalStatus(lead) === "Calificado").length,
     lost_leads: leads.filter((lead) => canonicalStatus(lead) === "Perdido").length,
-    hot_leads: leads.filter((lead) => Number(lead.score || 0) >= 70).length,
-    urgent_leads: leads.filter((lead) => Number(lead.score || 0) >= 85).length,
+    hot_leads: leads.filter((lead) => Number(lead.potential_score ?? lead.score ?? 0) >= 70).length,
+    urgent_leads: leads.filter((lead) => Number(lead.potential_score ?? lead.score ?? 0) >= 85).length,
     contactable_leads: status === "demo" ? 0 : leads.filter((lead) => lead.whatsapp_publico || lead.telefono_publico || lead.phone || lead.email_publico || lead.email || lead.fb_username || lead.fb_author_id).length,
     status,
   };
+}
+
+async function readStoredLeads(env) {
+  const raw = await env.LEADX_KV.get("leads:live");
+  if (!raw) return { previous: [], previousData: null };
+  try {
+    const data = JSON.parse(raw);
+    return { previous: Array.isArray(data.leads_all) ? data.leads_all.map(normalizeStoredLead) : [], previousData: data };
+  } catch { return null; }
+}
+
+function sanitizeImportBody(body, requiredMode) {
+  if (!body || typeof body !== "object" || Array.isArray(body) || !Array.isArray(body.leads_all) || body.leads_all.length > MAX_LEADS) return { error: "invalid_payload" };
+  const mode = body.mode || "replace_all";
+  if (!new Set(["replace_all", "upsert_vertical"]).has(mode) || (requiredMode && mode !== requiredMode)) return { error: "invalid_mode" };
+  const vertical = body.vertical;
+  if (mode === "upsert_vertical" && !VERTICALS.has(vertical)) return { error: "invalid_vertical" };
+  const sanitized = body.leads_all.map(sanitizeLead);
+  if (sanitized.some((lead) => !lead)) return { error: "invalid_lead" };
+  const ids = new Set();
+  for (const lead of sanitized) {
+    if (ids.has(lead.id)) return { error: "duplicate_id" };
+    if (mode === "upsert_vertical" && lead.vertical !== vertical) return { error: "mixed_vertical" };
+    ids.add(lead.id);
+  }
+  return { mode, vertical, sanitized, ids };
+}
+
+async function storeImport(env, body, requiredMode = null) {
+  const parsed = sanitizeImportBody(body, requiredMode);
+  if (parsed.error) return { error: parsed.error, status: 400 };
+  const stored = await readStoredLeads(env);
+  if (!stored) return { error: "existing_data_invalid", status: 503 };
+  const { previous, previousData } = stored;
+  const { mode, vertical, sanitized, ids } = parsed;
+  if (mode === "replace_all" && sanitized.length < 5 && previous.length >= 5) return { error: "anti_wipe", status: 409 };
+
+  const previousById = new Map(previous.map((lead) => [lead.id, lead]));
+  const imported = sanitized.map((lead) => preserveCrmState(lead, previousById.get(lead.id)));
+  const leads = mode === "upsert_vertical"
+    ? [...previous.filter((lead) => !ids.has(lead.id)), ...imported]
+    : imported;
+  const inserted = sanitized.filter((lead) => !previousById.has(lead.id)).length;
+  const updated = sanitized.length - inserted;
+  const generatedAt = cleanTimestamp(body.meta?.generated_at) || new Date().toISOString();
+  const payload = {
+    ...(previousData || {}),
+    leads_all: leads,
+    leads_hot: leads.filter((lead) => Number(lead.potential_score ?? lead.score ?? 0) >= 70),
+    summary: { total_leads: leads.length, hot_leads: leads.filter((lead) => Number(lead.potential_score ?? lead.score ?? 0) >= 70).length },
+    meta: {
+      ...(previousData?.meta || {}),
+      version: cleanString(body.meta?.version, 80) || RELEASE,
+      source: cleanString(body.meta?.source, 100) || (mode === "upsert_vertical" ? "private_vertical_import" : "hunter"),
+      generated_at: generatedAt,
+      ingest_at: new Date().toISOString(),
+      ...(vertical ? { last_vertical_import: vertical } : {}),
+    },
+  };
+  await env.LEADX_KV.put("leads:live", JSON.stringify(payload));
+  return { total: leads.length, imported: sanitized.length, inserted, updated, vertical, mode };
+}
+
+async function parseImportRequest(request) {
+  if (!jsonContentTypeAllowed(request.headers.get("Content-Type"))) return { error: "unsupported_media_type", status: 415 };
+  const read = await readBodyLimited(request, MAX_INGEST_BYTES);
+  if (read.tooLarge) return { error: "payload_too_large", status: 413 };
+  try { return { body: parseJsonBytes(read.bytes) }; }
+  catch { return { error: "invalid_json", status: 400 }; }
 }
 
 export async function handleLeads(request, env) {
@@ -52,14 +121,11 @@ export async function handleLeads(request, env) {
     });
   }
   if (!env.LEADX_KV) return json({ error: "service_unavailable" }, 503, privateHeaders(verification));
-  const raw = await env.LEADX_KV.get("leads:live");
-  if (!raw) return json({ leads_all: [], leads_hot: [], summary: { total_leads: 0, hot_leads: 0, with_whatsapp: 0, with_messenger: 0, with_email: 0 }, meta: { source: "empty" } }, 200, privateHeaders(verification));
-  try {
-    const data = JSON.parse(raw);
-    const all = Array.isArray(data.leads_all) ? data.leads_all.map(normalizeStoredLead) : [];
-    const leads = requested.value ? all.filter((lead) => lead.vertical === requested.value) : all;
-    return json({ ...data, leads_all: leads, leads_hot: leads.filter((lead) => Number(lead.score || 0) >= 70), summary: { ...(data.summary || {}), total_leads: leads.length }, meta: { ...(data.meta || {}), ...(requested.value ? { vertical: requested.value } : {}) } }, 200, privateHeaders(verification));
-  } catch { return json({ error: "data_unavailable" }, 503, privateHeaders(verification)); }
+  const stored = await readStoredLeads(env);
+  if (!stored) return json({ error: "data_unavailable" }, 503, privateHeaders(verification));
+  const all = stored.previous;
+  const leads = requested.value ? all.filter((lead) => lead.vertical === requested.value) : all;
+  return json({ ...(stored.previousData || {}), leads_all: leads, leads_hot: leads.filter((lead) => Number(lead.potential_score ?? lead.score ?? 0) >= 70), summary: { ...(stored.previousData?.summary || {}), total_leads: leads.length }, meta: { ...(stored.previousData?.meta || {}), ...(requested.value ? { vertical: requested.value } : {}) } }, 200, privateHeaders(verification));
 }
 
 export async function handleMetrics(request, env) {
@@ -74,49 +140,36 @@ export async function handleMetrics(request, env) {
     return json({ ...result, status: "demo", total_leads: 12, contactable_leads: 0 });
   }
   if (!env.LEADX_KV) return json({ error: "service_unavailable" }, 503, privateHeaders(verification));
-  const raw = await env.LEADX_KV.get("leads:live");
-  if (!raw) return json({ total_leads: 0, new_leads: 0, qualified_leads: 0, lost_leads: 0, hot_leads: 0, urgent_leads: 0, contactable_leads: 0, status: "empty" }, 200, privateHeaders(verification));
-  try {
-    const data = JSON.parse(raw);
-    const all = Array.isArray(data.leads_all) ? data.leads_all.map(normalizeStoredLead) : [];
-    const leads = requested.value ? all.filter((lead) => lead.vertical === requested.value) : all;
-    return json(metricsFor(leads, "ok"), 200, privateHeaders(verification));
-  } catch { return json({ error: "data_unavailable" }, 503, privateHeaders(verification)); }
+  const stored = await readStoredLeads(env);
+  if (!stored) return json({ error: "data_unavailable" }, 503, privateHeaders(verification));
+  const leads = requested.value ? stored.previous.filter((lead) => lead.vertical === requested.value) : stored.previous;
+  return json(metricsFor(leads, leads.length ? "ok" : "empty"), 200, privateHeaders(verification));
 }
 
 export async function handleIngest(request, env, requestIdValue) {
-  if (!jsonContentTypeAllowed(request.headers.get("Content-Type"))) return json({ status: "rejected", reason: "unsupported_media_type" }, 415);
   if (!env.INGEST_SECRET || !env.LEADX_KV) return json({ status: "rejected", reason: "service_unavailable" }, 503);
   const provided = request.headers.get("X-Ingest-Secret") || request.headers.get("X-Webhook-Secret") || "";
   if (!(await secureEqual(provided, env.INGEST_SECRET))) {
     logEvent("ingest.rejected", requestIdValue, "unauthorized");
     return json({ status: "rejected", reason: "auth_failed" }, 401);
   }
-  const read = await readBodyLimited(request, MAX_INGEST_BYTES);
-  if (read.tooLarge) return json({ status: "rejected", reason: "payload_too_large" }, 413);
-  let body;
-  try { body = parseJsonBytes(read.bytes); } catch { return json({ status: "rejected", reason: "invalid_json" }, 400); }
-  if (!body || typeof body !== "object" || Array.isArray(body) || !Array.isArray(body.leads_all) || body.leads_all.length > MAX_LEADS) return json({ status: "rejected", reason: "invalid_payload" }, 400);
-  const sanitized = body.leads_all.map(sanitizeLead);
-  if (sanitized.some((lead) => !lead)) return json({ status: "rejected", reason: "invalid_lead" }, 400);
-  const ids = new Set();
-  for (const lead of sanitized) { if (ids.has(lead.id)) return json({ status: "rejected", reason: "duplicate_id" }, 400); ids.add(lead.id); }
-  let previous = [];
-  const priorRaw = await env.LEADX_KV.get("leads:live");
-  if (priorRaw) {
-    try { const parsed = JSON.parse(priorRaw); previous = Array.isArray(parsed.leads_all) ? parsed.leads_all.map(normalizeStoredLead) : []; }
-    catch { return json({ status: "rejected", reason: "existing_data_invalid" }, 503); }
-  }
-  if (sanitized.length < 5 && previous.length >= 5) return json({ status: "rejected", reason: "anti_wipe" }, 409);
-  const previousById = new Map(previous.map((lead) => [lead.id, lead]));
-  const merged = sanitized.map((lead) => preserveCrmState(lead, previousById.get(lead.id)));
-  const payload = {
-    leads_all: merged,
-    leads_hot: merged.filter((lead) => Number(lead.score || 0) >= 70),
-    summary: { total_leads: merged.length, hot_leads: merged.filter((lead) => Number(lead.score || 0) >= 70).length },
-    meta: { version: cleanString(body.meta?.version, 80) || RELEASE, source: cleanString(body.meta?.source, 100) || "hunter", generated_at: cleanTimestamp(body.meta?.generated_at) || new Date().toISOString(), ingest_at: new Date().toISOString() },
-  };
-  await env.LEADX_KV.put("leads:live", JSON.stringify(payload));
-  logEvent("ingest.accepted", requestIdValue, "ok", { count: merged.length });
-  return json({ status: "ok", total: merged.length });
+  const parsed = await parseImportRequest(request);
+  if (parsed.error) return json({ status: "rejected", reason: parsed.error }, parsed.status);
+  const result = await storeImport(env, parsed.body);
+  if (result.error) return json({ status: "rejected", reason: result.error }, result.status);
+  logEvent("ingest.accepted", requestIdValue, "ok", { count: result.imported, mode: result.mode });
+  return json({ status: "ok", ...result });
+}
+
+export async function handlePrivateImport(request, env, requestIdValue) {
+  const verification = await verifySession(request, env, { renew: true });
+  if (verification.reason === "configuration") return sessionConfigurationFailure();
+  if (!verification.authenticated) return expiredSession(verification.reason);
+  if (!env.LEADX_KV) return json({ status: "rejected", reason: "service_unavailable" }, 503, privateHeaders(verification));
+  const parsed = await parseImportRequest(request);
+  if (parsed.error) return json({ status: "rejected", reason: parsed.error }, parsed.status, privateHeaders(verification));
+  const result = await storeImport(env, parsed.body, "upsert_vertical");
+  if (result.error) return json({ status: "rejected", reason: result.error }, result.status, privateHeaders(verification));
+  logEvent("private_import.accepted", requestIdValue, "ok", { count: result.imported, vertical: result.vertical });
+  return json({ status: "ok", ...result }, 200, privateHeaders(verification));
 }
