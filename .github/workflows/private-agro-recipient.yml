@@ -1,0 +1,48 @@
+name: LeadX Private Agro Recipient
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/private-agro-recipient.yml
+
+permissions:
+  contents: read
+
+jobs:
+  recipient:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ops/leadx-private-agro-import-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+    steps:
+      - name: Verify authorized same-repository operation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$INGEST_SECRET"
+          test "$GITHUB_HEAD_REF" = 'ops/leadx-private-agro-import-v1'
+          mkdir -p recipient
+
+      - name: Generate one-time encrypted recipient
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out /tmp/private.pem 2>/dev/null
+          openssl pkey -in /tmp/private.pem -pubout -out recipient/public.pem
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 250000 -in /tmp/private.pem -out recipient/private.pem.enc -pass env:INGEST_SECRET
+          rm -f /tmp/private.pem
+          sha256sum recipient/public.pem recipient/private.pem.enc > recipient/SHA256SUMS
+          printf 'ALGORITHM=RSA-3072+AES-256-CBC-PBKDF2\nPURPOSE=LEADX_PRIVATE_AGRO_IMPORT_ONCE\n' > recipient/manifest.txt
+          ! grep -R -E -i 'BEGIN PRIVATE KEY|INGEST_SECRET|DASHBOARD_PASSWORD' recipient
+
+      - name: Upload encrypted recipient
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-private-agro-recipient-${{ github.event.pull_request.head.sha }}
+          path: recipient
+          if-no-files-found: error
+          retention-days: 1
