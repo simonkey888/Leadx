@@ -6,8 +6,8 @@ export function VerticalSelector({ value, onChange }: { value: LeadVertical; onC
     <nav className="segmented-control" aria-label="Línea comercial">
       {VERTICAL_OPTIONS.map((option) => (
         <button key={option.value} type="button" className={`segmented-option ${value === option.value ? "active" : ""}`}
-          aria-pressed={value === option.value} onClick={() => onChange(option.value)}>
-          <span className="segmented-option__full">{option.label}</span><span className="segmented-option__short">{option.shortLabel}</span>
+          aria-label={option.label} aria-pressed={value === option.value} onClick={() => onChange(option.value)}>
+          <span className="segmented-option__full">{option.label}</span><span className="segmented-option__short" aria-hidden="true">{option.shortLabel}</span>
         </button>
       ))}
     </nav>
