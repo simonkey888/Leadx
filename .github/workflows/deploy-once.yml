@@ -56,11 +56,15 @@ jobs:
 
       - name: Build test and typecheck exact target
         working-directory: web
+        shell: bash
         run: |
           set -euo pipefail
           npm run build
           npm test
           npm run typecheck
+          js_asset="$(find dist/assets -maxdepth 1 -type f -name '*.js' -printf '%f\n' | sort | head -n 1)"
+          test -n "$js_asset"
+          echo "EXPECTED_JS_ASSET=$js_asset" >> "$GITHUB_ENV"
 
       - name: Preflight Cloudflare access and secret names
         shell: bash
@@ -118,8 +122,9 @@ jobs:
           endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
           propagated=no
           deployment_id=''
+          test -n "$EXPECTED_JS_ASSET"
 
-          for attempt in $(seq 1 60); do
+          for attempt in $(seq 1 90); do
             curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$endpoint" > artifacts/deploy/current-deployments.json
             jq -e '.success == true' artifacts/deploy/current-deployments.json >/dev/null
             current_version="$(jq -r 'if (.result|type)=="array" then (.result[0].versions[]? | select(.percentage==100) | .version_id) elif (.result.deployments|type)=="array" then (.result.deployments[0].versions[]? | select(.percentage==100) | .version_id) else empty end' artifacts/deploy/current-deployments.json | head -n 1)"
@@ -129,12 +134,15 @@ jobs:
               nonce="${TARGET_SHA}-${attempt}-$(date +%s%N)"
               health_code="$(curl -sS -D artifacts/production/health.headers -o artifacts/production/health.json -w '%{http_code}' "$BASE_URL/api/health?deploy_smoke=$nonce")"
               session_code="$(curl -sS -D artifacts/production/session.headers -o artifacts/production/session.json -w '%{http_code}' "$BASE_URL/api/auth/session?deploy_smoke=$nonce")"
+              index_code="$(curl -sS -D artifacts/production/index.headers -o artifacts/production/index.html -w '%{http_code}' "$BASE_URL/?deploy_smoke=$nonce")"
 
               api_ready=yes
               [[ "$health_code" == 200 ]] || api_ready=no
               [[ "$session_code" == 200 ]] || api_ready=no
+              [[ "$index_code" == 200 ]] || api_ready=no
               jq -e '.status=="ok" and .service=="leadx" and .version=="leadx-multiline-v1"' artifacts/production/health.json >/dev/null 2>&1 || api_ready=no
               jq -e '.authenticated==false and .mode=="demo"' artifacts/production/session.json >/dev/null 2>&1 || api_ready=no
+              grep -Fq "$EXPECTED_JS_ASSET" artifacts/production/index.html || api_ready=no
 
               for vertical in fotomultas repuestos_agricolas; do
                 leads_code="$(curl -sS -D "artifacts/production/leads-${vertical}.headers" -o "artifacts/production/leads-${vertical}.json" -w '%{http_code}' "$BASE_URL/api/leads?vertical=$vertical&deploy_smoke=$nonce")"
@@ -146,8 +154,11 @@ jobs:
               done
 
               if [[ "$api_ready" == yes ]]; then
-                propagated=yes
-                break
+                asset_code="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/assets/$EXPECTED_JS_ASSET?deploy_smoke=$nonce")"
+                if [[ "$asset_code" == 200 ]]; then
+                  propagated=yes
+                  break
+                fi
               fi
             fi
             sleep 2
@@ -158,14 +169,11 @@ jobs:
           echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
           echo 'traffic=100' >> "$GITHUB_OUTPUT"
 
-          nonce="${TARGET_SHA}-browser-$(date +%s%N)"
-          curl -fsS "$BASE_URL/?deploy_smoke=$nonce" -o artifacts/production/index.html
-          grep -q '<title>LeadX CRM</title>' artifacts/production/index.html
-
+          export LEADX_SMOKE_NONCE="${TARGET_SHA}-browser-$(date +%s%N)"
           cd web
           npm install --no-save --package-lock=false @playwright/test@1.51.1
           npx playwright install --with-deps chromium
-          npx playwright test scripts/production-smoke.spec.mjs --workers=1
+          npx playwright test scripts/production-smoke.spec.mjs --workers=1 2>&1 | tee ../artifacts/production/browser.log
           cd ..
           test "$(find artifacts/production -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 2
 
