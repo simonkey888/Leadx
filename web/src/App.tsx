@@ -5,7 +5,7 @@ import { fetchLeads, login, logout, checkSession, continueSession, SessionExpire
 import { mergeCrmState, clearCrmState } from "./lib/storage";
 import { DEMO_LEADS } from "./demo-leads";
 import { purgeRealSessionState } from "./lib/session-state";
-import { EMPTY_FILTERS, filterLeads, leadCreatedAt, leadName, leadPriority, normalizeLeads, parseVertical, verticalLabel } from "./lib/multi-line";
+import { EMPTY_FILTERS, filterLeads, leadCreatedAt, leadName, leadPotential, leadPotentialScore, leadPriority, normalizeLeads, parseVertical, verticalLabel } from "./lib/multi-line";
 import { Kpis } from "./components/Kpis";
 import { Filters } from "./components/Filters";
 import { LeadTable } from "./components/LeadTable";
@@ -34,7 +34,7 @@ export default function App() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<LeadFilters>({ ...EMPTY_FILTERS });
-  const [sort, setSort] = useState("recent");
+  const [sort, setSort] = useState("potential");
   const lastActivityRef = useRef(Date.now());
   const lastServerTouchRef = useRef(0);
   const absoluteExpiresAtRef = useRef(0);
@@ -209,6 +209,10 @@ export default function App() {
   const filtered = useMemo(() => {
     const result = filterLeads(leads, activeVertical, search, filters);
     return [...result].sort((a, b) => {
+      if (sort === "potential") {
+        const difference = leadPotentialScore(b) - leadPotentialScore(a);
+        if (difference) return difference;
+      }
       if (sort === "name") return leadName(a).localeCompare(leadName(b), "es");
       if (sort === "priority") {
         const rank = { Alta: 3, Media: 2, Baja: 1 };
@@ -220,7 +224,7 @@ export default function App() {
   }, [activeVertical, filters, leads, search, sort]);
 
   const exportVisible = () => {
-    const rows = [["Lead", "Provincia", "Teléfono", "Canal", "Asignado", "Estado", "Creado"], ...filtered.map((lead) => [lead.name || lead.persona, lead.province || lead.provincia || "", lead.phone || "", lead.channel || "", lead.assigned_to || "", lead.status || lead._status || "", lead.created_at || lead.fecha_iso || ""])];
+    const rows = [["Lead", "Provincia", "Teléfono", "Canal", "Potencial", "Creado"], ...filtered.map((lead) => [lead.name || lead.persona, lead.province || lead.provincia || "", lead.phone || "", lead.channel || "", leadPotential(lead), lead.created_at || lead.fecha_iso || ""])];
     const csv = rows.map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = `leadx-${activeVertical}.csv`; anchor.click(); URL.revokeObjectURL(url);

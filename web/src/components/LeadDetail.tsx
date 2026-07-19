@@ -1,9 +1,11 @@
 import { ArrowLeft, CalendarDays, ExternalLink, MapPin, X } from "lucide-react";
 import type { Lead } from "../types";
+import { contactStateExplanation } from "../lib/contact-state";
 import { leadAssigned, leadChannel, leadCreatedAt, leadName, leadPriority, leadProvince, verticalLabel } from "../lib/multi-line";
 import { relativeTime } from "../lib/api";
 import { Actions } from "./Actions";
 import { Badge } from "./Badge";
+import { ContactStatusBadge } from "./ContactStatusBadge";
 import { PhoneWhatsApp } from "./PhoneWhatsApp";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
@@ -24,7 +26,11 @@ export function LeadDetail({ lead, onClose, onActivity }: { lead: Lead; onClose:
           <button className="icon-button lead-detail__close" onClick={onClose} aria-label="Cerrar"><X size={20} /></button>
         </header>
         <div className="lead-detail__body">
-          <div className="detail-badges"><Badge lead={lead} /><span className="priority-caption">Prioridad {leadPriority(lead)}</span></div>
+          <div className="detail-badges"><Badge lead={lead} /><ContactStatusBadge lead={lead} /><span className="priority-caption">Prioridad {leadPriority(lead)}</span></div>
+          <div className="contact-state-panel">
+            <div><strong>Seguimiento de contacto</strong><p>{lead._isDemo ? "Estado ficticio de demostración. No modifica ningún registro." : contactStateExplanation(lead)}</p></div>
+            <button type="button" className="btn contact-state-action" disabled title="Requiere persistencia segura en el backend">Marcar como contactado</button>
+          </div>
           <div className="detail-contact-card"><PhoneWhatsApp lead={lead} onActivity={onActivity} /><span>{channelLabel[leadChannel(lead)] || leadChannel(lead)}</span></div>
           <div className="detail-meta">
             <span><MapPin size={15} aria-hidden="true" />{leadProvince(lead)}</span>

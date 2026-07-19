@@ -24,7 +24,7 @@ const bundleContent = bundleJs ? readFileSync(bundleJs, "utf8") : "";
 const apiSource = readSource(join("lib", "api.ts"));
 const appSource = readSource("App.tsx");
 const sessionSource = readSource(join("lib", "session-state.ts"));
-const styleSource = readSource("styles.css");
+const styleSource = readAll(SRC).filter((file) => file.endsWith(".css")).map((file) => readFileSync(file, "utf8")).join("\n");
 const kpiSource = readSource(join("components", "Kpis.tsx"));
 const listSource = readSource(join("components", "LeadTable.tsx"));
 const detailSource = readSource(join("components", "LeadDetail.tsx"));
