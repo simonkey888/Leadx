@@ -10,7 +10,7 @@ for (const [name, width, height] of [["desktop", 1440, 900], ["mobile", 390, 844
     await page.setViewportSize({ width, height });
     await page.goto(`${baseURL}/?linea=fotomultas`);
     await expect(page.getByRole("button", { name: "Fotomultas" })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByTitle("Abrir WhatsApp").first()).toBeVisible();
+    await expect(page.locator('[title="Abrir WhatsApp"]:visible').first()).toBeVisible();
     await page.getByRole("button", { name: "Repuestos agrícolas" }).click();
     await expect(page).toHaveURL(/linea=repuestos_agricolas/);
     await expect(page.getByRole("button", { name: "Repuestos agrícolas" })).toHaveAttribute("aria-pressed", "true");
@@ -46,7 +46,7 @@ test("production authenticated containment", async ({ page }) => {
   await page.goto(`${baseURL}/?linea=fotomultas`);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await page.getByRole("button", { name: "Salir" }).click();
-  await expect(page.getByText("Modo demo")).toBeVisible();
+  await expect(page.getByText("Modo demo", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   const ended = await page.request.get(`${baseURL}/api/auth/session`);
   expect((await ended.json()).authenticated).toBe(false);
