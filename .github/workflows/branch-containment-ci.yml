@@ -80,7 +80,11 @@ jobs:
 
       - name: Runtime and multi-line controls
         working-directory: web
-        run: npm test
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p ../artifacts/diagnostics
+          npm test 2>&1 | tee ../artifacts/diagnostics/tests.log
 
       - name: Typecheck
         working-directory: web
