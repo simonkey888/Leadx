@@ -1,4 +1,4 @@
-name: LeadX Private Agro Recipient
+name: LeadX Final Production Verification
 
 on:
   pull_request:
@@ -10,39 +10,117 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: leadx-final-production-verification
+  cancel-in-progress: true
+
 jobs:
-  recipient:
+  verify:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ops/leadx-private-agro-import-v1'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     env:
-      INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+      BASE_URL: https://leadx.simondalmasso44.workers.dev
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
     steps:
-      - name: Verify authorized same-repository operation
+      - name: Verify authorized operation and secret
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$INGEST_SECRET"
           test "$GITHUB_HEAD_REF" = 'ops/leadx-private-agro-import-v1'
-          mkdir -p recipient
+          test -n "$DASHBOARD_PASSWORD"
+          mkdir -p artifacts/final-production
 
-      - name: Generate one-time encrypted recipient
+      - name: Verify health and deployed brand
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out /tmp/private.pem 2>/dev/null
-          openssl pkey -in /tmp/private.pem -pubout -out recipient/public.pem
-          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 250000 -in /tmp/private.pem -out recipient/private.pem.enc -pass env:INGEST_SECRET
-          rm -f /tmp/private.pem
-          sha256sum recipient/public.pem recipient/private.pem.enc > recipient/SHA256SUMS
-          printf 'ALGORITHM=RSA-3072+AES-256-CBC-PBKDF2\nPURPOSE=LEADX_PRIVATE_AGRO_IMPORT_ONCE\n' > recipient/manifest.txt
-          ! grep -R -E -i 'BEGIN PRIVATE KEY|INGEST_SECRET|DASHBOARD_PASSWORD' recipient
+          nonce="final-${{ github.event.pull_request.head.sha }}-$(date +%s%N)"
+          health_code="$(curl -sS -o artifacts/final-production/health.json -w '%{http_code}' "$BASE_URL/api/health?verify=$nonce")"
+          index_code="$(curl -sS -o artifacts/final-production/index.html -w '%{http_code}' "$BASE_URL/?linea=repuestos_agricolas&verify=$nonce")"
+          mark_code="$(curl -sS -o artifacts/final-production/leadx-mark.svg -w '%{http_code}' "$BASE_URL/leadx-mark.svg?verify=$nonce")"
+          wordmark_code="$(curl -sS -o artifacts/final-production/leadx-wordmark.svg -w '%{http_code}' "$BASE_URL/leadx-wordmark.svg?verify=$nonce")"
+          test "$health_code" = 200
+          test "$index_code" = 200
+          test "$mark_code" = 200
+          test "$wordmark_code" = 200
+          jq -e '.status=="ok" and .service=="leadx" and .version=="leadx-multiline-v1"' artifacts/final-production/health.json >/dev/null
+          grep -q 'leadx-mark.svg' artifacts/final-production/index.html
+          grep -q '<svg' artifacts/final-production/leadx-mark.svg
+          grep -q '<svg' artifacts/final-production/leadx-wordmark.svg
 
-      - name: Upload encrypted recipient
+      - name: Verify production login session and vertical containment
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce="auth-${{ github.event.pull_request.head.sha }}-$(date +%s%N)"
+          login_code="$(curl -sS -c /tmp/leadx.cookies -o artifacts/final-production/login.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" "$BASE_URL/api/auth/login?verify=$nonce")"
+          test "$login_code" = 200
+          jq -e '.ok==true' artifacts/final-production/login.json >/dev/null
+
+          session_code="$(curl -sS -b /tmp/leadx.cookies -o artifacts/final-production/session-real.json -w '%{http_code}' "$BASE_URL/api/auth/session?verify=$nonce")"
+          test "$session_code" = 200
+          jq -e '.authenticated==true and .mode=="real"' artifacts/final-production/session-real.json >/dev/null
+
+          for vertical in fotomultas repuestos_agricolas; do
+            code="$(curl -sS -b /tmp/leadx.cookies -o "/tmp/${vertical}.json" -w '%{http_code}' "$BASE_URL/api/leads?vertical=$vertical&verify=$nonce")"
+            test "$code" = 200
+            jq -e --arg vertical "$vertical" '.isDemo==false and (.leads_all|type)=="array" and all(.leads_all[]; .vertical==$vertical)' "/tmp/${vertical}.json" >/dev/null
+            count="$(jq '.leads_all|length' "/tmp/${vertical}.json")"
+            printf '%s_COUNT=%s\n' "$(tr '[:lower:]' '[:upper:]' <<<"$vertical")" "$count" >> artifacts/final-production/summary.txt
+            rm -f "/tmp/${vertical}.json"
+          done
+
+          logout_code="$(curl -sS -b /tmp/leadx.cookies -c /tmp/leadx.cookies -o artifacts/final-production/logout.json -w '%{http_code}' -X POST "$BASE_URL/api/auth/logout?verify=$nonce")"
+          test "$logout_code" = 200
+          ended_code="$(curl -sS -b /tmp/leadx.cookies -o artifacts/final-production/session-ended.json -w '%{http_code}' "$BASE_URL/api/auth/session?verify=$nonce")"
+          test "$ended_code" = 200
+          jq -e '.authenticated==false and .mode=="demo"' artifacts/final-production/session-ended.json >/dev/null
+          rm -f /tmp/leadx.cookies
+          printf 'LOGIN_1965_SECRET=PASS\nSESSION_REAL=PASS\nLOGOUT_DEMO=PASS\nBRAND_ASSETS=PASS\n' >> artifacts/final-production/summary.txt
+
+      - name: Browser smoke desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          cat > /tmp/final-smoke.spec.mjs <<'EOF'
+          import { test, expect } from '@playwright/test';
+          const base = process.env.BASE_URL;
+          for (const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]) {
+            test(name, async ({page}) => {
+              const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+              await page.setViewportSize({width,height});
+              await page.goto(`${base}/?linea=repuestos_agricolas&verify=${Date.now()}`,{waitUntil:'networkidle'});
+              await expect(page.locator('.app__title')).toBeVisible();
+              await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
+              const brand=await page.locator('.app__title').evaluate(el=>getComputedStyle(el).backgroundImage);
+              expect(brand).toContain('leadx-wordmark.svg');
+              const diag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
+              expect(diag.overflow).toBe(0); expect(diag.stored).toBe(0); expect(errors).toEqual([]);
+              await page.screenshot({path:`artifacts/final-production/${name}.png`,fullPage:true});
+            });
+          }
+          EOF
+          npx playwright test /tmp/final-smoke.spec.mjs --workers=1
+          test "$(find artifacts/final-production -name '*.png' | wc -l)" -eq 2
+          printf 'BROWSER_DESKTOP=PASS\nBROWSER_MOBILE=PASS\nPAGEERROR=0\nOVERFLOW=0\n' >> artifacts/final-production/summary.txt
+
+      - name: Redact and upload evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f artifacts/final-production/index.html artifacts/final-production/login.json artifacts/final-production/session-real.json artifacts/final-production/logout.json artifacts/final-production/session-ended.json
+          find artifacts/final-production -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > artifacts/final-production/SHA256SUMS
+          ! grep -R -E -i 'set-cookie:|DASHBOARD_PASSWORD|SESSION_SECRET|INGEST_SECRET|authorization: bearer|whatsapp_publico|email_publico|contact_name' artifacts/final-production
+
+      - name: Upload final production evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: leadx-private-agro-recipient-${{ github.event.pull_request.head.sha }}
-          path: recipient
+          name: leadx-final-production-${{ github.event.pull_request.head.sha }}
+          path: artifacts/final-production
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 7
