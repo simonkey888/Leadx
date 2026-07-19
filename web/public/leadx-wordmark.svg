@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 48" role="img" aria-labelledby="title desc">
+  <title id="title">LeadX</title>
+  <desc id="desc">Marca LeadX con símbolo ascendente y palabra leadX</desc>
+  <g fill="#202124">
+    <g transform="translate(1 1) scale(.72)">
+      <path d="M7 52h16.5L43 30.5l8.5 8.5L56 8 25 12.5l8.5 8.5z"/>
+      <path d="M31.5 39.5 44 52h14L38.5 30.5z"/>
+      <path d="M7 15h14l10.5 11.5-9 9.5z"/>
+    </g>
+    <text x="50" y="35" font-family="Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="34" font-weight="560" letter-spacing="-1.8">lead</text>
+    <text x="119" y="35" font-family="Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="35" font-weight="820" letter-spacing="-1">X</text>
+  </g>
+</svg>
