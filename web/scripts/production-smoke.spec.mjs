@@ -18,7 +18,12 @@ for (const [name, width, height] of [["desktop", 1440, 900], ["mobile", 390, 844
     await page.setViewportSize({ width, height });
     await page.goto(uiURL("fotomultas"), { waitUntil: "networkidle" });
     await expect(page.getByRole("button", { name: "Fotomultas" })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator('[title="Abrir WhatsApp"]:visible').first()).toBeVisible();
+    await expect(page.getByText("Modo demo", { exact: true })).toBeVisible();
+    await expect(page.getByText("Datos ficticios para explorar el CRM", { exact: false })).toBeVisible();
+    const disabledWhatsApp = page.locator('button[title="WhatsApp deshabilitado en modo demo"]:visible').first();
+    await expect(disabledWhatsApp).toBeVisible();
+    await expect(disabledWhatsApp).toBeDisabled();
+    await expect(page.locator('a[href^="https://wa.me/"]')).toHaveCount(0);
     await page.getByRole("button", { name: "Repuestos agrícolas" }).click();
     await expect(page).toHaveURL(/linea=repuestos_agricolas/);
     await expect(page.getByRole("button", { name: "Repuestos agrícolas" })).toHaveAttribute("aria-pressed", "true");
@@ -29,6 +34,7 @@ for (const [name, width, height] of [["desktop", 1440, 900], ["mobile", 390, 844
     await expect(target).toBeVisible();
     await target.click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Marcar como contactado" })).toBeDisabled();
     const diagnostics = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, stored: localStorage.length + sessionStorage.length }));
     expect(diagnostics.overflow).toBe(0);
     expect(diagnostics.stored).toBe(0);
@@ -53,6 +59,7 @@ test("production authenticated containment", async ({ page }) => {
   const afterBody = await after.json();
   expect(afterBody.idleExpiresAt).toBe(beforeBody.idleExpiresAt);
   await page.goto(uiURL("fotomultas"), { waitUntil: "networkidle" });
+  await expect(page.getByText("Datos reales", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await page.getByRole("button", { name: "Salir" }).click();
   await expect(page.getByText("Modo demo", { exact: true })).toBeVisible();
