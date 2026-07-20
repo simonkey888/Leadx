@@ -1,0 +1,64 @@
+name: LeadX Session Policy CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - worker/config.mjs
+      - worker/session.mjs
+      - worker/auth-handlers.mjs
+      - web/scripts/session-tests.mjs
+      - docs/SESSION_POLICY.md
+      - .github/workflows/session-policy-ci.yml
+  push:
+    branches:
+      - main
+    paths:
+      - worker/config.mjs
+      - worker/session.mjs
+      - worker/auth-handlers.mjs
+      - web/scripts/session-tests.mjs
+      - docs/SESSION_POLICY.md
+      - .github/workflows/session-policy-ci.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-session-policy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install exact dependencies
+        run: npm --prefix web ci
+
+      - name: Validate documented policy matches source
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'SESSION_IDLE_MS = 60 * 60 * 1000' worker/config.mjs
+          grep -Fq 'SESSION_ABSOLUTE_MS = 12 * 60 * 60 * 1000' worker/config.mjs
+          grep -Fq 'inactividad máxima: **60 minutos**' docs/SESSION_POLICY.md
+          grep -Fq 'duración absoluta desde el login: **12 horas**' docs/SESSION_POLICY.md
+
+      - name: Run session security tests
+        run: npm --prefix web run test:session
+
+      - name: Run complete product tests
+        run: npm --prefix web test
+
+      - name: Run typecheck
+        run: npm --prefix web run typecheck
