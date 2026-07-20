@@ -47,10 +47,29 @@ const payload = () => JSON.stringify({ leads_all: Array.from({ length: 5 }, (_, 
 function check(name, condition) { if (!condition) throw new Error(`FAIL: ${name}`); passed += 1; console.log(`✓ ${name}`); }
 
 try {
-  for (const path of ["/api/auth/session", "/api/leads", "/api/metrics", "/api/health"]) {
+  for (const path of ["/api/auth/session", "/api/leads", "/api/metrics"]) {
     const c = env([], { throwGet: true }); const { response } = await call(path, {}, c);
     check(`${path} anonymous skips KV`, response.status === 200 && c.calls.get === 0);
   }
+
+  const healthy = env([], { initial: "synthetic-live-data" });
+  const healthyResponse = (await call("/api/health", {}, healthy)).response;
+  const healthyBody = await healthyResponse.json();
+  check("health performs a real KV read", healthyResponse.status === 200 && healthy.calls.get === 1 && healthyBody.status === "ok" && healthyBody.checks?.kv === "ok");
+
+  const missingHealthData = env();
+  const missingHealthResponse = (await call("/api/health", {}, missingHealthData)).response;
+  const missingHealthBody = await missingHealthResponse.json();
+  check("health fails closed when live KV data is missing", missingHealthResponse.status === 503 && missingHealthData.calls.get === 1 && missingHealthBody.status === "degraded" && missingHealthBody.checks?.kv === "fail");
+
+  const failedHealthRead = env([], { throwGet: true });
+  const failedHealthResponse = (await call("/api/health", {}, failedHealthRead)).response;
+  check("health fails closed when KV read throws", failedHealthResponse.status === 503 && failedHealthRead.calls.get === 1);
+
+  const missingHealthBinding = env(["LEADX_KV"]);
+  const missingHealthBindingResponse = (await call("/api/health", {}, missingHealthBinding)).response;
+  check("health fails closed when KV binding is missing", missingHealthBindingResponse.status === 503 && missingHealthBinding.calls.get === 0);
+
   const { response: demo } = await call("/api/leads"); const demoBody = await demo.json();
   check("demo is fixed synthetic non-contact data", demoBody.leads_all?.length === 12 && demoBody.leads_all.every((x) => x._isDemo && x.source === "demo" && /fictici/i.test(x.platform) && !["telefono_publico", "whatsapp_publico", "email_publico", "fb_username", "fb_author_id", "url", "source_url"].some((k) => k in x)));
 
@@ -78,7 +97,7 @@ try {
   check("CORS accepts exact origin", (await call("/api/leads", { headers: { Origin: "https://leadx.invalid" } })).response.status === 200);
   const pre = (await call("/api/leads", { method: "OPTIONS", headers: { Origin: "https://leadx.invalid" } })).response; check("preflight bounded", pre.status === 204 && pre.headers.get("Allow") === "GET, OPTIONS" && !pre.headers.has("Access-Control-Allow-Origin") && !pre.headers.has("Access-Control-Allow-Credentials"));
 
-  now = BASE; const broken = env([], { throwGet: true }); const brokenCookie = await login(broken); const error = (await call("/api/leads", { headers: { Cookie: brokenCookie } }, broken)).response; const text = await error.text(); check("async errors redacted", error.status === 500 && !text.includes("synthetic storage failure") && !text.includes("stack"));
+  now = BASE; const brokenData = env([], { throwGet: true }); const brokenCookie = await login(brokenData); const error = (await call("/api/leads", { headers: { Cookie: brokenCookie } }, brokenData)).response; const text = await error.text(); check("async errors redacted", error.status === 500 && !text.includes("synthetic storage failure") && !text.includes("stack"));
   check("legacy UI and cron absent", !source.includes("DASHBOARD_HTML") && !source.includes("COOKIES_HTML") && !source.includes("scheduled(") && !source.includes("runPipelineCron"));
   console.log(`SECURITY_RUNTIME_TESTS=${passed}/${passed}`); console.log(`REMOVED_ENDPOINTS_TESTED=${removed.length}`);
 } finally { Date.now = realNow; }
