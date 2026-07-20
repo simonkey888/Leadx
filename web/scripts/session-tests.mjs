@@ -61,14 +61,21 @@ try {
   check("Login payload has iat, lastActivity and cryptographic nonce",
     originalPayload.iat === now && originalPayload.lastActivity === now && originalPayload.nonce.length >= 16);
 
+  const policyResponse = await request("/api/auth/session", { headers: { Cookie: originalCookie } });
+  const policyBody = await policyResponse.json();
+  check("Session endpoint publishes a 60-minute idle expiry",
+    policyBody.authenticated === true && policyBody.idleExpiresAt === originalPayload.iat + 60 * 60_000);
+  check("Session endpoint publishes a 12-hour absolute expiry",
+    policyBody.absoluteExpiresAt === originalPayload.iat + 12 * 60 * 60_000);
+
   const altered = `${originalCookie.slice(0, -1)}${originalCookie.endsWith("a") ? "b" : "a"}`;
   const alteredResponse = await request("/api/leads", { headers: { Cookie: altered } });
   check("Altered cookie is rejected", alteredResponse.status === 401);
 
-  now = originalPayload.iat + 20 * 60_000 + 1;
+  now = originalPayload.iat + 60 * 60_000 + 1;
   const idleResponse = await request("/api/leads", { headers: { Cookie: originalCookie } });
   const idleBody = await idleResponse.json();
-  check("Idle session is rejected after 20 minutes",
+  check("Idle session is rejected after 60 minutes",
     idleResponse.status === 401 && idleBody.reason === "idle_expired");
   check("Idle rejection expires the browser cookie",
     (idleResponse.headers.get("Set-Cookie") || "").includes("Max-Age=0"));
@@ -91,18 +98,18 @@ try {
   now = 1_800_200_000_000;
   const pollingCookie = await login();
   const pollingStart = decode(pollingCookie).iat;
-  now += 10 * 60_000;
+  now += 30 * 60_000;
   const pollingResponse = await request("/api/auth/session", { headers: { Cookie: pollingCookie } });
   check("Polling validates but does not renew", pollingResponse.status === 200 && !pollingResponse.headers.has("Set-Cookie"));
-  now = pollingStart + 20 * 60_000 + 1;
+  now = pollingStart + 60 * 60_000 + 1;
   const afterPolling = await request("/api/leads", { headers: { Cookie: pollingCookie } });
   check("Polling cannot prevent idle expiration", afterPolling.status === 401);
 
   now = 1_800_300_000_000;
   let absoluteCookie = await login();
   const absoluteIat = decode(absoluteCookie).iat;
-  for (let index = 1; index <= 25; index += 1) {
-    now = absoluteIat + index * 19 * 60_000;
+  for (let index = 1; index <= 15; index += 1) {
+    now = absoluteIat + index * 45 * 60_000;
     const response = await request("/api/auth/activity", {
       method: "POST",
       headers: { Cookie: absoluteCookie, "X-LeadX-Activity": "user" },
@@ -110,10 +117,10 @@ try {
     const next = response.headers.get("Set-Cookie");
     if (next) absoluteCookie = next.split(";")[0];
   }
-  now = absoluteIat + 8 * 60 * 60_000 + 1;
+  now = absoluteIat + 12 * 60 * 60_000 + 1;
   const absoluteResponse = await request("/api/leads", { headers: { Cookie: absoluteCookie } });
   const absoluteBody = await absoluteResponse.json();
-  check("Absolute timeout rejects an otherwise active session after 8 hours",
+  check("Absolute timeout rejects an otherwise active session after 12 hours",
     absoluteResponse.status === 401 && absoluteBody.reason === "absolute_expired");
 
   let storageCalls = 0;
