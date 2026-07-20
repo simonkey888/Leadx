@@ -155,8 +155,11 @@ jobs:
               await page.getByRole('button',{name:'Salir'}).click();
               await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
               await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
-              const ended=await page.request.get(`${base}/api/auth/session?verify=${Date.now()}`);
-              expect(await ended.json()).toMatchObject({authenticated:false,mode:'demo'});
+              const ended=await page.evaluate(async () => {
+                const response=await fetch(`/api/auth/session?verify=${Date.now()}`,{cache:'no-store'});
+                return response.json();
+              });
+              expect(ended).toMatchObject({authenticated:false,mode:'demo'});
               const demoDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
               expect(demoDiag).toEqual({overflow:0,stored:0});
               expect(pageErrors).toEqual([]);
