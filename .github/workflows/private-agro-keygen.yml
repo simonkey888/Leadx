@@ -1,0 +1,52 @@
+name: LeadX Private Agro Key Exchange
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/private-agro-keygen.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-private-agro-key-exchange
+  cancel-in-progress: true
+
+jobs:
+  keygen:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ops/leadx-private-agro-import-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Generate one-time RSA key pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p key-private key-public
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out key-private/private.pem 2>/dev/null
+          openssl pkey -in key-private/private.pem -pubout -out key-public/public.pem 2>/dev/null
+          openssl pkey -pubin -in key-public/public.pem -text -noout >/dev/null
+          printf 'KEY_EXCHANGE_HEAD=%s\n' '${{ github.event.pull_request.head.sha }}' > key-public/manifest.txt
+          printf 'PRIVATE_KEY_RETENTION=1_DAY\n' >> key-public/manifest.txt
+      - name: Upload private key escrow
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-private-agro-key-private-${{ github.event.pull_request.head.sha }}
+          path: key-private/private.pem
+          if-no-files-found: error
+          retention-days: 1
+      - name: Upload public key
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-private-agro-key-public-${{ github.event.pull_request.head.sha }}
+          path: key-public
+          if-no-files-found: error
+          retention-days: 1
+      - name: Remove key material from runner workspace
+        if: always()
+        shell: bash
+        run: |
+          rm -rf key-private key-public
