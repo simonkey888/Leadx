@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "test": "npm run test:existing && npm run test:new",
-    "test:existing": "node scripts/baseline-66-tests.mjs",
+    "test:existing": "node scripts/run-baseline-66-tests.mjs",
     "test:new": "node scripts/run-security-runtime-tests.mjs && node scripts/multi-linea-tests.mjs && (node scripts/repository-scan.mjs || test -s ../artifacts/security/scan-summary.txt)",
     "test:containment": "node scripts/containment-tests.mjs",
     "test:session": "node scripts/session-tests.mjs",
