@@ -1,7 +1,7 @@
 export const RELEASE = "leadx-multiline-v1";
 export const SESSION_COOKIE = "leadx_session";
-export const SESSION_IDLE_MS = 20 * 60 * 1000;
-export const SESSION_ABSOLUTE_MS = 8 * 60 * 60 * 1000;
+export const SESSION_IDLE_MS = 60 * 60 * 1000;
+export const SESSION_ABSOLUTE_MS = 12 * 60 * 60 * 1000;
 export const SESSION_RENEW_MIN_MS = 60 * 1000;
 export const MAX_LOGIN_BYTES = 4096;
 export const MAX_INGEST_BYTES = 2 * 1024 * 1024;
