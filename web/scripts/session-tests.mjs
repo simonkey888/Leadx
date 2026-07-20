@@ -2,8 +2,7 @@ import { readFile } from "node:fs/promises";
 import { Buffer } from "node:buffer";
 import ts from "typescript";
 
-const source = await readFile(new URL("../../worker.js", import.meta.url), "utf8");
-const worker = (await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`)).default;
+const worker = (await import(new URL("../../worker/runtime.mjs", import.meta.url))).default;
 const PASSWORD = "session-test-password";
 const env = {
   ASSETS: { fetch: async () => new Response("asset") },
