@@ -1,0 +1,254 @@
+name: LeadX Workers-first Reconciliation
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: Exact GitHub main SHA already deployed to Workers
+        required: true
+        type: string
+      expected_version_id:
+        description: Cloudflare Worker version ID produced by the Workers-first deploy
+        required: true
+        type: string
+      expected_deployment_id:
+        description: Cloudflare deployment ID produced by the Workers-first deploy
+        required: true
+        type: string
+      expected_bundle_sha256:
+        description: SHA-256 of the exact dry-run bundle
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+      INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      TARGET_SHA: ${{ inputs.target_sha }}
+      EXPECTED_VERSION_ID: ${{ inputs.expected_version_id }}
+      EXPECTED_DEPLOYMENT_ID: ${{ inputs.expected_deployment_id }}
+      EXPECTED_BUNDLE_SHA256: ${{ inputs.expected_bundle_sha256 }}
+      BASE_URL: https://leadx.simondalmasso44.workers.dev
+      WORKER_NAME: leadx
+      WRANGLER_VERSION: 4.111.0
+
+    steps:
+      - name: Validate inputs and secret names
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$EXPECTED_VERSION_ID" =~ ^[0-9a-f-]+$ ]]
+          [[ "$EXPECTED_DEPLOYMENT_ID" =~ ^[0-9a-f-]+$ ]]
+          [[ "$EXPECTED_BUNDLE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+
+          missing=()
+          for name in CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN DASHBOARD_PASSWORD INGEST_SECRET SESSION_SECRET; do
+            test -n "${!name:-}" || missing+=("$name")
+          done
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing GitHub repository secret name: %s\n' "${missing[@]}"
+            exit 1
+          fi
+
+          printf '%s\n' \
+            'MATCHED_SECRET_NAME=CLOUDFLARE_ACCOUNT_ID' \
+            'MATCHED_SECRET_NAME=CLOUDFLARE_API_TOKEN' \
+            'MATCHED_SECRET_NAME=DASHBOARD_PASSWORD'
+
+      - name: Checkout exact reconciled main SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_sha }}
+          fetch-depth: 0
+
+      - name: Verify GitHub main is exact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install, build, test and typecheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix web ci
+          npm --prefix web run build
+          npm --prefix web test
+          npm --prefix web run typecheck
+
+      - name: Verify Cloudflare access and Worker runtime secret names
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@${WRANGLER_VERSION} whoami >/dev/null
+          runtime_names="$(npx --yes wrangler@${WRANGLER_VERSION} secret list --format json | jq -r '.[].name')"
+          for name in DASHBOARD_PASSWORD INGEST_SECRET SESSION_SECRET; do
+            grep -Fxq "$name" <<<"$runtime_names" || {
+              echo "Missing Cloudflare Worker runtime secret: $name"
+              exit 1
+            }
+          done
+
+      - name: Rebuild and hash exact bundle without deploying
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/reconciliation/bundle artifacts/production
+          npx --yes wrangler@${WRANGLER_VERSION} deploy --dry-run \
+            --outdir artifacts/reconciliation/bundle \
+            2>&1 | tee artifacts/reconciliation/dry-run.log
+          actual_bundle_sha="$(
+            find artifacts/reconciliation/bundle -type f -print0 \
+              | sort -z \
+              | xargs -0 sha256sum \
+              | sha256sum \
+              | awk '{print $1}'
+          )"
+          test "$actual_bundle_sha" = "$EXPECTED_BUNDLE_SHA256"
+          echo "ACTUAL_BUNDLE_SHA256=$actual_bundle_sha" \
+            >> artifacts/reconciliation/summary.txt
+
+      - name: Verify exact active Cloudflare deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          deployments_jq='
+            def deployments:
+              if (.result | type) == "array" then
+                .result
+              elif (.result | type) == "object"
+                   and (.result.deployments | type) == "array" then
+                .result.deployments
+              else
+                error("Unexpected Cloudflare deployments response schema")
+              end;
+          '
+          endpoint="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments"
+          curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "$endpoint" > artifacts/reconciliation/deployments.json
+          jq -e \
+            --arg deployment "$EXPECTED_DEPLOYMENT_ID" \
+            --arg version "$EXPECTED_VERSION_ID" \
+            "${deployments_jq}
+              .success == true
+              and (deployments | length) > 0
+              and deployments[0].id == \$deployment
+              and (deployments[0].versions | length) == 1
+              and deployments[0].versions[0].version_id == \$version
+              and deployments[0].versions[0].percentage == 100
+            " \
+            artifacts/reconciliation/deployments.json >/dev/null
+
+      - name: Authenticated production readback
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce="reconcile-${TARGET_SHA}-$(date +%s%N)"
+          cookie=artifacts/reconciliation/session.cookies
+          curl -fsS "$BASE_URL/api/health?verify=$nonce" \
+            -o artifacts/production/health.json
+          jq -e '.status == "ok" and .service == "leadx"' \
+            artifacts/production/health.json >/dev/null
+
+          curl -fsS -c "$cookie" \
+            -H 'Content-Type: application/json' \
+            --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" \
+            "$BASE_URL/api/auth/login?verify=$nonce" \
+            -o artifacts/reconciliation/login.json
+          jq -e '.ok == true' artifacts/reconciliation/login.json >/dev/null
+
+          for vertical in fotomultas repuestos_agricolas; do
+            curl -fsS -b "$cookie" \
+              "$BASE_URL/api/leads?vertical=$vertical&verify=$nonce" \
+              -o "artifacts/reconciliation/${vertical}.json"
+            jq -e --arg vertical "$vertical" \
+              '(.meta.source != "demo") and all(.leads_all[]; .vertical == $vertical)' \
+              "artifacts/reconciliation/${vertical}.json" >/dev/null
+          done
+
+          test "$(jq '.leads_all | length' artifacts/reconciliation/fotomultas.json)" = 9
+          test "$(jq '[.leads_all[].id] | unique | length' artifacts/reconciliation/fotomultas.json)" = 9
+          test "$(jq '.leads_all | length' artifacts/reconciliation/repuestos_agricolas.json)" = 40
+          test "$(jq '[.leads_all[].id] | unique | length' artifacts/reconciliation/repuestos_agricolas.json)" = 40
+
+          curl -fsS -b "$cookie" -c "$cookie" -X POST \
+            "$BASE_URL/api/auth/logout?verify=$nonce" \
+            -o artifacts/reconciliation/logout.json
+          curl -fsS -b "$cookie" \
+            "$BASE_URL/api/auth/session?verify=$nonce" \
+            -o artifacts/reconciliation/session-ended.json
+          jq -e '.authenticated == false and .mode == "demo"' \
+            artifacts/reconciliation/session-ended.json >/dev/null
+
+      - name: Browser desktop and mobile
+        shell: bash
+        env:
+          LEADX_BASE_URL: ${{ env.BASE_URL }}
+          LEADX_SMOKE_PASSWORD: ${{ env.DASHBOARD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          export LEADX_SMOKE_NONCE="reconcile-${TARGET_SHA}-$(date +%s%N)"
+          cd web
+          npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          npx playwright test scripts/production-smoke.spec.mjs --workers=1 \
+            2>&1 | tee ../artifacts/production/browser.log
+
+      - name: Build redacted reconciliation evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/reconciliation artifacts/production
+          rm -f artifacts/reconciliation/session.cookies \
+                artifacts/reconciliation/login.json \
+                artifacts/reconciliation/fotomultas.json \
+                artifacts/reconciliation/repuestos_agricolas.json
+          {
+            echo "RECONCILIATION_STATUS=${{ job.status }}"
+            echo "TARGET_SHA=$TARGET_SHA"
+            echo "EXPECTED_DEPLOYMENT_ID=$EXPECTED_DEPLOYMENT_ID"
+            echo "EXPECTED_VERSION_ID=$EXPECTED_VERSION_ID"
+            echo "EXPECTED_BUNDLE_SHA256=$EXPECTED_BUNDLE_SHA256"
+            echo "DEPLOY_EXECUTED=NO"
+            echo "ROLLBACK_EXECUTED=NO"
+          } >> artifacts/reconciliation/summary.txt
+          find artifacts -type f ! -name SHA256SUMS -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > artifacts/SHA256SUMS
+          ! grep -R -E -i \
+            'authorization: bearer|set-cookie:|DASHBOARD_PASSWORD=|SESSION_SECRET=|INGEST_SECRET=|CLOUDFLARE_API_TOKEN=|whatsapp_publico|email_publico|contact_name' \
+            artifacts
+
+      - name: Upload redacted evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-workers-first-reconciliation-${{ env.TARGET_SHA }}
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 30
