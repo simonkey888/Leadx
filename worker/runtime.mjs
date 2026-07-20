@@ -1,4 +1,4 @@
-import { API_METHODS, RELEASE, REMOVED_PATHS } from "./config.mjs";
+import { API_METHODS, HEALTH_DATA_KEY, HEALTH_KV_TIMEOUT_MS, RELEASE, REMOVED_PATHS } from "./config.mjs";
 import { handleActivity, handleLogin, handleSession } from "./auth-handlers.mjs";
 import { handleIngest, handleLeads, handleMetrics, handlePrivateImport } from "./data-handlers.mjs";
 import { expiredCookie, json, logEvent, requestId, responseWithHeaders, sameOriginAllowed } from "./http.mjs";
@@ -33,6 +33,43 @@ function preflight(allowed) {
   });
 }
 
+async function health(env, requestIdValue) {
+  const checkedAt = new Date().toISOString();
+  const response = (kvStatus, status) => json({
+    status: kvStatus === "ok" ? "ok" : "degraded",
+    service: "leadx",
+    version: RELEASE,
+    checked_at: checkedAt,
+    checks: { kv: kvStatus },
+  }, status);
+
+  if (!env.LEADX_KV) {
+    logEvent("health.degraded", requestIdValue, "error", { check: "kv", reason: "binding_missing" });
+    return response("fail", 503);
+  }
+
+  let timeoutId;
+  try {
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("kv_timeout")), HEALTH_KV_TIMEOUT_MS);
+    });
+    const stored = await Promise.race([
+      env.LEADX_KV.get(HEALTH_DATA_KEY, { type: "stream" }),
+      timeout,
+    ]);
+    if (stored === null) throw new Error("kv_data_missing");
+    if (typeof stored?.cancel === "function") {
+      try { await stored.cancel(); } catch { /* best-effort stream cleanup */ }
+    }
+    return response("ok", 200);
+  } catch {
+    logEvent("health.degraded", requestIdValue, "error", { check: "kv", reason: "read_failed" });
+    return response("fail", 503);
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -54,7 +91,7 @@ export default {
       if (url.pathname === "/api/metrics") return await handleMetrics(request, env);
       if (url.pathname === "/api/ingest") return await handleIngest(request, env, requestIdValue);
       if (url.pathname === PRIVATE_IMPORT_PATH) return await handlePrivateImport(request, env, requestIdValue);
-      if (url.pathname === "/api/health") return json({ status: "ok", service: "leadx", version: RELEASE, checked_at: new Date().toISOString() });
+      if (url.pathname === "/api/health") return await health(env, requestIdValue);
       return await serveAsset(request, env);
     } catch {
       logEvent("request.failed", requestIdValue, "error", { route: url.pathname.startsWith("/api/") ? "api" : "asset" });
