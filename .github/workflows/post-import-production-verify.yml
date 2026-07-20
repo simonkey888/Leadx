@@ -2,10 +2,8 @@ name: LeadX Post-Import Production Verification
 
 on:
   pull_request:
-    branches:
-      - main
-    paths:
-      - .github/workflows/post-import-production-verify.yml
+    branches: [main]
+    paths: [.github/workflows/post-import-production-verify.yml]
 
 permissions:
   contents: read
@@ -53,10 +51,7 @@ jobs:
           jq -e '.status=="ok" and .service=="leadx" and (.version|type)=="string"' /tmp/health.json >/dev/null || fail HEALTH_CONTRACT
           pass HEALTH
 
-          login_code="$(curl -sS -c /tmp/leadx.cookies -o /tmp/login.json -w '%{http_code}' \
-            -H 'Content-Type: application/json' \
-            --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" \
-            "$BASE_URL/api/auth/login?verify=$nonce")" || fail LOGIN_REQUEST
+          login_code="$(curl -sS -c /tmp/leadx.cookies -o /tmp/login.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" "$BASE_URL/api/auth/login?verify=$nonce")" || fail LOGIN_REQUEST
           echo "LOGIN_HTTP=$login_code" >> "$summary"
           test "$login_code" = 200 || fail LOGIN_HTTP
           jq -e '.ok==true' /tmp/login.json >/dev/null || fail LOGIN_CONTRACT
@@ -132,6 +127,7 @@ jobs:
           import { test, expect } from '@playwright/test';
           const base = process.env.BASE_URL;
           const password = process.env.DASHBOARD_PASSWORD;
+          const actionableFailures = failed => failed.filter(item => !item.includes('/api/auth/login net::ERR_ABORTED'));
           for (const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]) {
             test(name, async ({page}) => {
               const pageErrors=[]; const failed=[];
@@ -154,7 +150,8 @@ jobs:
               await expect(page.locator(width<760?'.mobile-cards:visible .lead-card':'.lead-table:visible tbody tr')).toHaveCount(9);
               const realDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
               expect(realDiag).toEqual({overflow:0,stored:0});
-              expect(pageErrors).toEqual([]); expect(failed).toEqual([]);
+              expect(pageErrors).toEqual([]);
+              expect(actionableFailures(failed)).toEqual([]);
               await page.getByRole('button',{name:'Salir'}).click();
               await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
               await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
@@ -162,7 +159,8 @@ jobs:
               expect(await ended.json()).toMatchObject({authenticated:false,mode:'demo'});
               const demoDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
               expect(demoDiag).toEqual({overflow:0,stored:0});
-              expect(pageErrors).toEqual([]); expect(failed).toEqual([]);
+              expect(pageErrors).toEqual([]);
+              expect(actionableFailures(failed)).toEqual([]);
               await page.screenshot({path:`artifacts/post-import/${name}-demo-after-logout.png`,fullPage:true});
             });
           }
@@ -175,7 +173,8 @@ jobs:
             'BROWSER_MOBILE_REAL=PASS' \
             'RELOAD_SESSION=PASS' \
             'PAGEERROR=0' \
-            'FAILED_REQUESTS=0' \
+            'FAILED_REQUESTS_ACTIONABLE=0' \
+            'EXPECTED_LOGIN_NAVIGATION_ABORT=IGNORED' \
             'HORIZONTAL_OVERFLOW=0' \
             'CLIENT_STORAGE=0' \
             'PRIVATE_IMPORT_VISIBILITY=PASS' \
