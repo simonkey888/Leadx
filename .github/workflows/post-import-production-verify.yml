@@ -167,7 +167,7 @@ jobs:
             });
           }
           EOF
-          npx playwright test post-import.spec.mjs --workers=1
+          npx playwright test post-import.spec.mjs --workers=1 2>&1 | tee artifacts/post-import/browser.txt
           rm -f post-import.spec.mjs
           test "$(find artifacts/post-import -name '*-demo-after-logout.png' | wc -l)" -eq 2
           printf '%s\n' \
