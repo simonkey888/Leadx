@@ -14,9 +14,6 @@ ARTIFACT_DIR="${LEADX_DEPLOY_ARTIFACT_DIR:-$ROOT_DIR/artifacts/workers-first/$RU
 BUNDLE_DIR="$ARTIFACT_DIR/bundle"
 COOKIE_JAR="$ARTIFACT_DIR/session.cookies"
 
-mkdir -p "$ARTIFACT_DIR" "$BUNDLE_DIR"
-chmod 700 "$ARTIFACT_DIR"
-
 log() { printf '[leadx-deploy] %s\n' "$*"; }
 fail() { printf '[leadx-deploy] ERROR: %s\n' "$*" >&2; exit 1; }
 
@@ -177,6 +174,9 @@ SOURCE_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
 [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || fail "The deployment source must be a Git working tree with a valid HEAD."
 test -z "$(git status --porcelain)" || fail "Working tree is not clean. Commit or stash before deploying."
 
+mkdir -p "$ARTIFACT_DIR" "$BUNDLE_DIR"
+chmod 700 "$ARTIFACT_DIR"
+
 log "Installing exact frontend dependencies."
 npm --prefix web ci
 
@@ -251,9 +251,6 @@ if ! production_smoke; then
 fi
 
 rm -f "$COOKIE_JAR" "$ARTIFACT_DIR/login.json" "$ARTIFACT_DIR/leads-"*.json
-find "$ARTIFACT_DIR" -type f ! -name SHA256SUMS -print0 \
-  | sort -z \
-  | xargs -0 sha256sum > "$ARTIFACT_DIR/SHA256SUMS"
 
 cat > "$ARTIFACT_DIR/summary.txt" <<SUMMARY
 DEPLOY_SOURCE=cloudflare-workers-first
@@ -273,6 +270,11 @@ ROLLBACK_EXECUTED=NO
 GITHUB_RECONCILIATION_REQUIRED=YES
 SUMMARY
 
+find "$ARTIFACT_DIR" -type f ! -name SHA256SUMS -print0 \
+  | sort -z \
+  | xargs -0 sha256sum > "$ARTIFACT_DIR/SHA256SUMS"
+
+# Hard fail if evidence contains secret values or private lead records.
 ! grep -R -E -i \
   'authorization: bearer|set-cookie:|DASHBOARD_PASSWORD=|SESSION_SECRET=|INGEST_SECRET=|CLOUDFLARE_API_TOKEN=|whatsapp_publico|email_publico|contact_name' \
   "$ARTIFACT_DIR"
