@@ -15,14 +15,15 @@ MAIN_SHA=91672001c893815a1f31f9cfdd11b31a18a6968a
 WORKING_BRANCH=fix/ingest-vertical-safety-v1
 PR=19
 PR_STATE=DRAFT_OPEN
-VALIDATED_CODE_SHA=0bbf00c70c5adf7e919233257e52671f7be86c4a
+RUNTIME_CODE_SHA=0bbf00c70c5adf7e919233257e52671f7be86c4a
+CURRENT_PR_HEAD_AT_LAST_EXTERNAL_VERIFICATION=611c8292867a1538c9f63d95291b8c8d589498f9
 CI_RUN_ID=29784076923
 CI_JOB_ID=88491663089
 CI_CONCLUSION=success
 SESSION_POLICY=20_MIN_IDLE_8_HOURS_ABSOLUTE
 ```
 
-La rama puede recibir commits exclusivamente documentales después del SHA de código validado. Para el deploy, resolver y validar el HEAD remoto actual del PR inmediatamente antes de ejecutar el operador Workers-first.
+El delta entre `RUNTIME_CODE_SHA` y el HEAD registrado arriba es exclusivamente `docs/CURRENT_STATE.md`. Para el deploy, resolver y validar nuevamente el HEAD remoto actual del PR inmediatamente antes de ejecutar el operador Workers-first.
 
 ## Último hito
 
@@ -58,6 +59,7 @@ Archivos principales del hito:
 
 ```text
 WORKFLOW=LeadX Ingest Vertical Safety CI
+VALIDATED_RUNTIME_CODE_SHA=0bbf00c70c5adf7e919233257e52671f7be86c4a
 RUN_ID=29784076923
 JOB_ID=88491663089
 SOURCE_CONTRACT=PASS
@@ -67,7 +69,10 @@ COMPLETE_TEST_SUITE=PASS
 TYPECHECK=PASS
 DOCUMENTATION_CONTRACT=PASS
 BRANCH_CONTAINMENT_CI=SKIPPED_NOT_COUNTED_AS_PASS
+DOCUMENTATION_ONLY_DELTA_TO_RECORDED_PR_HEAD=PASS
 ```
+
+El operador `scripts/deploy-workers-first.sh` vuelve a ejecutar instalación, build, tests, typecheck, dry-run y smokes sobre el HEAD exacto que se despliegue.
 
 ## Producción vigente
 
