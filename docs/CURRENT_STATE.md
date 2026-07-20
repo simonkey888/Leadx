@@ -16,14 +16,14 @@ WORKING_BRANCH=fix/ingest-vertical-safety-v1
 PR=19
 PR_STATE=DRAFT_OPEN
 RUNTIME_CODE_SHA=0bbf00c70c5adf7e919233257e52671f7be86c4a
-CURRENT_PR_HEAD_AT_LAST_EXTERNAL_VERIFICATION=611c8292867a1538c9f63d95291b8c8d589498f9
+CURRENT_PR_HEAD=VERIFY_REMOTE_BEFORE_ACTION
 CI_RUN_ID=29784076923
 CI_JOB_ID=88491663089
 CI_CONCLUSION=success
 SESSION_POLICY=20_MIN_IDLE_8_HOURS_ABSOLUTE
 ```
 
-El delta entre `RUNTIME_CODE_SHA` y el HEAD registrado arriba es exclusivamente `docs/CURRENT_STATE.md`. Para el deploy, resolver y validar nuevamente el HEAD remoto actual del PR inmediatamente antes de ejecutar el operador Workers-first.
+Los commits posteriores a `RUNTIME_CODE_SHA` son exclusivamente documentales mientras el diff remoto confirme lo contrario. Para el deploy, resolver y validar nuevamente el HEAD remoto actual del PR inmediatamente antes de ejecutar el operador Workers-first.
 
 ## Último hito
 
@@ -69,7 +69,7 @@ COMPLETE_TEST_SUITE=PASS
 TYPECHECK=PASS
 DOCUMENTATION_CONTRACT=PASS
 BRANCH_CONTAINMENT_CI=SKIPPED_NOT_COUNTED_AS_PASS
-DOCUMENTATION_ONLY_DELTA_TO_RECORDED_PR_HEAD=PASS
+DOCUMENTATION_ONLY_DELTA_AFTER_RUNTIME_SHA=VERIFY_WITH_GIT_COMPARE
 ```
 
 El operador `scripts/deploy-workers-first.sh` vuelve a ejecutar instalación, build, tests, typecheck, dry-run y smokes sobre el HEAD exacto que se despliegue.
@@ -111,7 +111,7 @@ El entorno que preparó este archivo no dispone de:
 - acceso de red saliente desde la terminal hacia GitHub o Cloudflare;
 - repositorio local montado;
 - sesión Wrangler persistida;
-- variables `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `DASHBOARD_PASSWORD`, `INGEST_SECRET` o `SESSION_SECRET`.
+- credenciales operativas cargadas en el proceso local.
 
 Por eso no se ejecutó un deploy ficticio ni se sustituyó el pipeline canónico por GitHub Actions.
 
@@ -120,21 +120,12 @@ Por eso no se ejecutó un deploy ficticio ni se sustituyó el pipeline canónico
 Ejecutar desde una máquina confiable con acceso a GitHub, Cloudflare y los secretos ya configurados, sin imprimir sus valores:
 
 ```bash
-# 1. Obtener el source actual del PR.
 git clone https://github.com/simonkey888/Leadx.git
 cd Leadx
 git fetch origin main fix/ingest-vertical-safety-v1 --prune
 git checkout fix/ingest-vertical-safety-v1
-
-# 2. Confirmar HEAD y árbol limpio.
 git rev-parse HEAD
 git status --short
-
-# 3. No modificar el source después de congelar el SHA.
-# Registrar:
-# DEPLOY_SOURCE_SHA=$(git rev-parse HEAD)
-
-# 4. Ejecutar el operador canónico.
 bash scripts/deploy-workers-first.sh
 ```
 
