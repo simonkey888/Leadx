@@ -30,6 +30,7 @@ service-account*.json
 upload/
 download/
 tool-results/
+artifacts/workers-first/
 
 # Cloudflare local
 .wrangler/
