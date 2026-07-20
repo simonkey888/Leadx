@@ -1,0 +1,19 @@
+name: LeadX Private Agro Import
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/private-agro-import.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  import:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Armed only after encrypted payload is available.'
