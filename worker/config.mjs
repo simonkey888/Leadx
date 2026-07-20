@@ -1,4 +1,6 @@
 export const RELEASE = "leadx-multiline-v1";
+export const HEALTH_DATA_KEY = "leads:live";
+export const HEALTH_KV_TIMEOUT_MS = 2 * 1000;
 export const SESSION_COOKIE = "leadx_session";
 export const SESSION_IDLE_MS = 20 * 60 * 1000;
 export const SESSION_ABSOLUTE_MS = 8 * 60 * 60 * 1000;
