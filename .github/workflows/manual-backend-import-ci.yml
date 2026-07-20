@@ -1,0 +1,97 @@
+name: LeadX Manual Backend Import CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/validate-lead-import-payload.sh
+      - docs/MANUAL_BACKEND_LEAD_IMPORT.md
+      - docs/WORKERS_FIRST_DEPLOYMENT.md
+      - .github/workflows/manual-backend-import-ci.yml
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/validate-lead-import-payload.sh
+      - docs/MANUAL_BACKEND_LEAD_IMPORT.md
+      - docs/WORKERS_FIRST_DEPLOYMENT.md
+      - .github/workflows/manual-backend-import-ci.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-manual-backend-import-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate operator syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/validate-lead-import-payload.sh
+
+      - name: Enforce direct-backend private-data containment
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'POST /api/admin/import' docs/MANUAL_BACKEND_LEAD_IMPORT.md
+          grep -Fq 'Deepnote no forma parte de esta operatoria' docs/MANUAL_BACKEND_LEAD_IMPORT.md
+          grep -Fq 'private_payload_must_be_outside_git_repository' scripts/validate-lead-import-payload.sh
+          grep -Fq 'BLOB_OR_ARTIFACT_CHANNEL_USED=NO' docs/MANUAL_BACKEND_LEAD_IMPORT.md
+          ! grep -Eq 'upload-artifact|download-artifact|gh[[:space:]]+api|base64[[:space:]]+-[dw]' scripts/validate-lead-import-payload.sh
+
+      - name: Verify repository payload rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > private-import-ci-fixture.json <<'JSON'
+          {
+            "mode": "upsert_vertical",
+            "vertical": "repuestos_agricolas",
+            "leads_all": [
+              {"id": "ci_fixture_001", "vertical": "repuestos_agricolas"}
+            ]
+          }
+          JSON
+          if bash scripts/validate-lead-import-payload.sh "$PWD/private-import-ci-fixture.json" >ci.out 2>ci.err; then
+            echo 'Expected repository payload rejection.' >&2
+            exit 1
+          fi
+          grep -Fq 'private_payload_must_be_outside_git_repository' ci.err
+          rm -f private-import-ci-fixture.json ci.out ci.err
+
+      - name: Verify valid external fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="$(mktemp)"
+          cat > "$fixture" <<'JSON'
+          {
+            "mode": "upsert_vertical",
+            "vertical": "repuestos_agricolas",
+            "leads_all": [
+              {"id": "ci_fixture_001", "vertical": "repuestos_agricolas"},
+              {"id": "ci_fixture_002", "vertical": "repuestos_agricolas"}
+            ]
+          }
+          JSON
+          bash scripts/validate-lead-import-payload.sh "$fixture" >ci.out
+          grep -Fq 'PAYLOAD_VALIDATION=PASS' ci.out
+          grep -Fq 'PAYLOAD_COUNT=2' ci.out
+          grep -Fq 'PRIVATE_PAYLOAD_PUBLISHED=NO' ci.out
+          rm -f "$fixture" ci.out
+
+      - name: Confirm no import artifacts are produced
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -d artifacts/manual-import
+          test -z "$(find . -maxdepth 2 -type f \( -name '*private-import*.json' -o -name '*.cookies' \) -print -quit)"

@@ -113,6 +113,21 @@ The final `summary.txt` records:
 
 Private lead payloads, cookies and login responses are deleted. Evidence is scanned for secret values and private-contact fields.
 
+## Data imports are a separate operation
+
+A code deployment must never be used as a substitute for a lead import, and a lead import must never trigger a Worker deployment.
+
+The only canonical manual lead-import procedure is:
+
+```text
+docs/MANUAL_BACKEND_LEAD_IMPORT.md
+scripts/validate-lead-import-payload.sh
+```
+
+The payload stays local and outside Git. The operator performs a mandatory local validation and authenticated production readback before the single manual `POST /api/admin/import`.
+
+GitHub Actions, artifacts, blobs, Drive and Deepnote are not private-data transport channels for this operation.
+
 ## GitHub reconciliation
 
 Only after the Workers deployment succeeds:
