@@ -1,0 +1,179 @@
+name: LeadX Post-Import Production Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/post-import-production-verify.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-post-import-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ops/leadx-post-import-verify-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      BASE_URL: https://leadx.simondalmasso44.workers.dev
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+      EXPECTED_AGRO_ID_SHA256: 8670c8c7f4d859690b07965b0938748c79b2a02a59ad437b4c16851b12f0ac65
+    steps:
+      - name: Preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DASHBOARD_PASSWORD"
+          mkdir -p artifacts/post-import
+
+      - name: Authenticated production readback
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce="post-import-${{ github.event.pull_request.head.sha }}-$(date +%s%N)"
+
+          health_code="$(curl -sS -o /tmp/health.json -w '%{http_code}' "$BASE_URL/api/health?verify=$nonce")"
+          test "$health_code" = 200
+          jq -e '.status=="ok" and .service=="leadx" and (.version|type)=="string"' /tmp/health.json >/dev/null
+
+          login_code="$(curl -sS -c /tmp/leadx.cookies -o /tmp/login.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" \
+            "$BASE_URL/api/auth/login?verify=$nonce")"
+          test "$login_code" = 200
+          jq -e '.ok==true' /tmp/login.json >/dev/null
+
+          session_code="$(curl -sS -b /tmp/leadx.cookies -o /tmp/session.json -w '%{http_code}' "$BASE_URL/api/auth/session?verify=$nonce")"
+          test "$session_code" = 200
+          jq -e '.authenticated==true and .mode=="real"' /tmp/session.json >/dev/null
+
+          for vertical in fotomultas repuestos_agricolas; do
+            code="$(curl -sS -b /tmp/leadx.cookies -o "/tmp/${vertical}.json" -w '%{http_code}' "$BASE_URL/api/leads?vertical=$vertical&verify=$nonce")"
+            test "$code" = 200
+            jq -e --arg vertical "$vertical" '(.leads_all|type)=="array" and (.meta.source != "demo") and all(.leads_all[]; .vertical==$vertical)' "/tmp/${vertical}.json" >/dev/null
+          done
+
+          jq -e '.leads_all|length==9' /tmp/fotomultas.json >/dev/null
+          jq -e '.leads_all|length==40' /tmp/repuestos_agricolas.json >/dev/null
+          jq -e '([.leads_all[].id]|length)==([.leads_all[].id]|unique|length)' /tmp/fotomultas.json >/dev/null
+          jq -e '([.leads_all[].id]|length)==([.leads_all[].id]|unique|length)' /tmp/repuestos_agricolas.json >/dev/null
+
+          agro_hash="$(jq -r '.leads_all[].id' /tmp/repuestos_agricolas.json | LC_ALL=C sort | sha256sum | awk '{print $1}')"
+          test "$agro_hash" = "$EXPECTED_AGRO_ID_SHA256"
+          test "$(jq '[.leads_all[].id | select(startswith("agro_ex_"))] | length' /tmp/repuestos_agricolas.json)" = 11
+          test "$(jq '[.leads_all[].id | select(startswith("agro_doc_"))] | length' /tmp/repuestos_agricolas.json)" = 12
+          test "$(jq '[.leads_all[].id | select(startswith("agro_new_"))] | length' /tmp/repuestos_agricolas.json)" = 17
+
+          overlap="$(jq -n --slurpfile a /tmp/fotomultas.json --slurpfile b /tmp/repuestos_agricolas.json '([$a[0].leads_all[].id] - ([$a[0].leads_all[].id] - [$b[0].leads_all[].id])) | length')"
+          test "$overlap" = 0
+
+          logout_code="$(curl -sS -b /tmp/leadx.cookies -c /tmp/leadx.cookies -o /tmp/logout.json -w '%{http_code}' -X POST "$BASE_URL/api/auth/logout?verify=$nonce")"
+          test "$logout_code" = 200
+          ended_code="$(curl -sS -b /tmp/leadx.cookies -o /tmp/session-ended.json -w '%{http_code}' "$BASE_URL/api/auth/session?verify=$nonce")"
+          test "$ended_code" = 200
+          jq -e '.authenticated==false and .mode=="demo"' /tmp/session-ended.json >/dev/null
+
+          cat > artifacts/post-import/summary.txt <<EOF
+          MAIN_SHA_UNDER_VERIFICATION=66fb08e745e3a12a4458d01991fc3501cdb32da1
+          HEALTH=PASS
+          LOGIN=PASS
+          SESSION_REAL=PASS
+          FOTOMULTAS_COUNT=9
+          REPUESTOS_AGRICOLAS_COUNT=40
+          AGRO_IDS_UNIQUE=PASS
+          AGRO_EXPECTED_ID_SET_SHA256=$agro_hash
+          AGRO_GROUPS=11_EX+12_DOC+17_NEW
+          VERTICAL_CONTAINMENT=PASS
+          CROSS_VERTICAL_ID_OVERLAP=0
+          LOGOUT_DEMO=PASS
+          EOF
+
+          rm -f /tmp/health.json /tmp/login.json /tmp/session.json /tmp/fotomultas.json /tmp/repuestos_agricolas.json /tmp/logout.json /tmp/session-ended.json /tmp/leadx.cookies
+
+      - name: Browser desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          cat > post-import.spec.mjs <<'EOF'
+          import { test, expect } from '@playwright/test';
+          const base = process.env.BASE_URL;
+          const password = process.env.DASHBOARD_PASSWORD;
+          for (const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]) {
+            test(name, async ({page}) => {
+              const pageErrors=[]; const failed=[];
+              page.on('pageerror',error=>pageErrors.push(error.message));
+              page.on('requestfailed',request=>failed.push(`${request.method()} ${request.url()} ${request.failure()?.errorText||''}`));
+              await page.setViewportSize({width,height});
+              await page.goto(`${base}/?linea=repuestos_agricolas&verify=${Date.now()}`,{waitUntil:'networkidle'});
+              await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
+              await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
+
+              if (width < 760) await page.getByRole('button',{name:'Desbloquear datos reales'}).click();
+              await page.getByLabel('Contraseña').last().fill(password);
+              await page.getByRole('button',{name:width<760?'Ingresar':'Entrar'}).click();
+              await expect(page.getByText('Datos reales',{exact:true})).toBeVisible();
+              await expect(page.getByRole('button',{name:'Importar leads'})).toBeVisible();
+
+              const agroSurface=page.locator(width<760?'.mobile-cards:visible':'.lead-table:visible');
+              await expect(agroSurface.locator(width<760?'.lead-card':'tbody tr')).toHaveCount(40);
+              await page.reload({waitUntil:'networkidle'});
+              await expect(page.getByText('Datos reales',{exact:true})).toBeVisible();
+              await expect(page.locator(width<760?'.mobile-cards:visible .lead-card':'.lead-table:visible tbody tr')).toHaveCount(40);
+
+              await page.getByRole('button',{name:'Fotomultas'}).click();
+              await expect(page.locator(width<760?'.mobile-cards:visible .lead-card':'.lead-table:visible tbody tr')).toHaveCount(9);
+
+              const realDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
+              expect(realDiag).toEqual({overflow:0,stored:0});
+              expect(pageErrors).toEqual([]); expect(failed).toEqual([]);
+
+              await page.getByRole('button',{name:'Salir'}).click();
+              await expect(page.getByText('Modo demo',{exact:true})).toBeVisible();
+              await expect(page.getByRole('button',{name:'Importar leads'})).toHaveCount(0);
+              const ended=await page.request.get(`${base}/api/auth/session?verify=${Date.now()}`);
+              expect(await ended.json()).toMatchObject({authenticated:false,mode:'demo'});
+              const demoDiag=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,stored:localStorage.length+sessionStorage.length}));
+              expect(demoDiag).toEqual({overflow:0,stored:0});
+              expect(pageErrors).toEqual([]); expect(failed).toEqual([]);
+              await page.screenshot({path:`artifacts/post-import/${name}-demo-after-logout.png`,fullPage:true});
+            });
+          }
+          EOF
+          npx playwright test post-import.spec.mjs --workers=1
+          rm -f post-import.spec.mjs
+          test "$(find artifacts/post-import -name '*-demo-after-logout.png' | wc -l)" -eq 2
+          cat >> artifacts/post-import/summary.txt <<'EOF'
+          BROWSER_DESKTOP_REAL=PASS
+          BROWSER_MOBILE_REAL=PASS
+          RELOAD_SESSION=PASS
+          PAGEERROR=0
+          FAILED_REQUESTS=0
+          HORIZONTAL_OVERFLOW=0
+          CLIENT_STORAGE=0
+          PRIVATE_IMPORT_VISIBILITY=PASS
+          EOF
+
+      - name: Redact and hash evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f post-import.spec.mjs /tmp/leadx.cookies /tmp/*.json
+          find artifacts/post-import -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > artifacts/post-import/SHA256SUMS
+          ! grep -R -E -i 'DASHBOARD_PASSWORD|SESSION_SECRET|INGEST_SECRET|CLOUDFLARE_API_TOKEN|set-cookie:|whatsapp_publico|email_publico|contact_name|agro_(ex|doc|new)_[0-9]' artifacts/post-import
+
+      - name: Upload redacted evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-post-import-${{ github.event.pull_request.head.sha }}
+          path: artifacts/post-import
+          if-no-files-found: error
+          retention-days: 7
