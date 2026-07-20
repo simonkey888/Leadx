@@ -92,6 +92,23 @@ The new version must:
 
 Any blocking failure after deployment triggers an immediate rollback to the previously captured version. Rollback is verified by version ID and health.
 
+## Session-policy changes
+
+The canonical authenticated-session policy is documented in:
+
+```text
+docs/SESSION_POLICY.md
+```
+
+For the session-timeout release, the intended values are:
+
+```text
+SESSION_IDLE_MS=60 minutes
+SESSION_ABSOLUTE_MS=12 hours
+```
+
+Before deploying a session-policy change, `npm --prefix web run test:session`, the complete test suite and typecheck must pass. After deployment, login, `GET /api/auth/session`, explicit activity renewal and logout must be verified against the active Worker version. The new timeout values are not considered production state until Workers is active at 100% and the same source SHA is reconciled in GitHub and Drive.
+
 ## Evidence
 
 The script writes redacted evidence under:
