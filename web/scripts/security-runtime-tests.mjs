@@ -42,8 +42,8 @@ async function login(context) {
   return (response.headers.get("Set-Cookie") || "").split(";")[0];
 }
 
-const lead = (i) => ({ id: `fixture_${i}`, score: 70 + i, persona: `Persona sintética ${i}`, provincia: "Santa Fe", title: "Consulta sintética", snippet: "Fixture sin datos personales.", fecha_iso: new Date(BASE - i * 1000).toISOString(), _status: "Nuevo", _priority: "Media" });
-const payload = () => JSON.stringify({ leads_all: Array.from({ length: 5 }, (_, i) => lead(i)), meta: { source: "fixture", version: "test" } });
+const lead = (i, vertical = "fotomultas") => ({ id: `fixture_${i}`, vertical, score: 70 + i, persona: `Persona sintética ${i}`, provincia: "Santa Fe", title: "Consulta sintética", snippet: "Fixture sin datos personales.", fecha_iso: new Date(BASE - i * 1000).toISOString(), _status: "Nuevo", _priority: "Media" });
+const payload = () => JSON.stringify({ mode: "upsert_vertical", vertical: "fotomultas", leads_all: Array.from({ length: 5 }, (_, i) => lead(i)), meta: { source: "fixture", version: "test" } });
 function check(name, condition) { if (!condition) throw new Error(`FAIL: ${name}`); passed += 1; console.log(`✓ ${name}`); }
 
 try {
@@ -64,6 +64,30 @@ try {
 
   for (const type of ["text/plain", "application/x-www-form-urlencoded", "application/json; charset=latin1", "application/json; profile=test"]) { const c = env(); const { response } = await call("/api/ingest", { method: "POST", headers: { "Content-Type": type, "X-Ingest-Secret": INGEST_SECRET }, body: payload() }, c); check(`${type} -> 415`, response.status === 415 && c.calls.get + c.calls.put === 0); }
   for (const type of ["application/json", "application/json; charset=utf-8", "Application/JSON; Charset=UTF-8"]) { const c = env(); const { response } = await call("/api/ingest", { method: "POST", headers: { "Content-Type": type, "X-Ingest-Secret": INGEST_SECRET }, body: payload() }, c); check(`${type} accepted`, response.status === 200 && c.calls.put === 1); }
+
+  for (const body of [
+    { vertical: "fotomultas", leads_all: [lead(20)] },
+    { mode: "replace_all", vertical: "fotomultas", leads_all: [lead(21)] },
+  ]) {
+    const c = env();
+    const { response } = await call("/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", "X-Ingest-Secret": INGEST_SECRET }, body: JSON.stringify(body) }, c);
+    const result = await response.json();
+    check("ingest rejects missing or destructive mode", response.status === 400 && result.reason === "invalid_mode" && c.calls.put === 0);
+  }
+
+  const wrongVertical = env();
+  const wrongVerticalResponse = (await call("/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", "X-Ingest-Secret": INGEST_SECRET }, body: JSON.stringify({ mode: "upsert_vertical", vertical: "repuestos_agricolas", leads_all: [lead(30, "repuestos_agricolas")] }) }, wrongVertical)).response;
+  check("machine ingest is scoped to Fotomultas", wrongVerticalResponse.status === 400 && (await wrongVerticalResponse.json()).reason === "invalid_vertical" && wrongVertical.calls.put === 0);
+
+  const conflict = env([], { initial: JSON.stringify({ leads_all: [lead(40, "repuestos_agricolas")], meta: { source: "fixture" } }) });
+  const conflictResponse = (await call("/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", "X-Ingest-Secret": INGEST_SECRET }, body: JSON.stringify({ mode: "upsert_vertical", vertical: "fotomultas", leads_all: [lead(40, "fotomultas")] }) }, conflict)).response;
+  check("cross-vertical ID collision is blocked before KV write", conflictResponse.status === 409 && (await conflictResponse.json()).reason === "cross_vertical_id_conflict" && conflict.calls.put === 0);
+
+  const preserveOtherVertical = env([], { initial: JSON.stringify({ leads_all: [lead(50, "repuestos_agricolas")], meta: { source: "fixture" } }) });
+  const preserveResponse = (await call("/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", "X-Ingest-Secret": INGEST_SECRET }, body: JSON.stringify({ mode: "upsert_vertical", vertical: "fotomultas", leads_all: [lead(51, "fotomultas")] }) }, preserveOtherVertical)).response;
+  const persisted = JSON.parse(preserveOtherVertical.calls.last);
+  check("Fotomultas upsert preserves agricultural records", preserveResponse.status === 200 && preserveOtherVertical.calls.put === 1 && persisted.leads_all.some((item) => item.id === "fixture_50" && item.vertical === "repuestos_agricolas") && persisted.leads_all.some((item) => item.id === "fixture_51" && item.vertical === "fotomultas"));
+
   const header = env(); check("Content-Length cap", (await call("/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": String(2 * 1024 * 1024 + 1), "X-Ingest-Secret": INGEST_SECRET }, body: "{}" }, header)).response.status === 413 && header.calls.get + header.calls.put === 0);
   const chunk = new Uint8Array(1024 * 1024 + 1).fill(32); const stream = new ReadableStream({ start(c) { c.enqueue(chunk); c.enqueue(chunk); c.close(); } }); const streamed = env();
   check("incremental streaming cap", (await call("/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", "X-Ingest-Secret": INGEST_SECRET }, body: stream }, streamed)).response.status === 413 && streamed.calls.get + streamed.calls.put === 0);
