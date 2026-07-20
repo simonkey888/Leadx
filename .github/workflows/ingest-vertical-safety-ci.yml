@@ -1,0 +1,75 @@
+name: LeadX Ingest Vertical Safety CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - worker/data-handlers.mjs
+      - web/scripts/security-runtime-tests.mjs
+      - .github/workflows/radar-cron.yml
+      - .github/workflows/ingest-vertical-safety-ci.yml
+      - docs/api-inventory.md
+  push:
+    branches:
+      - main
+    paths:
+      - worker/data-handlers.mjs
+      - web/scripts/security-runtime-tests.mjs
+      - .github/workflows/radar-cron.yml
+      - .github/workflows/ingest-vertical-safety-ci.yml
+      - docs/api-inventory.md
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-ingest-vertical-safety-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate workflow and source contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; YAML.load_file(".github/workflows/radar-cron.yml"); YAML.load_file(".github/workflows/ingest-vertical-safety-ci.yml")'
+          grep -Fq 'requiredMode: "upsert_vertical", requiredVertical: "fotomultas"' worker/data-handlers.mjs
+          grep -Fq 'cross_vertical_id_conflict' worker/data-handlers.mjs
+          grep -Fq 'mode:"upsert_vertical", vertical:"fotomultas"' .github/workflows/radar-cron.yml
+          ! grep -Fq 'mode || "replace_all"' worker/data-handlers.mjs
+          ! grep -Eq 'mode[[:space:]]*===[[:space:]]*"replace_all"|mode[[:space:]]*==[[:space:]]*"replace_all"' worker/data-handlers.mjs
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install exact dependencies
+        run: npm --prefix web ci
+
+      - name: Build
+        run: npm --prefix web run build
+
+      - name: Run ingest security runtime tests
+        run: npm --prefix web run test:security
+
+      - name: Run complete test suite
+        run: npm --prefix web test
+
+      - name: Typecheck
+        run: npm --prefix web run typecheck
+
+      - name: Verify documentation matches runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '`replace_all` is not an accepted runtime mode' docs/api-inventory.md
+          grep -Fq '`vertical=fotomultas`' docs/api-inventory.md
+          grep -Fq '`409 cross_vertical_id_conflict`' docs/api-inventory.md
