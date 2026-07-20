@@ -1,0 +1,171 @@
+name: LeadX Private Agro Import Run
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/private-agro-import-run.yml
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: leadx-private-agro-import-run
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ops/leadx-private-import-run-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: https://leadx.simondalmasso44.workers.dev
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+      EXPECTED_AGRO_ID_SHA256: 8670c8c7f4d859690b07965b0938748c79b2a02a59ad437b4c16851b12f0ac65
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DASHBOARD_PASSWORD"
+          command -v jq >/dev/null
+          command -v openssl >/dev/null
+          command -v node >/dev/null
+
+      - name: Open ephemeral encrypted channel
+        id: channel
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          nonce="leadx-import-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out /tmp/leadx-import-private.pem >/dev/null 2>&1
+          openssl pkey -in /tmp/leadx-import-private.pem -pubout -out /tmp/leadx-import-public.pem >/dev/null 2>&1
+          public_b64="$(base64 -w0 /tmp/leadx-import-public.pem)"
+          body="$(printf 'LEADX_IMPORT_KEY_V1:%s\n%s' "$nonce" "$public_b64")"
+          response="$(jq -n --arg body "$body" '{body:$body}' | curl -fsS \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            -H 'Content-Type: application/json' \
+            --data-binary @- \
+            "https://api.github.com/repos/$REPOSITORY/issues/$PR_NUMBER/comments")"
+          key_comment_id="$(jq -r '.id' <<<"$response")"
+          test "$key_comment_id" != null
+          echo "nonce=$nonce" >> "$GITHUB_OUTPUT"
+          echo "key_comment_id=$key_comment_id" >> "$GITHUB_OUTPUT"
+
+      - name: Receive, decrypt and validate private payload
+        id: payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          nonce='${{ steps.channel.outputs.nonce }}'
+          marker="LEADX_IMPORT_PAYLOAD_V1:${nonce}"
+          payload_comment_id=""
+          payload_package=""
+          for _ in $(seq 1 180); do
+            comments="$(curl -fsS \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100")"
+            payload_comment_id="$(jq -r --arg marker "$marker" '[.[] | select(.body | startswith($marker))] | last | .id // empty' <<<"$comments")"
+            payload_package="$(jq -r --arg marker "$marker" '[.[] | select(.body | startswith($marker))] | last | .body | split("\n")[1] // empty' <<<"$comments")"
+            if test -n "$payload_comment_id" && test -n "$payload_package"; then break; fi
+            sleep 5
+          done
+          test -n "$payload_comment_id"
+          test -n "$payload_package"
+          printf '%s' "$payload_package" | base64 -d > /tmp/leadx-import-package.json
+
+          cat > /tmp/decrypt.mjs <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import zlib from 'node:zlib';
+          const pkg = JSON.parse(fs.readFileSync('/tmp/leadx-import-package.json', 'utf8'));
+          const privateKey = fs.readFileSync('/tmp/leadx-import-private.pem', 'utf8');
+          const key = crypto.privateDecrypt({
+            key: privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: 'sha256',
+          }, Buffer.from(pkg.encrypted_key, 'base64'));
+          const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(pkg.iv, 'base64'));
+          decipher.setAuthTag(Buffer.from(pkg.tag, 'base64'));
+          const compressed = Buffer.concat([
+            decipher.update(Buffer.from(pkg.ciphertext, 'base64')),
+            decipher.final(),
+          ]);
+          fs.writeFileSync('/tmp/leadx-agro-cnh-private-import.json', zlib.gunzipSync(compressed), { mode: 0o600 });
+          NODE
+          node /tmp/decrypt.mjs
+          rm -f /tmp/decrypt.mjs /tmp/leadx-import-package.json
+
+          jq -e '.mode=="upsert_vertical" and .vertical=="repuestos_agricolas" and (.leads_all|length)==40' /tmp/leadx-agro-cnh-private-import.json >/dev/null
+          test "$(jq '[.leads_all[].id]|unique|length' /tmp/leadx-agro-cnh-private-import.json)" = 40
+          test "$(jq '[.leads_all[] | select(.vertical!="repuestos_agricolas")]|length' /tmp/leadx-agro-cnh-private-import.json)" = 0
+          agro_hash="$(jq -r '.leads_all[].id' /tmp/leadx-agro-cnh-private-import.json | LC_ALL=C sort | sha256sum | awk '{print $1}')"
+          test "$agro_hash" = "$EXPECTED_AGRO_ID_SHA256"
+          echo "payload_comment_id=$payload_comment_id" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticated curl import and production readback
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup() { rm -f /tmp/leadx.cookies /tmp/login.json /tmp/import.json /tmp/agro.json /tmp/fines.json /tmp/leadx-agro-cnh-private-import.json /tmp/leadx-import-private.pem /tmp/leadx-import-public.pem; }
+          trap cleanup EXIT
+
+          login_code="$(curl -sS -c /tmp/leadx.cookies -o /tmp/login.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" \
+            "$BASE_URL/api/auth/login")"
+          test "$login_code" = 200
+          jq -e '.ok==true' /tmp/login.json >/dev/null
+
+          import_code="$(curl -sS -b /tmp/leadx.cookies -c /tmp/leadx.cookies -o /tmp/import.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            --data-binary @/tmp/leadx-agro-cnh-private-import.json \
+            "$BASE_URL/api/admin/import")"
+          test "$import_code" = 200
+          jq -e '.status=="ok" and .mode=="upsert_vertical" and .vertical=="repuestos_agricolas" and .imported==40' /tmp/import.json >/dev/null
+
+          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=repuestos_agricolas" -o /tmp/agro.json
+          curl -fsS -b /tmp/leadx.cookies "$BASE_URL/api/leads?vertical=fotomultas" -o /tmp/fines.json
+          test "$(jq '.leads_all|length' /tmp/agro.json)" = 40
+          test "$(jq '[.leads_all[].id]|unique|length' /tmp/agro.json)" = 40
+          test "$(jq '.leads_all|length' /tmp/fines.json)" = 9
+          test "$(jq '[.leads_all[].id]|unique|length' /tmp/fines.json)" = 9
+          test "$(jq '[.leads_all[] | select(.vertical!="repuestos_agricolas")]|length' /tmp/agro.json)" = 0
+          test "$(jq '[.leads_all[] | select(.vertical!="fotomultas")]|length' /tmp/fines.json)" = 0
+          actual_hash="$(jq -r '.leads_all[].id' /tmp/agro.json | LC_ALL=C sort | sha256sum | awk '{print $1}')"
+          test "$actual_hash" = "$EXPECTED_AGRO_ID_SHA256"
+          printf '%s\n' \
+            'IMPORT_STATUS=PASS' \
+            'REPUESTOS_AGRICOLAS_REAL_COUNT=40' \
+            'FOTOMULTAS_REAL_COUNT=9' \
+            'UNIQUE_IDS=PASS' \
+            'VERTICAL_CONTAINMENT=PASS' \
+            'EXPECTED_ID_SET=PASS'
+
+      - name: Delete encrypted channel comments
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          for id in '${{ steps.payload.outputs.payload_comment_id }}' '${{ steps.channel.outputs.key_comment_id }}'; do
+            test -n "$id" || continue
+            curl -sS -X DELETE \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/$REPOSITORY/issues/comments/$id" >/dev/null
+          done
+          rm -f /tmp/leadx.cookies /tmp/*.json /tmp/leadx-import-*.pem /tmp/leadx-agro-cnh-private-import.json
