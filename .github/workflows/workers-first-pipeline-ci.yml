@@ -1,0 +1,98 @@
+name: LeadX Workers-first Pipeline CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/deploy-workers-first.sh
+      - docs/WORKERS_FIRST_DEPLOYMENT.md
+      - .github/workflows/deploy-once.yml
+      - .github/workflows/deploy-containment.yml
+      - .github/workflows/reconcile-workers-first.yml
+      - .github/workflows/workers-first-pipeline-ci.yml
+      - .gitignore
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/deploy-workers-first.sh
+      - docs/WORKERS_FIRST_DEPLOYMENT.md
+      - .github/workflows/deploy-once.yml
+      - .github/workflows/deploy-containment.yml
+      - .github/workflows/reconcile-workers-first.yml
+      - .github/workflows/workers-first-pipeline-ci.yml
+      - .gitignore
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-workers-first-pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate shell and workflow syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/deploy-workers-first.sh
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |path| YAML.load_file(path); puts "YAML PASS #{path}" }'
+
+      - name: Enforce Workers-first containment
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -Eq '^[[:space:]]+push:' .github/workflows/deploy-once.yml
+          ! grep -Eq '^[[:space:]]+push:' .github/workflows/deploy-containment.yml
+          ! grep -Eq 'wrangler(@[^ ]+)?[[:space:]]+deploy' .github/workflows/deploy-once.yml
+          ! grep -Eq 'wrangler(@[^ ]+)?[[:space:]]+deploy' .github/workflows/deploy-containment.yml
+          grep -Fq 'CLOUDFLARE_ACCOUNT_ID' scripts/deploy-workers-first.sh
+          grep -Fq 'CLOUDFLARE_API_TOKEN' scripts/deploy-workers-first.sh
+          grep -Fq 'DASHBOARD_PASSWORD' scripts/deploy-workers-first.sh
+          grep -Fq 'INGEST_SECRET' docs/WORKERS_FIRST_DEPLOYMENT.md
+          grep -Fq 'SESSION_SECRET' docs/WORKERS_FIRST_DEPLOYMENT.md
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build, test and typecheck product
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix web ci
+          npm --prefix web run build
+          npm --prefix web test
+          npm --prefix web run typecheck
+
+      - name: Validate exact Wrangler bundle without deploying
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pipeline-ci/bundle
+          npx --yes wrangler@4.111.0 deploy --dry-run \
+            --outdir artifacts/pipeline-ci/bundle \
+            2>&1 | tee artifacts/pipeline-ci/dry-run.log
+          test -n "$(find artifacts/pipeline-ci/bundle -type f -print -quit)"
+          find artifacts/pipeline-ci -type f ! -name SHA256SUMS -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > artifacts/pipeline-ci/SHA256SUMS
+
+      - name: Upload non-production validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leadx-workers-first-pipeline-${{ github.sha }}
+          path: artifacts/pipeline-ci
+          if-no-files-found: error
+          retention-days: 14
