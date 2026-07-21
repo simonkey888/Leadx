@@ -1,0 +1,30 @@
+{
+  "verifications": [
+    {
+      "candidate_id": "synthetic:transport:001",
+      "provider": "sinai_official",
+      "source_url": "https://consultainfracciones.seguridadvial.gob.ar/",
+      "authorization_basis": "synthetic_test",
+      "subject_ref_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "checked_at": "2026-07-21T11:00:00+00:00",
+      "result_complete": true,
+      "infractions": [
+        {"id": "synthetic-act-1", "status": "Vigente", "amount_ars": "$ 350.000"},
+        {"id": "synthetic-act-2", "status": "Pendiente", "amount_ars": "$ 420.000"},
+        {"id": "synthetic-act-3", "status": "Impaga", "amount_ars": "$ 310.000"}
+      ]
+    },
+    {
+      "candidate_id": "synthetic:transport:002",
+      "provider": "sinai_official",
+      "source_url": "https://consultainfracciones.seguridadvial.gob.ar/",
+      "authorization_basis": "synthetic_test",
+      "subject_ref_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "checked_at": "2026-07-21T11:00:00+00:00",
+      "result_complete": true,
+      "infractions": [
+        {"id": "synthetic-act-4", "status": "Vigente", "amount_ars": "$ 750.000"}
+      ]
+    }
+  ]
+}
