@@ -1,0 +1,154 @@
+name: LeadX Fotomultas Discovery Lab CI
+
+on:
+  pull_request:
+    paths:
+      - 'labs/fotomultas_discovery/**'
+      - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
+      - 'docs/CURRENT_STATE.md'
+      - '.dockerignore'
+      - '.github/workflows/fotomultas-discovery-lab-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'labs/fotomultas_discovery/**'
+      - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
+      - 'docs/CURRENT_STATE.md'
+      - '.dockerignore'
+      - '.github/workflows/fotomultas-discovery-lab-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-fotomultas-discovery-lab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Enforce non-production containment
+        shell: bash
+        run: |
+          set -euo pipefail
+          CORE_FILES=(
+            labs/fotomultas_discovery/constants.py
+            labs/fotomultas_discovery/contacts.py
+            labs/fotomultas_discovery/debt.py
+            labs/fotomultas_discovery/pipeline.py
+            labs/fotomultas_discovery/cli.py
+            labs/fotomultas_discovery/worker.py
+            labs/fotomultas_discovery/orchestrator.py
+            labs/fotomultas_discovery/healthcheck.py
+          )
+          ALL_FILES=("${CORE_FILES[@]}" labs/fotomultas_discovery/discovery.py)
+          ! grep -nE 'LEADX_KV|/api/ingest|/api/admin/import|wrangler[[:space:]]+deploy' "${ALL_FILES[@]}"
+          ! grep -nE 'urllib\.request|requests\.|httpx|aiohttp|socket\.' "${ALL_FILES[@]}"
+          ! grep -nE 'CLOUDFLARE_|WORKER_URL' "${CORE_FILES[@]}"
+          grep -Fq '"INGEST_SECRET": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq '"WORKER_URL": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq '"CLOUDFLARE_API_TOKEN": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq '"CLOUDFLARE_ACCOUNT_ID": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq 'allow-public-network' labs/fotomultas_discovery/discovery.py
+          grep -Fq 'allow-public-network' labs/fotomultas_discovery/orchestrator.py
+          grep -Fq 'TARGET_VERTICAL = "fotomultas"' labs/fotomultas_discovery/constants.py
+          grep -Fq 'DEBT_THRESHOLD_ARS = 1_000_000' labs/fotomultas_discovery/constants.py
+          grep -Fq 'USER 10001:10001' labs/fotomultas_discovery/container/Dockerfile
+          grep -Fq 'VOLUME ["/state"]' labs/fotomultas_discovery/container/Dockerfile
+          grep -Fq 'LEADX_DISCOVERY_PUBLIC_NETWORK_must_equal_1' labs/fotomultas_discovery/container/entrypoint.sh
+
+      - name: Compile and run unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m compileall -q labs/fotomultas_discovery
+          python -m unittest discover -s labs/fotomultas_discovery/tests -p 'test_*.py' -v
+
+      - name: Exercise synthetic artifact flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m labs.fotomultas_discovery.cli \
+            --candidates labs/fotomultas_discovery/fixtures/candidates.synthetic.json \
+            --verifications labs/fotomultas_discovery/fixtures/verifications.synthetic.json \
+            --output /tmp/fotomultas-decisions.json
+          python - <<'PY'
+          import json
+          data = json.load(open('/tmp/fotomultas-decisions.json', encoding='utf-8'))
+          assert data['mode'] == 'artifact_only'
+          assert data['network_access'] is False
+          assert data['production_access'] is False
+          assert data['target_vertical'] == 'fotomultas'
+          assert data['threshold_ars'] == 1_000_000
+          assert data['counts']['ELIGIBLE_VERIFIED'] == 1
+          assert data['counts']['REJECTED'] == 1
+          assert all(item['candidate_id'].startswith('synthetic:') for item in data['decisions'])
+          print('SYNTHETIC_ARTIFACT_FLOW=PASS')
+          PY
+
+      - name: Verify network runners remain opt-in
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          python -m labs.fotomultas_discovery.discovery --output /tmp/should-not-exist.json >/tmp/discovery.out 2>/tmp/discovery.err
+          discovery_code=$?
+          python -m labs.fotomultas_discovery.orchestrator \
+            --candidates-output /tmp/should-not-exist-candidates.json \
+            --decisions-output /tmp/should-not-exist-decisions.json \
+            >/tmp/orchestrator.out 2>/tmp/orchestrator.err
+          orchestrator_code=$?
+          set -e
+          test "$discovery_code" -eq 2
+          test "$orchestrator_code" -eq 2
+          grep -Fq 'public_network_discovery_requires_explicit_flag' /tmp/discovery.err
+          grep -Fq 'public_network_discovery_requires_explicit_flag' /tmp/orchestrator.err
+          test ! -e /tmp/should-not-exist.json
+          test ! -e /tmp/should-not-exist-candidates.json
+          test ! -e /tmp/should-not-exist-decisions.json
+
+      - name: Build and inspect non-production OCI image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="leadx-fotomultas-discovery-lab:${GITHUB_SHA}"
+          docker build \
+            --file labs/fotomultas_discovery/container/Dockerfile \
+            --tag "$image" \
+            .
+          test "$(docker inspect --format '{{.Config.User}}' "$image")" = '10001:10001'
+          docker run --rm --network none --entrypoint python "$image" \
+            -m unittest discover -s labs/fotomultas_discovery/tests -p 'test_*.py' -v
+          set +e
+          docker run --rm --network none "$image" >/tmp/container.out 2>/tmp/container.err
+          container_code=$?
+          set -e
+          test "$container_code" -eq 78
+          grep -Fq 'LEADX_DISCOVERY_PUBLIC_NETWORK_must_equal_1' /tmp/container.err
+
+      - name: Record containment summary
+        shell: bash
+        run: |
+          {
+            echo '### Fotomultas Discovery Lab'
+            echo '- Synthetic tests: PASS'
+            echo '- Public-web discovery: opt-in and sandboxed'
+            echo '- Autonomous versioned cycle: PASS'
+            echo '- OCI image build: PASS'
+            echo '- Non-root runtime: PASS'
+            echo '- Container default-deny startup: PASS'
+            echo '- Production access: NO'
+            echo '- Cloudflare/KV/ingest: NO'
+            echo '- Repuestos agrícolas runtime access: NO'
+            echo '- Threshold: cumulative active debt >= ARS 1,000,000'
+          } >> "$GITHUB_STEP_SUMMARY"

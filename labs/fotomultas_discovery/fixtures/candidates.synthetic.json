@@ -1,0 +1,23 @@
+{
+  "candidates": [
+    {
+      "id": "synthetic:transport:001",
+      "vertical": "fotomultas",
+      "entity_name": "Transporte Sintetico SA",
+      "source_url": "https://example.org/flota/synthetic-001",
+      "source_type": "public_web_fixture",
+      "contact_public": true,
+      "email_publico": "ventas@example.org",
+      "telefono_publico": "342 456 7890"
+    },
+    {
+      "id": "synthetic:transport:002",
+      "vertical": "fotomultas",
+      "entity_name": "Logistica Ficticia SRL",
+      "source_url": "https://example.net/logistica/synthetic-002",
+      "source_type": "public_web_fixture",
+      "contact_public": true,
+      "whatsapp_publico": "+54 9 11 5555 0102"
+    }
+  ]
+}
