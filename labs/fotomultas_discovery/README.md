@@ -22,7 +22,7 @@ El umbral se aplica a la **suma de todas las infracciones activas y únicas**, n
 ## Qué hace
 
 1. Puede ejecutar el radar existente en un sandbox temporal para descubrir fuentes públicas.
-2. Borra del entorno `INGEST_SECRET`, `WORKER_URL`, credenciales Cloudflare y secretos de sesión.
+2. Borra del entorno credenciales operativas de LeadX y Cloudflare.
 3. Conserva sólo candidatos `fotomultas`; descarta Repuestos agrícolas, patente, texto crudo y deuda de fuentes no oficiales.
 4. Exige teléfono, WhatsApp o email explícitamente público y con URL de procedencia.
 5. Deduplica candidatos por identidad y contacto.
@@ -30,15 +30,15 @@ El umbral se aplica a la **suma de todas las infracciones activas y únicas**, n
 7. Acepta únicamente `sinai_official` con fuente `https://consultainfracciones.seguridadvial.gob.ar/`.
 8. Ignora infracciones pagadas o anuladas, elimina duplicados y suma las activas.
 9. Rechaza estados ambiguos, verificaciones vencidas, identificadores crudos y deuda inferior a ARS 1.000.000.
-10. Emite `ELIGIBLE_VERIFIED`, `PENDING_VERIFICATION` o `REJECTED` en un artefacto local.
+10. Emite `ELIGIBLE_VERIFIED`, `PENDING_VERIFICATION` o `REJECTED` en un artefacto privado.
 
 ## Qué no hace
 
 - no consulta SINAI en vivo;
-- no automatiza búsquedas por DNI, sexo o dominio;
-- no guarda DNI, dominio o patente en el artefacto;
+- no automatiza búsquedas por documento, sexo o dominio;
+- no guarda documento, dominio o patente en el artefacto;
 - no publica contactos o resultados reales en GitHub;
-- no llama `/api/ingest` ni `/api/admin/import`;
+- no llama endpoints de escritura de LeadX;
 - no modifica el CRM;
 - no ejecuta cron, deploy o promoción.
 
@@ -46,7 +46,7 @@ La consulta oficial informa que los datos no deben utilizarse para finalidades d
 
 ## Descubrimiento público aislado
 
-`generate_payload.py` ya contiene proveedores públicos. El runner lo ejecuta desde un directorio temporal, sin secretos operativos y sin usar el workflow legacy que también hace commit e ingest.
+`generate_payload.py` ya contiene proveedores públicos. El runner lo ejecuta desde un directorio temporal, sin credenciales operativas y sin usar el workflow legacy que también hace commit e ingest.
 
 Ejecución única:
 
@@ -72,7 +72,7 @@ Sin `--allow-public-network`, el runner termina bloqueado antes de ejecutar el r
 
 ## Supervisor autónomo completo
 
-El supervisor une descubrimiento y evaluación en un único ciclo atómico. Si cualquier etapa falla, conserva intactos los últimos candidatos y decisiones válidos.
+El supervisor completa descubrimiento y evaluación antes de publicar. Cada archivo se reemplaza de forma atómica y ambos llevan el mismo `cycle_id`; cualquier consumidor debe rechazar un par desfasado.
 
 ```bash
 python -m labs.fotomultas_discovery.orchestrator \
@@ -85,7 +85,59 @@ python -m labs.fotomultas_discovery.orchestrator \
   --interval-minutes 180
 ```
 
-La ausencia del archivo de verificaciones no detiene el ciclo: los contactos válidos quedan en `PENDING_VERIFICATION`. El supervisor nunca degrada un candidato a verificado sin constancia oficial válida.
+La ausencia del archivo de verificaciones no detiene el ciclo: los contactos válidos quedan en `PENDING_VERIFICATION`. El supervisor nunca clasifica un candidato como verificado sin constancia oficial válida.
+
+## Contenedor OCI genérico
+
+La imagen no está acoplada a Oracle ni a Northflank. Se construye desde la raíz del repositorio:
+
+```bash
+docker build \
+  -f labs/fotomultas_discovery/container/Dockerfile \
+  -t leadx-fotomultas-discovery-lab:local \
+  .
+```
+
+El contenedor:
+
+- corre como UID/GID `10001:10001`;
+- mantiene `/app` sin permisos de escritura;
+- usa `/state` como único volumen persistente;
+- no arranca salvo que `LEADX_DISCOVERY_PUBLIC_NETWORK=1`;
+- no contiene contactos ni verificaciones reales en la imagen;
+- incluye healthcheck por frescura y coincidencia de `cycle_id`;
+- no contiene integración con LeadX, Cloudflare o SINAI en vivo.
+
+Ejemplo de ejecución local no productiva:
+
+```bash
+docker run --rm \
+  --name leadx-fotomultas-discovery-lab \
+  -e LEADX_DISCOVERY_PUBLIC_NETWORK=1 \
+  -e LEADX_INTERVAL_MINUTES=180 \
+  -v /ruta/privada/leadx-fotomultas:/state \
+  leadx-fotomultas-discovery-lab:local
+```
+
+El volumen puede contener opcionalmente `/state/verifications.json`. Los resultados quedan en:
+
+```text
+/state/candidates-latest.json
+/state/fotomultas-decisions.json
+```
+
+Variables admitidas:
+
+```text
+LEADX_DISCOVERY_PUBLIC_NETWORK=1
+LEADX_INTERVAL_MINUTES=180
+LEADX_TIMEOUT_SECONDS=260
+LEADX_MAX_HEALTH_AGE_MINUTES=240
+LEADX_RUN_ONCE=0|1
+LEADX_STATE_DIR=/state
+```
+
+No pasar credenciales de LeadX, Cloudflare ni SINAI al contenedor.
 
 ## Evaluación de candidatos
 
@@ -126,4 +178,4 @@ Contrato de job:
 
 ## Próxima fase permitida
 
-Ejecutar el supervisor en un contenedor no productivo y medir calidad de candidatos. La integración con SINAI en vivo, Cloudflare o LeadX queda bloqueada hasta una revisión específica y autorización de producción.
+Validar la imagen y preparar una configuración no productiva para el proveedor elegido. Iniciar infraestructura externa, conectar SINAI en vivo o integrar LeadX queda bloqueado hasta la autorización correspondiente.
