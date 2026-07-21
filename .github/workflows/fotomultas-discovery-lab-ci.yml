@@ -44,6 +44,7 @@ jobs:
             labs/fotomultas_discovery/pipeline.py
             labs/fotomultas_discovery/cli.py
             labs/fotomultas_discovery/worker.py
+            labs/fotomultas_discovery/orchestrator.py
           )
           ALL_FILES=("${CORE_FILES[@]}" labs/fotomultas_discovery/discovery.py)
           ! grep -nE 'LEADX_KV|/api/ingest|/api/admin/import|wrangler[[:space:]]+deploy' "${ALL_FILES[@]}"
@@ -54,6 +55,7 @@ jobs:
           grep -Fq '"CLOUDFLARE_API_TOKEN": ""' labs/fotomultas_discovery/discovery.py
           grep -Fq '"CLOUDFLARE_ACCOUNT_ID": ""' labs/fotomultas_discovery/discovery.py
           grep -Fq 'allow-public-network' labs/fotomultas_discovery/discovery.py
+          grep -Fq 'allow-public-network' labs/fotomultas_discovery/orchestrator.py
           grep -Fq 'TARGET_VERTICAL = "fotomultas"' labs/fotomultas_discovery/constants.py
           grep -Fq 'DEBT_THRESHOLD_ARS = 1_000_000' labs/fotomultas_discovery/constants.py
 
@@ -86,17 +88,26 @@ jobs:
           print('SYNTHETIC_ARTIFACT_FLOW=PASS')
           PY
 
-      - name: Verify discovery runner remains opt-in
+      - name: Verify network runners remain opt-in
         shell: bash
         run: |
           set -euo pipefail
           set +e
           python -m labs.fotomultas_discovery.discovery --output /tmp/should-not-exist.json >/tmp/discovery.out 2>/tmp/discovery.err
-          code=$?
+          discovery_code=$?
+          python -m labs.fotomultas_discovery.orchestrator \
+            --candidates-output /tmp/should-not-exist-candidates.json \
+            --decisions-output /tmp/should-not-exist-decisions.json \
+            >/tmp/orchestrator.out 2>/tmp/orchestrator.err
+          orchestrator_code=$?
           set -e
-          test "$code" -eq 2
+          test "$discovery_code" -eq 2
+          test "$orchestrator_code" -eq 2
           grep -Fq 'public_network_discovery_requires_explicit_flag' /tmp/discovery.err
+          grep -Fq 'public_network_discovery_requires_explicit_flag' /tmp/orchestrator.err
           test ! -e /tmp/should-not-exist.json
+          test ! -e /tmp/should-not-exist-candidates.json
+          test ! -e /tmp/should-not-exist-decisions.json
 
       - name: Record containment summary
         shell: bash
@@ -105,6 +116,7 @@ jobs:
             echo '### Fotomultas Discovery Lab'
             echo '- Synthetic tests: PASS'
             echo '- Public-web discovery: opt-in and sandboxed'
+            echo '- Autonomous all-or-nothing cycle: PASS'
             echo '- Production access: NO'
             echo '- Cloudflare/KV/ingest: NO'
             echo '- Repuestos agrícolas runtime access: NO'
