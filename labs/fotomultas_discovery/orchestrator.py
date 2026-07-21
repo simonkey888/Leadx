@@ -16,8 +16,6 @@ from .cli import load_verifications
 from .discovery import run_discovery
 from .pipeline import run_batch
 
-DiscoveryFunction = Callable[[Path, Path], dict[str, Any]]
-
 
 def _atomic_write(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -35,10 +33,11 @@ def run_cycle(
     timeout_seconds: int = 260,
     discovery_function: Callable[..., dict[str, Any]] = run_discovery,
 ) -> dict[str, Any]:
-    """Run one all-or-nothing cycle.
+    """Run one fail-closed cycle.
 
-    The prior valid outputs remain untouched if discovery, verification loading or
-    decision evaluation fails.
+    Discovery and evaluation complete before publication. Each output is replaced
+    atomically and both carry the same cycle_id, so consumers can reject a
+    mismatched pair after an interrupted filesystem operation.
     """
 
     lock_path = decisions_output.with_suffix(decisions_output.suffix + ".cycle.lock")
@@ -68,7 +67,11 @@ def run_cycle(
                 verifications = load_verifications(verifications_path)
 
             decisions = run_batch(candidates, verifications)
-            cycle_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            cycle_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+            discovery_result = {
+                **discovery_result,
+                "cycle_id": cycle_id,
+            }
             decisions.update(
                 {
                     "cycle_id": cycle_id,
@@ -77,7 +80,8 @@ def run_cycle(
                 }
             )
 
-            # Publish both outputs only after the complete cycle succeeds.
+            # Publish only after the complete cycle succeeds. Cross-file consumers
+            # must require matching cycle_id values.
             _atomic_write(candidates_output, discovery_result)
             _atomic_write(decisions_output, decisions)
             return {
