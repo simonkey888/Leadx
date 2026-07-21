@@ -5,6 +5,7 @@ on:
     paths:
       - 'labs/fotomultas_discovery/**'
       - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
+      - 'docs/CURRENT_STATE.md'
       - '.github/workflows/fotomultas-discovery-lab-ci.yml'
   push:
     branches:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'labs/fotomultas_discovery/**'
       - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
+      - 'docs/CURRENT_STATE.md'
       - '.github/workflows/fotomultas-discovery-lab-ci.yml'
 
 permissions:
@@ -116,7 +118,7 @@ jobs:
             echo '### Fotomultas Discovery Lab'
             echo '- Synthetic tests: PASS'
             echo '- Public-web discovery: opt-in and sandboxed'
-            echo '- Autonomous all-or-nothing cycle: PASS'
+            echo '- Autonomous versioned cycle: PASS'
             echo '- Production access: NO'
             echo '- Cloudflare/KV/ingest: NO'
             echo '- Repuestos agrícolas runtime access: NO'
