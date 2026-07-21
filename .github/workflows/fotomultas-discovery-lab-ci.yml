@@ -6,6 +6,7 @@ on:
       - 'labs/fotomultas_discovery/**'
       - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
       - 'docs/CURRENT_STATE.md'
+      - '.dockerignore'
       - '.github/workflows/fotomultas-discovery-lab-ci.yml'
   push:
     branches:
@@ -14,6 +15,7 @@ on:
       - 'labs/fotomultas_discovery/**'
       - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
       - 'docs/CURRENT_STATE.md'
+      - '.dockerignore'
       - '.github/workflows/fotomultas-discovery-lab-ci.yml'
 
 permissions:
@@ -26,7 +28,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +49,7 @@ jobs:
             labs/fotomultas_discovery/cli.py
             labs/fotomultas_discovery/worker.py
             labs/fotomultas_discovery/orchestrator.py
+            labs/fotomultas_discovery/healthcheck.py
           )
           ALL_FILES=("${CORE_FILES[@]}" labs/fotomultas_discovery/discovery.py)
           ! grep -nE 'LEADX_KV|/api/ingest|/api/admin/import|wrangler[[:space:]]+deploy' "${ALL_FILES[@]}"
@@ -60,6 +63,9 @@ jobs:
           grep -Fq 'allow-public-network' labs/fotomultas_discovery/orchestrator.py
           grep -Fq 'TARGET_VERTICAL = "fotomultas"' labs/fotomultas_discovery/constants.py
           grep -Fq 'DEBT_THRESHOLD_ARS = 1_000_000' labs/fotomultas_discovery/constants.py
+          grep -Fq 'USER 10001:10001' labs/fotomultas_discovery/container/Dockerfile
+          grep -Fq 'VOLUME ["/state"]' labs/fotomultas_discovery/container/Dockerfile
+          grep -Fq 'LEADX_DISCOVERY_PUBLIC_NETWORK_must_equal_1' labs/fotomultas_discovery/container/entrypoint.sh
 
       - name: Compile and run unit tests
         shell: bash
@@ -111,6 +117,25 @@ jobs:
           test ! -e /tmp/should-not-exist-candidates.json
           test ! -e /tmp/should-not-exist-decisions.json
 
+      - name: Build and inspect non-production OCI image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="leadx-fotomultas-discovery-lab:${GITHUB_SHA}"
+          docker build \
+            --file labs/fotomultas_discovery/container/Dockerfile \
+            --tag "$image" \
+            .
+          test "$(docker inspect --format '{{.Config.User}}' "$image")" = '10001:10001'
+          docker run --rm --network none --entrypoint python "$image" \
+            -m unittest discover -s labs/fotomultas_discovery/tests -p 'test_*.py' -v
+          set +e
+          docker run --rm --network none "$image" >/tmp/container.out 2>/tmp/container.err
+          container_code=$?
+          set -e
+          test "$container_code" -eq 78
+          grep -Fq 'LEADX_DISCOVERY_PUBLIC_NETWORK_must_equal_1' /tmp/container.err
+
       - name: Record containment summary
         shell: bash
         run: |
@@ -119,6 +144,9 @@ jobs:
             echo '- Synthetic tests: PASS'
             echo '- Public-web discovery: opt-in and sandboxed'
             echo '- Autonomous versioned cycle: PASS'
+            echo '- OCI image build: PASS'
+            echo '- Non-root runtime: PASS'
+            echo '- Container default-deny startup: PASS'
             echo '- Production access: NO'
             echo '- Cloudflare/KV/ingest: NO'
             echo '- Repuestos agrícolas runtime access: NO'
