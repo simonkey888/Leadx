@@ -1,0 +1,93 @@
+name: LeadX Fotomultas Discovery Lab CI
+
+on:
+  pull_request:
+    paths:
+      - 'labs/fotomultas_discovery/**'
+      - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
+      - '.github/workflows/fotomultas-discovery-lab-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'labs/fotomultas_discovery/**'
+      - 'docs/FOTOMULTAS_DISCOVERY_LAB.md'
+      - '.github/workflows/fotomultas-discovery-lab-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leadx-fotomultas-discovery-lab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Enforce non-production containment
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_FILES=(
+            labs/fotomultas_discovery/constants.py
+            labs/fotomultas_discovery/contacts.py
+            labs/fotomultas_discovery/debt.py
+            labs/fotomultas_discovery/pipeline.py
+            labs/fotomultas_discovery/cli.py
+            labs/fotomultas_discovery/worker.py
+          )
+          ! grep -nE 'LEADX_KV|/api/ingest|/api/admin/import|CLOUDFLARE_|WORKER_URL|wrangler[[:space:]]+deploy' "${SOURCE_FILES[@]}"
+          ! grep -nE 'urllib\.request|requests\.|httpx|aiohttp|socket\.' "${SOURCE_FILES[@]}"
+          grep -Fq 'TARGET_VERTICAL = "fotomultas"' labs/fotomultas_discovery/constants.py
+          grep -Fq 'DEBT_THRESHOLD_ARS = 1_000_000' labs/fotomultas_discovery/constants.py
+
+      - name: Compile and run unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m compileall -q labs/fotomultas_discovery
+          python -m unittest discover -s labs/fotomultas_discovery/tests -p 'test_*.py' -v
+
+      - name: Exercise synthetic artifact flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m labs.fotomultas_discovery.cli \
+            --candidates labs/fotomultas_discovery/fixtures/candidates.synthetic.json \
+            --verifications labs/fotomultas_discovery/fixtures/verifications.synthetic.json \
+            --output /tmp/fotomultas-decisions.json
+          python - <<'PY'
+          import json
+          data = json.load(open('/tmp/fotomultas-decisions.json', encoding='utf-8'))
+          assert data['mode'] == 'artifact_only'
+          assert data['network_access'] is False
+          assert data['production_access'] is False
+          assert data['target_vertical'] == 'fotomultas'
+          assert data['threshold_ars'] == 1_000_000
+          assert data['counts']['ELIGIBLE_VERIFIED'] == 1
+          assert data['counts']['REJECTED'] == 1
+          assert all(item['candidate_id'].startswith('synthetic:') for item in data['decisions'])
+          print('SYNTHETIC_ARTIFACT_FLOW=PASS')
+          PY
+
+      - name: Record containment summary
+        shell: bash
+        run: |
+          {
+            echo '### Fotomultas Discovery Lab'
+            echo '- Synthetic tests: PASS'
+            echo '- Network access: NO'
+            echo '- Production access: NO'
+            echo '- Cloudflare/KV/ingest: NO'
+            echo '- Repuestos agrícolas runtime access: NO'
+            echo '- Threshold: cumulative active debt >= ARS 1,000,000'
+          } >> "$GITHUB_STEP_SUMMARY"
