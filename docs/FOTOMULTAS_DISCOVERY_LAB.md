@@ -2,16 +2,16 @@
 
 ## Objetivo
 
-Preparar un proceso autónomo y continuo, exclusivamente para `fotomultas`, que produzca candidatos con contacto público y verificación oficial cuya deuda nacional activa acumulada sea igual o superior a ARS 1.000.000.
+Preparar un proceso autónomo y continuo, exclusivamente para `fotomultas`, que busque candidatos públicos y produzca candidatos verificados cuya deuda nacional activa acumulada sea igual o superior a ARS 1.000.000.
 
 Este bloque no despliega, no consulta producción, no lee ni escribe KV y no interactúa con la vertical `repuestos_agricolas`.
 
 ## Arquitectura
 
 ```text
-fuentes públicas / radar existente
+radar público existente en sandbox temporal
         ↓
-normalización de candidatos
+sanitización: sólo fotomultas, sin patente ni texto crudo
         ↓
 contact gate: email, teléfono o WhatsApp público
         ↓
@@ -31,6 +31,24 @@ ELIGIBLE_VERIFIED si total >= ARS 1.000.000
         ↓
 artefacto privado / cola de revisión
 ```
+
+## Descubrimiento público
+
+El runner `labs/fotomultas_discovery/discovery.py` reutiliza `generate_payload.py` sin ejecutar el workflow legacy.
+
+Controles:
+
+- requiere `--allow-public-network`;
+- se ejecuta en un directorio temporal;
+- elimina `INGEST_SECRET`, `WORKER_URL`, credenciales Cloudflare, contraseña y secreto de sesión;
+- no hereda variables de entorno desconocidas;
+- descarta cualquier registro que no sea `fotomultas`;
+- no exporta patente, texto crudo ni deuda de fuentes no oficiales;
+- usa lock exclusivo para evitar dos ejecuciones simultáneas;
+- elimina el sandbox al finalizar;
+- sólo escribe un archivo privado mediante reemplazo atómico.
+
+Puede ejecutarse una vez o en modo `--watch`. Un fallo no modifica la última salida válida.
 
 ## Decisión sobre repositorios externos
 
@@ -155,7 +173,7 @@ El import sólo podrá diseñarse después de que el contrato seguro de PR #19 e
 
 ```text
 IMPLEMENTATION=LAB_ONLY
-LIVE_DISCOVERY_PROVIDER=NOT_INCLUDED
+PUBLIC_DISCOVERY=EXISTING_RADAR_SANDBOXED_OPT_IN
 LIVE_SINAI_PROVIDER=NOT_INCLUDED
 SYNTHETIC_TESTS=REQUIRED
 DEPLOY=NO
