@@ -31,7 +31,7 @@ def fake_discovery(_repo_root: Path, output: Path, *, timeout_seconds: int = 260
 
 
 class OrchestratorTests(unittest.TestCase):
-    def test_cycle_publishes_candidates_and_verified_decisions_together(self):
+    def test_cycle_publishes_matching_candidate_and_decision_versions(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             verifications = root / "verifications.json"
@@ -68,10 +68,12 @@ class OrchestratorTests(unittest.TestCase):
             )
             self.assertEqual(summary["candidate_count"], 1)
             self.assertEqual(summary["counts"]["ELIGIBLE_VERIFIED"], 1)
-            self.assertTrue(candidates_output.is_file())
+            candidates = json.loads(candidates_output.read_text(encoding="utf-8"))
             decisions = json.loads(decisions_output.read_text(encoding="utf-8"))
             self.assertEqual(decisions["counts"]["ELIGIBLE_VERIFIED"], 1)
             self.assertTrue(decisions["verification_file_present"])
+            self.assertEqual(candidates["cycle_id"], decisions["cycle_id"])
+            self.assertEqual(summary["cycle_id"], decisions["cycle_id"])
 
     def test_missing_verification_produces_pending_queue(self):
         with tempfile.TemporaryDirectory() as directory:
