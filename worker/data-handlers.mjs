@@ -44,37 +44,42 @@ async function readStoredLeads(env) {
   } catch { return null; }
 }
 
-function sanitizeImportBody(body, requiredMode) {
+function sanitizeImportBody(body, { requiredMode = "upsert_vertical", requiredVertical = null } = {}) {
   if (!body || typeof body !== "object" || Array.isArray(body) || !Array.isArray(body.leads_all) || body.leads_all.length > MAX_LEADS) return { error: "invalid_payload" };
-  const mode = body.mode || "replace_all";
-  if (!new Set(["replace_all", "upsert_vertical"]).has(mode) || (requiredMode && mode !== requiredMode)) return { error: "invalid_mode" };
+  const mode = body.mode;
+  if (mode !== requiredMode) return { error: "invalid_mode" };
   const vertical = body.vertical;
-  if (mode === "upsert_vertical" && !VERTICALS.has(vertical)) return { error: "invalid_vertical" };
+  if (!VERTICALS.has(vertical) || (requiredVertical && vertical !== requiredVertical)) return { error: "invalid_vertical" };
   const sanitized = body.leads_all.map(sanitizeLead);
   if (sanitized.some((lead) => !lead)) return { error: "invalid_lead" };
   const ids = new Set();
   for (const lead of sanitized) {
     if (ids.has(lead.id)) return { error: "duplicate_id" };
-    if (mode === "upsert_vertical" && lead.vertical !== vertical) return { error: "mixed_vertical" };
+    if (lead.vertical !== vertical) return { error: "mixed_vertical" };
     ids.add(lead.id);
   }
   return { mode, vertical, sanitized, ids };
 }
 
-async function storeImport(env, body, requiredMode = null) {
-  const parsed = sanitizeImportBody(body, requiredMode);
+async function storeImport(env, body, requirements = {}) {
+  const parsed = sanitizeImportBody(body, requirements);
   if (parsed.error) return { error: parsed.error, status: 400 };
   const stored = await readStoredLeads(env);
   if (!stored) return { error: "existing_data_invalid", status: 503 };
   const { previous, previousData } = stored;
   const { mode, vertical, sanitized, ids } = parsed;
-  if (mode === "replace_all" && sanitized.length < 5 && previous.length >= 5) return { error: "anti_wipe", status: 409 };
 
-  const previousById = new Map(previous.map((lead) => [lead.id, lead]));
+  const crossVerticalConflict = previous.some((lead) => ids.has(lead.id) && lead.vertical !== vertical);
+  if (crossVerticalConflict) return { error: "cross_vertical_id_conflict", status: 409 };
+
+  const previousById = new Map(
+    previous.filter((lead) => lead.vertical === vertical).map((lead) => [lead.id, lead]),
+  );
   const imported = sanitized.map((lead) => preserveCrmState(lead, previousById.get(lead.id)));
-  const leads = mode === "upsert_vertical"
-    ? [...previous.filter((lead) => !ids.has(lead.id)), ...imported]
-    : imported;
+  const leads = [
+    ...previous.filter((lead) => !(lead.vertical === vertical && ids.has(lead.id))),
+    ...imported,
+  ];
   const inserted = sanitized.filter((lead) => !previousById.has(lead.id)).length;
   const updated = sanitized.length - inserted;
   const generatedAt = cleanTimestamp(body.meta?.generated_at) || new Date().toISOString();
@@ -86,10 +91,10 @@ async function storeImport(env, body, requiredMode = null) {
     meta: {
       ...(previousData?.meta || {}),
       version: cleanString(body.meta?.version, 80) || RELEASE,
-      source: cleanString(body.meta?.source, 100) || (mode === "upsert_vertical" ? "private_vertical_import" : "hunter"),
+      source: cleanString(body.meta?.source, 100) || "vertical_upsert",
       generated_at: generatedAt,
       ingest_at: new Date().toISOString(),
-      ...(vertical ? { last_vertical_import: vertical } : {}),
+      last_vertical_import: vertical,
     },
   };
   await env.LEADX_KV.put("leads:live", JSON.stringify(payload));
@@ -155,9 +160,9 @@ export async function handleIngest(request, env, requestIdValue) {
   }
   const parsed = await parseImportRequest(request);
   if (parsed.error) return json({ status: "rejected", reason: parsed.error }, parsed.status);
-  const result = await storeImport(env, parsed.body);
+  const result = await storeImport(env, parsed.body, { requiredMode: "upsert_vertical", requiredVertical: "fotomultas" });
   if (result.error) return json({ status: "rejected", reason: result.error }, result.status);
-  logEvent("ingest.accepted", requestIdValue, "ok", { count: result.imported, mode: result.mode });
+  logEvent("ingest.accepted", requestIdValue, "ok", { count: result.imported, mode: result.mode, vertical: result.vertical });
   return json({ status: "ok", ...result });
 }
 
@@ -168,7 +173,7 @@ export async function handlePrivateImport(request, env, requestIdValue) {
   if (!env.LEADX_KV) return json({ status: "rejected", reason: "service_unavailable" }, 503, privateHeaders(verification));
   const parsed = await parseImportRequest(request);
   if (parsed.error) return json({ status: "rejected", reason: parsed.error }, parsed.status, privateHeaders(verification));
-  const result = await storeImport(env, parsed.body, "upsert_vertical");
+  const result = await storeImport(env, parsed.body, { requiredMode: "upsert_vertical" });
   if (result.error) return json({ status: "rejected", reason: result.error }, result.status, privateHeaders(verification));
   logEvent("private_import.accepted", requestIdValue, "ok", { count: result.imported, vertical: result.vertical });
   return json({ status: "ok", ...result }, 200, privateHeaders(verification));

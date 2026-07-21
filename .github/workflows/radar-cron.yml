@@ -46,29 +46,49 @@ jobs:
           git diff --staged --quiet || git commit -m "radar: auto-update $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
 
-      - name: Push leads to Worker KV via /api/ingest
+      - name: Upsert Fotomultas leads to Worker KV via /api/ingest
         env:
           WORKER_URL: https://leadx.simondalmasso44.workers.dev
           INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+        shell: bash
         run: |
+          set -euo pipefail
           if [ ! -f data/dashboard_payload.json ]; then
             echo "No payload file found, skipping ingest"
             exit 0
           fi
-          LEADS_COUNT=$(python3 -c "import json; d=json.load(open('data/dashboard_payload.json')); print(len(d.get('leads_all',[])))")
-          echo "Uploading $LEADS_COUNT leads to Worker..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WORKER_URL/api/ingest" \
+
+          SAFE_PAYLOAD="$(mktemp)"
+          trap 'rm -f "$SAFE_PAYLOAD"' EXIT
+          jq -e '
+            (.leads_all | type == "array")
+            and ((.leads_all | length) <= 500)
+          ' data/dashboard_payload.json >/dev/null
+          jq '
+            . + {mode:"upsert_vertical", vertical:"fotomultas"}
+            | .leads_all = [(.leads_all // [])[] | . + {vertical:"fotomultas"}]
+          ' data/dashboard_payload.json > "$SAFE_PAYLOAD"
+
+          LEADS_COUNT="$(jq '.leads_all | length' "$SAFE_PAYLOAD")"
+          echo "Upserting $LEADS_COUNT Fotomultas leads to Worker..."
+          RESPONSE="$(curl -sS -w "\n%{http_code}" -X POST "$WORKER_URL/api/ingest" \
             -H "X-Webhook-Secret: $INGEST_SECRET" \
             -H "Content-Type: application/json" \
-            --data-binary @data/dashboard_payload.json)
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
+            --data-binary @"$SAFE_PAYLOAD")"
+          HTTP_CODE="$(echo "$RESPONSE" | tail -1)"
+          BODY="$(echo "$RESPONSE" | head -n -1)"
           echo "HTTP $HTTP_CODE"
-          echo "Response: $BODY"
           if [ "$HTTP_CODE" -ge 400 ]; then
             echo "ERROR: Ingest failed"
             exit 1
           fi
+          jq -e --argjson expected "$LEADS_COUNT" '
+            .status == "ok"
+            and .mode == "upsert_vertical"
+            and .vertical == "fotomultas"
+            and .imported == $expected
+            and (.inserted + .updated == .imported)
+          ' <<<"$BODY" >/dev/null
 
       # SECURITY: "Deploy Worker to Cloudflare" step eliminado.
       # Worker deployments now require explicit manual `npx wrangler deploy`

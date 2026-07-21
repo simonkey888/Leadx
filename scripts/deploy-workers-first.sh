@@ -9,6 +9,7 @@ WORKER_NAME="${LEADX_WORKER_NAME:-leadx}"
 WRANGLER_VERSION="${WRANGLER_VERSION:-4.111.0}"
 EXPECTED_FOTOMULTAS_COUNT="${EXPECTED_FOTOMULTAS_COUNT:-9}"
 EXPECTED_AGRO_COUNT="${EXPECTED_AGRO_COUNT:-40}"
+BROWSER_PREFLIGHT_ONLY="${LEADX_BROWSER_PREFLIGHT_ONLY:-0}"
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 ARTIFACT_DIR="${LEADX_DEPLOY_ARTIFACT_DIR:-$ROOT_DIR/artifacts/workers-first/$RUN_ID}"
 BUNDLE_DIR="$ARTIFACT_DIR/bundle"
@@ -24,6 +25,55 @@ require_command() {
 require_env_name() {
   local name="$1"
   [[ -n "${!name:-}" ]] || fail "Missing required environment variable: $name"
+}
+
+normalize_browser_path() {
+  local candidate="$1"
+  if command -v cygpath >/dev/null 2>&1 && [[ "$candidate" == /* ]]; then
+    cygpath -w "$candidate"
+  else
+    printf '%s\n' "$candidate"
+  fi
+}
+
+resolve_chromium_executable() {
+  local candidate=""
+
+  if [[ -n "${LEADX_CHROMIUM_EXECUTABLE:-}" ]]; then
+    printf '%s\n' "$LEADX_CHROMIUM_EXECUTABLE"
+    return 0
+  fi
+
+  for browser_command in chromium chromium-browser google-chrome-stable google-chrome chrome msedge; do
+    candidate="$(command -v "$browser_command" 2>/dev/null || true)"
+    if [[ -n "$candidate" ]]; then
+      normalize_browser_path "$candidate"
+      return 0
+    fi
+  done
+
+  if command -v where.exe >/dev/null 2>&1; then
+    for browser_binary in chromium.exe chrome.exe msedge.exe; do
+      candidate="$(where.exe "$browser_binary" 2>/dev/null | tr -d '\r' | head -n 1 || true)"
+      if [[ -n "$candidate" ]]; then
+        printf '%s\n' "$candidate"
+        return 0
+      fi
+    done
+  fi
+
+  for candidate in \
+    "/c/Program Files/Google/Chrome/Application/chrome.exe" \
+    "/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" \
+    "/c/Program Files/Microsoft/Edge/Application/msedge.exe" \
+    "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"; do
+    if [[ -f "$candidate" ]]; then
+      normalize_browser_path "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 deployments_jq='
@@ -63,6 +113,39 @@ active_traffic_percentage() {
   jq -r "${deployments_jq} deployments[0].versions[0].percentage // empty" "$1"
 }
 
+run_browser_stage() {
+  local mode="$1"
+  local output_file="$2"
+  local stage_status
+
+  (
+    cd web
+    node scripts/run-browser-smoke.mjs "$mode"
+  ) 2>&1 | tee "$output_file"
+  stage_status="${PIPESTATUS[0]}"
+  return "$stage_status"
+}
+
+prepare_browser_runner() {
+  log "Installing Playwright test package without downloading a browser."
+  npm --prefix web install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
+
+  LEADX_CHROMIUM_EXECUTABLE="$(resolve_chromium_executable || true)"
+  [[ -n "$LEADX_CHROMIUM_EXECUTABLE" ]] \
+    || fail "BROWSER_RUNNER_BLOCKED: no installed Chromium, Chrome, or Edge executable was found."
+  export LEADX_CHROMIUM_EXECUTABLE
+
+  log "Validating the installed browser before any Cloudflare deployment."
+  if run_browser_stage --preflight "$ARTIFACT_DIR/browser-preflight.log"; then
+    printf 'BROWSER_RUNNER_PREFLIGHT=PASS\n' >> "$ARTIFACT_DIR/summary.txt"
+    log "Browser runner preflight passed."
+  else
+    local preflight_status=$?
+    printf 'BROWSER_RUNNER_PREFLIGHT=BLOCKED\n' >> "$ARTIFACT_DIR/summary.txt"
+    fail "BROWSER_RUNNER_BLOCKED: preflight exited with status ${preflight_status}; no deploy was attempted."
+  fi
+}
+
 rollback_to_previous() {
   local reason="$1"
   [[ -n "${PREVIOUS_VERSION_ID:-}" ]] || {
@@ -98,12 +181,15 @@ production_smoke() {
   local agro="$ARTIFACT_DIR/leads-repuestos_agricolas.json"
   local fines="$ARTIFACT_DIR/leads-fotomultas.json"
 
+  log "HTTP smoke: health."
   curl -fsS "$BASE_URL/api/health?deploy_smoke=$nonce" -o "$health"
   jq -e '.status == "ok" and .service == "leadx"' "$health" >/dev/null
 
+  log "HTTP smoke: anonymous session."
   curl -fsS "$BASE_URL/api/auth/session?deploy_smoke=$nonce" -o "$session"
   jq -e '.authenticated == false and .mode == "demo"' "$session" >/dev/null
 
+  log "HTTP smoke: authenticated login."
   curl -fsS -c "$COOKIE_JAR" \
     -H 'Content-Type: application/json' \
     --data-binary "$(jq -cn --arg password "$DASHBOARD_PASSWORD" '{password:$password}')" \
@@ -111,6 +197,7 @@ production_smoke() {
     -o "$login"
   jq -e '.ok == true' "$login" >/dev/null
 
+  log "HTTP smoke: vertical readback."
   curl -fsS -b "$COOKIE_JAR" \
     "$BASE_URL/api/leads?vertical=repuestos_agricolas&deploy_smoke=$nonce" \
     -o "$agro"
@@ -131,6 +218,7 @@ production_smoke() {
   [[ "$agro_unique" == "$EXPECTED_AGRO_COUNT" ]] || return 1
   [[ "$fines_unique" == "$EXPECTED_FOTOMULTAS_COUNT" ]] || return 1
 
+  log "HTTP smoke: logout."
   curl -fsS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X POST \
     "$BASE_URL/api/auth/logout?deploy_smoke=$nonce" \
     -o "$ARTIFACT_DIR/logout.json"
@@ -142,18 +230,42 @@ production_smoke() {
   export LEADX_BASE_URL="$BASE_URL"
   export LEADX_SMOKE_PASSWORD="$DASHBOARD_PASSWORD"
   export LEADX_SMOKE_NONCE="$nonce"
-  (
-    cd web
-    npm install --no-save --package-lock=false @playwright/test@1.51.1 >/dev/null
-    npx playwright install --with-deps chromium >/dev/null
-    npx playwright test scripts/production-smoke.spec.mjs --workers=1 \
-      2>&1 | tee "$ARTIFACT_DIR/browser.log"
-  )
+  export LEADX_SMOKE_SCREENSHOT_DIR="$ARTIFACT_DIR/screenshots"
+
+  log "Browser smoke: starting controlled Playwright runner."
+  run_browser_stage --production "$ARTIFACT_DIR/browser.log"
 }
 
 for command in bash curl jq node npm sha256sum git; do
   require_command "$command"
 done
+
+SOURCE_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
+[[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || fail "The deployment source must be a Git working tree with a valid HEAD."
+test -z "$(git status --porcelain)" || fail "Working tree is not clean. Commit or stash before deploying."
+
+mkdir -p "$ARTIFACT_DIR" "$BUNDLE_DIR"
+chmod 700 "$ARTIFACT_DIR"
+: > "$ARTIFACT_DIR/summary.txt"
+
+log "Installing exact frontend dependencies."
+npm --prefix web ci
+prepare_browser_runner
+
+if [[ "$BROWSER_PREFLIGHT_ONLY" == "1" ]]; then
+  cat >> "$ARTIFACT_DIR/summary.txt" <<SUMMARY
+DEPLOY_SOURCE=browser-preflight-only
+SOURCE_SHA=$SOURCE_SHA
+DEPLOY_ATTEMPTED=NO
+PRODUCTION_CHANGED=NO
+ROLLBACK_EXECUTED=NO
+SUMMARY
+  find "$ARTIFACT_DIR" -type f ! -name SHA256SUMS -print0 \
+    | sort -z \
+    | xargs -0 sha256sum > "$ARTIFACT_DIR/SHA256SUMS"
+  log "Browser runner validation completed without deploying."
+  exit 0
+fi
 
 # Secret names only. Values are never printed.
 # GitHub repository secrets:
@@ -169,16 +281,6 @@ done
 for name in CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN DASHBOARD_PASSWORD; do
   require_env_name "$name"
 done
-
-SOURCE_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
-[[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || fail "The deployment source must be a Git working tree with a valid HEAD."
-test -z "$(git status --porcelain)" || fail "Working tree is not clean. Commit or stash before deploying."
-
-mkdir -p "$ARTIFACT_DIR" "$BUNDLE_DIR"
-chmod 700 "$ARTIFACT_DIR"
-
-log "Installing exact frontend dependencies."
-npm --prefix web ci
 
 log "Running build, tests and typecheck."
 npm --prefix web run build
@@ -245,14 +347,23 @@ if [[ "$propagated" != true || -z "$NEW_DEPLOYMENT_ID" ]]; then
 fi
 
 log "Running authenticated HTTP and browser production smokes."
-if ! production_smoke; then
+if production_smoke; then
+  log "Production smoke passed."
+else
+  smoke_status=$?
+  if [[ "$smoke_status" == "86" ]]; then
+    printf 'BROWSER_RUNNER=BLOCKED\n' >> "$ARTIFACT_DIR/summary.txt"
+    rollback_to_previous "browser runner blocked during post-deploy smoke"
+    fail "BROWSER_RUNNER_BLOCKED; the previous version was restored."
+  fi
+  printf 'BROWSER_SMOKE=FAILED\n' >> "$ARTIFACT_DIR/summary.txt"
   rollback_to_previous "post-deploy production smoke failed"
   fail "Production smoke failed; the previous version was restored."
 fi
 
 rm -f "$COOKIE_JAR" "$ARTIFACT_DIR/login.json" "$ARTIFACT_DIR/leads-"*.json
 
-cat > "$ARTIFACT_DIR/summary.txt" <<SUMMARY
+cat >> "$ARTIFACT_DIR/summary.txt" <<SUMMARY
 DEPLOY_SOURCE=cloudflare-workers-first
 SOURCE_SHA=$SOURCE_SHA
 BUNDLE_SHA256=$BUNDLE_SHA256

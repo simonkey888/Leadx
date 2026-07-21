@@ -1,8 +1,8 @@
 # LeadX API inventory
 
-Validated branch: `feat/leadx-agro-cnh-pipeline-v1`.
+Validated baseline: `main@91672001c893815a1f31f9cfdd11b31a18a6968a`.
 
-LeadX retains one contained Worker surface. Multi-line support extends the lead domain without adding providers, scraping, automation, enrichment or arbitrary storage access.
+LeadX retains one contained Worker surface. Multi-line support extends the lead domain without adding arbitrary storage access.
 
 Classification:
 
@@ -18,14 +18,37 @@ Only these values are accepted:
 - `fotomultas`
 - `repuestos_agricolas`
 
-A stored or ingested record with no `vertical` is treated as `fotomultas` for backward compatibility. An explicitly supplied unsupported value is rejected. Fields shared by both lines remain at the lead root; line-specific fields remain inside `vertical_data`.
+Stored legacy records with no `vertical` are treated as `fotomultas` for backward compatibility. Every new ingest or manual import must provide an explicit allowed vertical. Fields shared by both lines remain at the lead root; line-specific fields remain inside `vertical_data`.
+
+## Import-mode policy
+
+`replace_all` is not an accepted runtime mode.
+
+Both retained write endpoints require exactly:
+
+```text
+mode=upsert_vertical
+```
+
+Additional containment:
+
+- `/api/ingest` is limited by the server to `vertical=fotomultas`;
+- `/api/admin/import` accepts either supported vertical through an authenticated session;
+- every lead must match the declared vertical;
+- duplicate IDs inside one payload are rejected;
+- an incoming ID that already belongs to the other vertical returns `409 cross_vertical_id_conflict` before any KV write;
+- matching IDs preserve existing CRM fields;
+- records outside the imported vertical are preserved;
+- deletion and stale-record pruning are not implicit ingest behavior.
+
+A future full-snapshot operation must use a separately designed `replace_vertical` contract. Global replacement of `leads:live` is forbidden.
 
 ## Dependency summary
 
 | Consumer | Required routes |
 |---|---|
 | React SPA | `/api/auth/login`, `/api/auth/session`, `/api/auth/activity`, `/api/auth/logout`, `/api/leads`, `/api/metrics`, `/api/admin/import` |
-| Hunter / approved ingestion | `/api/ingest` only |
+| Radar / approved machine ingestion | `/api/ingest` only, with explicit Fotomultas vertical upsert |
 | Anonymous smoke / uptime | `/api/health`, `/api/auth/session`, `/api/leads`, `/api/metrics`, `/` |
 | Private operation | Auth/session routes plus authenticated `/api/leads`, `/api/metrics` and `/api/admin/import` |
 
@@ -42,9 +65,9 @@ A stored or ingested record with no `vertical` is treated as `fotomultas` for ba
 | GET | `/api/leads` | Optional signed cookie | Anonymous compatibility response: 12 Fotomultas demos. Authenticated compatibility response: all stored records, with missing vertical migrated to Fotomultas. |
 | GET | `/api/metrics?vertical=<allowed>` | Optional signed cookie | Returns metrics calculated only from the selected vertical. |
 | GET | `/api/metrics` | Optional signed cookie | Safe compatibility response; anonymous metrics remain fixed demo metrics. |
-| POST | `/api/ingest` | `INGEST_SECRET` | Validates the bounded JSON payload, defaults missing vertical to Fotomultas, rejects invalid verticals and preserves CRM state. |
-| POST | `/api/admin/import` | Signed dashboard session + explicit activity header | Bounded private JSON upsert. Accepts only one allowed vertical, deduplicates by lead `id`, preserves the other vertical and existing CRM fields, and returns counters rather than imported records. |
-| GET | `/api/health` | None | Sanitized health only; no KV access or private counters. |
+| POST | `/api/ingest` | `INGEST_SECRET` | Requires `mode=upsert_vertical`, `vertical=fotomultas` and homogeneous lead verticals. Preserves Repuestos agrícolas and CRM state; rejects cross-vertical ID conflicts. |
+| POST | `/api/admin/import` | Signed dashboard session + explicit activity header | Requires `mode=upsert_vertical` for one supported vertical. Preserves the other vertical and existing CRM fields; rejects cross-vertical ID conflicts and returns counters only. |
+| GET | `/api/health` | None | Sanitized liveness response; readiness redesign is tracked separately and is not implemented by this ingest-safety change. |
 
 All private responses are `no-store, private` and vary on `Cookie`. Anonymous API responses are `no-store`. The React client does not persist real leads or CRM state in browser storage.
 
@@ -79,4 +102,4 @@ The following routes remain hard-removed and return runtime `404` without reachi
 
 ## Production rule
 
-`.github/workflows/deploy-containment.yml` accepts one mandatory `target_sha`. It may deploy only when that SHA is the exact current HEAD of `main`, all tests pass, Cloudflare access and required secret names exist, and the previous deployment/version have been recorded for rollback.
+Code changes are deployed only through the canonical Workers-first operator path documented in `docs/WORKERS_FIRST_DEPLOYMENT.md`. The GitHub legacy deploy workflows remain disabled guards. No ingest or import operation may trigger a Worker deploy, and no code rollback reverts KV data.
