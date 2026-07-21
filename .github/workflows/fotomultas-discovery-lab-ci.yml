@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SOURCE_FILES=(
+          CORE_FILES=(
             labs/fotomultas_discovery/constants.py
             labs/fotomultas_discovery/contacts.py
             labs/fotomultas_discovery/debt.py
@@ -45,8 +45,15 @@ jobs:
             labs/fotomultas_discovery/cli.py
             labs/fotomultas_discovery/worker.py
           )
-          ! grep -nE 'LEADX_KV|/api/ingest|/api/admin/import|CLOUDFLARE_|WORKER_URL|wrangler[[:space:]]+deploy' "${SOURCE_FILES[@]}"
-          ! grep -nE 'urllib\.request|requests\.|httpx|aiohttp|socket\.' "${SOURCE_FILES[@]}"
+          ALL_FILES=("${CORE_FILES[@]}" labs/fotomultas_discovery/discovery.py)
+          ! grep -nE 'LEADX_KV|/api/ingest|/api/admin/import|wrangler[[:space:]]+deploy' "${ALL_FILES[@]}"
+          ! grep -nE 'urllib\.request|requests\.|httpx|aiohttp|socket\.' "${ALL_FILES[@]}"
+          ! grep -nE 'CLOUDFLARE_|WORKER_URL' "${CORE_FILES[@]}"
+          grep -Fq '"INGEST_SECRET": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq '"WORKER_URL": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq '"CLOUDFLARE_API_TOKEN": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq '"CLOUDFLARE_ACCOUNT_ID": ""' labs/fotomultas_discovery/discovery.py
+          grep -Fq 'allow-public-network' labs/fotomultas_discovery/discovery.py
           grep -Fq 'TARGET_VERTICAL = "fotomultas"' labs/fotomultas_discovery/constants.py
           grep -Fq 'DEBT_THRESHOLD_ARS = 1_000_000' labs/fotomultas_discovery/constants.py
 
@@ -79,13 +86,25 @@ jobs:
           print('SYNTHETIC_ARTIFACT_FLOW=PASS')
           PY
 
+      - name: Verify discovery runner remains opt-in
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          python -m labs.fotomultas_discovery.discovery --output /tmp/should-not-exist.json >/tmp/discovery.out 2>/tmp/discovery.err
+          code=$?
+          set -e
+          test "$code" -eq 2
+          grep -Fq 'public_network_discovery_requires_explicit_flag' /tmp/discovery.err
+          test ! -e /tmp/should-not-exist.json
+
       - name: Record containment summary
         shell: bash
         run: |
           {
             echo '### Fotomultas Discovery Lab'
             echo '- Synthetic tests: PASS'
-            echo '- Network access: NO'
+            echo '- Public-web discovery: opt-in and sandboxed'
             echo '- Production access: NO'
             echo '- Cloudflare/KV/ingest: NO'
             echo '- Repuestos agrícolas runtime access: NO'
