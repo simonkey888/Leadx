@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from labs.fotomultas_discovery.cli import load_candidates
+from labs.fotomultas_discovery.discovery import build_sanitized_environment, sanitize_legacy_payload
 from labs.fotomultas_discovery.pipeline import evaluate_candidate, run_batch
 from labs.fotomultas_discovery.worker import run_once
 
@@ -151,6 +152,65 @@ class PipelineTests(unittest.TestCase):
             result = json.loads((outbox / "job-ok.result.json").read_text(encoding="utf-8"))
             self.assertEqual(result["counts"]["ELIGIBLE_VERIFIED"], 1)
             self.assertTrue(any(dead.glob("*.error.json")))
+
+    def test_discovery_environment_strips_all_operational_credentials(self):
+        env = build_sanitized_environment(
+            {
+                "PATH": "/usr/bin",
+                "INGEST_SECRET": "secret",
+                "WORKER_URL": "https://production.invalid",
+                "CLOUDFLARE_API_TOKEN": "token",
+                "CLOUDFLARE_ACCOUNT_ID": "account",
+                "DASHBOARD_PASSWORD": "password",
+                "SESSION_SECRET": "session",
+                "UNRELATED_SECRET": "must-not-pass",
+            }
+        )
+        self.assertEqual(env["PATH"], "/usr/bin")
+        self.assertEqual(env["INGEST_SECRET"], "")
+        self.assertEqual(env["WORKER_URL"], "")
+        self.assertEqual(env["CLOUDFLARE_API_TOKEN"], "")
+        self.assertEqual(env["CLOUDFLARE_ACCOUNT_ID"], "")
+        self.assertEqual(env["DASHBOARD_PASSWORD"], "")
+        self.assertEqual(env["SESSION_SECRET"], "")
+        self.assertNotIn("UNRELATED_SECRET", env)
+
+    def test_discovery_sanitizer_drops_other_verticals_and_raw_fields(self):
+        payload = {
+            "leads_all": [
+                {
+                    "id": "legacy:foto:1",
+                    "vertical": "fotomultas",
+                    "persona": "Entidad sintetica",
+                    "source_url": "https://example.org/foto/1",
+                    "contacto_publico": True,
+                    "email_publico": "public@example.org",
+                    "patente": "AA000AA",
+                    "quoted_text": "raw text that must not leave the sandbox",
+                    "deuda_clasificar": 123456,
+                },
+                {
+                    "id": "legacy:agro:1",
+                    "vertical": "repuestos_agricolas",
+                    "persona": "Agro sintetico",
+                    "source_url": "https://example.org/agro/1",
+                    "contacto_publico": True,
+                    "email_publico": "agro@example.org",
+                },
+            ]
+        }
+        sanitized = sanitize_legacy_payload(payload)
+        self.assertEqual(sanitized["target_vertical"], "fotomultas")
+        self.assertEqual(sanitized["candidate_count"], 1)
+        self.assertFalse(sanitized["production_access"])
+        self.assertFalse(sanitized["cloudflare_access"])
+        self.assertFalse(sanitized["kv_access"])
+        self.assertFalse(sanitized["ingest_enabled"])
+        only = sanitized["candidates"][0]
+        self.assertEqual(only["id"], "legacy:foto:1")
+        self.assertNotIn("patente", only)
+        self.assertNotIn("quoted_text", only)
+        self.assertNotIn("deuda_clasificar", only)
 
 
 if __name__ == "__main__":
