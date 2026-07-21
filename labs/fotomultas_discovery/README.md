@@ -70,7 +70,26 @@ python -m labs.fotomultas_discovery.discovery \
 
 Sin `--allow-public-network`, el runner termina bloqueado antes de ejecutar el radar. Un archivo `.lock` evita ejecuciones concurrentes. El directorio temporal se elimina al finalizar.
 
+## Supervisor autónomo completo
+
+El supervisor une descubrimiento y evaluación en un único ciclo atómico. Si cualquier etapa falla, conserva intactos los últimos candidatos y decisiones válidos.
+
+```bash
+python -m labs.fotomultas_discovery.orchestrator \
+  --repo-root /ruta/al/repo \
+  --candidates-output /ruta/privada/candidates-latest.json \
+  --decisions-output /ruta/privada/fotomultas-decisions.json \
+  --verifications /ruta/privada/verifications.json \
+  --allow-public-network \
+  --watch \
+  --interval-minutes 180
+```
+
+La ausencia del archivo de verificaciones no detiene el ciclo: los contactos válidos quedan en `PENDING_VERIFICATION`. El supervisor nunca degrada un candidato a verificado sin constancia oficial válida.
+
 ## Evaluación de candidatos
+
+Para evaluar archivos existentes sin ejecutar descubrimiento:
 
 ```bash
 python -m labs.fotomultas_discovery.cli \
@@ -81,7 +100,7 @@ python -m labs.fotomultas_discovery.cli \
 
 Las rutas de candidatos, verificaciones y salida deben permanecer fuera del repositorio.
 
-## Worker continuo
+## Worker continuo de jobs
 
 El worker observa un inbox privado de archivos JSON. Cada job se procesa una sola vez. Un job inválido se mueve a dead-letter y no se reintenta ciegamente.
 
@@ -107,4 +126,4 @@ Contrato de job:
 
 ## Próxima fase permitida
 
-Ejecutar este runner en un contenedor no productivo y medir calidad de candidatos. La integración con SINAI en vivo, Cloudflare o LeadX queda bloqueada hasta una revisión específica y autorización de producción.
+Ejecutar el supervisor en un contenedor no productivo y medir calidad de candidatos. La integración con SINAI en vivo, Cloudflare o LeadX queda bloqueada hasta una revisión específica y autorización de producción.
