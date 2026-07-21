@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - scripts/deploy-workers-first.sh
+      - web/scripts/production-smoke.spec.mjs
+      - web/scripts/run-browser-smoke.mjs
+      - web/scripts/browser-runner-preflight.mjs
       - docs/WORKERS_FIRST_DEPLOYMENT.md
       - .github/workflows/deploy-once.yml
       - .github/workflows/deploy-containment.yml
@@ -17,6 +20,9 @@ on:
       - main
     paths:
       - scripts/deploy-workers-first.sh
+      - web/scripts/production-smoke.spec.mjs
+      - web/scripts/run-browser-smoke.mjs
+      - web/scripts/browser-runner-preflight.mjs
       - docs/WORKERS_FIRST_DEPLOYMENT.md
       - .github/workflows/deploy-once.yml
       - .github/workflows/deploy-containment.yml
@@ -34,7 +40,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +49,9 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/deploy-workers-first.sh
+          node --check web/scripts/production-smoke.spec.mjs
+          node --check web/scripts/run-browser-smoke.mjs
+          node --check web/scripts/browser-runner-preflight.mjs
           ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |path| YAML.load_file(path); puts "YAML PASS #{path}" }'
 
       - name: Enforce Workers-first containment
@@ -74,6 +83,30 @@ jobs:
           npm --prefix web run build
           npm --prefix web test
           npm --prefix web run typecheck
+
+      - name: Validate browser runner preflight without production access
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pipeline-ci
+          npm --prefix web install --no-save --package-lock=false @playwright/test@1.51.1
+          (
+            cd web
+            npx playwright install --with-deps chromium
+            LEADX_CHROMIUM_EXECUTABLE="$(node --input-type=module -e 'import { chromium } from "@playwright/test"; process.stdout.write(chromium.executablePath())')"
+            export LEADX_CHROMIUM_EXECUTABLE
+            export LEADX_BROWSER_HARD_TIMEOUT_MS=60000
+            export LEADX_BROWSER_HEARTBEAT_MS=5000
+            test -x "$LEADX_CHROMIUM_EXECUTABLE"
+            node scripts/run-browser-smoke.mjs --preflight
+          ) 2>&1 | tee artifacts/pipeline-ci/browser-preflight.log
+          grep -Fq '[browser-preflight] PASS' artifacts/pipeline-ci/browser-preflight.log
+          grep -Fq '[browser-runner] PASS' artifacts/pipeline-ci/browser-preflight.log
+          printf '%s\n' \
+            'BROWSER_PREFLIGHT=PASS' \
+            'PRODUCTION_ACCESS=NO' \
+            'DEPLOY_EXECUTED=NO' \
+            > artifacts/pipeline-ci/browser-preflight-summary.txt
 
       - name: Validate exact Wrangler bundle without deploying
         shell: bash
