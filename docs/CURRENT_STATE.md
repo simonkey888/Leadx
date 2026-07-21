@@ -48,7 +48,7 @@ BRANCH=feat/fotomultas-discovery-lab-v1
 BASE_BRANCH=fix/ingest-vertical-safety-v1
 PR_STATE=DRAFT_OPEN
 CURRENT_PR_HEAD=VERIFY_REMOTE_BEFORE_ACTION
-LAB_IMPLEMENTATION_HEAD_BEFORE_WORKLOG=fbb4ae5ecd04476f185ced28772f38dd74933d66
+LAST_FULL_IMPLEMENTATION_HEAD=d43843ef44b4c1a976e241809947a9584fcbb9ea
 TARGET_VERTICAL=fotomultas
 DEBT_THRESHOLD_ARS=1000000
 REPUESTOS_AGRICOLAS_ACCESS=NO
@@ -78,10 +78,14 @@ La suma puede estar compuesta por varias infracciones. Las pagadas, anuladas, ca
 - `pipeline.py`: gates fail-closed, expiración, autorización, fuente oficial, hash de evidencia y estados de decisión.
 - `cli.py`: evaluación artifact-only sin red ni producción.
 - `worker.py`: inbox, outbox, processed y dead-letter sin reintento ciego.
-- `discovery.py`: ejecuta el radar público existente en sandbox temporal y con secretos operativos vaciados.
+- `discovery.py`: ejecuta el radar público existente en sandbox temporal y con credenciales operativas vaciadas.
 - `orchestrator.py`: ciclo autónomo discovery → verificación privada → decisiones, con lock y `cycle_id` compartido.
+- `healthcheck.py`: exige outputs recientes, misma versión de ciclo, vertical correcta y `production_access=false`.
+- `container/Dockerfile`: imagen OCI genérica, no-root, volumen privado y healthcheck.
+- `container/entrypoint.sh`: arranque default-deny y supervisor continuo.
+- `.dockerignore`: contexto mínimo sin frontend, datos ni archivos ajenos al laboratorio.
 - fixtures y tests exclusivamente sintéticos.
-- CI de contención con permisos read-only.
+- CI de contención con permisos read-only y build real de imagen.
 
 ### Estados del pipeline
 
@@ -97,13 +101,30 @@ El runner de búsqueda:
 
 - requiere `--allow-public-network`;
 - corre `generate_payload.py` en un directorio temporal;
-- vacía `INGEST_SECRET`, `WORKER_URL`, credenciales Cloudflare, contraseña y secreto de sesión;
+- vacía credenciales de LeadX y Cloudflare;
 - no hereda variables de entorno desconocidas;
 - no ejecuta el workflow legacy `radar-cron.yml`;
 - elimina registros que no sean `fotomultas`;
 - elimina patente, texto crudo y deuda de fuentes no oficiales antes de publicar;
 - conserva únicamente un artefacto privado sanitizado;
 - no consulta SINAI en vivo.
+
+### Runtime OCI preparado
+
+```text
+OCI_IMAGE_STATUS=BUILD_VALIDATED_NOT_PUBLISHED
+OCI_BASE=python:3.11-slim-bookworm
+OCI_BASE_INDEX_DIGEST=sha256:b18992999dbe963a45a8a4da40ac2b1975be1a776d939d098c647482bcad5cba
+OCI_USER=10001:10001
+OCI_APPLICATION_FILESYSTEM=READ_ONLY_BY_PERMISSIONS
+OCI_STATE_VOLUME=/state
+OCI_DEFAULT_START=BLOCKED_UNLESS_PUBLIC_NETWORK_FLAG_EQUALS_1
+OCI_HEALTHCHECK=CYCLE_ID_MATCH_AND_FRESHNESS
+OCI_REGISTRY_PUSHED=NO
+OCI_RUNTIME_ACTIVE=NO
+```
+
+La imagen es compatible con un host OCI genérico. No se eligió ni se activó Oracle o Northflank.
 
 ### Tecnologías externas
 
@@ -121,19 +142,23 @@ El radar existente ya resuelve el descubrimiento público inicial. GoogleScraper
 
 ```text
 CI_WORKFLOW=LeadX Fotomultas Discovery Lab CI
-LAST_FULL_CODE_HEAD_VALIDATED=28112f664bc5bef2c203fdf265b7e11e593a2e17
-LAST_FULL_CODE_RUN_ID=29834068571
+LAST_FULL_CODE_HEAD_VALIDATED=d43843ef44b4c1a976e241809947a9584fcbb9ea
+LAST_FULL_CODE_RUN_ID=29835234185
 LAST_FULL_CODE_CONCLUSION=success
 CONTAINMENT=PASS
 PYTHON_COMPILE=PASS
 UNIT_TESTS=PASS
 SYNTHETIC_ARTIFACT_FLOW=PASS
 NETWORK_RUNNERS_OPT_IN=PASS
+OCI_IMAGE_BUILD=PASS
+OCI_IMAGE_TESTS_WITH_NETWORK_NONE=PASS
+OCI_NON_ROOT_USER=PASS
+OCI_DEFAULT_DENY_STARTUP=PASS
 PRODUCTION_ACCESS=NO
 CLOUDFLARE_KV_INGEST_ACCESS=NO
 ```
 
-La CI sólo usa fixtures sintéticos. No ejecuta descubrimiento web real, no consulta SINAI y no crea artefactos con leads reales.
+La CI sólo usa fixtures sintéticos. No ejecuta descubrimiento web real, no consulta SINAI, no inicia infraestructura externa y no crea artefactos con leads reales.
 
 ## Arquitectura de release vigente
 
@@ -159,15 +184,16 @@ Secuencia obligatoria para un release futuro:
 ## Riesgos y bloqueos abiertos
 
 1. PR #19 todavía no fue validado y reconciliado mediante una candidata Cloudflare del HEAD exacto.
-2. El laboratorio está implementado, pero no está ejecutándose en un host continuo.
+2. El laboratorio está implementado y empaquetado, pero no está ejecutándose en un host continuo.
 3. SINAI en vivo no está automatizado: requiere revisión específica de finalidad, autorización, frecuencia, privacidad y condiciones vigentes.
 4. Los candidatos reales y verificaciones privadas deben permanecer fuera de GitHub, CI, Drive y artefactos públicos.
 5. `radar-cron.yml` sigue pausado y no debe ejecutarse manualmente.
+6. Antes de activar el contenedor se debe elegir un host no productivo y definir almacenamiento privado persistente.
 
 ## Próximo paso exacto
 
 ```text
-NEXT_EXACT_ACTION=PREPARE_NON_PRODUCTION_CONTAINER_RUNTIME_FOR_PR20_WITHOUT_STARTING_PRODUCTION_OR_SINAI_AUTOMATION
+NEXT_EXACT_ACTION=SELECT_AND_AUTHORIZE_NON_PRODUCTION_OCI_HOST_ORACLE_OR_NORTHFLANK_FOR_PR20_RUNTIME
 ```
 
-La próxima fase debe preparar el runtime de un contenedor no productivo para ejecutar el supervisor y medir calidad. Iniciar ese runtime externo o conectar una verificación SINAI real constituye una operación externa y debe respetar los límites operativos vigentes. No desplegar LeadX, no tocar Cloudflare y no modificar Repuestos agrícolas.
+La implementación permitida sin infraestructura quedó completa. Activar Oracle, Northflank u otro host constituye despliegue externo y requiere detenerse según los límites operativos vigentes. No desplegar LeadX, no tocar Cloudflare, no conectar SINAI en vivo y no modificar Repuestos agrícolas.
